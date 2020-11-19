@@ -59,6 +59,7 @@
     <Compile Include="Audio\AudioPlaybackEngine.cs" />
     <Compile Include="Audio\CachedSound.cs" />
     <Compile Include="Audio\CachedSoundSampleProvider.cs" />
+    <Compile Include="Audio\MyAudioFileReader.cs" />
     <Compile Include="DeviceProvider.cs" />
     <Compile Include="DirectSoundOutInfo.cs" />
     <Compile Include="Execute.cs" />
@@ -77,6 +78,11 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="FormTrigger.resx">
+      <DependentUpon>FormTrigger.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

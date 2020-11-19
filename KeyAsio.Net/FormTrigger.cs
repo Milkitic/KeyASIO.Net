@@ -19,7 +19,7 @@ namespace KeyAsio.Net
         public FormTrigger()
         {
             InitializeComponent();
-
+            Visible = false;
             Load += Form1_Load;
             Closed += Form1_Closed;
         }

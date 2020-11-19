@@ -11,6 +11,7 @@ using Gma.System.MouseKeyHook;
 using KeyAsio.Net.Audio;
 using NAudio.Wave;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace KeyAsio.Net
 {
@@ -62,16 +63,22 @@ namespace KeyAsio.Net
 
             _deviceInfo = settings.DeviceInfo ?? SelectDevice();
             Device = DeviceProvider.CreateDevice(out _deviceInfo, _deviceInfo, settings.Latency);
-            Engine = new AudioPlaybackEngine(Device);
+            Engine = new AudioPlaybackEngine(Device, AppSettings.Default.SampleRate, AppSettings.Default.ChannelCount);
             while (true)
             {
                 if (Device == null)
                 {
                     _deviceInfo = SelectDevice();
                     Device = DeviceProvider.CreateDevice(out _deviceInfo, _deviceInfo);
-                    Engine = new AudioPlaybackEngine(Device);
+                    Engine = new AudioPlaybackEngine(Device, AppSettings.Default.SampleRate, AppSettings.Default.ChannelCount);
                 }
 
+                Console.WriteLine("Current Info: ");
+                Console.WriteLine(JsonConvert.SerializeObject(new DisplayInfo
+                {
+                    DeviceInfo = _deviceInfo,
+                    WaveFormat = Engine?.WaveFormat
+                }, Formatting.Indented, new StringEnumConverter()));
                 var formTrigger = new FormTrigger();
                 Application.Run(formTrigger);
 
@@ -207,5 +214,11 @@ namespace KeyAsio.Net
         private delegate bool ConsoleEventDelegate(int eventType);
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetConsoleCtrlHandler(ConsoleEventDelegate callback, bool add);
+    }
+
+    internal class DisplayInfo
+    {
+        public IDeviceInfo DeviceInfo { get; set; }
+        public WaveFormat WaveFormat { get; set; }
     }
 }

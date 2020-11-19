@@ -15,6 +15,9 @@ namespace KeyAsio.Net
         };
         public string HitsoundPath { get; set; } = "click.wav";
         public int Latency { get; set; } = 0;
+        public int SampleRate { get; set; } = 48000;
+        public int Bits { get; set; } = 16;
+        public int ChannelCount { get; set; } = 2;
         public IDeviceInfo DeviceInfo { get; set; }
         public void Save()
         {

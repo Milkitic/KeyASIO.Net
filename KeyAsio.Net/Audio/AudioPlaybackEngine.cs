@@ -15,12 +15,13 @@ namespace KeyAsio.Net.Audio
 
         private static string[] _supportExtensions = { ".wav" };
         private readonly IWavePlayer _outputDevice;
-
-
+        public WaveFormat WaveFormat { get; }
+        
         public AudioPlaybackEngine(IWavePlayer outputDevice, int sampleRate = 44100, int channelCount = 2)
         {
             _outputDevice = outputDevice;
-            _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount))
+            WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount);
+            _mixer = new MixingSampleProvider(WaveFormat)
             {
                 ReadFully = true
             };
