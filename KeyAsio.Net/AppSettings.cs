@@ -27,7 +27,8 @@ namespace KeyAsio.Net
                 var content = JsonConvert.SerializeObject(this, Formatting.Indented,
                     new JsonSerializerSettings
                     {
-                        TypeNameHandling = TypeNameHandling.Auto
+                        TypeNameHandling = TypeNameHandling.Auto,
+                        ObjectCreationHandling = ObjectCreationHandling.Replace
                     });
                 //byte[] buffer = Encoding.GetBytes(content);
                 //FileStream.Value.Write(buffer, 0, buffer.Length);

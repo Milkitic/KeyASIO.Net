@@ -41,7 +41,8 @@ namespace KeyAsio.Net
                     settings = JsonConvert.DeserializeObject<AppSettings>(content,
                         new JsonSerializerSettings
                         {
-                            TypeNameHandling = TypeNameHandling.Auto
+                            TypeNameHandling = TypeNameHandling.Auto,
+                            ObjectCreationHandling = ObjectCreationHandling.Replace
                         }
                     );
                     AppSettings.LoadDefault(settings);
