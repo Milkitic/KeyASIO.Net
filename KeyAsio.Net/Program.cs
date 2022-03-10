@@ -19,7 +19,7 @@ namespace KeyAsio.Net
     class Program
     {
         internal static IKeyboardMouseEvents GlobalHook;
-        private static DeviceMetadata _deviceInfo;
+        private static DeviceDescription _deviceInfo;
         internal static IWavePlayer Device;
 
         public static AudioPlaybackEngine Engine { get; set; }
@@ -141,9 +141,9 @@ namespace KeyAsio.Net
             GlobalHook.Dispose();
         }
 
-        private static DeviceMetadata SelectDevice()
+        private static DeviceDescription SelectDevice()
         {
-            var devices = DeviceProvider.GetAvailableDevices().ToList();
+            var devices = DeviceProvider.GetCachedAvailableDevices().ToList();
             var o = devices
                 .GroupBy(k => k.WavePlayerType)
                 .Select((k, i) => (i + 1, k.Key))
