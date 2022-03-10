@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Gma.System.MouseKeyHook;
 using KeyAsio.Net.Audio;
+using KeyAsio.Net.Models;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -17,7 +18,8 @@ namespace KeyAsio.Net
 {
     class Program
     {
-        private static IDeviceInfo _deviceInfo;
+        internal static IKeyboardMouseEvents GlobalHook;
+        private static DeviceMetadata _deviceInfo;
         internal static IWavePlayer Device;
 
         public static AudioPlaybackEngine Engine { get; set; }
@@ -26,6 +28,7 @@ namespace KeyAsio.Net
         static void Main(string[] args)
         {
             _handler = ConsoleEventCallback;
+            GlobalHook = Hook.GlobalEvents();
             SetConsoleCtrlHandler(_handler, true);
             AppSettings settings;
 
@@ -120,8 +123,7 @@ namespace KeyAsio.Net
 
                         break;
                     case "exit":
-                        Device?.Dispose();
-                        Engine?.Dispose();
+                        DisposeAll();
                         Device = null;
                         Engine = null;
                         formTrigger.Close();
@@ -132,24 +134,31 @@ namespace KeyAsio.Net
             }
         }
 
-        private static IDeviceInfo SelectDevice()
+        private static void DisposeAll()
         {
-            var devices = DeviceProvider.EnumerateAvailableDevices().ToList();
+            Device?.Dispose();
+            Engine?.Dispose();
+            GlobalHook.Dispose();
+        }
+
+        private static DeviceMetadata SelectDevice()
+        {
+            var devices = DeviceProvider.GetAvailableDevices().ToList();
             var o = devices
-                .GroupBy(k => k.OutputMethod)
+                .GroupBy(k => k.WavePlayerType)
                 .Select((k, i) => (i + 1, k.Key))
                 .ToDictionary(k => k.Key, k => k.Item1);
             var sb = new StringBuilder();
             sb.AppendLine(string.Join("\r\n", o.Select(k => $"{k.Value}. {k.Key}")));
             sb.Append("Select output method: ");
             int selectedIndex;
-            if (o.ContainsKey(OutputMethod.Asio))
+            if (o.ContainsKey(WavePlayerType.ASIO))
             {
-                selectedIndex = o[OutputMethod.Asio];
+                selectedIndex = o[WavePlayerType.ASIO];
             }
-            else if (o.ContainsKey(OutputMethod.Wasapi))
+            else if (o.ContainsKey(WavePlayerType.WASAPI))
             {
-                selectedIndex = o[OutputMethod.Wasapi];
+                selectedIndex = o[WavePlayerType.WASAPI];
             }
             else
             {
@@ -162,7 +171,7 @@ namespace KeyAsio.Net
             var selected = o.FirstOrDefault(k => k.Value == selectedIndex);
 
             var dic = devices
-                .Where(k => k.OutputMethod == selected.Key).Select((k, i) => (i + 1, k))
+                .Where(k => k.WavePlayerType == selected.Key).Select((k, i) => (i + 1, k))
                 .ToDictionary(k => k.k, k => k.Item1);
             sb.Clear();
             sb.AppendLine(string.Join("\r\n", dic.Select(k => $"{k.Value}. {k.Key.FriendlyName}")));
@@ -203,8 +212,9 @@ namespace KeyAsio.Net
         {
             if (eventType == 2)
             {
-                Console.WriteLine("Console window closing, death imminent");
-                Device?.Dispose();
+                Console.WriteLine(Environment.NewLine + "Console window closing, death imminent...");
+                DisposeAll();
+                Thread.Sleep(500);
             }
 
             return false;
