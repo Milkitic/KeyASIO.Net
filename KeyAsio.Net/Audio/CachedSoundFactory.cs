@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -52,7 +54,7 @@ public static class CachedSoundFactory
         // Cache each file once before play.
         var sound = CachedDictionary.GetOrAdd(path, cachedSound);
 
-        Console.WriteLine("Total size of cache usage: {0}", SharedUtils.CountSize(
+        Console.WriteLine("Total size of cache usage: {0}", SharedUtils.SizeSuffix(
             CachedDictionary.Values.Sum(k => k?.AudioData.Length * sizeof(float) ?? 0)));
 
         return sound;
@@ -67,18 +69,28 @@ public static class CachedSoundFactory
     {
         await using var audioFileReader =
             await ResamplingHelper.GetResampledAudioFileReader(filePath, WavType, waveFormat).ConfigureAwait(false);
+        var sw = Stopwatch.StartNew();
         var wholeData = new float[(int)(audioFileReader.Length / 4)];
-
         var actualWaveFormat = audioFileReader.WaveFormat;
-        var readBuffer = new float[actualWaveFormat.SampleRate * actualWaveFormat.Channels];
-        int samplesRead;
-        int offset = 0;
-        while ((samplesRead = audioFileReader.Read(readBuffer, 0, readBuffer.Length)) > 0)
-        {
-            readBuffer.AsSpan(0, samplesRead).CopyTo(wholeData.AsSpan(offset, samplesRead));
-            offset += samplesRead;
-        }
 
-        return new CachedSound(filePath, wholeData, audioFileReader.TotalTime, actualWaveFormat);
+        var length = actualWaveFormat.SampleRate * actualWaveFormat.Channels;
+        var readBuffer = ArrayPool<float>.Shared.Rent(length);
+        try
+        {
+            int samplesRead;
+            int offset = 0;
+            while ((samplesRead = audioFileReader.Read(readBuffer, 0, length)) > 0)
+            {
+                readBuffer.AsSpan(0, samplesRead).CopyTo(wholeData.AsSpan(offset, samplesRead));
+                offset += samplesRead;
+            }
+                
+            return new CachedSound(filePath, wholeData, audioFileReader.TotalTime, actualWaveFormat);
+        }
+        finally
+        {
+            ArrayPool<float>.Shared.Return(readBuffer);
+            Console.WriteLine($"Cached {Path.GetFileName(filePath)} in {sw.Elapsed.TotalMilliseconds:N2}ms");
+        }
     }
 }

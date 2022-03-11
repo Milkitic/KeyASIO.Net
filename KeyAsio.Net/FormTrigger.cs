@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using KeyAsio.Net.Audio;
 using KeyAsio.Net.Hooking;
 using KeyAsio.Net.Models;
@@ -45,6 +46,9 @@ namespace KeyAsio.Net
             {
                 RegisterHotKey(key, cacheSound);
             }
+
+            Console.WriteLine("Your active keys: " + string.Join(",", _settings.Keys.OrderBy(k => k)));
+            Console.WriteLine("Initialization done.");
         }
 
         private void Form1_Closed(object? sender, EventArgs e)
@@ -62,12 +66,18 @@ namespace KeyAsio.Net
             _device = DeviceProvider.CreateDevice(out var actualDeviceInfo, _deviceDescription);
             _engine = new AudioPlaybackEngine(_device, _settings.SampleRate, _settings.Channels);
 
-            Console.WriteLine("Current Info: ");
-            Console.WriteLine(JsonSerializer.Serialize(new
+            Console.WriteLine("Active device information: ");
+            var aymInfo = new
             {
                 DeviceInfo = actualDeviceInfo,
-                WaveFormat = _engine?.WaveFormat?.ToString()
+                WaveFormat = _engine?.WaveFormat
+            };
+            Console.WriteLine(JsonSerializer.Serialize(aymInfo, new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+                Converters = { new JsonStringEnumConverter() }
             }));
+            Console.WriteLine();
         }
 
         private void RegisterHotKey(Keys key, CachedSound? cacheSound)
@@ -80,14 +90,16 @@ namespace KeyAsio.Net
                         return;
                     _pressingKeys.Add(key);
                     _engine.PlaySound(cacheSound);
-                    Console.WriteLine($"{key} {action}");
+                    if (_settings.Debugging)
+                        Console.WriteLine($"{key} {action}");
                 }
                 else
                 {
                     if (!_pressingKeys.Contains(key))
                         return;
                     _pressingKeys.Remove(key);
-                    Console.WriteLine($"{key} {action}");
+                    if (_settings.Debugging)
+                        Console.WriteLine($"{key} {action}");
                 }
             });
         }

@@ -12,14 +12,11 @@ public class AudioPlaybackEngine : IDisposable
     {
         _outputDevice = outputDevice;
         WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount);
-        _mixer = new MixingSampleProvider(WaveFormat)
-        {
-            ReadFully = true
-        };
-
+        _mixer = new MixingSampleProvider(WaveFormat) { ReadFully = true };
         _outputDevice.Init(_mixer);
         _outputDevice.Play();
     }
+
     public WaveFormat WaveFormat { get; }
 
     public void PlaySound(CachedSound? sound)

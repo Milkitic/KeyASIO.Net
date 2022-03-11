@@ -1,27 +1,28 @@
-﻿using System;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 
 namespace KeyAsio.Net.Audio
 {
-    class CachedSoundSampleProvider : ISampleProvider
+    public class CachedSoundSampleProvider : ISampleProvider
     {
-        public CachedSound SourceSound { get; }
-        private long _position;
+        private readonly CachedSound _sourceSound;
+        private int _position;
 
         public CachedSoundSampleProvider(CachedSound cachedSound)
         {
-            SourceSound = cachedSound;
+            _sourceSound = cachedSound;
         }
 
         public int Read(float[] buffer, int offset, int count)
         {
-            var availableSamples = SourceSound.AudioData.Length - _position;
+            var availableSamples = _sourceSound.AudioData.Length - _position;
             var samplesToCopy = Math.Min(availableSamples, count);
-            Array.Copy(SourceSound.AudioData, _position, buffer, offset, samplesToCopy);
+            _sourceSound.AudioData.Span
+                .Slice(_position, samplesToCopy)
+                .CopyTo(buffer.AsSpan(offset));
             _position += samplesToCopy;
-            return (int)samplesToCopy;
+            return samplesToCopy;
         }
 
-        public WaveFormat WaveFormat => SourceSound.WaveFormat;
+        public WaveFormat WaveFormat => _sourceSound.WaveFormat;
     }
 }

@@ -20,7 +20,7 @@ public static class ConfigurationFactory
         if (!File.Exists(path))
         {
             retConfig = CreateDefaultConfigByPath(type, path, converter);
-            Console.WriteLine($"{path} config file not found. " +
+            Console.WriteLine($"Config file \"{Path.GetFileName(path)}\" was not found. " +
                               $"Default config was created and used.");
         }
         else
@@ -31,7 +31,7 @@ public static class ConfigurationFactory
             {
                 retConfig = converter.DeserializeSettings(content, type);
                 SaveConfig(retConfig, path, converter);
-                Console.WriteLine($"{path} config file was loaded.");
+                Console.WriteLine($"Config file \"{Path.GetFileName(path)}\" was loaded.");
             }
             catch (Exception ex)
             {

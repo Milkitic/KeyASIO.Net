@@ -1,4 +1,5 @@
-﻿using NAudio.Wave;
+﻿using System.Diagnostics;
+using NAudio.Wave;
 
 namespace KeyAsio.Net.Audio;
 
@@ -6,44 +7,41 @@ internal static class ResamplingHelper
 {
     public static async Task<MyAudioFileReader> GetResampledAudioFileReader(string path, WaveType type, WaveFormat newWaveFormat)
     {
-        var stream = await Resample(path, type, newWaveFormat).ConfigureAwait(false);
+        var stream = await Resample(path, newWaveFormat).ConfigureAwait(false);
         return stream is MyAudioFileReader afr ? afr : new MyAudioFileReader(stream, type);
     }
 
-    private static async Task<Stream> Resample(string path, WaveType type, WaveFormat newWaveFormat)
+    private static async Task<Stream> Resample(string path, WaveFormat newWaveFormat)
     {
         return await Task.Run(() =>
         {
             MyAudioFileReader? audioFileReader = null;
             try
             {
-                Console.WriteLine($"Start reading {path}");
                 audioFileReader = File.Exists(path)
                     ? new MyAudioFileReader(path)
                     : new MyAudioFileReader(SharedUtils.EmptyWaveFile, WaveType.Wav);
-                Console.WriteLine($"Finish reading {path}");
                 if (CompareWaveFormat(audioFileReader.WaveFormat, newWaveFormat))
                 {
                     return (Stream)audioFileReader;
                 }
 
-                Console.WriteLine($"Start resampling {path}");
-                using (audioFileReader)
+                var sw = Stopwatch.StartNew();
+                try
                 {
-                    if (type == WaveType.Wav)
+                    using (audioFileReader)
                     {
                         using var resampler = new MediaFoundationResampler(audioFileReader, newWaveFormat);
                         var stream = new MemoryStream();
                         resampler.ResamplerQuality = 60; // highest
                         WaveFileWriter.WriteWavFileToStream(stream, resampler);
-                        Console.WriteLine($"Resampled {path}");
                         stream.Position = 0;
                         return stream;
                     }
-                    else
-                    {
-                        throw new NotSupportedException();
-                    }
+                }
+                finally
+                {
+                    Console.WriteLine($"Resampled {Path.GetFileName(path)} in {sw.Elapsed.TotalMilliseconds:N2}ms");
                 }
             }
             catch (Exception ex)

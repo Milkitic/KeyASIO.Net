@@ -5,11 +5,11 @@ namespace KeyAsio.Net.Audio;
 public class CachedSound
 {
     public string SourcePath { get; }
-    public float[] AudioData { get; }
+    public ReadOnlyMemory<float> AudioData { get; }
     public WaveFormat WaveFormat { get; }
     public TimeSpan Duration { get; }
 
-    internal CachedSound(string filePath, float[] audioData, TimeSpan duration, WaveFormat waveFormat)
+    internal CachedSound(string filePath, ReadOnlyMemory<float> audioData, TimeSpan duration, WaveFormat waveFormat)
     {
         SourcePath = filePath;
         AudioData = audioData;
@@ -17,7 +17,7 @@ public class CachedSound
         WaveFormat = waveFormat;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is CachedSound other)
             return Equals(other);

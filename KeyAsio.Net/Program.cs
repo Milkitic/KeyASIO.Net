@@ -44,7 +44,7 @@ class Program
             var formTrigger = new FormTrigger(deviceInfo, settings);
             Application.Run(formTrigger);
 
-            var sb = new StringBuilder();
+            var sb = new StringBuilder(Environment.NewLine);
             sb.AppendLine("1. Reopen the window.");
             sb.AppendLine("2. Reselect device.");
             sb.AppendLine("3. Exit.");
