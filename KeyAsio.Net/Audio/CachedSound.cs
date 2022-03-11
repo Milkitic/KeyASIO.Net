@@ -1,34 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 
-namespace KeyAsio.Net.Audio
+namespace KeyAsio.Net.Audio;
+
+public class CachedSound
 {
-    public class CachedSound
+    public string SourcePath { get; }
+    public ReadOnlyMemory<float> AudioData { get; }
+    public WaveFormat WaveFormat { get; }
+    public TimeSpan Duration { get; }
+
+    internal CachedSound(string filePath, ReadOnlyMemory<float> audioData, TimeSpan duration, WaveFormat waveFormat)
     {
-        public float[] AudioData { get; private set; }
-        public WaveFormat WaveFormat { get; private set; }
+        SourcePath = filePath;
+        AudioData = audioData;
+        Duration = duration;
+        WaveFormat = waveFormat;
+    }
 
-        public CachedSound(string audioFileName)
-        {
-            using (var audioFileReader = WaveFormatFactory.GetResampledFileReader(audioFileName))
-            {
-                var wholeData = new List<float>((int)(audioFileReader.Length / 4));
+    public override bool Equals(object? obj)
+    {
+        if (obj is CachedSound other)
+            return Equals(other);
+        return ReferenceEquals(this, obj);
+    }
 
-                var readBuffer =
-                    new float[audioFileReader.WaveFormat.SampleRate * audioFileReader.WaveFormat.Channels];
-                int samplesRead;
-                while ((samplesRead = audioFileReader.Read(readBuffer, 0, readBuffer.Length)) > 0)
-                {
-                    wholeData.AddRange(readBuffer.Take(samplesRead));
-                }
+    protected bool Equals(CachedSound other)
+    {
+        return SourcePath == other.SourcePath;
+    }
 
-                AudioData = wholeData.ToArray();
-                WaveFormat = audioFileReader.WaveFormat;
-
-            }
-        }
+    public override int GetHashCode()
+    {
+        return SourcePath.GetHashCode();
     }
 }

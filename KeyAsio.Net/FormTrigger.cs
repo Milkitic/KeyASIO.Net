@@ -1,75 +1,114 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Gma.System.MouseKeyHook;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using KeyAsio.Net.Audio;
+using KeyAsio.Net.Hooking;
+using KeyAsio.Net.Models;
+using NAudio.Wave;
+using Keys = KeyAsio.Net.Hooking.Keys;
 
 namespace KeyAsio.Net
 {
     public partial class FormTrigger : Form
     {
-        private static IKeyboardMouseEvents _globalHook;
-        private static HashSet<Keys> _pressingKeys = new HashSet<Keys>();
+        private readonly AppSettings _settings;
 
-        public FormTrigger()
+        private readonly HashSet<Keys> _pressingKeys = new();
+        private readonly KeyboardHookManager _keyboardHookManager;
+
+        private readonly DeviceDescription? _deviceDescription;
+        private IWavePlayer _device;
+        private AudioPlaybackEngine _engine;
+
+        public FormTrigger(DeviceDescription? deviceDescription, AppSettings settings)
         {
             InitializeComponent();
-            Visible = false;
+            _keyboardHookManager = new KeyboardHookManager();
+            _deviceDescription = deviceDescription;
+            _settings = settings;
+
             Load += Form1_Load;
             Closed += Form1_Closed;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private async void Form1_Load(object? sender, EventArgs e)
         {
-            StartHook();
-            Program.Engine.CreateCacheSound(AppSettings.Default.HitsoundPath);
-        }
+            CreateDevice();
 
-        private void Form1_Closed(object sender, EventArgs e)
-        {
-            StopHook();
-        }
-
-        private void StartHook()
-        {
-            _globalHook = Hook.GlobalEvents();
-            _globalHook.KeyDown += GlobalHook_KeyDown;
-            _globalHook.KeyUp += GlobalHook_KeyUp;
-        }
-
-        private void StopHook()
-        {
-            if (_globalHook != null)
+            if (_device is AsioOut asioOut)
             {
-                _globalHook.Dispose();
-                _globalHook.KeyDown -= GlobalHook_KeyDown;
-                _globalHook.KeyUp -= GlobalHook_KeyUp;
+                btnAsio.Enabled = true;
             }
-        }
 
-        private static void GlobalHook_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (AppSettings.Default.Keys.Contains(e.KeyCode))
+            var waveFormat = new WaveFormat(_settings.SampleRate, _settings.Bits, _settings.Channels);
+            var cacheSound = await CachedSoundFactory.GetOrCreateCacheSound(waveFormat, _settings.HitsoundPath);
+            _keyboardHookManager.Start();
+            foreach (var key in _settings.Keys)
             {
-                if (_pressingKeys.Contains(e.KeyCode))
-                    return;
-                Program.Engine.PlaySound(AppSettings.Default.HitsoundPath);
-                _pressingKeys.Add(e.KeyCode);
-                Console.WriteLine("Add " + e.KeyCode);
+                RegisterHotKey(key, cacheSound);
             }
+
+            Console.WriteLine("Your active keys: " + string.Join(",", _settings.Keys.OrderBy(k => k)));
+            Console.WriteLine("Initialization done.");
         }
 
-        private static void GlobalHook_KeyUp(object sender, KeyEventArgs e)
+        private void Form1_Closed(object? sender, EventArgs e)
         {
-            if (_pressingKeys.Contains(e.KeyCode))
+            _keyboardHookManager.UnregisterAll();
+            _keyboardHookManager.Stop();
+
+            _engine?.Dispose();
+            _device?.Stop();
+            _device?.Dispose();
+        }
+
+        private void CreateDevice()
+        {
+            _device = DeviceProvider.CreateDevice(out var actualDeviceInfo, _deviceDescription);
+            _engine = new AudioPlaybackEngine(_device, _settings.SampleRate, _settings.Channels);
+
+            Console.WriteLine("Active device information: ");
+            var aymInfo = new
             {
-                _pressingKeys.Remove(e.KeyCode);
-                Console.WriteLine("Remove " + e.KeyCode);
+                DeviceInfo = actualDeviceInfo,
+                WaveFormat = _engine?.WaveFormat
+            };
+            Console.WriteLine(JsonSerializer.Serialize(aymInfo, new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+                Converters = { new JsonStringEnumConverter() }
+            }));
+            Console.WriteLine();
+        }
+
+        private void RegisterHotKey(Keys key, CachedSound? cacheSound)
+        {
+            _keyboardHookManager.RegisterHotkey(key, action =>
+            {
+                if (action == CallBackType.Down)
+                {
+                    if (_pressingKeys.Contains(key))
+                        return;
+                    _pressingKeys.Add(key);
+                    _engine.PlaySound(cacheSound);
+                    if (_settings.Debugging)
+                        Console.WriteLine($"{key} {action}");
+                }
+                else
+                {
+                    if (!_pressingKeys.Contains(key))
+                        return;
+                    _pressingKeys.Remove(key);
+                    if (_settings.Debugging)
+                        Console.WriteLine($"{key} {action}");
+                }
+            });
+        }
+
+        private void btnAsio_Click(object sender, EventArgs e)
+        {
+            if (_device is AsioOut asioOut)
+            {
+                asioOut.ShowControlPanel();
             }
         }
     }

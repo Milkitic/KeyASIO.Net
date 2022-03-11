@@ -1,70 +1,27 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms;
+﻿using System.ComponentModel;
+using KeyAsio.Net.Configuration;
+using KeyAsio.Net.Models;
 
-namespace KeyAsio.Net
+namespace KeyAsio.Net;
+
+public class AppSettings : ConfigurationBase
 {
-    class AppSettings
+    [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
+    public HashSet<Hooking.Keys> Keys { get; set; } = new()
     {
-        public HashSet<Keys> Keys { get; set; } = new HashSet<Keys>
-        {
-            System.Windows.Forms.Keys.A,
-            System.Windows.Forms.Keys.X
-        };
-        public string HitsoundPath { get; set; } = "click.wav";
-        public int Latency { get; set; } = 0;
-        public int SampleRate { get; set; } = 48000;
-        public int Bits { get; set; } = 16;
-        public int ChannelCount { get; set; } = 2;
-        public IDeviceInfo DeviceInfo { get; set; }
-        public void Save()
-        {
-            lock (FileSaveLock)
-            {
-                //FileStream.Value.SetLength(0);
-                var content = JsonConvert.SerializeObject(this, Formatting.Indented,
-                    new JsonSerializerSettings
-                    {
-                        TypeNameHandling = TypeNameHandling.Auto,
-                        ObjectCreationHandling = ObjectCreationHandling.Replace
-                    });
-                //byte[] buffer = Encoding.GetBytes(content);
-                //FileStream.Value.Write(buffer, 0, buffer.Length);
-                File.WriteAllText(SettingsPath, content);
-            }
-        }
+        Hooking.Keys.Z,
+        Hooking.Keys.X
+    };
 
-        private static readonly object FileSaveLock = new object();
-        public static string SettingsPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+    [Description("Hitsound's relative or absolute path.")]
+    public string HitsoundPath { get; set; } = "click.wav";
 
-        public static AppSettings Default { get; private set; }
+    [Description("Show output while pressing buttons.")]
+    public bool Debugging { get; set; } = false;
 
-        public static void SaveDefault()
-        {
-            Default?.Save();
-        }
-
-        public static void LoadDefault(AppSettings config)
-        {
-            Default = config ?? new AppSettings();
-            //Default.FileStream = File.Open(Domain.ConfigFile, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-        }
-
-        public static AppSettings CreateNewConfig()
-        {
-            var settings = LoadNew();
-            SaveDefault();
-            return settings;
-        }
-
-        private static AppSettings LoadNew()
-        {
-            File.WriteAllText(SettingsPath, "");
-            var appSettings = new AppSettings();
-            LoadDefault(appSettings);
-            return appSettings;
-        }
-    }
+    public int SampleRate { get; set; } = 48000;
+    public int Bits { get; set; } = 16;
+    public int Channels { get; set; } = 2;
+    [Description("Device configuration.")]
+    public DeviceDescription? Device { get; set; }
 }
