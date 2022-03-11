@@ -1,24 +1,21 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json;
 using KeyAsio.Net.Audio;
 using KeyAsio.Net.Configuration;
 using KeyAsio.Net.Hooking;
 using KeyAsio.Net.Models;
-using NAudio.Wave;
 
 namespace KeyAsio.Net;
 
 class Program
 {
-    private static KeyboardHookManager _manager;
-
     [STAThread]
-    static async Task Main(string[] args)
+    static void Main(string[] args)
     {
         _handler = ConsoleEventCallback;
         SetConsoleCtrlHandler(_handler, true);
         ApplicationConfiguration.Initialize();
+        Application.ThreadException += Application_ThreadException;
 
         string settingsPath = args.Length > 0 ? args[0] : "./appsettings.yaml";
         if (!ConfigurationFactory.TryLoadConfigFromFile<AppSettings>(settingsPath, out var settings, out var exception))
@@ -28,7 +25,7 @@ class Program
 
         try
         {
-            await DialogLoop(settings);
+            DialogLoop(settings);
         }
         finally
         {
@@ -36,14 +33,13 @@ class Program
         }
     }
 
-    private static async Task DialogLoop(AppSettings settings)
+    private static void DialogLoop(AppSettings settings)
     {
         while (true)
         {
-            var deviceInfo = settings.Device ?? await SelectDevice(settings);
+            var deviceInfo = settings.Device ?? SelectDevice(settings);
             var formTrigger = new FormTrigger(deviceInfo, settings);
             Application.Run(formTrigger);
-
             var sb = new StringBuilder(Environment.NewLine);
             sb.AppendLine("1. Reopen the window.");
             sb.AppendLine("2. Reselect device.");
@@ -57,7 +53,7 @@ class Program
             {
                 case 2:
                     settings.Device = null;
-                    await settings.SaveAsync();
+                    settings.Save();
                     break;
                 case 3:
                     formTrigger.Close();
@@ -68,7 +64,12 @@ class Program
         }
     }
 
-    private static async Task<DeviceDescription> SelectDevice(AppSettings settings)
+    private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+    {
+        throw e.Exception;
+    }
+
+    private static DeviceDescription SelectDevice(AppSettings settings)
     {
         var devices = DeviceProvider.GetCachedAvailableDevices().ToList();
         var o = devices
@@ -107,7 +108,7 @@ class Program
         selectedIndex = ReadIndex(sb.ToString(), dic.Count, 1);
         var selectedInfo = dic.FirstOrDefault(k => k.Value == selectedIndex).Key;
         settings.Device = selectedInfo;
-        await settings.SaveAsync();
+        settings.Save();
         return selectedInfo;
     }
 

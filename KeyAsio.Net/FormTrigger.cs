@@ -32,7 +32,8 @@ namespace KeyAsio.Net
 
         private async void Form1_Load(object? sender, EventArgs e)
         {
-            CreateDevice();
+            _keyboardHookManager.Start();
+            if (!CreateDevice()) return;
 
             if (_device is AsioOut asioOut)
             {
@@ -41,7 +42,6 @@ namespace KeyAsio.Net
 
             var waveFormat = new WaveFormat(_settings.SampleRate, _settings.Bits, _settings.Channels);
             var cacheSound = await CachedSoundFactory.GetOrCreateCacheSound(waveFormat, _settings.HitsoundPath);
-            _keyboardHookManager.Start();
             foreach (var key in _settings.Keys)
             {
                 RegisterHotKey(key, cacheSound);
@@ -56,15 +56,25 @@ namespace KeyAsio.Net
             _keyboardHookManager.UnregisterAll();
             _keyboardHookManager.Stop();
 
-            _engine?.Dispose();
             _device?.Stop();
             _device?.Dispose();
         }
 
-        private void CreateDevice()
+        private bool CreateDevice()
         {
-            _device = DeviceProvider.CreateDevice(out var actualDeviceInfo, _deviceDescription);
-            _engine = new AudioPlaybackEngine(_device, _settings.SampleRate, _settings.Channels);
+            DeviceDescription? actualDeviceInfo;
+            try
+            {
+                _device = DeviceProvider.CreateDevice(out actualDeviceInfo, _deviceDescription);
+                _engine = new AudioPlaybackEngine(_device, _settings.SampleRate, _settings.Channels);
+                _engine.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurs while initializing device: {ex.GetType().FullName}: {ex.Message}\r\n{ex.StackTrace}");
+                Close();
+                return false;
+            }
 
             Console.WriteLine("Active device information: ");
             var aymInfo = new
@@ -78,6 +88,7 @@ namespace KeyAsio.Net
                 Converters = { new JsonStringEnumConverter() }
             }));
             Console.WriteLine();
+            return true;
         }
 
         private void RegisterHotKey(Keys key, CachedSound? cacheSound)

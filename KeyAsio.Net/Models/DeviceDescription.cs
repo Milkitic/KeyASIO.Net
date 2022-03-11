@@ -5,20 +5,21 @@ namespace KeyAsio.Net.Models;
 
 public class DeviceDescription
 {
-    [Description("Available for WASAPI, DirectSound (Guid)")]
+    [Description("Support types: ASIO, WASAPI, DirectSound")]
     public WavePlayerType WavePlayerType { get; init; }
 
-    [Description("Available for ASIO,WASAPI, DirectSound (Guid)")]
+    [Description("Available for ASIO, WASAPI, DirectSound (Guid)")]
     public string? DeviceId { get; init; }
 
     [Description("Available for WASAPI, DirectSound")]
     [YamlIgnore]
     public string? FriendlyName { get; init; }
 
-    [Description("Available for WASAPI, DirectSound")]
+    [Description("Available for WASAPI (excluded >= 3ms, non-excluded >= 0ms), DirectSound (around >= 20ms)")]
     public int Latency { get; init; }
 
-    [Description("Available for WASAPI")] public bool IsExclusive { get; init; }
+    [Description("Available for WASAPI")]
+    public bool IsExclusive { get; init; }
 
     public static DeviceDescription WasapiDefault { get; } = new()
     {

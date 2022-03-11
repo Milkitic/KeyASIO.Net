@@ -3,7 +3,7 @@ using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Net.Audio;
 
-public class AudioPlaybackEngine : IDisposable
+public class AudioPlaybackEngine
 {
     private readonly MixingSampleProvider _mixer;
     private readonly IWavePlayer _outputDevice;
@@ -13,6 +13,10 @@ public class AudioPlaybackEngine : IDisposable
         _outputDevice = outputDevice;
         WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount);
         _mixer = new MixingSampleProvider(WaveFormat) { ReadFully = true };
+    }
+
+    public void Start()
+    {
         _outputDevice.Init(_mixer);
         _outputDevice.Play();
     }
@@ -23,11 +27,6 @@ public class AudioPlaybackEngine : IDisposable
     {
         if (sound == null) return;
         AddMixerInput(new CachedSoundSampleProvider(sound));
-    }
-
-    public void Dispose()
-    {
-        _outputDevice?.Dispose();
     }
 
     private void AddMixerInput(ISampleProvider input)
