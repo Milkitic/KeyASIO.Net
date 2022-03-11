@@ -23,33 +23,26 @@ public static class DeviceProvider
 
     public static IWavePlayer? CurrentDevice { get; private set; }
 
-    public static IWavePlayer CreateDevice(out DeviceDescription actualDeviceInfo, DeviceDescription? description = null)
+    public static IWavePlayer CreateDevice(out DeviceDescription actualDescription, DeviceDescription? description = null)
     {
-        description ??= MmDeviceEnumerator.HasDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia)
-            ? DeviceDescription.WasapiDefault
-            : DeviceDescription.DirectSoundDefault;
-
+        Execute.SetMainThreadContext();
         IWavePlayer? device = null;
         Execute.OnUiThread(() =>
         {
-            switch (description.WavePlayerType)
+            description ??= MmDeviceEnumerator.HasDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia)
+                ? DeviceDescription.WasapiDefault
+                : DeviceDescription.DirectSoundDefault;
+            device = description.WavePlayerType switch
             {
-                case WavePlayerType.DirectSound:
-                    device = TryCreateDirectSoundOrDefault(description);
-                    return;
-                case WavePlayerType.WASAPI:
-                    device = TryCreateWasapiOrDefault(description);
-                    return;
-                case WavePlayerType.ASIO:
-                    device = TryCreateAsioOrDefault(description);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                WavePlayerType.DirectSound => TryCreateDirectSoundOrDefault(description),
+                WavePlayerType.WASAPI => TryCreateWasapiOrDefault(description),
+                WavePlayerType.ASIO => TryCreateAsioOrDefault(description),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         });
 
         CurrentDevice = device!;
-        actualDeviceInfo = description;
+        actualDescription = description!;
         return device!;
     }
 
@@ -98,7 +91,8 @@ public static class DeviceProvider
             }
         }
 
-        return new WasapiOut(AudioClientShareMode.Shared, description.Latency);
+        return new WasapiOut(description.IsExclusive ? AudioClientShareMode.Exclusive : AudioClientShareMode.Shared,
+            description.Latency);
     }
 
     private static IWavePlayer TryCreateAsioOrDefault(DeviceDescription description)

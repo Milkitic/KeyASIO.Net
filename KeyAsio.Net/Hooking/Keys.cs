@@ -1,12 +1,9 @@
-﻿using System.Text.Json.Serialization;
-
-namespace KeyAsio.Net.Hooking;
+﻿namespace KeyAsio.Net.Hooking;
 
 /// <summary>
 ///  Specifies key codes and modifiers.
 /// </summary>
 [Flags]
-[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Keys
 {
     /// <summary>

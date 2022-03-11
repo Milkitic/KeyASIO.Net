@@ -7,10 +7,10 @@ public static class ConfigurationFactory
     public static bool TryLoadConfigFromFile<T>(string path,
         [NotNullWhen(true)] out T? config,
         [NotNullWhen(false)] out Exception? e,
-        JsonConverter? converter = null)
+        YamlConverter? converter = null)
         where T : ConfigurationBase
     {
-        converter ??= new JsonConverter();
+        converter ??= new YamlConverter();
         var type = typeof(T);
         ConfigurationBase? retConfig;
 
@@ -48,7 +48,7 @@ public static class ConfigurationFactory
         return true;
     }
 
-    private static ConfigurationBase CreateDefaultConfigByPath(Type type, string path, JsonConverter converter)
+    private static ConfigurationBase CreateDefaultConfigByPath(Type type, string path, YamlConverter converter)
     {
         var dir = Path.GetDirectoryName(path);
         if (dir != null && !Directory.Exists(dir))
@@ -62,7 +62,7 @@ public static class ConfigurationFactory
         return config;
     }
 
-    private static void SaveConfig(ConfigurationBase config, string path, JsonConverter converter)
+    private static void SaveConfig(ConfigurationBase config, string path, YamlConverter converter)
     {
         var content = converter.SerializeSettings(config);
         File.WriteAllText(path, content, config.Encoding);

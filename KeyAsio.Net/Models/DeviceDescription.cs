@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Text.Json.Serialization;
+using YamlDotNet.Serialization;
 
 namespace KeyAsio.Net.Models;
 
@@ -12,7 +12,7 @@ public class DeviceDescription
     public string? DeviceId { get; init; }
 
     [Description("Available for WASAPI, DirectSound")]
-    [JsonIgnore]
+    [YamlIgnore]
     public string? FriendlyName { get; init; }
 
     [Description("Available for WASAPI, DirectSound")]
@@ -43,12 +43,12 @@ public class DeviceDescription
 
     protected bool Equals(DeviceDescription other)
     {
-        return WavePlayerType == other.WavePlayerType && DeviceId == other.DeviceId && IsExclusive == other.IsExclusive;
+        return WavePlayerType == other.WavePlayerType && DeviceId == other.DeviceId;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int)WavePlayerType, DeviceId, IsExclusive);
+        return HashCode.Combine((int)WavePlayerType, DeviceId);
     }
 
     public static bool operator ==(DeviceDescription? left, DeviceDescription? right)

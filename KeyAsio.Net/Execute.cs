@@ -8,11 +8,15 @@ namespace KeyAsio.Net
 {
     public static class Execute
     {
-        private static SynchronizationContext _uiContext;
+        private static SynchronizationContext? _uiContext;
 
         public static void SetMainThreadContext()
         {
-            if (_uiContext != null) Console.WriteLine("Current SynchronizationContext may be replaced.");
+            if (_uiContext != null)
+            {
+                return;
+                //Console.WriteLine("Current SynchronizationContext may be replaced.");
+            }
 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly assembly in assemblies)
@@ -21,18 +25,18 @@ namespace KeyAsio.Net
                 if (fileName == "System.Windows.Forms.dll")
                 {
                     var type = assembly.DefinedTypes.First(k => k.Name.StartsWith("WindowsFormsSynchronizationContext"));
-                    _uiContext = (SynchronizationContext)Activator.CreateInstance(type);
+                    _uiContext = (SynchronizationContext?)Activator.CreateInstance(type);
                     break;
                 }
                 else if (fileName == "WindowsBase.dll")
                 {
                     var type = assembly.DefinedTypes.First(k => k.Name.StartsWith("DispatcherSynchronizationContext"));
-                    _uiContext = (SynchronizationContext)Activator.CreateInstance(type);
+                    _uiContext = (SynchronizationContext?)Activator.CreateInstance(type);
                     break;
                 }
             }
 
-            if (_uiContext == null) _uiContext = SynchronizationContext.Current;
+            _uiContext ??= SynchronizationContext.Current;
         }
 
         public static void OnUiThread(this Action action)

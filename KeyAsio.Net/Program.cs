@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using KeyAsio.Net.Audio;
 using KeyAsio.Net.Configuration;
+using KeyAsio.Net.Hooking;
 using KeyAsio.Net.Models;
 using NAudio.Wave;
 
@@ -10,96 +11,61 @@ namespace KeyAsio.Net;
 
 class Program
 {
-    private static DeviceDescription _deviceInfo;
-    internal static IWavePlayer Device;
+    private static KeyboardHookManager _manager;
 
-    public static AudioPlaybackEngine Engine { get; set; }
-
+    [STAThread]
     static async Task Main(string[] args)
     {
         _handler = ConsoleEventCallback;
         SetConsoleCtrlHandler(_handler, true);
+        ApplicationConfiguration.Initialize();
 
-        string settingsPath = args.Length > 0 ? args[0] : "./appsettings.json";
-        if (!ConfigurationFactory.TryLoadConfigFromFile<AppSettings>(settingsPath,
-                out var settings, out var exception))
+        string settingsPath = args.Length > 0 ? args[0] : "./appsettings.yaml";
+        if (!ConfigurationFactory.TryLoadConfigFromFile<AppSettings>(settingsPath, out var settings, out var exception))
         {
             throw exception;
         }
 
-        _deviceInfo = settings.Device ?? await SelectDevice(settings);
-        Device = DeviceProvider.CreateDevice(out _deviceInfo, _deviceInfo);
-        Engine = new AudioPlaybackEngine(Device, settings.SampleRate, settings.Channels);
+        try
+        {
+            await DialogLoop(settings);
+        }
+        finally
+        {
+            Dispose();
+        }
+    }
+
+    private static async Task DialogLoop(AppSettings settings)
+    {
         while (true)
         {
-            if (Device == null)
-            {
-                _deviceInfo = await SelectDevice(settings);
-                Device = DeviceProvider.CreateDevice(out _deviceInfo, _deviceInfo);
-                Engine = new AudioPlaybackEngine(Device, settings.SampleRate, settings.Channels);
-            }
-
-            Console.WriteLine("Current Info: ");
-            Console.WriteLine(JsonSerializer.Serialize(new DisplayInfo
-            {
-                DeviceInfo = _deviceInfo,
-                WaveFormat = Engine?.WaveFormat
-            }));
-            var formTrigger = new FormTrigger(settings);
+            var deviceInfo = settings.Device ?? await SelectDevice(settings);
+            var formTrigger = new FormTrigger(deviceInfo, settings);
             Application.Run(formTrigger);
 
-            Console.WriteLine("Type \"asio\" to open asio GUI control panel.");
-            Console.WriteLine("Type \"device\" to select a device.");
-            Console.WriteLine("Type \"exit\" to close program.");
-            Console.WriteLine("Else reopen the window.");
-            var o = Console.ReadLine();
-            switch (o)
+            var sb = new StringBuilder();
+            sb.AppendLine("1. Reopen the window.");
+            sb.AppendLine("2. Reselect device.");
+            sb.AppendLine("3. Exit.");
+            sb.Append("Select operation: ");
+            var selectedIndex = 1;
+            sb.Append($"(default {selectedIndex}) ");
+
+            selectedIndex = ReadIndex(sb.ToString(), 3, selectedIndex);
+            switch (selectedIndex)
             {
-                case "panel":
-                    if (Device is AsioOut ao)
-                    {
-                        ao.ShowControlPanel();
-                    }
-                    else
-                    {
-                        Console.WriteLine("Output method is not ASIO.");
-                    }
-
+                case 2:
+                    settings.Device = null;
+                    await settings.SaveAsync();
                     break;
-                case "device":
-                    Console.Write("Stop current device and select a new one ? (Y/n) ");
-                    var yesNo = Console.ReadLine();
-                    if (yesNo == "Y")
-                    {
-                        Device?.Dispose();
-                        Engine?.Dispose();
-                        Device = null;
-                        Engine = null;
-                        settings.Device = null;
-                        await settings.SaveAsync();
-                    }
-                    else
-                    {
-                        Console.WriteLine("Canceled operation.");
-                    }
-
-                    break;
-                case "exit":
-                    DisposeAll();
-                    Device = null;
-                    Engine = null;
+                case 3:
                     formTrigger.Close();
                     return;
             }
 
             Console.WriteLine();
         }
-    }
-
-    private static void DisposeAll()
-    {
-        Device?.Dispose();
-        Engine?.Dispose();
     }
 
     private static async Task<DeviceDescription> SelectDevice(AppSettings settings)
@@ -126,7 +92,7 @@ class Program
             selectedIndex = 1;
         }
 
-        sb.Append($"(default {selectedIndex}) ");
+        sb.Append($"(default {selectedIndex}) >");
 
         selectedIndex = ReadIndex(sb.ToString(), o.Count, selectedIndex);
         var selected = o.FirstOrDefault(k => k.Value == selectedIndex);
@@ -136,7 +102,7 @@ class Program
             .ToDictionary(k => k.k, k => k.Item1);
         sb.Clear();
         sb.AppendLine(string.Join("\r\n", dic.Select(k => $"{k.Value}. {k.Key.FriendlyName}")));
-        sb.Append("Select output device: (default 1)");
+        sb.Append("Select output device: (default 1) >");
 
         selectedIndex = ReadIndex(sb.ToString(), dic.Count, 1);
         var selectedInfo = dic.FirstOrDefault(k => k.Value == selectedIndex).Key;
@@ -152,7 +118,6 @@ class Program
 
         if (string.IsNullOrWhiteSpace(numStr))
         {
-            Console.WriteLine();
             return def;
         }
 
@@ -161,24 +126,33 @@ class Program
         {
             Console.WriteLine();
             Console.WriteLine("Sorry, please input a valid index.");
+            Console.WriteLine();
             Console.Write(info);
             numStr = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(numStr))
+            {
+                return def;
+            }
         }
 
         Console.WriteLine();
         return i;
     }
 
+    private static void Dispose()
+    {
+    }
+
     private static bool ConsoleEventCallback(int eventType)
     {
         if (eventType == 2)
         {
-            Console.WriteLine(Environment.NewLine + "Console window closing, death imminent...");
-            DisposeAll();
-            Thread.Sleep(500);
+            Console.WriteLine(Environment.NewLine + "Exiting...");
+            Dispose();
+            Thread.Sleep(100);
         }
 
-        return false;
+        return true;
     }
 
     private static ConsoleEventDelegate _handler;
@@ -187,10 +161,4 @@ class Program
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool SetConsoleCtrlHandler(ConsoleEventDelegate callback, bool add);
-}
-
-internal class DisplayInfo
-{
-    public DeviceDescription DeviceInfo { get; set; }
-    public WaveFormat WaveFormat { get; set; }
 }
