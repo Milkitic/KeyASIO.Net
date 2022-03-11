@@ -3,12 +3,11 @@ using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
 
-namespace KeyAsio.Net;
+namespace KeyAsio.Net.Audio;
 
 public static class DeviceProvider
 {
     private static readonly MMDeviceEnumerator MmDeviceEnumerator;
-    //private static MmNotificationClient? _mmNotificationClient;
     private static IReadOnlyList<DeviceDescription>? _cacheList;
 
     static DeviceProvider()
@@ -53,6 +52,7 @@ public static class DeviceProvider
         actualDeviceInfo = description;
         return device!;
     }
+
     public static IReadOnlyList<DeviceDescription> GetCachedAvailableDevices()
     {
         if (_cacheList != null)
@@ -107,10 +107,8 @@ public static class DeviceProvider
         return device;
     }
 
-
     private static IEnumerable<DeviceDescription> EnumerateDeviceDescriptions()
     {
-        yield return DeviceDescription.DirectSoundDefault;
         foreach (var dev in DirectSoundOut.Devices)
         {
             DeviceDescription? info = null;
@@ -119,7 +117,7 @@ public static class DeviceProvider
                 info = new DeviceDescription
                 {
                     DeviceId = dev.Guid.ToString(),
-                    Latency = 40,
+                    FriendlyName = dev.Description,
                     WavePlayerType = WavePlayerType.DirectSound
                 };
             }
@@ -141,9 +139,11 @@ public static class DeviceProvider
             try
             {
                 if (wasapi.DataFlow != DataFlow.Render || wasapi.State != DeviceState.Active) continue;
-                info = new DeviceDescription()
+                info = new DeviceDescription
                 {
                     DeviceId = wasapi.ID,
+                    FriendlyName = wasapi.FriendlyName,
+                    WavePlayerType = WavePlayerType.WASAPI
                 };
             }
             catch (Exception ex)
@@ -162,9 +162,11 @@ public static class DeviceProvider
             DeviceDescription? info = null;
             try
             {
-                info = new DeviceDescription()
+                info = new DeviceDescription
                 {
-                    DeviceId = asio
+                    DeviceId = asio,
+                    FriendlyName = asio,
+                    WavePlayerType = WavePlayerType.ASIO
                 };
             }
             catch (Exception ex)
@@ -181,28 +183,10 @@ public static class DeviceProvider
 
     private class MmNotificationClient : IMMNotificationClient
     {
-        public void OnDeviceStateChanged(string deviceId, DeviceState newState)
-        {
-            _cacheList = null;
-        }
-
-        public void OnDeviceAdded(string pwstrDeviceId)
-        {
-            _cacheList = null;
-        }
-
-        public void OnDeviceRemoved(string deviceId)
-        {
-            _cacheList = null;
-        }
-
-        public void OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId)
-        {
-            _cacheList = null;
-        }
-
-        public void OnPropertyValueChanged(string pwstrDeviceId, PropertyKey key)
-        {
-        }
+        public void OnDeviceStateChanged(string deviceId, DeviceState newState) => _cacheList = null;
+        public void OnDeviceAdded(string pwstrDeviceId) => _cacheList = null;
+        public void OnDeviceRemoved(string deviceId) => _cacheList = null;
+        public void OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId) => _cacheList = null;
+        public void OnPropertyValueChanged(string pwstrDeviceId, PropertyKey key) { }
     }
 }

@@ -1,70 +1,63 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Gma.System.MouseKeyHook;
+﻿using KeyAsio.Net.Audio;
+using KeyAsio.Net.Hooking;
+using NAudio.Wave;
+using Keys = KeyAsio.Net.Hooking.Keys;
 
 namespace KeyAsio.Net
 {
     public partial class FormTrigger : Form
     {
-        private static HashSet<Keys> _pressingKeys = new HashSet<Keys>();
+        private readonly AppSettings _settings;
+        private readonly HashSet<Keys> _pressingKeys = new();
+        private readonly KeyboardHookManager _keyboardHookManager;
 
-        public FormTrigger()
+        public FormTrigger(AppSettings settings)
         {
+            _settings = settings;
             InitializeComponent();
+            _keyboardHookManager = new KeyboardHookManager();
             Visible = false;
             Load += Form1_Load;
             Closed += Form1_Closed;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private async void Form1_Load(object? sender, EventArgs e)
         {
-            StartHook();
-            Program.Engine.CreateCacheSound(AppSettings.Default.HitsoundPath);
-        }
-
-        private void Form1_Closed(object sender, EventArgs e)
-        {
-            StopHook();
-        }
-
-        private void StartHook()
-        {
-            Program.GlobalHook.KeyDown += GlobalHook_KeyDown;
-            Program.GlobalHook.KeyUp += GlobalHook_KeyUp;
-        }
-
-        private void StopHook()
-        {
-            Program.GlobalHook.KeyDown -= GlobalHook_KeyDown;
-            Program.GlobalHook.KeyUp -= GlobalHook_KeyUp;
-        }
-
-        private static void GlobalHook_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (AppSettings.Default.Keys.Contains(e.KeyCode))
+            var waveFormat = new WaveFormat(_settings.SampleRate, _settings.Bits, _settings.Channels);
+            var cacheSound = await CachedSoundFactory.GetOrCreateCacheSound(waveFormat, _settings.HitsoundPath);
+            _keyboardHookManager.Start();
+            foreach (var key in _settings.Keys)
             {
-                if (_pressingKeys.Contains(e.KeyCode))
-                    return;
-                Program.Engine.PlaySound(AppSettings.Default.HitsoundPath);
-                _pressingKeys.Add(e.KeyCode);
-                Console.WriteLine("Add " + e.KeyCode);
+                RegisterHotKey(key, cacheSound);
             }
         }
 
-        private static void GlobalHook_KeyUp(object sender, KeyEventArgs e)
+        private void Form1_Closed(object? sender, EventArgs e)
         {
-            if (_pressingKeys.Contains(e.KeyCode))
+            _keyboardHookManager.UnregisterAll();
+            _keyboardHookManager.Stop();
+        }
+
+        private void RegisterHotKey(Keys key, CachedSound? cacheSound)
+        {
+            _keyboardHookManager.RegisterHotkey(key, action =>
             {
-                _pressingKeys.Remove(e.KeyCode);
-                Console.WriteLine("Remove " + e.KeyCode);
-            }
+                if (action == CallBackType.Down)
+                {
+                    if (_pressingKeys.Contains(key))
+                        return;
+                    _pressingKeys.Add(key);
+                    Program.Engine.PlaySound(cacheSound);
+                    Console.WriteLine($"{key} {action}");
+                }
+                else
+                {
+                    if (!_pressingKeys.Contains(key))
+                        return;
+                    _pressingKeys.Remove(key);
+                    Console.WriteLine($"{key} {action}");
+                }
+            });
         }
     }
 }
