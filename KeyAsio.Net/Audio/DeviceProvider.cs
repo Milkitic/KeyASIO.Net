@@ -9,6 +9,8 @@ public static class DeviceProvider
 {
     private static readonly MMDeviceEnumerator MmDeviceEnumerator;
     private static IReadOnlyList<DeviceDescription>? _cacheList;
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private static readonly MmNotificationClient MmNotificationClientCallBack;
 
     static DeviceProvider()
     {
@@ -16,9 +18,8 @@ public static class DeviceProvider
         AppDomain.CurrentDomain.ProcessExit += (_, _) => MmDeviceEnumerator.Dispose();
 
         if (Environment.OSVersion.Version.Major < 6) return;
-        var mmNotificationClient = new MmNotificationClient();
-        GC.KeepAlive(mmNotificationClient);
-        MmDeviceEnumerator.RegisterEndpointNotificationCallback(mmNotificationClient);
+        MmNotificationClientCallBack = new MmNotificationClient();
+        MmDeviceEnumerator.RegisterEndpointNotificationCallback(MmNotificationClientCallBack);
     }
 
     public static IWavePlayer? CurrentDevice { get; private set; }
