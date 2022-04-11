@@ -3,7 +3,7 @@ using YamlDotNet.Serialization;
 
 namespace KeyAsio.Net.Models;
 
-public class DeviceDescription
+public class DeviceDescription : IEquatable<DeviceDescription>
 {
     [Description("Support types: ASIO, WASAPI, DirectSound")]
     public WavePlayerType WavePlayerType { get; init; }
@@ -42,8 +42,10 @@ public class DeviceDescription
         return Equals((DeviceDescription)obj);
     }
 
-    protected bool Equals(DeviceDescription other)
+    public bool Equals(DeviceDescription? other)
     {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
         return WavePlayerType == other.WavePlayerType && DeviceId == other.DeviceId;
     }
 
