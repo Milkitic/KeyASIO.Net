@@ -1,0 +1,3 @@
+[submodule "dependencies/OsuRTDataProviderCore"]
+	path = dependencies/OsuRTDataProviderCore
+	url = https://github.com/Milkitic/OsuRTDataProviderCore
