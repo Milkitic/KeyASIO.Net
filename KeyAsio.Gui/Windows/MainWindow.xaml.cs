@@ -1,16 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using HandyControl.Controls;
+using HandyControl.Tools;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Utils;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
+using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
 using Window = System.Windows.Window;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Windows;
 
 public class MainWindowViewModel : ViewModelBase
 {
@@ -42,9 +48,14 @@ public class MainWindowViewModel : ViewModelBase
 /// </summary>
 public partial class MainWindow : Window
 {
+    private static readonly ILogger Logger = SharedUtils.GetLogger("STA Window");
+
     private bool _forceClose;
     private readonly AppSettings _appSettings;
     private readonly MainWindowViewModel _viewModel;
+    private CachedSound? _cacheSound;
+    private readonly IKeyboardHook _keyboardHook;
+    private List<Guid> _registerList = new();
 
     public MainWindow()
     {
@@ -52,9 +63,10 @@ public partial class MainWindow : Window
         DataContext = _viewModel = new MainWindowViewModel();
         _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
         _viewModel.AppSettings = _appSettings;
+        _keyboardHook = KeyboardHookFactory.CreateGlobal();
     }
 
-    private void SelectDevice()
+    private async Task SelectDevice()
     {
         var window = new DeviceWindow
         {
@@ -74,10 +86,10 @@ public partial class MainWindow : Window
         deviceDescription.IsExclusive = isExclusive;
         _appSettings.SampleRate = window.ViewModel.SampleRate;
 
-        LoadDevice(deviceDescription, true);
+        await LoadDevice(deviceDescription, true);
     }
 
-    private void LoadDevice(DeviceDescription deviceDescription, bool saveToSettings)
+    private async Task LoadDevice(DeviceDescription deviceDescription, bool saveToSettings)
     {
         try
         {
@@ -93,6 +105,9 @@ public partial class MainWindow : Window
             {
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
             }
+
+            var waveFormat = _viewModel.AudioPlaybackEngine.WaveFormat;
+            _cacheSound = await CachedSoundFactory.GetOrCreateCacheSound(waveFormat, _appSettings.HitsoundPath);
 
             _viewModel.DeviceDescription = actualDescription;
             if (saveToSettings)
@@ -119,21 +134,53 @@ public partial class MainWindow : Window
         _viewModel.AudioPlaybackEngine.OutputDevice?.Dispose();
         _viewModel.AudioPlaybackEngine = null;
         _viewModel.DeviceDescription = null;
+        CachedSoundFactory.ClearCacheSounds();
 
         if (!saveToSettings) return;
         _appSettings.Device = null;
         _appSettings.Save();
     }
 
-    private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+    private void RegisterHotKey(HookKeys key)
+    {
+        _registerList.Add(_keyboardHook.RegisterKey(key, (_, hookKey, action) =>
+        {
+            if (action == KeyAction.KeyDown)
+            {
+                if (_cacheSound != null)
+                {
+                    _viewModel.AudioPlaybackEngine?.PlaySound(_cacheSound);
+                }
+
+                if (_appSettings.Debugging)
+                {
+                    Logger.LogDebug($"{hookKey} {action}");
+                }
+            }
+            else
+            {
+                if (_appSettings.Debugging)
+                {
+                    Logger.LogDebug($"{hookKey} {action}");
+                }
+            }
+        }));
+    }
+
+    private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
         if (_appSettings.Device == null)
         {
-            SelectDevice();
+            await SelectDevice();
         }
         else
         {
-            LoadDevice(_appSettings.Device, false);
+            await LoadDevice(_appSettings.Device, false);
+        }
+
+        foreach (var key in _appSettings.Keys)
+        {
+            RegisterHotKey(key);
         }
     }
 
@@ -151,11 +198,11 @@ public partial class MainWindow : Window
         Hide();
     }
 
-    private void AsioOut_DriverResetRequest(object? sender, EventArgs e)
+    private async void AsioOut_DriverResetRequest(object? sender, EventArgs e)
     {
         var deviceDescription = _viewModel.DeviceDescription!;
         DisposeDevice(false);
-        Dispatcher.Invoke(() => LoadDevice(deviceDescription, false));
+        await Dispatcher.InvokeAsync(async () => await LoadDevice(deviceDescription, false));
     }
 
     private void miCloseApp_OnClick(object sender, RoutedEventArgs e)
@@ -169,9 +216,9 @@ public partial class MainWindow : Window
         DisposeDevice(true);
     }
 
-    private void btnChangeDevice_OnClick(object sender, RoutedEventArgs e)
+    private async void btnChangeDevice_OnClick(object sender, RoutedEventArgs e)
     {
-        SelectDevice();
+        await SelectDevice();
     }
 
     private void btnChangeKey_OnClick(object sender, RoutedEventArgs e)

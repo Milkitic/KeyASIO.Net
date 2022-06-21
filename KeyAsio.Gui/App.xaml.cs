@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using KeyAsio.Gui.Configuration;
+using KeyAsio.Gui.Windows;
 
 namespace KeyAsio.Gui;
 

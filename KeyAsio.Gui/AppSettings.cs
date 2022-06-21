@@ -1,19 +1,32 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using KeyAsio.Gui.Configuration;
+using Milki.Extensions.MixPlayer.Annotations;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Gui;
 
-public class AppSettings : ConfigurationBase
+public class AppSettings : ConfigurationBase, INotifyPropertyChanged
 {
-    [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
-    public HashSet<HookKeys> Keys { get; set; } = new()
+    private HashSet<HookKeys> _keys = new()
     {
         HookKeys.Z,
         HookKeys.X
     };
+
+    [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
+    public HashSet<HookKeys> Keys
+    {
+        get => _keys;
+        set
+        {
+            if (Equals(value, _keys)) return;
+            _keys = value;
+            OnPropertyChanged();
+        }
+    }
 
     [Description("Hitsound's relative or absolute path.")]
     public string HitsoundPath { get; set; } = "click.wav";
@@ -30,6 +43,14 @@ public class AppSettings : ConfigurationBase
     [Description("Enable volume control.")]
     public bool VolumeEnabled { get; set; } = true;
 
-    [Description("Last volume.")] 
+    [Description("Last volume.")]
     public float Volume { get; set; } = 1;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    [NotifyPropertyChangedInvocator]
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }

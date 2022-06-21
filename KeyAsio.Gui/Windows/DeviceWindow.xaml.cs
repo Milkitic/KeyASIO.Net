@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using Milki.Extensions.MixPlayer.Devices;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Windows;
 
 public class DeviceWindowViewModel : ViewModelBase
 {
