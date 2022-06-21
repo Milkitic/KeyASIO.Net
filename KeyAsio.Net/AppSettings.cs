@@ -1,16 +1,17 @@
 ﻿using System.ComponentModel;
 using KeyAsio.Net.Configuration;
 using KeyAsio.Net.Models;
+using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Net;
 
 public class AppSettings : ConfigurationBase
 {
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
-    public HashSet<Hooking.Keys> Keys { get; set; } = new()
+    public HashSet<HookKeys> Keys { get; set; } = new()
     {
-        Hooking.Keys.Z,
-        Hooking.Keys.X
+        HookKeys.Z,
+        HookKeys.X
     };
 
     [Description("Hitsound's relative or absolute path.")]

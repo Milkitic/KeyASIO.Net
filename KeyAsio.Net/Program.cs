@@ -2,7 +2,6 @@
 using System.Text;
 using KeyAsio.Net.Audio;
 using KeyAsio.Net.Configuration;
-using KeyAsio.Net.Hooking;
 using KeyAsio.Net.Models;
 
 namespace KeyAsio.Net;
