@@ -11,6 +11,7 @@ public class DeviceWindowViewModel : ViewModelBase
     private List<DeviceDescription>? _devices;
     private DeviceDescription? _selectedDevice;
     private int _latency = 3;
+    private int _sampleRate = 44100;
     private bool _isExclusive;
 
     public List<DeviceDescription>? Devices
@@ -29,6 +30,12 @@ public class DeviceWindowViewModel : ViewModelBase
     {
         get => _latency;
         set => this.RaiseAndSetIfChanged(ref _latency, value);
+    }
+
+    public int SampleRate
+    {
+        get => _sampleRate;
+        set => this.RaiseAndSetIfChanged(ref _sampleRate, value);
     }
 
     public bool IsExclusive

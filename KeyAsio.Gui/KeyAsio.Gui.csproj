@@ -20,8 +20,8 @@
     </PackageReference>-->
     <PackageReference Include="HandyControl" Version="3.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
-    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.6" />
-    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.6" />
+    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.7" />
+    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.7" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
   </ItemGroup>
 

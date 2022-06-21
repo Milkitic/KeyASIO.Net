@@ -26,4 +26,10 @@ public class AppSettings : ConfigurationBase
     public int Channels { get; set; } = 2;
     [Description("Device configuration.")]
     public DeviceDescription? Device { get; set; }
+
+    [Description("Enable volume control.")]
+    public bool VolumeEnabled { get; set; } = true;
+
+    [Description("Last volume.")] 
+    public float Volume { get; set; } = 1;
 }

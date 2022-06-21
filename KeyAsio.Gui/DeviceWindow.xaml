@@ -25,9 +25,15 @@
                 Margin="0,0,0,25"
                 FontSize="21"
                 Text="Config Device" />
+            <TextBlock Margin="0,0,0,10" Text="Sample rate" />
+            <TextBox
+                Height="26"
+                Margin="0,0,0,10"
+                FontSize="12"
+                Style="{StaticResource TextBox.Small}"
+                Text="{Binding SampleRate, Mode=TwoWay}" />
 
             <TextBlock Margin="0,0,0,10" Text="Device list" />
-
             <ComboBox
                 Width="400"
                 Height="26"

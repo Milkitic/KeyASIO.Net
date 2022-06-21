@@ -1,11 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using HandyControl.Controls;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Utils;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
+using NAudio.Wave;
 using Window = System.Windows.Window;
 
 namespace KeyAsio.Gui;
@@ -14,6 +16,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     private AudioPlaybackEngine? _audioPlaybackEngine;
     private DeviceDescription? _deviceDescription;
+    private AppSettings? _appSettings;
 
     public AudioPlaybackEngine? AudioPlaybackEngine
     {
@@ -25,6 +28,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _deviceDescription;
         set => this.RaiseAndSetIfChanged(ref _deviceDescription, value);
+    }
+
+    public AppSettings? AppSettings
+    {
+        get => _appSettings;
+        set => this.RaiseAndSetIfChanged(ref _appSettings, value);
     }
 }
 
@@ -42,6 +51,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = _viewModel = new MainWindowViewModel();
         _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
+        _viewModel.AppSettings = _appSettings;
     }
 
     private void SelectDevice()
@@ -62,22 +72,34 @@ public partial class MainWindow : Window
         var isExclusive = window.ViewModel.IsExclusive;
         deviceDescription.Latency = latency;
         deviceDescription.IsExclusive = isExclusive;
+        _appSettings.SampleRate = window.ViewModel.SampleRate;
 
-        LoadDevice(deviceDescription);
+        LoadDevice(deviceDescription, true);
     }
 
-    private void LoadDevice(DeviceDescription deviceDescription)
+    private void LoadDevice(DeviceDescription deviceDescription, bool saveToSettings)
     {
-        var device = DeviceCreationHelper.CreateDevice(out var actualDescription, deviceDescription);
         try
         {
-            _viewModel.AudioPlaybackEngine = new AudioPlaybackEngine(device)
+            var device = DeviceCreationHelper.CreateDevice(out var actualDescription, deviceDescription);
+            _viewModel.AudioPlaybackEngine = new AudioPlaybackEngine(device,
+                _appSettings.SampleRate, _appSettings.Channels,
+                notifyProgress: false, enableVolume: _appSettings.VolumeEnabled)
             {
-                Volume = 0.1f
+                Volume = _appSettings.Volume
             };
+
+            if (device is AsioOut asioOut)
+            {
+                asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
+            }
+
             _viewModel.DeviceDescription = actualDescription;
-            _appSettings.Device = actualDescription;
-            _appSettings.Save();
+            if (saveToSettings)
+            {
+                _appSettings.Device = actualDescription;
+                _appSettings.Save();
+            }
         }
         catch (Exception ex)
         {
@@ -88,6 +110,12 @@ public partial class MainWindow : Window
     private void DisposeDevice(bool saveToSettings)
     {
         if (_viewModel.AudioPlaybackEngine == null) return;
+
+        if (_viewModel.AudioPlaybackEngine.OutputDevice is AsioOut asioOut)
+        {
+            asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
+        }
+
         _viewModel.AudioPlaybackEngine.OutputDevice?.Dispose();
         _viewModel.AudioPlaybackEngine = null;
         _viewModel.DeviceDescription = null;
@@ -105,13 +133,14 @@ public partial class MainWindow : Window
         }
         else
         {
-            LoadDevice(_appSettings.Device);
+            LoadDevice(_appSettings.Device, false);
         }
     }
 
     private void MainWindow_OnClosed(object? sender, EventArgs e)
     {
         _viewModel.AudioPlaybackEngine?.OutputDevice?.Dispose();
+        _appSettings.Save();
         Application.Current.Shutdown();
     }
 
@@ -120,6 +149,13 @@ public partial class MainWindow : Window
         if (_forceClose) return;
         e.Cancel = true;
         Hide();
+    }
+
+    private void AsioOut_DriverResetRequest(object? sender, EventArgs e)
+    {
+        var deviceDescription = _viewModel.DeviceDescription!;
+        DisposeDevice(false);
+        Dispatcher.Invoke(() => LoadDevice(deviceDescription, false));
     }
 
     private void miCloseApp_OnClick(object sender, RoutedEventArgs e)
@@ -141,5 +177,21 @@ public partial class MainWindow : Window
     private void btnChangeKey_OnClick(object sender, RoutedEventArgs e)
     {
 
+    }
+
+    private void btnAsioControlPanel_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.AudioPlaybackEngine?.OutputDevice is AsioOut asioOut)
+        {
+            asioOut.ShowControlPanel();
+        }
+    }
+
+    private void RangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_viewModel.AudioPlaybackEngine is null) return;
+        if (!_appSettings.VolumeEnabled) return;
+
+        _appSettings.Volume = (float)((Slider)sender).Value;
     }
 }
