@@ -58,6 +58,7 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public App App { get; } = (App)Application.Current;
+    public SharedViewModel SharedViewModel { get; } = SharedViewModel.Instance;
 }
 
 /// <summary>
@@ -139,7 +140,7 @@ public partial class MainWindow : Window
                             }
                         });
                     }
-                    catch 
+                    catch
                     {
                         // ignored
                     }
@@ -200,9 +201,12 @@ public partial class MainWindow : Window
         {
             if (action == KeyAction.KeyDown)
             {
-                if (_cacheSound != null)
+                if (!_appSettings.OsuMode)
                 {
-                    _viewModel.AudioPlaybackEngine?.PlaySound(_cacheSound);
+                    if (_cacheSound != null)
+                    {
+                        _viewModel.AudioPlaybackEngine?.PlaySound(_cacheSound);
+                    }
                 }
 
                 if (_appSettings.Debugging)

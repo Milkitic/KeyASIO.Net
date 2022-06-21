@@ -8,13 +8,15 @@ using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Gui;
 
-public class AppSettings : ConfigurationBase, INotifyPropertyChanged
+public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
 {
     private HashSet<HookKeys> _keys = new()
     {
         HookKeys.Z,
         HookKeys.X
     };
+
+    public bool OsuMode { get; set; } = true;
 
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public HashSet<HookKeys> Keys
@@ -49,7 +51,7 @@ public class AppSettings : ConfigurationBase, INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     [NotifyPropertyChangedInvocator]
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
