@@ -2,8 +2,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
-using KeyAsio.Net.Audio;
-using KeyAsio.Net.Models;
+using Milki.Extensions.MixPlayer.Devices;
+using Milki.Extensions.MixPlayer.NAudioExtensions;
+using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
 
@@ -38,7 +39,8 @@ public partial class FormTrigger : Form
 
     private async void Form1_Load(object? sender, EventArgs e)
     {
-        if (!CreateDevice()) return;
+        if (!CreateDevice(true)) return;
+        Console.WriteLine();
 
         if (_device is AsioOut)
         {
@@ -64,14 +66,21 @@ public partial class FormTrigger : Form
         _device?.Dispose();
     }
 
-    private bool CreateDevice()
+    private bool CreateDevice(bool printCommonMessage)
     {
         DeviceDescription? actualDeviceInfo;
         try
         {
-            _device = DeviceProvider.CreateDevice(out actualDeviceInfo, _deviceDescription);
-            _engine = new AudioPlaybackEngine(_device, _settings.SampleRate, _settings.Channels);
-            _engine.Start();
+            _device = DeviceCreationHelper.CreateDevice(out actualDeviceInfo, _deviceDescription);
+            if (_device is AsioOut ao)
+            {
+                ao.DriverResetRequest += Ao_DriverResetRequest;
+            }
+            _engine = new AudioPlaybackEngine(_device, _settings.SampleRate, _settings.Channels,
+                notifyProgress: false, enableVolume: false)
+            {
+                Volume = 0.1f
+            };
         }
         catch (Exception ex)
         {
@@ -80,19 +89,38 @@ public partial class FormTrigger : Form
             return false;
         }
 
-        Console.WriteLine("Active device information: ");
-        var aymInfo = new
+        if (printCommonMessage)
         {
-            DeviceInfo = actualDeviceInfo,
-            WaveFormat = _engine?.WaveFormat
-        };
-        Console.WriteLine(JsonSerializer.Serialize(aymInfo, new JsonSerializerOptions
+            Console.WriteLine("Active device information: ");
+            var aymInfo = new
+            {
+                DeviceInfo = actualDeviceInfo,
+                WaveFormat = _engine?.WaveFormat
+            };
+            Console.WriteLine(JsonSerializer.Serialize(aymInfo, new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.Create(ChineseRange),
+                WriteIndented = true,
+                Converters = { JsonStringEnumConverter }
+            }));
+        }
+
+        if (_device is AsioOut asioOut)
         {
-            Encoder = JavaScriptEncoder.Create(ChineseRange),
-            WriteIndented = true,
-            Converters = { JsonStringEnumConverter }
-        }));
-        Console.WriteLine();
+            Console.WriteLine("ASIO information: ");
+            var aymInfo = new
+            {
+                FramesPerBuffer = asioOut.FramesPerBuffer,
+                PlaybackLatency = asioOut.PlaybackLatency,
+            };
+            Console.WriteLine(JsonSerializer.Serialize(aymInfo, new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.Create(ChineseRange),
+                WriteIndented = true,
+                Converters = { JsonStringEnumConverter }
+            }));
+        }
+
         return true;
     }
 
@@ -123,6 +151,21 @@ public partial class FormTrigger : Form
         if (_device is AsioOut asioOut)
         {
             asioOut.ShowControlPanel();
+        }
+    }
+
+    private void Ao_DriverResetRequest(object? sender, EventArgs e)
+    {
+        _engine?.Dispose();
+        Console.WriteLine("Driver requested to reset.");
+        var success = CreateDevice(false);
+        if (success)
+        {
+            Console.WriteLine("Driver reseted.\r\n");
+        }
+        else
+        {
+            Console.WriteLine("Driver failed to reset.\r\n");
         }
     }
 }

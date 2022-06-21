@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using KeyAsio.Net.Configuration;
-using KeyAsio.Net.Models;
+using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Net;

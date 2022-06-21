@@ -1,8 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
-using KeyAsio.Net.Audio;
 using KeyAsio.Net.Configuration;
-using KeyAsio.Net.Models;
+using Milki.Extensions.MixPlayer.Devices;
 
 namespace KeyAsio.Net;
 
@@ -70,7 +69,7 @@ class Program
 
     private static DeviceDescription SelectDevice(AppSettings settings)
     {
-        var devices = DeviceProvider.GetCachedAvailableDevices().ToList();
+        var devices = DeviceCreationHelper.GetCachedAvailableDevices().ToList();
         var o = devices
             .GroupBy(k => k.WavePlayerType)
             .Select((k, i) => (i + 1, k.Key))
