@@ -1,27 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using Milki.Extensions.MouseKeyHook;
 
-namespace KeyAsio.Gui.Windows
+namespace KeyAsio.Gui.Windows;
+
+public class KeyBindWindowViewModel : ViewModelBase
 {
-    /// <summary>
-    /// KeyBindWindow.xaml 的交互逻辑
-    /// </summary>
-    public partial class KeyBindWindow : Window
+    private ObservableCollection<HookKeys> _keys = new();
+
+    public ObservableCollection<HookKeys> Keys
     {
-        public KeyBindWindow()
+        get => _keys;
+        set => this.RaiseAndSetIfChanged(ref _keys, value);
+    }
+}
+
+/// <summary>
+/// KeyBindWindow.xaml 的交互逻辑
+/// </summary>
+public partial class KeyBindWindow : Window
+{
+    private readonly IKeyboardHook _keyboardHook;
+    public KeyBindWindowViewModel ViewModel { get; }
+
+    public KeyBindWindow(IEnumerable<HookKeys> hookKeys)
+    {
+        InitializeComponent();
+        _keyboardHook = KeyboardHookFactory.CreateApplication();
+        _keyboardHook.KeyPressed += keyboardHook_KeyPressed;
+        DataContext = ViewModel = new KeyBindWindowViewModel();
+        ViewModel.Keys = new ObservableCollection<HookKeys>(hookKeys);
+    }
+
+    private void keyboardHook_KeyPressed(HookModifierKeys hookModifierKeys, HookKeys hookKey, KeyAction type)
+    {
+        if (type == KeyAction.KeyDown && !ViewModel.Keys.Contains(hookKey))
         {
-            InitializeComponent();
+            Dispatcher.Invoke(() => ViewModel.Keys.Add(hookKey));
         }
+    }
+
+    private void KeyBindWindow_OnClosed(object? sender, EventArgs e)
+    {
+        _keyboardHook.Dispose();
+        _keyboardHook.KeyPressed -= keyboardHook_KeyPressed;
+    }
+
+    private void btnConfirm_OnClick(object sender, RoutedEventArgs e)
+    {
+        DialogResult = true;
     }
 }

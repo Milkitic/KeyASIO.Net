@@ -11,7 +11,7 @@
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
     Title="KeyASIO Control Panel"
     Width="800"
-    Height="550"
+    MinHeight="450"
     d:DataContext="{d:DesignInstance windows:MainWindowViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -21,6 +21,7 @@
     FontSize="14"
     Loaded="MainWindow_OnLoaded"
     ResizeMode="NoResize"
+    SizeToContent="Height"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
@@ -112,10 +113,10 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="mouseKeyHook:HookKeys">
                         <Label
-                            Width="24"
                             Height="24"
+                            MinWidth="24"
                             Margin="5"
-                            Padding="0"
+                            Padding="7,0"
                             Content="{Binding}"
                             FontSize="12" />
                     </DataTemplate>
@@ -132,48 +133,231 @@
                     Margin="0,0,0,10"
                     FontSize="21"
                     Text="Information" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Text="Backend: " />
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Text="{Binding DeviceDescription.WavePlayerType}" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Text="ID: " />
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Text="{Binding DeviceDescription.DeviceId}" />
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Text="Name: " />
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Text="{Binding DeviceDescription.FriendlyName}" />
+                    <TextBlock
+                        Grid.Row="3"
+                        Grid.Column="0"
+                        Text="Exclusive: ">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DeviceDescription.WavePlayerType}" Value="{x:Static devices:WavePlayerType.WASAPI}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        Text="{Binding DeviceDescription.IsExclusive}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DeviceDescription.WavePlayerType}" Value="{x:Static devices:WavePlayerType.WASAPI}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="4"
+                        Grid.Column="0"
+                        Text="ASIO FramesPerBuffer: ">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DeviceDescription.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="4"
+                        Grid.Column="1"
+                        Text="{Binding FramesPerBuffer}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DeviceDescription.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="5"
+                        Grid.Column="0"
+                        Text="Latency (Desired): ">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DeviceDescription.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        Text="{Binding DeviceDescription.Latency}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DeviceDescription.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="5"
+                        Grid.Column="0"
+                        Text="ASIO Latency: ">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DeviceDescription.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        Text="{Binding DeviceDescription.Latency}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DeviceDescription.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
             </StackPanel>
         </StackPanel>
         <Grid
             Grid.Column="1"
             Background="{StaticResource RegionBrush}"
             TextBlock.Foreground="{StaticResource SecondaryTextBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="340" />
+            </Grid.ColumnDefinitions>
 
-            <StackPanel Width="25">
-                <TextBlock
-                    Margin="0,0,0,2"
-                    HorizontalAlignment="Center"
-                    FontSize="10"
-                    Text="Vol." />
-                <Slider
-                    Height="200"
-                    Margin="0,0,0,2"
-                    HorizontalAlignment="Center"
-                    Background="{StaticResource SecondaryRegionBrush}"
-                    IsEnabled="{Binding AppSettings.VolumeEnabled}"
-                    IsSnapToTickEnabled="True"
-                    LargeChange="0.1"
-                    Maximum="1"
-                    Minimum="0"
-                    Orientation="Vertical"
-                    SnapsToDevicePixels="True"
-                    Style="{StaticResource VolumeSlider}"
-                    TickFrequency="0.01"
-                    UseLayoutRounding="True"
-                    ValueChanged="RangeBase_OnValueChanged"
-                    Value="{Binding AudioPlaybackEngine.Volume}" />
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    FontSize="10"
-                    Text="{Binding AudioPlaybackEngine.Volume, StringFormat=P0}"
-                    Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityConverter}}" />
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    FontSize="10"
-                    Foreground="{StaticResource DangerBrush}"
-                    Text="disab."
-                    Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityReConverter}}" />
-            </StackPanel>
+            <TextBlock
+                Margin="0,0,0,2"
+                HorizontalAlignment="Center"
+                FontSize="11"
+                Text="Volume" />
+            <Slider
+                Grid.Row="1"
+                Margin="0,0,0,2"
+                HorizontalAlignment="Center"
+                Background="{StaticResource SecondaryRegionBrush}"
+                IsEnabled="{Binding AppSettings.VolumeEnabled}"
+                IsSnapToTickEnabled="True"
+                LargeChange="0.1"
+                Maximum="1"
+                Minimum="0"
+                Orientation="Vertical"
+                SnapsToDevicePixels="True"
+                Style="{StaticResource VolumeSlider}"
+                TickFrequency="0.01"
+                UseLayoutRounding="True"
+                ValueChanged="RangeBase_OnValueChanged"
+                Value="{Binding AudioPlaybackEngine.Volume}" />
+            <TextBlock
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                FontSize="11"
+                Text="{Binding AudioPlaybackEngine.Volume, StringFormat=P0}"
+                Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityConverter}}" />
+            <TextBlock
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                FontSize="11"
+                Foreground="{StaticResource DangerBrush}"
+                Text="disab."
+                Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityReConverter}}" />
+
+            <TextBlock
+                Grid.Column="1"
+                Margin="10,0,0,2"
+                HorizontalAlignment="Left"
+                FontSize="11"
+                Text="Log" />
+            <ListBox
+                Grid.Row="1"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Margin="10,0,0,0"
+                Padding="2,0"
+                VerticalContentAlignment="Top"
+                FontSize="11"
+                ItemsSource="{Binding App.Logs}" />
         </Grid>
 
         <hc:NotifyIcon VerticalAlignment="Bottom" Text="KeyASIO is running">

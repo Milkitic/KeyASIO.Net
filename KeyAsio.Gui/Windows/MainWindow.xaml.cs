@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using HandyControl.Controls;
-using HandyControl.Tools;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
@@ -23,6 +23,7 @@ public class MainWindowViewModel : ViewModelBase
     private AudioPlaybackEngine? _audioPlaybackEngine;
     private DeviceDescription? _deviceDescription;
     private AppSettings? _appSettings;
+    private int _framesPerBuffer;
 
     public AudioPlaybackEngine? AudioPlaybackEngine
     {
@@ -41,6 +42,14 @@ public class MainWindowViewModel : ViewModelBase
         get => _appSettings;
         set => this.RaiseAndSetIfChanged(ref _appSettings, value);
     }
+
+    public int FramesPerBuffer
+    {
+        get => _framesPerBuffer;
+        set => this.RaiseAndSetIfChanged(ref _framesPerBuffer, value);
+    }
+
+    public App App { get; } = (App)Application.Current;
 }
 
 /// <summary>
@@ -61,8 +70,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = _viewModel = new MainWindowViewModel();
-        _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
-        _viewModel.AppSettings = _appSettings;
+        _viewModel.AppSettings = _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
+
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
     }
 
@@ -104,6 +113,7 @@ public partial class MainWindow : Window
             if (device is AsioOut asioOut)
             {
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
+                _viewModel.FramesPerBuffer = asioOut.FramesPerBuffer;
             }
 
             var waveFormat = _viewModel.AudioPlaybackEngine.WaveFormat;
@@ -223,7 +233,28 @@ public partial class MainWindow : Window
 
     private void btnChangeKey_OnClick(object sender, RoutedEventArgs e)
     {
+        foreach (var guid in _registerList)
+        {
+            _keyboardHook.TryUnregister(guid);
+        }
 
+        _registerList.Clear();
+
+        var window = new KeyBindWindow(_appSettings.Keys)
+        {
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        if (window.ShowDialog() == true)
+        {
+            _appSettings.Keys = window.ViewModel.Keys.ToHashSet();
+        }
+
+        foreach (var key in _appSettings.Keys)
+        {
+            RegisterHotKey(key);
+        }
     }
 
     private void btnAsioControlPanel_OnClick(object sender, RoutedEventArgs e)
