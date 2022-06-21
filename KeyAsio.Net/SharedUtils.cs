@@ -1,7 +1,18 @@
-﻿namespace KeyAsio.Net;
+﻿using Microsoft.Extensions.Logging;
+
+namespace KeyAsio.Net;
 
 public static class SharedUtils
 {
+    private static readonly ILoggerFactory LoggerFactory =
+        Microsoft.Extensions.Logging.LoggerFactory.Create(k => k
+            .AddSimpleConsole(options =>
+            {
+                options.IncludeScopes = true;
+                options.SingleLine = true;
+                options.TimestampFormat = "hh:mm:ss ";
+            })
+            .SetMinimumLevel(LogLevel.Debug));
 
     private static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
 
@@ -14,7 +25,10 @@ public static class SharedUtils
 
     public static string SizeSuffix(long value, int decimalPlaces = 1)
     {
-        if (value < 0) { return "-" + SizeSuffix(-value, decimalPlaces); }
+        if (value < 0)
+        {
+            return "-" + SizeSuffix(-value, decimalPlaces);
+        }
 
         int i = 0;
         double dValue = value;
@@ -25,5 +39,15 @@ public static class SharedUtils
         }
 
         return string.Format("{0:n" + decimalPlaces + "} {1}", dValue, SizeSuffixes[i]);
+    }
+
+    public static ILogger GetLogger(string name)
+    {
+        return LoggerFactory.CreateLogger(name);
+    }
+
+    public static ILogger<T> GetLogger<T>()
+    {
+        return LoggerFactory.CreateLogger<T>();
     }
 }

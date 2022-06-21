@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
@@ -12,6 +13,7 @@ namespace KeyAsio.Net;
 
 public partial class FormTrigger : Form
 {
+    private static readonly ILogger Logger = SharedUtils.GetLogger("STA Form");
     private static readonly UnicodeRange[] ChineseRange =
     {
         UnicodeRanges.BasicLatin, UnicodeRange.Create((char)0x4E00, (char)0x9FA5)
@@ -54,8 +56,9 @@ public partial class FormTrigger : Form
             RegisterHotKey(key, cacheSound);
         }
 
-        Console.WriteLine("Your active keys: " + string.Join(",", _settings.Keys.OrderBy(k => k)));
-        Console.WriteLine("Initialization done.");
+        Logger.LogInformation("Your active keys: " + string.Join(",", _settings.Keys.OrderBy(k => k)));
+        Logger.LogInformation("Initialization done.");
+        Console.WriteLine();
     }
 
     private void Form1_Closed(object? sender, EventArgs e)
@@ -84,41 +87,34 @@ public partial class FormTrigger : Form
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error occurs while initializing device: {ex.GetType().FullName}: {ex.Message}\r\n{ex.StackTrace}");
+            Logger.LogError(ex, $"Error occurs while initializing device.");
             Close();
             return false;
         }
 
+
         if (printCommonMessage)
         {
-            Console.WriteLine("Active device information: ");
-            var aymInfo = new
+            using var _ = Logger.BeginScope("[Device information]");
+            Logger.LogInformation("Backend: " + actualDeviceInfo.WavePlayerType);
+            Logger.LogInformation("Id: " + actualDeviceInfo.DeviceId);
+            Logger.LogInformation("Name: " + actualDeviceInfo.FriendlyName);
+            if (actualDeviceInfo.WavePlayerType != WavePlayerType.ASIO)
             {
-                DeviceInfo = actualDeviceInfo,
-                WaveFormat = _engine?.WaveFormat
-            };
-            Console.WriteLine(JsonSerializer.Serialize(aymInfo, new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.Create(ChineseRange),
-                WriteIndented = true,
-                Converters = { JsonStringEnumConverter }
-            }));
+                Logger.LogInformation("Latency: " + actualDeviceInfo.Latency);
+
+                if (actualDeviceInfo.WavePlayerType == WavePlayerType.WASAPI)
+                {
+                    Logger.LogInformation("WASAPI Exclusive: " + actualDeviceInfo.IsExclusive);
+                }
+            }
         }
 
         if (_device is AsioOut asioOut)
         {
-            Console.WriteLine("ASIO information: ");
-            var aymInfo = new
-            {
-                FramesPerBuffer = asioOut.FramesPerBuffer,
-                PlaybackLatency = asioOut.PlaybackLatency,
-            };
-            Console.WriteLine(JsonSerializer.Serialize(aymInfo, new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.Create(ChineseRange),
-                WriteIndented = true,
-                Converters = { JsonStringEnumConverter }
-            }));
+            using var _ = Logger.BeginScope("[ASIO Extra information]");
+            Logger.LogInformation("FramesPerBuffer: " + asioOut.FramesPerBuffer);
+            Logger.LogInformation("PlaybackLatency: " + asioOut.PlaybackLatency);
         }
 
         return true;
@@ -133,14 +129,14 @@ public partial class FormTrigger : Form
                 _engine?.PlaySound(cacheSound);
                 if (_settings.Debugging)
                 {
-                    Console.WriteLine($"{hookKey} {action}");
+                    Logger.LogDebug($"{hookKey} {action}");
                 }
             }
             else
             {
                 if (_settings.Debugging)
                 {
-                    Console.WriteLine($"{hookKey} {action}");
+                    Logger.LogDebug($"{hookKey} {action}");
                 }
             }
         });
@@ -157,15 +153,15 @@ public partial class FormTrigger : Form
     private void Ao_DriverResetRequest(object? sender, EventArgs e)
     {
         _engine?.Dispose();
-        Console.WriteLine("Driver requested to reset.");
+        Logger.LogWarning("Driver requested to reset.");
         var success = CreateDevice(false);
         if (success)
         {
-            Console.WriteLine("Driver reseted.\r\n");
+            Logger.LogInformation("Driver reseted.\r\n");
         }
         else
         {
-            Console.WriteLine("Driver failed to reset.\r\n");
+            Logger.LogError("Driver failed to reset.\r\n");
         }
     }
 }

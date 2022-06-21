@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Net.Configuration;
 
 public static class ConfigurationFactory
 {
+    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(ConfigurationFactory));
+
     public static bool TryLoadConfigFromFile<T>(string path,
         [NotNullWhen(true)] out T? config,
         [NotNullWhen(false)] out Exception? e,
@@ -20,8 +23,8 @@ public static class ConfigurationFactory
         if (!File.Exists(path))
         {
             retConfig = CreateDefaultConfigByPath(type, path, converter);
-            Console.WriteLine($"Config file \"{Path.GetFileName(path)}\" was not found. " +
-                              $"Default config was created and used.");
+            Logger.LogInformation($"Config file \"{Path.GetFileName(path)}\" was not found. " +
+                                  $"Default config was created and used.");
         }
         else
         {
@@ -31,7 +34,7 @@ public static class ConfigurationFactory
             {
                 retConfig = converter.DeserializeSettings(content, type);
                 SaveConfig(retConfig, path, converter);
-                Console.WriteLine($"Config file \"{Path.GetFileName(path)}\" was loaded.");
+                Logger.LogInformation($"Config file \"{Path.GetFileName(path)}\" was loaded.");
             }
             catch (Exception ex)
             {
