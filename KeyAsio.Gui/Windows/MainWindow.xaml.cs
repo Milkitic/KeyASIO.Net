@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,6 +25,7 @@ public class MainWindowViewModel : ViewModelBase
     private DeviceDescription? _deviceDescription;
     private AppSettings? _appSettings;
     private int _framesPerBuffer;
+    private int _playbackLatency;
 
     public AudioPlaybackEngine? AudioPlaybackEngine
     {
@@ -49,6 +51,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _framesPerBuffer, value);
     }
 
+    public int PlaybackLatency
+    {
+        get => _playbackLatency;
+        set => this.RaiseAndSetIfChanged(ref _playbackLatency, value);
+    }
+
     public App App { get; } = (App)Application.Current;
 }
 
@@ -64,7 +72,8 @@ public partial class MainWindow : Window
     private readonly MainWindowViewModel _viewModel;
     private CachedSound? _cacheSound;
     private readonly IKeyboardHook _keyboardHook;
-    private List<Guid> _registerList = new();
+    private readonly List<Guid> _registerList = new();
+    private Timer? _timer;
 
     public MainWindow()
     {
@@ -114,6 +123,27 @@ public partial class MainWindow : Window
             {
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 _viewModel.FramesPerBuffer = asioOut.FramesPerBuffer;
+                _timer = new Timer(_ =>
+                {
+                    try
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            try
+                            {
+                                _viewModel.PlaybackLatency = asioOut.PlaybackLatency;
+                            }
+                            catch
+                            {
+                                // ignored
+                            }
+                        });
+                    }
+                    catch 
+                    {
+                        // ignored
+                    }
+                }, null, 0, 100);
             }
 
             var waveFormat = _viewModel.AudioPlaybackEngine.WaveFormat;
@@ -139,9 +169,22 @@ public partial class MainWindow : Window
         if (_viewModel.AudioPlaybackEngine.OutputDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
+            _timer?.Dispose();
         }
 
-        _viewModel.AudioPlaybackEngine.OutputDevice?.Dispose();
+        for (int i = 0; i < 3; i++)
+        {
+            try
+            {
+                _viewModel.AudioPlaybackEngine.OutputDevice?.Dispose();
+                break;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error while disposing");
+                Thread.Sleep(100);
+            }
+        }
         _viewModel.AudioPlaybackEngine = null;
         _viewModel.DeviceDescription = null;
         CachedSoundFactory.ClearCacheSounds();
@@ -181,11 +224,13 @@ public partial class MainWindow : Window
     {
         if (_appSettings.Device == null)
         {
+            await Task.Delay(100);
             await SelectDevice();
         }
         else
         {
             await LoadDevice(_appSettings.Device, false);
+            Hide();
         }
 
         foreach (var key in _appSettings.Keys)
@@ -211,8 +256,12 @@ public partial class MainWindow : Window
     private async void AsioOut_DriverResetRequest(object? sender, EventArgs e)
     {
         var deviceDescription = _viewModel.DeviceDescription!;
-        DisposeDevice(false);
-        await Dispatcher.InvokeAsync(async () => await LoadDevice(deviceDescription, false));
+
+        await Dispatcher.InvokeAsync(async () =>
+        {
+            DisposeDevice(false);
+            await LoadDevice(deviceDescription, false);
+        });
     }
 
     private void miCloseApp_OnClick(object sender, RoutedEventArgs e)

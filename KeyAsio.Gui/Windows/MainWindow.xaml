@@ -263,7 +263,7 @@
                     <TextBlock
                         Grid.Row="5"
                         Grid.Column="0"
-                        Text="ASIO Latency: ">
+                        Text="ASIO Latency(?): ">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -278,7 +278,7 @@
                     <TextBlock
                         Grid.Row="5"
                         Grid.Column="1"
-                        Text="{Binding DeviceDescription.Latency}">
+                        Text="{Binding PlaybackLatency}">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
