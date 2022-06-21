@@ -1,0 +1,115 @@
+﻿<Window
+    x:Class="KeyAsio.Gui.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:local="clr-namespace:KeyAsio.Gui"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="KeyASIO Control Panel"
+    Width="800"
+    Height="550"
+    d:DataContext="{d:DesignInstance local:MainWindowViewModel,
+                                     IsDesignTimeCreatable=False}"
+    Background="{StaticResource RegionBrush}"
+    Closed="MainWindow_OnClosed"
+    Closing="MainWindow_OnClosing"
+    FontFamily="Segoe UI,微软雅黑"
+    FontSize="14"
+    Loaded="MainWindow_OnLoaded"
+    ResizeMode="NoResize"
+    TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <Grid Margin="25">
+        <StackPanel>
+            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,10,0"
+                    FontSize="21"
+                    Text="Current Device" />
+                <Button
+                    Height="auto"
+                    Padding="8,3"
+                    VerticalAlignment="Center"
+                    Click="btnChangeDevice_OnClick"
+                    Content="Change"
+                    FontSize="12"
+                    Style="{StaticResource ButtonDefault.Small}"
+                    UseLayoutRounding="True" />
+            </StackPanel>
+            <Grid
+                MaxWidth="740"
+                Margin="0,0,0,20"
+                TextBlock.FontSize="14">
+                <StackPanel Orientation="Horizontal" Visibility="{Binding DeviceDescription, Converter={StaticResource IsNullToVisibilityConverter}}">
+                    <TextBlock
+                        Margin="0,0,5,0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold"
+                        TextTrimming="CharacterEllipsis">
+                        <Run Text="{Binding DeviceDescription.WavePlayerType}" /><Run Text=": " /><Run Text="{Binding DeviceDescription.FriendlyName}" />
+                    </TextBlock>
+                    <Button
+                        Height="auto"
+                        Padding="4,1"
+                        VerticalAlignment="Center"
+                        Click="btnDisposeDevice_OnClick"
+                        Content="Dispose"
+                        FontSize="12"
+                        Style="{StaticResource ButtonDanger.Small}"
+                        UseLayoutRounding="True" />
+                </StackPanel>
+                <TextBlock
+                    Foreground="{StaticResource DangerBrush}"
+                    Text="No device selected."
+                    Visibility="{Binding DeviceDescription, Converter={StaticResource IsNullToVisibilityReConverter}}" />
+            </Grid>
+            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,27,0"
+                    FontSize="21"
+                    Text="Key Mapping" />
+                <Button
+                    Height="Auto"
+                    Padding="8,3"
+                    VerticalAlignment="Center"
+                    Click="btnChangeKey_OnClick"
+                    Content="Change"
+                    FontSize="12"
+                    Style="{StaticResource ButtonDefault.Small}"
+                    UseLayoutRounding="True" />
+            </StackPanel>
+            <ItemsControl>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+
+            <StackPanel>
+                <TextBlock
+                    Margin="0,0,0,10"
+                    FontSize="21"
+                    Text="Information" />
+            </StackPanel>
+        </StackPanel>
+        <hc:NotifyIcon VerticalAlignment="Bottom" Text="KeyASIO is running">
+            <hc:NotifyIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="hc:ControlCommands.PushMainWindow2Top" Header="Show Control Panel" />
+                    <MenuItem Click="miCloseApp_OnClick" Header="Exit" />
+                </ContextMenu>
+            </hc:NotifyIcon.ContextMenu>
+            <hc:Interaction.Triggers>
+                <hc:EventTrigger EventName="MouseDoubleClick">
+                    <hc:EventToCommand Command="hc:ControlCommands.PushMainWindow2Top" />
+                </hc:EventTrigger>
+                <!--<hc:EventTrigger EventName="MouseDoubleClick">
+                    <hc:EventToCommand Command="{Binding MouseCmd}" CommandParameter="MouseDoubleClick" />
+                </hc:EventTrigger>-->
+            </hc:Interaction.Triggers>
+        </hc:NotifyIcon>
+    </Grid>
+</Window>

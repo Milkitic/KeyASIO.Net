@@ -1,0 +1,123 @@
+﻿<Window
+    x:Class="KeyAsio.Gui.DeviceWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devices="clr-namespace:Milki.Extensions.MixPlayer.Devices;assembly=Milki.Extensions.MixPlayer"
+    xmlns:local="clr-namespace:KeyAsio.Gui"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Device Configuration Guide"
+    Width="600"
+    Height="450"
+    d:DataContext="{d:DesignInstance local:DeviceWindowViewModel,
+                                     IsDesignTimeCreatable=False}"
+    Background="{StaticResource RegionBrush}"
+    FontFamily="Segoe UI,微软雅黑"
+    FontSize="14"
+    Loaded="DeviceWindow_OnLoaded"
+    ResizeMode="NoResize"
+    TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
+    WindowStyle="SingleBorderWindow"
+    mc:Ignorable="d">
+    <Grid Margin="25">
+        <StackPanel HorizontalAlignment="Left">
+            <TextBlock
+                Margin="0,0,0,25"
+                FontSize="21"
+                Text="Config Device" />
+
+            <TextBlock Margin="0,0,0,10" Text="Device list" />
+
+            <ComboBox
+                Width="400"
+                Height="26"
+                MinHeight="0"
+                Margin="0,0,0,20"
+                Padding="6,0"
+                FontSize="12"
+                ItemsSource="{Binding Devices}"
+                SelectedItem="{Binding SelectedDevice}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="devices:DeviceDescription">
+                        <TextBlock>
+                            <Run Text="{Binding WavePlayerType}" /><Run Text=": " /><Run Text="{Binding FriendlyName}" />
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                <Setter Property="Visibility" Value="Hidden" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+
+                <TextBlock Margin="0,0,0,10" Text="Detail Configuration" />
+
+                <TextBlock
+                    Margin="0,0,0,10"
+                    FontSize="12"
+                    Foreground="{StaticResource SecondaryTextBrush}"
+                    Text="Latency" />
+                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                    <Slider
+                        Width="300"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        AutoToolTipPlacement="BottomRight"
+                        IsSnapToTickEnabled="True"
+                        Maximum="200"
+                        TickPlacement="None"
+                        Value="{Binding Latency}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Text="{Binding Latency}" />
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Left">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Hidden" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.WASAPI}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock
+                        Margin="0,0,0,10"
+                        FontSize="12"
+                        Foreground="{StaticResource SecondaryTextBrush}"
+                        Text="WASAPI Exclusive" />
+                    <StackPanel Orientation="Horizontal">
+                        <ToggleButton
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            IsChecked="{Binding IsExclusive}"
+                            Style="{StaticResource ToggleButtonSwitch}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding IsExclusive}" />
+                    </StackPanel>
+                </StackPanel>
+
+            </StackPanel>
+        </StackPanel>
+
+        <Button
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Click="btnConfirm_OnClick"
+            Content="Confirm"
+            Style="{StaticResource ButtonPrimary}" />
+    </Grid>
+</Window>
