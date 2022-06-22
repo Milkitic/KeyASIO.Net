@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using Milki.Extensions.MixPlayer.Devices;
+﻿using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
 
 namespace KeyAsio.Gui;
@@ -11,6 +10,7 @@ public class SharedViewModel : ViewModelBase
     private AppSettings? _appSettings;
     private int _framesPerBuffer;
     private int _playbackLatency;
+    private bool _debugging;
 
     private SharedViewModel()
     {
@@ -48,6 +48,11 @@ public class SharedViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _playbackLatency, value);
     }
 
-    public App App { get; } = (App)Application.Current;
+    public bool Debugging
+    {
+        get => _debugging;
+        set => this.RaiseAndSetIfChanged(ref _debugging, value);
+    }
+
     public OsuManager OsuManager { get; } = OsuManager.Instance;
 }

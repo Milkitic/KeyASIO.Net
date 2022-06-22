@@ -11,7 +11,7 @@
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
     Title="KeyASIO Control Panel"
     Width="800"
-    MinHeight="500"
+    Height="500"
     d:DataContext="{d:DesignInstance local:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -21,7 +21,6 @@
     FontSize="14"
     Loaded="MainWindow_OnLoaded"
     ResizeMode="NoResize"
-    SizeToContent="Height"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
@@ -296,10 +295,12 @@
                     <TextBlock
                         Grid.Row="6"
                         Grid.Column="0"
+                        Margin="0,20,0,0"
                         Text="osu! PlayTime: " />
                     <TextBlock
                         Grid.Row="6"
                         Grid.Column="1"
+                        Margin="0,20,0,0"
                         Text="{Binding OsuManager.PlayTime}" />
                     <TextBlock
                         Grid.Row="7"
@@ -332,7 +333,7 @@
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
-                <ColumnDefinition Width="340" />
+                <ColumnDefinition Width="350" />
             </Grid.ColumnDefinitions>
 
             <TextBlock
@@ -377,15 +378,34 @@
                 HorizontalAlignment="Left"
                 FontSize="11"
                 Text="Log" />
-            <ListBox
+            <!--<ListBox
                 Grid.Row="1"
                 Grid.RowSpan="2"
                 Grid.Column="1"
-                Margin="10,0,0,0"
+                Margin="10,0,0,0" Style="{StaticResource ListBox.Small}"
                 Padding="2,0"
                 VerticalContentAlignment="Top"
                 FontSize="11"
-                ItemsSource="{Binding App.Logs}" />
+                ItemsSource="{Binding Logs}" />-->
+            <ContentPresenter
+                x:Name="cp"
+                Grid.Row="1"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Margin="10,0,0,0">
+                <ContentPresenter.Resources>
+                    <Style BasedOn="{StaticResource {x:Type RichTextBox}}" TargetType="RichTextBox">
+                        <Setter Property="FontSize" Value="11" />
+                        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+                        <!--<Setter Property="TextWrapping" Value="Wrap" />-->
+                        <Setter Property="Padding" Value="2,1" />
+                        <!--<Setter Property="Padding" Value="2,1" />-->
+                        <Setter Property="IsReadOnly" Value="True" />
+                        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+                    </Style>
+                </ContentPresenter.Resources>
+            </ContentPresenter>
         </Grid>
 
         <hc:NotifyIcon VerticalAlignment="Bottom" Text="KeyASIO is running">

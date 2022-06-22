@@ -1,8 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
+﻿using System.Windows;
+using System.Windows.Controls;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
+using NLog.Config;
 using OsuRTDataProvider.Listen;
 using OrtdpLogger = OsuRTDataProvider.Logger;
 using OrtdpSetting = OsuRTDataProvider.Setting;
@@ -14,12 +15,17 @@ namespace KeyAsio.Gui;
 /// </summary>
 public partial class App : Application
 {
-    public ObservableCollection<string> Logs { get; } = new();
+    internal readonly RichTextBox RichTextBox = new();
 
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
+        ConfigurationItemFactory
+            .Default
+            .Targets
+            .RegisterDefinition("MemoryTarget", typeof(MemoryTarget));
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
-        _ = SharedViewModel.Instance;
+
+        SharedViewModel.Instance.Debugging = settings.Debugging;
 
         if (settings.OsuMode)
         {
@@ -33,7 +39,23 @@ public partial class App : Application
             OsuManager.Instance.OsuListenerManager = manager;
         }
 
+        var miClearAll = new MenuItem
+        {
+            Header = "_Clear All"
+        };
+        RichTextBox.ContextMenu = new ContextMenu
+        {
+            Items = { miClearAll }
+        };
+        RichTextBox.Document.Blocks.Clear();
+        miClearAll.Click += miClearAll_Click;
         MainWindow = new MainWindow();
         MainWindow.Show();
+    }
+
+    private void miClearAll_Click(object sender, RoutedEventArgs e)
+    {
+        RichTextBox.Document.Blocks.Clear();
+        //TextBox.Clear();
     }
 }

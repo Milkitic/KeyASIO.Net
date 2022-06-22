@@ -41,6 +41,7 @@ public partial class MainWindow : Window
         _viewModel.AppSettings = _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
+        cp.Content = ((App)Application.Current).RichTextBox;
     }
 
     private async Task SelectDevice()
@@ -175,17 +176,17 @@ public partial class MainWindow : Window
                     }
                 }
 
-                if (_appSettings.Debugging)
+                if (SharedViewModel.Instance.Debugging)
                 {
                     Logger.LogDebug($"{hookKey} {action}");
                 }
             }
             else
             {
-                if (_appSettings.Debugging)
-                {
-                    Logger.LogDebug($"{hookKey} {action}");
-                }
+                //if (SharedViewModel.Instance.Debugging)
+                //{
+                //    Logger.LogDebug($"{hookKey} {action}");
+                //}
             }
         }));
     }
