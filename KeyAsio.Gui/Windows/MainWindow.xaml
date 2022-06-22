@@ -11,7 +11,7 @@
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
     Title="KeyASIO Control Panel"
     Width="800"
-    Height="520"
+    Height="530"
     d:DataContext="{d:DesignInstance local:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -54,7 +54,9 @@
                     <TextBlock
                         Margin="0,0,5,0"
                         VerticalAlignment="Center"
+                        FontFamily="Consolas"
                         FontWeight="Bold"
+                        Foreground="{StaticResource AccentBrush}"
                         TextTrimming="CharacterEllipsis">
                         <Run Text="{Binding DeviceDescription.WavePlayerType}" /><Run Text=": " /><Run Text="{Binding DeviceDescription.FriendlyName}" />
                     </TextBlock>
@@ -118,8 +120,10 @@
                             MinWidth="24"
                             Margin="5"
                             Padding="7,0"
-                            Content="{Binding}"
-                            FontSize="12" />
+                            Content="{Binding Converter={StaticResource UpperCaseConverter}}"
+                            FontFamily="Consolas"
+                            FontSize="12"
+                            FontWeight="Bold" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
                 <ItemsControl.ItemsPanel>

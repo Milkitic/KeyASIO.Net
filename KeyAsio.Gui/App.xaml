@@ -14,6 +14,7 @@
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <converters:UpperCaseConverter x:Key="UpperCaseConverter" />
             <converters:IntMillisecond2TimeSpanConverter x:Key="IntMillisecond2TimeSpanConverter" />
             <converters:IsNullToVisibilityReConverter x:Key="IsNullToVisibilityReConverter" />
             <converters:IsNullToVisibilityConverter x:Key="IsNullToVisibilityConverter" />

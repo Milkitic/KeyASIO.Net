@@ -30,13 +30,20 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 BorderThickness="0"
+                FontFamily="Consolas"
+                FontWeight="Bold"
                 ItemsSource="{Binding Keys}">
                 <hc:TagContainer.Resources>
                     <Style TargetType="hc:Tag">
                         <Setter Property="Margin" Value="5" />
+                        <Setter Property="FontFamily" Value="Consolas" />
                     </Style>
                 </hc:TagContainer.Resources>
-
+                <hc:TagContainer.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={StaticResource UpperCaseConverter}}" />
+                    </DataTemplate>
+                </hc:TagContainer.ItemTemplate>
                 <!--<hc:Tag IsSelected="True" Selectable="True" Content="{ex:Lang Key={x:Static langs:LangKeys.Text}, Converter={StaticResource StringRepeatConverter}, ConverterParameter=3}"/>-->
             </hc:TagContainer>
             <TextBlock Foreground="{StaticResource WarningBrush}" Text="Press keys to add to list." />
@@ -46,8 +53,8 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             Click="btnConfirm_OnClick"
-            FontWeight="Bold"
             Content="Confirm"
+            FontWeight="Bold"
             Style="{StaticResource ButtonPrimary}" />
     </Grid>
 </Window>
