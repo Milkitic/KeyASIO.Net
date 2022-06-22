@@ -1,17 +1,16 @@
-﻿using OsuRTDataProvider.BeatmapInfo;
-using OsuRTDataProvider.Listen;
+﻿using System.Windows;
+using Milki.Extensions.MixPlayer.Devices;
+using Milki.Extensions.MixPlayer.NAudioExtensions;
 
 namespace KeyAsio.Gui;
 
 public class SharedViewModel : ViewModelBase
 {
-    public event OsuListenerManager.OnStatusChangedEvt? OnStatusChanged;
-    public event OsuListenerManager.OnPlayingTimeChangedEvt? OnPlayTimeChanged;
-    public event OsuListenerManager.OnBeatmapChangedEvt? OnBeatmapChanged;
-
-    private OsuListenerManager.OsuStatus _osuStatus;
-    private int _playTime;
-    private Beatmap? _beatmap;
+    private AudioPlaybackEngine? _audioPlaybackEngine;
+    private DeviceDescription? _deviceDescription;
+    private AppSettings? _appSettings;
+    private int _framesPerBuffer;
+    private int _playbackLatency;
 
     private SharedViewModel()
     {
@@ -19,42 +18,36 @@ public class SharedViewModel : ViewModelBase
 
     public static SharedViewModel Instance { get; } = new();
 
-    public int PlayTime
+    public AudioPlaybackEngine? AudioPlaybackEngine
     {
-        get => _playTime;
-        set
-        {
-            if (value == _playTime) return;
-            _playTime = value;
-            OnPlayTimeChanged?.Invoke(value);
-            OnPropertyChanged();
-        }
+        get => _audioPlaybackEngine;
+        set => this.RaiseAndSetIfChanged(ref _audioPlaybackEngine, value);
     }
 
-    public OsuListenerManager.OsuStatus OsuStatus
+    public DeviceDescription? DeviceDescription
     {
-        get => _osuStatus;
-        set
-        {
-            if (value == _osuStatus) return;
-            var val = _osuStatus;
-            _osuStatus = value;
-            OnStatusChanged?.Invoke(val, value);
-            OnPropertyChanged();
-        }
+        get => _deviceDescription;
+        set => this.RaiseAndSetIfChanged(ref _deviceDescription, value);
     }
 
-    public Beatmap? Beatmap
+    public AppSettings? AppSettings
     {
-        get => _beatmap;
-        set
-        {
-            if (Equals(value, _beatmap)) return;
-            _beatmap = value;
-            OnBeatmapChanged?.Invoke(value);
-            OnPropertyChanged();
-        }
+        get => _appSettings;
+        set => this.RaiseAndSetIfChanged(ref _appSettings, value);
     }
 
-    public OsuListenerManager? OsuListenerManager { get; set; }
+    public int FramesPerBuffer
+    {
+        get => _framesPerBuffer;
+        set => this.RaiseAndSetIfChanged(ref _framesPerBuffer, value);
+    }
+
+    public int PlaybackLatency
+    {
+        get => _playbackLatency;
+        set => this.RaiseAndSetIfChanged(ref _playbackLatency, value);
+    }
+
+    public App App { get; } = (App)Application.Current;
+    public OsuManager OsuManager { get; } = OsuManager.Instance;
 }

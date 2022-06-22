@@ -19,17 +19,18 @@ public partial class App : Application
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
+        _ = SharedViewModel.Instance;
 
         if (settings.OsuMode)
         {
             OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
             OrtdpSetting.ListenInterval = 0;
             var manager = new OsuListenerManager();
-            manager.OnPlayingTimeChanged += playTime => SharedViewModel.Instance.PlayTime = playTime;
-            manager.OnBeatmapChanged += beatmap => SharedViewModel.Instance.Beatmap = beatmap;
-            manager.OnStatusChanged += (pre, current) => SharedViewModel.Instance.OsuStatus = current;
+            manager.OnPlayingTimeChanged += playTime => OsuManager.Instance.PlayTime = playTime;
+            manager.OnBeatmapChanged += beatmap => OsuManager.Instance.Beatmap = beatmap;
+            manager.OnStatusChanged += (pre, current) => OsuManager.Instance.OsuStatus = current;
             manager.Start();
-            SharedViewModel.Instance.OsuListenerManager = manager;
+            OsuManager.Instance.OsuListenerManager = manager;
         }
 
         MainWindow = new MainWindow();

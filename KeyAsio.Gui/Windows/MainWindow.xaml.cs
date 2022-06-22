@@ -19,48 +19,6 @@ using Window = System.Windows.Window;
 
 namespace KeyAsio.Gui.Windows;
 
-public class MainWindowViewModel : ViewModelBase
-{
-    private AudioPlaybackEngine? _audioPlaybackEngine;
-    private DeviceDescription? _deviceDescription;
-    private AppSettings? _appSettings;
-    private int _framesPerBuffer;
-    private int _playbackLatency;
-
-    public AudioPlaybackEngine? AudioPlaybackEngine
-    {
-        get => _audioPlaybackEngine;
-        set => this.RaiseAndSetIfChanged(ref _audioPlaybackEngine, value);
-    }
-
-    public DeviceDescription? DeviceDescription
-    {
-        get => _deviceDescription;
-        set => this.RaiseAndSetIfChanged(ref _deviceDescription, value);
-    }
-
-    public AppSettings? AppSettings
-    {
-        get => _appSettings;
-        set => this.RaiseAndSetIfChanged(ref _appSettings, value);
-    }
-
-    public int FramesPerBuffer
-    {
-        get => _framesPerBuffer;
-        set => this.RaiseAndSetIfChanged(ref _framesPerBuffer, value);
-    }
-
-    public int PlaybackLatency
-    {
-        get => _playbackLatency;
-        set => this.RaiseAndSetIfChanged(ref _playbackLatency, value);
-    }
-
-    public App App { get; } = (App)Application.Current;
-    public SharedViewModel SharedViewModel { get; } = SharedViewModel.Instance;
-}
-
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
@@ -70,7 +28,7 @@ public partial class MainWindow : Window
 
     private bool _forceClose;
     private readonly AppSettings _appSettings;
-    private readonly MainWindowViewModel _viewModel;
+    private readonly SharedViewModel _viewModel;
     private CachedSound? _cacheSound;
     private readonly IKeyboardHook _keyboardHook;
     private readonly List<Guid> _registerList = new();
@@ -79,7 +37,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = _viewModel = new MainWindowViewModel();
+        DataContext = _viewModel = SharedViewModel.Instance;
         _viewModel.AppSettings = _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
@@ -197,7 +155,7 @@ public partial class MainWindow : Window
 
     private void RegisterHotKey(HookKeys key)
     {
-        _registerList.Add(_keyboardHook.RegisterKey(key, (_, hookKey, action) =>
+        _registerList.Add(_keyboardHook.RegisterKey(key, async (_, hookKey, action) =>
         {
             if (action == KeyAction.KeyDown)
             {
@@ -206,6 +164,14 @@ public partial class MainWindow : Window
                     if (_cacheSound != null)
                     {
                         _viewModel.AudioPlaybackEngine?.PlaySound(_cacheSound);
+                    }
+                }
+                else
+                {
+                    var hitsounds = await _viewModel.OsuManager.GetCurrentHitsounds();
+                    foreach (var cachedSound in hitsounds)
+                    {
+                        _viewModel.AudioPlaybackEngine?.PlaySound(cachedSound);
                     }
                 }
 

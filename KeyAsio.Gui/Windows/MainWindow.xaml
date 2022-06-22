@@ -11,8 +11,8 @@
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
     Title="KeyASIO Control Panel"
     Width="800"
-    MinHeight="450"
-    d:DataContext="{d:DesignInstance windows:MainWindowViewModel,
+    MinHeight="500"
+    d:DataContext="{d:DesignInstance local:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
     Closed="MainWindow_OnClosed"
@@ -48,7 +48,7 @@
             </StackPanel>
             <Grid
                 MaxWidth="740"
-                Margin="0,0,0,20"
+                Margin="0,0,0,25"
                 TextBlock.FontSize="14">
                 <StackPanel Orientation="Horizontal" Visibility="{Binding DeviceDescription, Converter={StaticResource IsNullToVisibilityConverter}}">
                     <TextBlock
@@ -109,7 +109,7 @@
                     Style="{StaticResource ButtonDefault.Small}"
                     UseLayoutRounding="True" />
             </StackPanel>
-            <ItemsControl Margin="-5,-5,-5,15" ItemsSource="{Binding AppSettings.Keys}">
+            <ItemsControl Margin="-5,-5,-5,25" ItemsSource="{Binding AppSettings.Keys}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="mouseKeyHook:HookKeys">
                         <Label
@@ -300,7 +300,7 @@
                     <TextBlock
                         Grid.Row="6"
                         Grid.Column="1"
-                        Text="{Binding SharedViewModel.PlayTime}" />
+                        Text="{Binding OsuManager.PlayTime}" />
                     <TextBlock
                         Grid.Row="7"
                         Grid.Column="0"
@@ -308,7 +308,7 @@
                     <TextBlock
                         Grid.Row="7"
                         Grid.Column="1"
-                        Text="{Binding SharedViewModel.OsuStatus}" />
+                        Text="{Binding OsuManager.OsuStatus}" />
                     <TextBlock
                         Grid.Row="8"
                         Grid.Column="0"
@@ -316,7 +316,7 @@
                     <TextBlock
                         Grid.Row="8"
                         Grid.Column="1"
-                        Text="{Binding SharedViewModel.Beatmap.Filename}"
+                        Text="{Binding OsuManager.Beatmap.Filename}"
                         TextWrapping="Wrap" />
                 </Grid>
             </StackPanel>

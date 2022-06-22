@@ -6,12 +6,12 @@ namespace KeyAsio.Gui.Utils;
 
 internal static class SharedUtils
 {
+    private static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+
     public static readonly ILoggerFactory LoggerFactory =
         Microsoft.Extensions.Logging.LoggerFactory.Create(k => k
             .AddNLog()
             .SetMinimumLevel(LogLevel.Trace));
-
-    private static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
 
     public static readonly byte[] EmptyWaveFile =
     {

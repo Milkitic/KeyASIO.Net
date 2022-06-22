@@ -14,10 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Costura.Fody" Version="5.7.0">
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>-->
+    </PackageReference>
+    <PackageReference Include="Coosu.Beatmap" Version="2.2.2" />
     <PackageReference Include="HandyControl" Version="3.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.7" />
