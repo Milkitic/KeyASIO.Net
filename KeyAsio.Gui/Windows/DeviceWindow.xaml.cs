@@ -65,8 +65,8 @@ public partial class DeviceWindow : Window
             .ToList();
 
         ViewModel.SelectedDevice = ViewModel.Devices.FirstOrDefault(k => k.WavePlayerType == WavePlayerType.ASIO) ??
-                                    ViewModel.Devices.FirstOrDefault(k => k.WavePlayerType == WavePlayerType.WASAPI) ??
-                                    ViewModel.Devices.FirstOrDefault();
+                                   ViewModel.Devices.FirstOrDefault(k => k.WavePlayerType == WavePlayerType.WASAPI) ??
+                                   ViewModel.Devices.FirstOrDefault();
     }
 
     private void btnConfirm_OnClick(object sender, RoutedEventArgs e)

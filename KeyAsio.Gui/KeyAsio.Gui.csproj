@@ -20,6 +20,7 @@
     <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.7" />
     <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.7" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="Semver" Version="2.2.0" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
   </ItemGroup>
 

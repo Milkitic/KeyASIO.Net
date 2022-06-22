@@ -95,7 +95,7 @@ public static class ConfigurationFactory
         {
             config = CreateDefaultConfigByPath(type, path, converter, encoding);
             Logger.LogWarning($"Config file \"{Path.GetFileName(path)}\" was not found. " +
-                        $"Default config was created and used.");
+                              $"Default config was created and used.");
         }
         else
         {

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using HandyControl.Controls;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
@@ -200,13 +201,28 @@ public partial class MainWindow : Window
         else
         {
             await LoadDevice(_appSettings.Device, false);
-            Hide();
+            //Hide();
         }
 
         foreach (var key in _appSettings.Keys)
         {
             RegisterHotKey(key);
         }
+
+        var result = await Updater.CheckUpdateAsync();
+
+        if (result != true) return;
+        Growl.Ask($"Found new version: {Updater.NewRelease!.NewVerString}. " +
+                  $"Click yes to open the release page.",
+            dialogResult =>
+            {
+                if (dialogResult)
+                {
+                    Updater.OpenLastReleasePage();
+                }
+
+                return dialogResult;
+            });
     }
 
     private void MainWindow_OnClosed(object? sender, EventArgs e)

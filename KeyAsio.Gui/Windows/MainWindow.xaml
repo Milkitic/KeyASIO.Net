@@ -112,6 +112,7 @@
                     Style="{StaticResource ButtonDefault.Small}"
                     UseLayoutRounding="True" />
             </StackPanel>
+
             <ItemsControl Margin="-5,-5,-5,25" ItemsSource="{Binding AppSettings.Keys}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="mouseKeyHook:HookKeys">
