@@ -7,6 +7,12 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>KeyAsio.ico</ApplicationIcon>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Product>KeyAsio - Tool for low-latency playback experience.</Product>
+    <Authors>Milki</Authors>
+    <Company>Milki</Company>
+    <Copyright>Copyright © Milki 2022</Copyright>
+    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +25,10 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.7" />
     <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.7" />
+    <PackageReference Include="MinVer" Version="4.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="NLog.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Semver" Version="2.2.0" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
