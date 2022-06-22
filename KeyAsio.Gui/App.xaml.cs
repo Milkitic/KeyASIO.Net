@@ -1,9 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
 using KeyAsio.Gui.Configuration;
+using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using OsuRTDataProvider.Listen;
-using OsuRTDataProvider;
+using OrtdpLogger = OsuRTDataProvider.Logger;
 using OrtdpSetting = OsuRTDataProvider.Setting;
 
 namespace KeyAsio.Gui;
@@ -21,7 +22,8 @@ public partial class App : Application
 
         if (settings.OsuMode)
         {
-            OrtdpSetting.ListenInterval = 1;
+            OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
+            OrtdpSetting.ListenInterval = 0;
             var manager = new OsuListenerManager();
             manager.OnPlayingTimeChanged += playTime => SharedViewModel.Instance.PlayTime = playTime;
             manager.OnBeatmapChanged += beatmap => SharedViewModel.Instance.Beatmap = beatmap;

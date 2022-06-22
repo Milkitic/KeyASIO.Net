@@ -1,19 +1,15 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 
 namespace KeyAsio.Gui.Utils;
 
 internal static class SharedUtils
 {
-    private static readonly ILoggerFactory LoggerFactory =
+    public static readonly ILoggerFactory LoggerFactory =
         Microsoft.Extensions.Logging.LoggerFactory.Create(k => k
-            .AddSimpleConsole(options =>
-            {
-                options.IncludeScopes = true;
-                options.SingleLine = true;
-                options.TimestampFormat = "hh:mm:ss ";
-            })
-            .SetMinimumLevel(LogLevel.Debug));
+            .AddNLog()
+            .SetMinimumLevel(LogLevel.Trace));
 
     private static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
 
