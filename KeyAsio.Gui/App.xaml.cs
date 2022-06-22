@@ -30,7 +30,7 @@ public partial class App : Application
         if (settings.OsuMode)
         {
             OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
-            OrtdpSetting.ListenInterval = 0;
+            OrtdpSetting.ListenInterval = 50;
             var manager = new OsuListenerManager();
             manager.OnPlayingTimeChanged += playTime => OsuManager.Instance.PlayTime = playTime;
             manager.OnBeatmapChanged += beatmap => OsuManager.Instance.Beatmap = beatmap;

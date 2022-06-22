@@ -204,6 +204,7 @@ public class OsuManager : ViewModelBase
 
             var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
             HitsoundList = hitsoundList
+                .OrderBy(k => k.Offset)
                 .Where(k => k is PlayableNode { PlayablePriority: PlayablePriority.Primary })
                 .Cast<PlayableNode>()
                 .ToList();
