@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using HandyControl.Controls;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
@@ -118,7 +117,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Growl.Error("Error while creating device:\r\n" + ex.ToSimpleTypeMessage());
+            Logger.LogError(ex, $"Error occurs while creating device.");
         }
     }
 

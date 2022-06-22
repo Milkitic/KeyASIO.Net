@@ -23,6 +23,7 @@
             <TextBlock
                 Margin="0,0,0,25"
                 FontSize="21"
+                FontWeight="Bold"
                 Text="Bind Keys" />
             <hc:TagContainer
                 Margin="0,0,0,25"
@@ -45,6 +46,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             Click="btnConfirm_OnClick"
+            FontWeight="Bold"
             Content="Confirm"
             Style="{StaticResource ButtonPrimary}" />
     </Grid>

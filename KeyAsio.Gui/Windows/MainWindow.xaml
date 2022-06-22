@@ -11,7 +11,7 @@
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
     Title="KeyASIO Control Panel"
     Width="800"
-    Height="500"
+    Height="520"
     d:DataContext="{d:DesignInstance local:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -34,6 +34,7 @@
                 <TextBlock
                     Margin="0,0,10,0"
                     FontSize="21"
+                    FontWeight="Bold"
                     Text="Current Device" />
                 <Button
                     Height="auto"
@@ -97,6 +98,7 @@
                 <TextBlock
                     Margin="0,0,27,0"
                     FontSize="21"
+                    FontWeight="Bold"
                     Text="Key Mapping" />
                 <Button
                     Height="Auto"
@@ -127,10 +129,11 @@
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
 
-            <StackPanel>
+            <StackPanel Margin="0,0,0,25">
                 <TextBlock
                     Margin="0,0,0,10"
                     FontSize="21"
+                    FontWeight="Bold"
                     Text="Information" />
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -292,36 +295,66 @@
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
+                </Grid>
+            </StackPanel>
+
+            <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding AppSettings.OsuMode}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock
+                    Margin="0,0,0,10"
+                    FontSize="21"
+                    FontWeight="Bold"
+                    Text="osu! Realtime Information" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <TextBlock
-                        Grid.Row="6"
+                        Grid.Row="0"
                         Grid.Column="0"
-                        Margin="0,20,0,0"
-                        Text="osu! PlayTime: " />
+                        Margin="0,0,0,0"
+                        Text="PlayTime: " />
                     <TextBlock
-                        Grid.Row="6"
+                        Grid.Row="0"
                         Grid.Column="1"
-                        Margin="0,20,0,0"
-                        Text="{Binding OsuManager.PlayTime}" />
+                        Margin="0,0,0,0"
+                        Text="{Binding OsuManager.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
                     <TextBlock
-                        Grid.Row="7"
+                        Grid.Row="1"
                         Grid.Column="0"
-                        Text="osu! Status: " />
+                        Text="Game Status: " />
                     <TextBlock
-                        Grid.Row="7"
+                        Grid.Row="1"
                         Grid.Column="1"
                         Text="{Binding OsuManager.OsuStatus}" />
                     <TextBlock
-                        Grid.Row="8"
+                        Grid.Row="2"
                         Grid.Column="0"
-                        Text="osu! Beatmap: " />
+                        Text="Beatmap: " />
                     <TextBlock
-                        Grid.Row="8"
+                        Grid.Row="2"
                         Grid.Column="1"
                         Text="{Binding OsuManager.Beatmap.Filename}"
                         TextWrapping="Wrap" />
                 </Grid>
             </StackPanel>
         </StackPanel>
+
         <Grid
             Grid.Column="1"
             Background="{StaticResource RegionBrush}"

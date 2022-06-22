@@ -25,6 +25,7 @@
             <TextBlock
                 Margin="0,0,0,25"
                 FontSize="21"
+                FontWeight="Bold"
                 Text="Config Device" />
             <TextBlock Margin="0,0,0,10" Text="Sample rate" />
             <TextBox
@@ -125,6 +126,7 @@
             VerticalAlignment="Bottom"
             Click="btnConfirm_OnClick"
             Content="Confirm"
+            FontWeight="Bold"
             Style="{StaticResource ButtonPrimary}" />
     </Grid>
 </Window>
