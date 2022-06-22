@@ -23,11 +23,13 @@ public class OsuManager : ViewModelBase
     private int _playTime;
     private Beatmap? _beatmap;
     private bool _isStarted;
+    private object _isStartedLock = new();
     private List<PlayableNode>? _hitsoundList;
 
-    private Queue<PlayableNode> _hitsoundQueue = new();
+    private Queue<PlayableNode> _hitQueue = new();
     private PlayableNode? _firstNode;
     private string? _folder;
+    private int _nextReadTime;
 
     public int PlayTime
     {
@@ -75,8 +77,8 @@ public class OsuManager : ViewModelBase
 
     public bool IsStarted
     {
-        get => _isStarted;
-        set => this.RaiseAndSetIfChanged(ref _isStarted, value);
+        get { lock (_isStartedLock) { return _isStarted; } }
+        set { lock (_isStartedLock) { this.RaiseAndSetIfChanged(ref _isStarted, value); } }
     }
 
     public OsuListenerManager? OsuListenerManager { get; set; }
@@ -124,7 +126,7 @@ public class OsuManager : ViewModelBase
 
                 if (!skipChecking && playTime >= first.Offset + thresholdMs)
                 {
-                    _hitsoundQueue.TryDequeue(out first);
+                    _hitQueue.TryDequeue(out first);
                     continue;
                 }
 
@@ -141,7 +143,7 @@ public class OsuManager : ViewModelBase
                     }
                 }
 
-                _hitsoundQueue.TryDequeue(out first);
+                _hitQueue.TryDequeue(out first);
             }
 
             _firstNode = first;
@@ -180,6 +182,11 @@ public class OsuManager : ViewModelBase
             }
 
             var folder = Path.GetDirectoryName(Beatmap.FilenameFull);
+            if (_folder != folder)
+            {
+                CleanHitsoundCaches();
+            }
+
             _folder = folder;
             if (folder == null)
             {
@@ -219,12 +226,64 @@ public class OsuManager : ViewModelBase
         if (oldMs < newMs && IsStarted) // Retry
         {
             RequeueNodes();
+            return;
         }
+
+        if (newMs > _nextReadTime)
+        {
+            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000);
+            _nextReadTime += 10000;
+        }
+    }
+
+    private static void CleanHitsoundCaches()
+    {
+        CachedSoundFactory.ClearCacheSounds();
     }
 
     private void RequeueNodes()
     {
-        _hitsoundQueue = new Queue<PlayableNode>(HitsoundList!);
-        _firstNode = _hitsoundQueue.Dequeue();
+        _hitQueue = new Queue<PlayableNode>(HitsoundList!);
+        _firstNode = _hitQueue.Dequeue();
+        AddHitsoundCacheInBackground(0, 13000);
+        _nextReadTime = 10000;
+    }
+
+    private void AddHitsoundCacheInBackground(int startTime, int endTime)
+    {
+        if (_folder == null) return;
+        if (SharedViewModel.Instance.AudioPlaybackEngine == null) return;
+        if (HitsoundList == null) return;
+        var hitsoundList = HitsoundList;
+        var folder = _folder;
+        var waveFormat = SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat;
+        Task.Run(() =>
+        {
+            hitsoundList
+                .Where(k => k.Offset >= startTime && k.Offset < endTime)
+                .AsParallel()
+                .WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
+                .ForAll(playableNode =>
+                {
+                    if (!IsStarted) return;
+                    if (playableNode.Filename == null) return;
+
+                    var path = Path.Combine(folder, playableNode.Filename);
+                    var identifier = playableNode.UseUserSkin ? "internal" : null;
+                    CachedSoundFactory.GetOrCreateCacheSound(waveFormat, path, identifier).Wait();
+                });
+            //foreach (var playableNode in allHitsounds)
+            //{
+            //    if (!IsStarted) break;
+            //    if (playableNode.Filename != null)
+            //    {
+            //        var path = Path.Combine(_folder!, playableNode.Filename);
+            //        var identifier = playableNode.UseUserSkin ? "internal" : null;
+            //        CachedSoundFactory.GetOrCreateCacheSound(waveFormat, path, identifier).Wait();
+            //    }
+
+            //    if (!IsStarted) break;
+            //}
+        });
     }
 }
