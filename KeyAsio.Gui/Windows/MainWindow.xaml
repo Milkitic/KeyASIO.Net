@@ -41,7 +41,7 @@
                     Padding="8,3"
                     VerticalAlignment="Center"
                     Click="btnChangeDevice_OnClick"
-                    Content="Change"
+                    Content="Change..."
                     FontSize="12"
                     Style="{StaticResource ButtonDefault.Small}"
                     UseLayoutRounding="True" />
@@ -107,7 +107,7 @@
                     Padding="8,3"
                     VerticalAlignment="Center"
                     Click="btnChangeKey_OnClick"
-                    Content="Change"
+                    Content="Change..."
                     FontSize="12"
                     Style="{StaticResource ButtonDefault.Small}"
                     UseLayoutRounding="True" />
@@ -314,11 +314,22 @@
                         </Style.Triggers>
                     </Style>
                 </StackPanel.Style>
-                <TextBlock
-                    Margin="0,0,0,10"
-                    FontSize="21"
-                    FontWeight="Bold"
-                    Text="osu! Realtime Information" />
+                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                    <TextBlock
+                        Margin="0,0,10,0"
+                        FontSize="21"
+                        FontWeight="Bold"
+                        Text="osu! Realtime" />
+                    <Button
+                        Height="auto"
+                        Padding="8,3"
+                        VerticalAlignment="Center"
+                        Click="btnLatencyCheck_OnClick"
+                        Content="Latency Check..."
+                        FontSize="12" 
+                        Style="{StaticResource ButtonDefault.Small}"
+                        UseLayoutRounding="True" />
+                </StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

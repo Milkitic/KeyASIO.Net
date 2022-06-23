@@ -16,7 +16,20 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
         HookKeys.X
     };
 
+    private int _osuModeAudioOffset;
+
     public bool OsuMode { get; set; } = true;
+
+    public int OsuModeAudioOffset
+    {
+        get => _osuModeAudioOffset;
+        set
+        {
+            if (value == _osuModeAudioOffset) return;
+            _osuModeAudioOffset = value;
+            OnPropertyChanged();
+        }
+    }
 
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public HashSet<HookKeys> Keys

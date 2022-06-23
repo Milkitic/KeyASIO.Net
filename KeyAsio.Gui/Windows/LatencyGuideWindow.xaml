@@ -1,0 +1,50 @@
+﻿<Window
+    x:Class="KeyAsio.Gui.Windows.LatencyGuideWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gui="clr-namespace:KeyAsio.Gui"
+    xmlns:local="clr-namespace:KeyAsio.Gui.Windows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Latency Guide"
+    Width="450"
+    Height="300"
+    d:DataContext="{d:DesignInstance gui:SharedViewModel,
+                                     IsDesignTimeCreatable=False}"
+    Background="{StaticResource RegionBrush}"
+    Closed="LatencyGuideWindow_OnClosed"
+    FontFamily="Segoe UI,微软雅黑"
+    FontSize="14"
+    TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
+    mc:Ignorable="d">
+    <Grid Margin="25">
+        <StackPanel HorizontalAlignment="Left">
+            <TextBlock
+                Margin="0,0,0,25"
+                FontSize="21"
+                FontWeight="Bold"
+                Text="Latency" />
+            <TextBlock Margin="0,0,0,10" Text="Audio Offset" />
+            <Slider
+                Width="300"
+                Margin="0,0,8,10"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                AutoToolTipPlacement="BottomRight"
+                IsSnapToTickEnabled="True"
+                Maximum="200"
+                Minimum="-200"
+                TickPlacement="None"
+                Value="{Binding AppSettings.OsuModeAudioOffset}" />
+            <TextBlock Foreground="{StaticResource WarningBrush}" Text="Please play osu! beatmaps with auto and adjust the offset." />
+        </StackPanel>
+
+        <Button
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Click="btnConfirm_OnClick"
+            Content="Confirm"
+            FontWeight="Bold"
+            Style="{StaticResource ButtonPrimary}" />
+    </Grid>
+</Window>

@@ -58,4 +58,5 @@ public class SharedViewModel : ViewModelBase
 
     public OsuManager OsuManager { get; } = OsuManager.Instance;
     public string DefaultFolder { get; } = Path.Combine(Environment.CurrentDirectory, "Resources", "default");
+    public bool LatencyTestMode { get; set; }
 }

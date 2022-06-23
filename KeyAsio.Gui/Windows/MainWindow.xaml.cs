@@ -307,4 +307,26 @@ public partial class MainWindow : Window
 
         _appSettings.Volume = (float)((Slider)sender).Value;
     }
+
+    private void btnLatencyCheck_OnClick(object sender, RoutedEventArgs e)
+    {
+        foreach (var guid in _registerList)
+        {
+            _keyboardHook.TryUnregister(guid);
+        }
+
+        _registerList.Clear();
+
+        var latencyGuideWindow = new LatencyGuideWindow
+        {
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        latencyGuideWindow.ShowDialog();
+
+        foreach (var key in _appSettings.Keys)
+        {
+            RegisterHotKey(key);
+        }
+    }
 }
