@@ -8,14 +8,17 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using KeyAsio.Gui.Configuration;
+using KeyAsio.Gui.Utils;
+using Microsoft.Extensions.Logging;
 using Semver;
 
 namespace KeyAsio.Gui;
 
 public static class Updater
 {
+    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(Updater));
     private const string Repo = "Milkitic/KeyAsio.Net";
-    //private const string Repo = "Coosu/Coosu";
     private static string? _version;
     private const int Timeout = 10000;
     private const int RetryCount = 3;
@@ -49,7 +52,7 @@ public static class Updater
             if (json == null) return null;
             if (json.Contains("API rate limit"))
             {
-                await Console.Error.WriteLineAsync("Error while checking for updates: Github API rate limit exceeded.");
+                Logger.LogError("Error while checking for updates: Github API rate limit exceeded.");
                 return null;
             }
 
@@ -68,7 +71,7 @@ public static class Updater
             var latestVerObj = SemVersion.Parse(latestVer, SemVersionStyles.Strict);
             var nowVerObj = SemVersion.Parse(GetVersion(), SemVersionStyles.Strict);
 
-            Console.WriteLine($"Current version: {nowVerObj}; Got version info: {latestVerObj}");
+            Logger.LogInformation($"Current version: {nowVerObj}; Got version info: {latestVerObj}");
 
             if (latestVerObj.ComparePrecedenceTo(nowVerObj) <= 0)
             {
@@ -82,7 +85,7 @@ public static class Updater
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error while checking for updates: {ex.Message}");
+            Logger.LogError($"Error while checking for updates: {ex.Message}");
             return null;
             //throw;
         }

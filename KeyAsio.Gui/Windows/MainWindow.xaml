@@ -357,6 +357,28 @@
                         Text="{Binding OsuManager.Beatmap.Filename}"
                         TextWrapping="Wrap" />
                 </Grid>
+                <hc:ScrollViewer Height="15" HorizontalScrollBarVisibility="Auto">
+                    <ItemsControl Width="30000" ItemsSource="{Binding OsuManager.PlayTimeList}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Rectangle
+                                    Width="1"
+                                    Height="15"
+                                    Fill="#52a5f0" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="{Binding}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </hc:ScrollViewer>
             </StackPanel>
         </StackPanel>
 

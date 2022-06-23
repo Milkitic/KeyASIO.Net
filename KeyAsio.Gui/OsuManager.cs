@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,6 +44,8 @@ public class OsuManager : ViewModelBase
             OnPropertyChanged();
         }
     }
+
+    public ObservableCollection<int> PlayTimeList { get; } = new();
 
     public OsuListenerManager.OsuStatus OsuStatus
     {
@@ -235,6 +238,8 @@ public class OsuManager : ViewModelBase
             AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000);
             _nextReadTime += 10000;
         }
+
+        PlayTimeList.Add(newMs);
     }
 
     private static void CleanHitsoundCaches()
@@ -245,6 +250,7 @@ public class OsuManager : ViewModelBase
     private void RequeueNodes()
     {
         _hitQueue = new Queue<PlayableNode>(HitsoundList!);
+        PlayTimeList.Clear();
         _firstNode = _hitQueue.Dequeue();
         AddHitsoundCacheInBackground(0, 13000);
         _nextReadTime = 10000;
