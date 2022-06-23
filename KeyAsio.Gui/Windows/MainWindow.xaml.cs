@@ -15,6 +15,7 @@ using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using Window = System.Windows.Window;
 
 namespace KeyAsio.Gui.Windows;
@@ -169,11 +170,19 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    var hitsounds = _viewModel.OsuManager.GetCurrentHitsounds();
+                    var hitsounds = _viewModel.OsuManager.GetCurrentHitsounds(70);
                     foreach (var playbackObject in hitsounds)
                     {
-                        SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
-                            playbackObject.Volume, playbackObject.Balance);
+                        SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new BalanceSampleProvider(
+                            new VolumeSampleProvider(new CachedSoundSampleProvider(playbackObject.CachedSound))
+                            {
+                                Volume = playbackObject.Volume
+                            })
+                        {
+                            Balance = playbackObject.Balance * 0.3f
+                        });
+                        //SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
+                        //    playbackObject.Volume, playbackObject.Balance);
                     }
                 }
 

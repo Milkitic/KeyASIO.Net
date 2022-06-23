@@ -368,7 +368,7 @@
                         Text="{Binding OsuManager.Beatmap.Filename}"
                         TextWrapping="Wrap" />
                 </Grid>
-                <hc:ScrollViewer Height="15" HorizontalScrollBarVisibility="Auto">
+                <!--<hc:ScrollViewer Height="15" HorizontalScrollBarVisibility="Auto">
                     <ItemsControl Width="30000" ItemsSource="{Binding OsuManager.PlayTimeList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -391,7 +391,7 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
-                </hc:ScrollViewer>
+                </hc:ScrollViewer>-->
             </StackPanel>
         </StackPanel>
 

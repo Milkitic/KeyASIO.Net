@@ -12,6 +12,7 @@ using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+using NAudio.Wave.SampleProviders;
 using OsuRTDataProvider.BeatmapInfo;
 using OsuRTDataProvider.Listen;
 
@@ -30,9 +31,13 @@ public class OsuManager : ViewModelBase
 
     private readonly object _isStartedLock = new();
     private readonly HitsoundFileCache _hitsoundFileCache = new();
+
     private readonly ConcurrentDictionary<PlayableNode, CachedSound?> _playNodeToCachedSoundMapping = new();
     private Queue<PlayableNode> _hitQueue = new();
+    private Queue<PlayableNode> _secondaryHitQueue = new();
+
     private PlayableNode? _firstNode;
+    private PlayableNode? _firstAutoNode;
     private string? _folder;
     private int _nextReadTime;
 
@@ -50,7 +55,7 @@ public class OsuManager : ViewModelBase
         }
     }
 
-    public ObservableCollection<int> PlayTimeList { get; } = new();
+    //public ObservableCollection<int> PlayTimeList { get; } = new();
 
     public OsuListenerManager.OsuStatus OsuStatus
     {
@@ -83,6 +88,8 @@ public class OsuManager : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _hitsoundList, value);
     }
 
+    public List<PlayableNode> AutoList { get; set; }
+
     public bool IsStarted
     {
         get { lock (_isStartedLock) { return _isStarted; } }
@@ -91,7 +98,7 @@ public class OsuManager : ViewModelBase
 
     public OsuListenerManager? OsuListenerManager { get; set; }
 
-    public IReadOnlyCollection<PlaybackInfo> GetCurrentHitsounds(int thresholdMs = 30)
+    public IEnumerable<PlaybackInfo> GetCurrentHitsounds(int thresholdMs = 30)
     {
         using var _ = DebugUtils.CreateTimer($"GetSound", Logger);
         var playTime = PlayTime;
@@ -101,6 +108,7 @@ public class OsuManager : ViewModelBase
 
         if (!IsStarted)
         {
+            Logger.LogWarning($"Haven't started, return empty.");
             return Array.Empty<PlaybackInfo>();
         }
 
@@ -108,55 +116,62 @@ public class OsuManager : ViewModelBase
         Logger.LogDebug($"Click at {playTime}, first node at {(first?.Offset.ToString() ?? "null")}");
         if (first == null)
         {
+            Logger.LogWarning($"First is null, return empty.");
             return Array.Empty<PlaybackInfo>();
         }
 
         if (playTime < first.Offset - thresholdMs)
         {
+            Logger.LogWarning($"Haven't reached first, return empty.");
             return Array.Empty<PlaybackInfo>();
         }
 
-        if (playTime < first.Offset + thresholdMs)
+        if (playTime < first.Offset + thresholdMs) // click soon~0~late
         {
             return GetHitsoundList(false);
         }
 
         return GetHitsoundList(true);
 
-        IReadOnlyCollection<PlaybackInfo> GetHitsoundList(bool checkPreTiming)
+        IEnumerable<PlaybackInfo> GetHitsoundList(bool checkPreTiming)
         {
-            var list = new List<PlaybackInfo>();
-            bool skipChecking = !checkPreTiming;
+            int counter = 0;
+            //var list = new List<PlaybackInfo>();
             while (first != null)
             {
-                if (skipChecking && playTime < first.Offset + thresholdMs)
+                if (!checkPreTiming && playTime < first.Offset - thresholdMs)
                 {
+                    Logger.LogWarning($"Haven't reached first, return empty.");
                     break;
                 }
 
-                if (!skipChecking && playTime >= first.Offset + thresholdMs)
+                if (checkPreTiming && playTime >= first.Offset + thresholdMs)
                 {
                     _hitQueue.TryDequeue(out first);
                     continue;
                 }
 
-                skipChecking = true;
+                checkPreTiming = false;
                 if (_playNodeToCachedSoundMapping.TryGetValue(first, out var cachedSound) && cachedSound != null)
                 {
-                    list.Add(new PlaybackInfo(cachedSound, first.Volume, first.Balance));
+                    counter++;
+                    yield return new PlaybackInfo(cachedSound, first.Volume, first.Balance);
                 }
 
                 _hitQueue.TryDequeue(out first);
             }
 
             _firstNode = first;
-            return list;
+            if (counter == 0)
+            {
+                Logger.LogWarning($"List is empty!!");
+            }
         }
     }
 
-    public IEnumerable<PlaybackInfo> GetPlaybackHitsounds()
+    public IEnumerable<PlaybackInfo> GetPlaybackHitsounds(bool isAuto)
     {
-        using var _ = DebugUtils.CreateTimer($"GetSound", Logger);
+        //using var _ = DebugUtils.CreateTimer($"GetSound", Logger);
         var playTime = PlayTime;
 
         var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
@@ -167,7 +182,7 @@ public class OsuManager : ViewModelBase
             return Array.Empty<PlaybackInfo>();
         }
 
-        var first = _firstNode;
+        var first = isAuto ? _firstAutoNode : _firstNode;
         if (first == null)
         {
             return Array.Empty<PlaybackInfo>();
@@ -194,10 +209,24 @@ public class OsuManager : ViewModelBase
                     yield return new PlaybackInfo(cachedSound, first.Volume, first.Balance);
                 }
 
-                _hitQueue.TryDequeue(out first);
+                if (isAuto)
+                {
+                    _secondaryHitQueue.TryDequeue(out first);
+                }
+                else
+                {
+                    _hitQueue.TryDequeue(out first);
+                }
             }
 
-            _firstNode = first;
+            if (isAuto)
+            {
+                _firstAutoNode = first;
+            }
+            else
+            {
+                _firstNode = first;
+            }
         }
     }
 
@@ -267,6 +296,11 @@ public class OsuManager : ViewModelBase
                     .Where(k => k is PlayableNode { PlayablePriority: PlayablePriority.Primary })
                     .Cast<PlayableNode>()
                     .ToList();
+                AutoList = hitsoundList
+                    .OrderBy(k => k.Offset)
+                    .Where(k => k is PlayableNode { PlayablePriority: PlayablePriority.Secondary or PlayablePriority.Effects })
+                    .Cast<PlayableNode>()
+                    .ToList();
             }
 
             RequeueNodes();
@@ -285,10 +319,10 @@ public class OsuManager : ViewModelBase
 
     private void OsuModeManager_OnPlayTimeChanged(int oldMs, int newMs)
     {
-        Application.Current.Dispatcher.InvokeAsync(() =>
-        {
-            PlayTimeList.Add(newMs);
-        });
+        //Application.Current.Dispatcher.InvokeAsync(() =>
+        //{
+        //    PlayTimeList.Add(newMs);
+        //});
 
         if (IsStarted && oldMs > newMs) // Retry
         {
@@ -298,18 +332,45 @@ public class OsuManager : ViewModelBase
 
         if (IsStarted && newMs > _nextReadTime)
         {
-            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000);
+            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000, HitsoundList);
+            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000, AutoList);
             _nextReadTime += 10000;
         }
 
         if (IsStarted && SharedViewModel.Instance.LatencyTestMode)
         {
-            foreach (var playbackObject in GetPlaybackHitsounds())
+            foreach (var playbackObject in GetPlaybackHitsounds(false))
             {
-                SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
-                    playbackObject.Volume, playbackObject.Balance);
+                //SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
+                //    playbackObject.Volume, playbackObject.Balance);
+                PlaySound(playbackObject);
             }
         }
+
+        if (IsStarted)
+        {
+            foreach (var playbackObject in GetPlaybackHitsounds(true))
+            {
+                //SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
+                //    playbackObject.Volume, playbackObject.Balance);
+                PlaySound(playbackObject);
+            }
+        }
+    }
+
+    private static void PlaySound(PlaybackInfo playbackObject)
+    {
+        SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new BalanceSampleProvider(
+            new VolumeSampleProvider(new CachedSoundSampleProvider(playbackObject.CachedSound))
+            {
+                Volume = playbackObject.Volume
+            })
+        {
+            Balance = playbackObject.Balance * 0.3f
+        });
+        Logger.LogDebug($"Play {Path.GetFileNameWithoutExtension(playbackObject.CachedSound.SourcePath)}; " +
+                        $"Vol. {playbackObject.Volume}; " +
+                        $"Bal. {playbackObject.Balance}");
     }
 
     private void CleanHitsoundCaches()
@@ -321,13 +382,16 @@ public class OsuManager : ViewModelBase
     private void RequeueNodes()
     {
         _hitQueue = new Queue<PlayableNode>(HitsoundList!);
-        Application.Current.Dispatcher.InvokeAsync(() => PlayTimeList.Clear());
+        _secondaryHitQueue = new Queue<PlayableNode>(AutoList!);
+        //Application.Current.Dispatcher.InvokeAsync(() => PlayTimeList.Clear());
         _firstNode = _hitQueue.Dequeue();
-        AddHitsoundCacheInBackground(0, 13000);
+        _firstAutoNode = _hitQueue.Dequeue();
+        AddHitsoundCacheInBackground(0, 13000, HitsoundList);
+        AddHitsoundCacheInBackground(0, 13000, AutoList);
         _nextReadTime = 10000;
     }
 
-    private void AddHitsoundCacheInBackground(int startTime, int endTime)
+    private void AddHitsoundCacheInBackground(int startTime, int endTime, List<PlayableNode>? playableNodes)
     {
         if (_folder == null)
         {
@@ -341,13 +405,13 @@ public class OsuManager : ViewModelBase
             return;
         }
 
-        if (HitsoundList == null)
+        if (playableNodes == null)
         {
-            Logger.LogWarning($"{nameof(HitsoundList)} is null, stop adding cache.");
+            Logger.LogWarning($"{nameof(playableNodes)} is null, stop adding cache.");
             return;
         }
 
-        var hitsoundList = HitsoundList;
+        var hitsoundList = playableNodes;
         var folder = _folder;
         var waveFormat = SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat;
         var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
