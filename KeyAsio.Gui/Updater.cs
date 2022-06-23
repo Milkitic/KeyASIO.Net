@@ -71,7 +71,7 @@ public static class Updater
             var latestVerObj = SemVersion.Parse(latestVer, SemVersionStyles.Strict);
             var nowVerObj = SemVersion.Parse(GetVersion(), SemVersionStyles.Strict);
 
-            Logger.LogInformation($"Current version: {nowVerObj}; Got version info: {latestVerObj}");
+            Logger.LogDebug($"Current version: {nowVerObj}; Got version info: {latestVerObj}");
 
             if (latestVerObj.ComparePrecedenceTo(nowVerObj) <= 0)
             {
