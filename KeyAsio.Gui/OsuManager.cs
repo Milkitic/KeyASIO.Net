@@ -18,7 +18,7 @@ namespace KeyAsio.Gui;
 public class OsuManager : ViewModelBase
 {
     public static OsuManager Instance { get; } = new();
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(ConfigurationFactory));
+    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(OsuManager));
 
     private OsuListenerManager.OsuStatus _osuStatus;
     private int _playTime;
@@ -227,7 +227,13 @@ public class OsuManager : ViewModelBase
 
     private void OsuModeManager_OnPlayTimeChanged(int oldMs, int newMs)
     {
-        if (oldMs < newMs && IsStarted) // Retry
+        App.Current.Dispatcher.Invoke(() =>
+        {
+            PlayTimeList.Add(newMs);
+            Logger.LogDebug("Added " + newMs + "ms, Current " + PlayTimeList.Count);
+        });
+
+        if (oldMs > newMs && IsStarted) // Retry
         {
             RequeueNodes();
             return;
@@ -238,8 +244,6 @@ public class OsuManager : ViewModelBase
             AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000);
             _nextReadTime += 10000;
         }
-
-        PlayTimeList.Add(newMs);
     }
 
     private static void CleanHitsoundCaches()
@@ -250,7 +254,7 @@ public class OsuManager : ViewModelBase
     private void RequeueNodes()
     {
         _hitQueue = new Queue<PlayableNode>(HitsoundList!);
-        PlayTimeList.Clear();
+        App.Current.Dispatcher.Invoke(() => PlayTimeList.Clear());
         _firstNode = _hitQueue.Dequeue();
         AddHitsoundCacheInBackground(0, 13000);
         _nextReadTime = 10000;

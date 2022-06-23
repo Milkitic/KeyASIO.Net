@@ -11,7 +11,7 @@
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
     Title="KeyASIO Control Panel"
     Width="800"
-    Height="530"
+    Height="550"
     d:DataContext="{d:DesignInstance local:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -364,7 +364,9 @@
                                 <Rectangle
                                     Width="1"
                                     Height="15"
-                                    Fill="#52a5f0" />
+                                    Fill="#52a5f0"
+                                    SnapsToDevicePixels="True"
+                                    UseLayoutRounding="True" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                         <ItemsControl.ItemContainerStyle>
