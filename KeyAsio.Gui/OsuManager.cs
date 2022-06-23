@@ -105,6 +105,7 @@ public class OsuManager : ViewModelBase
         }
 
         var first = _firstNode;
+        Logger.LogDebug($"Click at {playTime}, first node at {(first?.Offset.ToString() ?? "null")}");
         if (first == null)
         {
             return Array.Empty<CachedSound>();
@@ -242,13 +243,13 @@ public class OsuManager : ViewModelBase
             PlayTimeList.Add(newMs);
         });
 
-        if (oldMs > newMs && IsStarted) // Retry
+        if (IsStarted && oldMs > newMs) // Retry
         {
             RequeueNodes();
             return;
         }
 
-        if (newMs > _nextReadTime)
+        if (IsStarted && newMs > _nextReadTime)
         {
             AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000);
             _nextReadTime += 10000;
@@ -318,7 +319,18 @@ public class OsuManager : ViewModelBase
                             : Path.Combine(skinFolder, filename);
                     }
 
-                    var result = CachedSoundFactory.GetOrCreateCacheSound(waveFormat, path, identifier).Result;
+                    var (result, status) = CachedSoundFactory
+                        .GetOrCreateCacheSoundStatus(waveFormat, path, identifier, checkFileExist: false).Result;
+
+                    if (result == null)
+                    {
+                        Logger.LogWarning("Caching sound failed: " + path);
+                    }
+                    else if (status == true)
+                    {
+                        Logger.LogWarning("Cached sound: " + path);
+                    }
+
                     _playNodeToCachedSoundMapping.TryAdd(playableNode, result);
                 });
             //foreach (var playableNode in allHitsounds)

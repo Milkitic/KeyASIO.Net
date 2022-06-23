@@ -1,4 +1,6 @@
-﻿using Milki.Extensions.MixPlayer.Devices;
+﻿using System;
+using System.IO;
+using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
 
 namespace KeyAsio.Gui;
@@ -55,5 +57,5 @@ public class SharedViewModel : ViewModelBase
     }
 
     public OsuManager OsuManager { get; } = OsuManager.Instance;
-    public string DefaultFolder { get; } = "./Resources/default";
+    public string DefaultFolder { get; } = Path.Combine(Environment.CurrentDirectory, "Resources", "default");
 }

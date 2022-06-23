@@ -21,11 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Coosu.Beatmap" Version="2.2.3" />
+    <PackageReference Include="Coosu.Beatmap" Version="2.2.4" />
     <PackageReference Include="HandyControl" Version="3.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.7" />
-    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.7" />
+    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.8" />
+    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.8" />
     <PackageReference Include="MinVer" Version="4.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
