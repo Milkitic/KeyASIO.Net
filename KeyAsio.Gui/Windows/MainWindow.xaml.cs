@@ -156,7 +156,7 @@ public partial class MainWindow : Window
 
     private void RegisterHotKey(HookKeys key)
     {
-        _registerList.Add(_keyboardHook.RegisterKey(key, async (_, hookKey, action) =>
+        _registerList.Add(_keyboardHook.RegisterKey(key, (_, hookKey, action) =>
         {
             if (action == KeyAction.KeyDown)
             {
@@ -169,7 +169,7 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    var hitsounds = await _viewModel.OsuManager.GetCurrentHitsounds();
+                    var hitsounds = _viewModel.OsuManager.GetCurrentHitsounds();
                     foreach (var cachedSound in hitsounds)
                     {
                         _viewModel.AudioPlaybackEngine?.PlaySound(cachedSound);

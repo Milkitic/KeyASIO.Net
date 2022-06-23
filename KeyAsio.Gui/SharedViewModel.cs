@@ -55,4 +55,5 @@ public class SharedViewModel : ViewModelBase
     }
 
     public OsuManager OsuManager { get; } = OsuManager.Instance;
+    public string DefaultFolder { get; } = "./Resources/default";
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Gui.Utils;
 
@@ -111,5 +112,43 @@ public static class DebugUtils
         sw.Stop();
         Console.WriteLine($"[{caller}] Executed in {sw.Elapsed.TotalMilliseconds:#0.000} ms");
         return value;
+    }
+
+    public static IDisposable CreateTimer(string name, ILogger? logger = null)
+    {
+        return new TimerImpl(name, logger);
+    }
+
+    private class TimerImpl : IDisposable
+    {
+        private readonly string _name;
+        private readonly ILogger? _logger;
+        private readonly Stopwatch _sw;
+
+        public TimerImpl(string name, ILogger? logger)
+        {
+            Print($"[{_name}] Executing...");
+            _name = name;
+            _logger = logger;
+            _sw = Stopwatch.StartNew();
+        }
+
+        public void Dispose()
+        {
+            _sw.Stop();
+            Print($"[{_name}] Executed in {_sw.Elapsed.TotalMilliseconds:#0.000}ms");
+        }
+
+        private void Print(string message)
+        {
+            if (_logger == null)
+            {
+                Console.WriteLine(message);
+            }
+            else
+            {
+                _logger.LogDebug(message);
+            }
+        }
     }
 }

@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using Coosu.Beatmap;
+using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
@@ -24,9 +27,11 @@ public class OsuManager : ViewModelBase
     private int _playTime;
     private Beatmap? _beatmap;
     private bool _isStarted;
-    private object _isStartedLock = new();
     private List<PlayableNode>? _hitsoundList;
 
+    private readonly object _isStartedLock = new();
+    private readonly HitsoundFileCache _hitsoundFileCache = new();
+    private readonly ConcurrentDictionary<PlayableNode, CachedSound?> _playNodeToCachedSoundMapping = new();
     private Queue<PlayableNode> _hitQueue = new();
     private PlayableNode? _firstNode;
     private string? _folder;
@@ -86,9 +91,9 @@ public class OsuManager : ViewModelBase
 
     public OsuListenerManager? OsuListenerManager { get; set; }
 
-    public async ValueTask<IReadOnlyCollection<CachedSound>> GetCurrentHitsounds()
+    public IReadOnlyCollection<CachedSound> GetCurrentHitsounds()
     {
-        const int thresholdMs = 50;
+        const int thresholdMs = 30;
         var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
         if (audioPlaybackEngine == null) return Array.Empty<CachedSound>();
 
@@ -111,12 +116,12 @@ public class OsuManager : ViewModelBase
 
         if (playTime < first.Offset + thresholdMs)
         {
-            return await GetHitsoundList(false);
+            return GetHitsoundList(false);
         }
 
-        return await GetHitsoundList(true);
+        return GetHitsoundList(true);
 
-        async ValueTask<IReadOnlyCollection<CachedSound>> GetHitsoundList(bool checkPreTiming)
+        IReadOnlyCollection<CachedSound> GetHitsoundList(bool checkPreTiming)
         {
             var list = new List<CachedSound>();
             bool skipChecking = !checkPreTiming;
@@ -134,16 +139,9 @@ public class OsuManager : ViewModelBase
                 }
 
                 skipChecking = true;
-                var identifier = first.UseUserSkin ? "internal" : null;
-                var waveFormat = audioPlaybackEngine.WaveFormat;
-                if (first.Filename != null)
+                if (_playNodeToCachedSoundMapping.TryGetValue(first, out var cachedSound) && cachedSound != null)
                 {
-                    var path = Path.Combine(_folder!, first.Filename);
-                    var cachedSound = await CachedSoundFactory.GetOrCreateCacheSound(waveFormat, path, identifier);
-                    if (cachedSound != null)
-                    {
-                        list.Add(cachedSound);
-                    }
+                    list.Add(cachedSound);
                 }
 
                 _hitQueue.TryDequeue(out first);
@@ -187,6 +185,7 @@ public class OsuManager : ViewModelBase
             var folder = Path.GetDirectoryName(Beatmap.FilenameFull);
             if (_folder != folder)
             {
+                Logger.LogDebug("Folder changed, cleaning caches.");
                 CleanHitsoundCaches();
             }
 
@@ -197,7 +196,11 @@ public class OsuManager : ViewModelBase
             }
 
             var osuDir = new OsuDirectory(folder);
-            await osuDir.InitializeAsync(Beatmap.Filename);
+            using (DebugUtils.CreateTimer("Folder initialization"))
+            {
+                await osuDir.InitializeAsync(Beatmap.Filename);
+            }
+
             if (osuDir.OsuFiles.Count <= 0)
             {
                 Logger.LogWarning(
@@ -205,12 +208,16 @@ public class OsuManager : ViewModelBase
                 return;
             }
 
-            var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
-            HitsoundList = hitsoundList
-                .OrderBy(k => k.Offset)
-                .Where(k => k is PlayableNode { PlayablePriority: PlayablePriority.Primary })
-                .Cast<PlayableNode>()
-                .ToList();
+            using (DebugUtils.CreateTimer("Hitsound initialization"))
+            {
+                var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
+                HitsoundList = hitsoundList
+                    .OrderBy(k => k.Offset)
+                    .Where(k => k is PlayableNode { PlayablePriority: PlayablePriority.Primary })
+                    .Cast<PlayableNode>()
+                    .ToList();
+            }
+
             RequeueNodes();
             IsStarted = true;
         }
@@ -230,7 +237,6 @@ public class OsuManager : ViewModelBase
         App.Current.Dispatcher.Invoke(() =>
         {
             PlayTimeList.Add(newMs);
-            Logger.LogDebug("Added " + newMs + "ms, Current " + PlayTimeList.Count);
         });
 
         if (oldMs > newMs && IsStarted) // Retry
@@ -246,15 +252,16 @@ public class OsuManager : ViewModelBase
         }
     }
 
-    private static void CleanHitsoundCaches()
+    private void CleanHitsoundCaches()
     {
         CachedSoundFactory.ClearCacheSounds();
+        _playNodeToCachedSoundMapping.Clear();
     }
 
     private void RequeueNodes()
     {
         _hitQueue = new Queue<PlayableNode>(HitsoundList!);
-        App.Current.Dispatcher.Invoke(() => PlayTimeList.Clear());
+        Application.Current.Dispatcher.Invoke(() => PlayTimeList.Clear());
         _firstNode = _hitQueue.Dequeue();
         AddHitsoundCacheInBackground(0, 13000);
         _nextReadTime = 10000;
@@ -268,8 +275,10 @@ public class OsuManager : ViewModelBase
         var hitsoundList = HitsoundList;
         var folder = _folder;
         var waveFormat = SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat;
+        var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder;
         Task.Run(() =>
         {
+            using var _ = DebugUtils.CreateTimer($"Hitsound caching ({startTime}~{endTime})");
             hitsoundList
                 .Where(k => k.Offset >= startTime && k.Offset < endTime)
                 .AsParallel()
@@ -280,8 +289,19 @@ public class OsuManager : ViewModelBase
                     if (playableNode.Filename == null) return;
 
                     var path = Path.Combine(folder, playableNode.Filename);
-                    var identifier = playableNode.UseUserSkin ? "internal" : null;
-                    CachedSoundFactory.GetOrCreateCacheSound(waveFormat, path, identifier).Wait();
+                    string? identifier = null;
+                    if (playableNode.UseUserSkin)
+                    {
+                        identifier = "internal";
+                        var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder ?? "", playableNode.Filename,
+                            out var useUserSkin);
+                        path = useUserSkin
+                            ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{playableNode.Filename}.ogg")
+                            : Path.Combine(skinFolder, filename);
+                    }
+
+                    var result = CachedSoundFactory.GetOrCreateCacheSound(waveFormat, path, identifier).Result;
+                    _playNodeToCachedSoundMapping.TryAdd(playableNode, result);
                 });
             //foreach (var playableNode in allHitsounds)
             //{

@@ -33,6 +33,9 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     [Description("Hitsound's relative or absolute path.")]
     public string HitsoundPath { get; set; } = "click.wav";
 
+    [Description("Hitsound's relative or absolute path.")]
+    public string SkinFolder { get; set; } = "";
+
     [Description("Show output while pressing buttons.")]
     public bool Debugging { get; set; } = false;
 
