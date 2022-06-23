@@ -127,7 +127,7 @@ public static class DebugUtils
 
         public TimerImpl(string name, ILogger? logger)
         {
-            Print($"[{_name}] Executing...");
+            Print($"[{_name}] executing");
             _name = name;
             _logger = logger;
             _sw = Stopwatch.StartNew();
@@ -136,7 +136,7 @@ public static class DebugUtils
         public void Dispose()
         {
             _sw.Stop();
-            Print($"[{_name}] Executed in {_sw.Elapsed.TotalMilliseconds:#0.000}ms");
+            Print($"[{_name}] executed in {_sw.Elapsed.TotalMilliseconds:#0.000}ms");
         }
 
         private void Print(string message)
