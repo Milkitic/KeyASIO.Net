@@ -73,7 +73,7 @@ public partial class MainWindow : Window
         {
             var device = DeviceCreationHelper.CreateDevice(out var actualDescription, deviceDescription);
             _viewModel.AudioPlaybackEngine = new AudioPlaybackEngine(device,
-                _appSettings.SampleRate, _appSettings.Channels,
+                _appSettings.SampleRate, /*_appSettings.Channels*/2,
                 notifyProgress: false, enableVolume: _appSettings.VolumeEnabled)
             {
                 Volume = _appSettings.Volume
@@ -194,6 +194,8 @@ public partial class MainWindow : Window
 
     private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
+        Title += $" {Updater.GetVersion()}";
+
         if (_appSettings.Device == null)
         {
             await Task.Delay(100);
