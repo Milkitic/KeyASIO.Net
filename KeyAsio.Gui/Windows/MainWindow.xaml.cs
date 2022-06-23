@@ -170,9 +170,10 @@ public partial class MainWindow : Window
                 else
                 {
                     var hitsounds = _viewModel.OsuManager.GetCurrentHitsounds();
-                    foreach (var cachedSound in hitsounds)
+                    foreach (var playbackObject in hitsounds)
                     {
-                        _viewModel.AudioPlaybackEngine?.PlaySound(cachedSound);
+                        SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
+                            playbackObject.Volume, playbackObject.Balance);
                     }
                 }
 
