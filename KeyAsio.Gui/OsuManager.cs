@@ -92,7 +92,7 @@ public class OsuManager : ViewModelBase
 
     public IReadOnlyCollection<CachedSound> GetCurrentHitsounds()
     {
-        using var _ = DebugUtils.CreateTimer($"GetSound");
+        using var _ = DebugUtils.CreateTimer($"GetSound", Logger);
         var playTime = PlayTime;
 
         const int thresholdMs = 30;
@@ -199,7 +199,7 @@ public class OsuManager : ViewModelBase
             }
 
             var osuDir = new OsuDirectory(folder);
-            using (DebugUtils.CreateTimer("InitFolder"))
+            using (DebugUtils.CreateTimer("InitFolder", Logger))
             {
                 await osuDir.InitializeAsync(Beatmap.Filename);
             }
@@ -211,7 +211,7 @@ public class OsuManager : ViewModelBase
                 return;
             }
 
-            using (DebugUtils.CreateTimer("InitSound"))
+            using (DebugUtils.CreateTimer("InitSound", Logger))
             {
                 var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
                 HitsoundList = hitsoundList
@@ -237,7 +237,7 @@ public class OsuManager : ViewModelBase
 
     private void OsuModeManager_OnPlayTimeChanged(int oldMs, int newMs)
     {
-        Application.Current.Dispatcher.Invoke(() =>
+        Application.Current.Dispatcher.InvokeAsync(() =>
         {
             PlayTimeList.Add(newMs);
         });
@@ -264,7 +264,7 @@ public class OsuManager : ViewModelBase
     private void RequeueNodes()
     {
         _hitQueue = new Queue<PlayableNode>(HitsoundList!);
-        Application.Current.Dispatcher.Invoke(() => PlayTimeList.Clear());
+        Application.Current.Dispatcher.InvokeAsync(() => PlayTimeList.Clear());
         _firstNode = _hitQueue.Dequeue();
         AddHitsoundCacheInBackground(0, 13000);
         _nextReadTime = 10000;
@@ -272,16 +272,31 @@ public class OsuManager : ViewModelBase
 
     private void AddHitsoundCacheInBackground(int startTime, int endTime)
     {
-        if (_folder == null) return;
-        if (SharedViewModel.Instance.AudioPlaybackEngine == null) return;
-        if (HitsoundList == null) return;
+        if (_folder == null)
+        {
+            Logger.LogWarning($"{nameof(_folder)} is null, stop adding cache.");
+            return;
+        }
+
+        if (SharedViewModel.Instance.AudioPlaybackEngine == null)
+        {
+            Logger.LogWarning($"{nameof(SharedViewModel.Instance.AudioPlaybackEngine)} is null, stop adding cache.");
+            return;
+        }
+
+        if (HitsoundList == null)
+        {
+            Logger.LogWarning($"{nameof(HitsoundList)} is null, stop adding cache.");
+            return;
+        }
+
         var hitsoundList = HitsoundList;
         var folder = _folder;
         var waveFormat = SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat;
         var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
         Task.Run(() =>
         {
-            using var _ = DebugUtils.CreateTimer($"CacheSound {startTime}~{endTime}");
+            using var _ = DebugUtils.CreateTimer($"CacheSound {startTime}~{endTime}", Logger);
             hitsoundList
                 .Where(k => k.Offset >= startTime && k.Offset < endTime)
                 .AsParallel()
