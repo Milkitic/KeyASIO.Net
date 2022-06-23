@@ -55,6 +55,7 @@ public class OsuManager : ViewModelBase
         get => _playTime;
         set
         {
+            value += (SharedViewModel.Instance.AppSettings?.OsuModeAudioOffset ?? 0);
             if (value == _playTime) return;
             var val = _playTime;
             _playTime = value;
