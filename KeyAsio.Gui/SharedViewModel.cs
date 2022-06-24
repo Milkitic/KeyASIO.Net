@@ -56,7 +56,7 @@ public class SharedViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _debugging, value);
     }
 
-    public OsuManager OsuManager { get; } = OsuManager.Instance;
+    public RealtimeModeManager RealtimeModeManager { get; } = RealtimeModeManager.Instance;
     public string DefaultFolder { get; } = Path.Combine(Environment.CurrentDirectory, "Resources", "default");
     public bool LatencyTestMode { get; set; }
 }

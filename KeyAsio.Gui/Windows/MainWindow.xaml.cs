@@ -161,7 +161,7 @@ public partial class MainWindow : Window
         {
             if (action == KeyAction.KeyDown)
             {
-                if (!_appSettings.OsuMode)
+                if (!_appSettings.RealtimeMode)
                 {
                     if (_cacheSound != null)
                     {
@@ -170,7 +170,7 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    var hitsounds = _viewModel.OsuManager.GetCurrentHitsounds();
+                    var hitsounds = _viewModel.RealtimeModeManager.GetCurrentHitsounds();
                     foreach (var playbackObject in hitsounds)
                     {
                         SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new Waves.BalanceSampleProvider(

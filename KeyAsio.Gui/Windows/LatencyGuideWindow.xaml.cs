@@ -26,7 +26,7 @@ public partial class LatencyGuideWindow : Window
     {
         InitializeComponent();
         DataContext = _viewModel = SharedViewModel.Instance;
-        _offset = _viewModel.AppSettings?.OsuModeAudioOffset ?? 0;
+        _offset = _viewModel.AppSettings?.RealtimeModeAudioOffset ?? 0;
         SharedViewModel.Instance.LatencyTestMode = true;
     }
 
@@ -35,7 +35,7 @@ public partial class LatencyGuideWindow : Window
         SharedViewModel.Instance.LatencyTestMode = false;
         if (DialogResult != true && _viewModel.AppSettings != null)
         {
-            _viewModel.AppSettings.OsuModeAudioOffset = _offset;
+            _viewModel.AppSettings.RealtimeModeAudioOffset = _offset;
         }
     }
 

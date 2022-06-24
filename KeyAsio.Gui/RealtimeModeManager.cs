@@ -16,10 +16,10 @@ using OsuRTDataProvider.Listen;
 
 namespace KeyAsio.Gui;
 
-public class OsuManager : ViewModelBase
+public class RealtimeModeManager : ViewModelBase
 {
-    public static OsuManager Instance { get; } = new();
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(OsuManager));
+    public static RealtimeModeManager Instance { get; } = new();
+    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(RealtimeModeManager));
 
     private OsuListenerManager.OsuStatus _osuStatus;
     private int _playTime;
@@ -44,11 +44,11 @@ public class OsuManager : ViewModelBase
         get => _playTime;
         set
         {
-            value += (SharedViewModel.Instance.AppSettings?.OsuModeAudioOffset ?? 0);
+            value += (SharedViewModel.Instance.AppSettings?.RealtimeModeAudioOffset ?? 0);
             if (value == _playTime) return;
             var val = _playTime;
             _playTime = value;
-            OsuModeManager_OnPlayTimeChanged(val, value);
+            OnPlayTimeChanged(val, value);
             OnPropertyChanged();
         }
     }
@@ -63,7 +63,7 @@ public class OsuManager : ViewModelBase
             if (value == _osuStatus) return;
             var val = _osuStatus;
             _osuStatus = value;
-            OsuModeManager_OnStatusChanged(val, value);
+            OnStatusChanged(val, value);
             OnPropertyChanged();
         }
     }
@@ -75,7 +75,7 @@ public class OsuManager : ViewModelBase
         {
             if (Equals(value, _beatmap)) return;
             _beatmap = value;
-            OsuModeManager_OnBeatmapChanged(value);
+            OnBeatmapChanged(value);
             OnPropertyChanged();
         }
     }
@@ -229,7 +229,7 @@ public class OsuManager : ViewModelBase
         }
     }
 
-    private async void OsuModeManager_OnStatusChanged(OsuListenerManager.OsuStatus pre, OsuListenerManager.OsuStatus cur)
+    private async void OnStatusChanged(OsuListenerManager.OsuStatus pre, OsuListenerManager.OsuStatus cur)
     {
         if (pre != OsuListenerManager.OsuStatus.Playing &&
             cur == OsuListenerManager.OsuStatus.Playing)
@@ -312,11 +312,11 @@ public class OsuManager : ViewModelBase
         }
     }
 
-    private void OsuModeManager_OnBeatmapChanged(Beatmap? beatmap)
+    private void OnBeatmapChanged(Beatmap? beatmap)
     {
     }
 
-    private void OsuModeManager_OnPlayTimeChanged(int oldMs, int newMs)
+    private void OnPlayTimeChanged(int oldMs, int newMs)
     {
         //Application.Current.Dispatcher.InvokeAsync(() =>
         //{
@@ -362,9 +362,9 @@ public class OsuManager : ViewModelBase
         SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new Waves.BalanceSampleProvider(
                 new VolumeSampleProvider(
                         new Waves.CachedSoundSampleProvider(playbackObject.CachedSound))
-                    { Volume = playbackObject.Volume }
+                { Volume = playbackObject.Volume }
             )
-            { Balance = playbackObject.Balance * 0.3f }
+        { Balance = playbackObject.Balance * 0.3f }
         );
         Logger.LogDebug($"Play {Path.GetFileNameWithoutExtension(playbackObject.CachedSound.SourcePath)}; " +
                         $"Vol. {playbackObject.Volume}; " +

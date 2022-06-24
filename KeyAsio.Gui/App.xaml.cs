@@ -27,16 +27,16 @@ public partial class App : Application
 
         SharedViewModel.Instance.Debugging = settings.Debugging;
 
-        if (settings.OsuMode)
+        if (settings.RealtimeMode)
         {
             OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
             OrtdpSetting.ListenInterval = 3;
             var manager = new OsuListenerManager();
-            manager.OnPlayingTimeChanged += playTime => OsuManager.Instance.PlayTime = playTime;
-            manager.OnBeatmapChanged += beatmap => OsuManager.Instance.Beatmap = beatmap;
-            manager.OnStatusChanged += (pre, current) => OsuManager.Instance.OsuStatus = current;
+            manager.OnPlayingTimeChanged += playTime => RealtimeModeManager.Instance.PlayTime = playTime;
+            manager.OnBeatmapChanged += beatmap => RealtimeModeManager.Instance.Beatmap = beatmap;
+            manager.OnStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
             manager.Start();
-            OsuManager.Instance.OsuListenerManager = manager;
+            RealtimeModeManager.Instance.OsuListenerManager = manager;
         }
 
         var miClearAll = new MenuItem

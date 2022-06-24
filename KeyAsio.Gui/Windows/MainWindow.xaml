@@ -308,7 +308,7 @@
                     <Style TargetType="StackPanel">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding AppSettings.OsuMode}" Value="True">
+                            <DataTrigger Binding="{Binding AppSettings.RealtimeMode}" Value="True">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -349,7 +349,7 @@
                         Grid.Row="0"
                         Grid.Column="1"
                         Margin="0,0,0,0"
-                        Text="{Binding OsuManager.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+                        Text="{Binding RealtimeModeManager.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
@@ -357,7 +357,7 @@
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="1"
-                        Text="{Binding OsuManager.OsuStatus}" />
+                        Text="{Binding RealtimeModeManager.OsuStatus}" />
                     <TextBlock
                         Grid.Row="2"
                         Grid.Column="0"
@@ -365,7 +365,7 @@
                     <TextBlock
                         Grid.Row="2"
                         Grid.Column="1"
-                        Text="{Binding OsuManager.Beatmap.Filename}"
+                        Text="{Binding RealtimeModeManager.Beatmap.Filename}"
                         TextWrapping="Wrap" />
                 </Grid>
                 <!--<hc:ScrollViewer Height="15" HorizontalScrollBarVisibility="Auto">

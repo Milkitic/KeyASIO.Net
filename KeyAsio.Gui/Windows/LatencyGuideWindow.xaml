@@ -35,7 +35,7 @@
                 Maximum="200"
                 Minimum="-200"
                 TickPlacement="None"
-                Value="{Binding AppSettings.OsuModeAudioOffset}" />
+                Value="{Binding AppSettings.RealtimeModeAudioOffset}" />
             <TextBlock Foreground="{StaticResource WarningBrush}" Text="Please play osu! beatmaps with auto and adjust the offset." />
         </StackPanel>
 

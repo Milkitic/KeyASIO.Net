@@ -16,19 +16,19 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
         HookKeys.X
     };
 
-    private int _osuModeAudioOffset;
+    private int _realtimeModeAudioOffset;
 
     [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
-    public bool OsuMode { get; set; } = true;
+    public bool RealtimeMode { get; set; } = true;
 
-    [Description("The offset when `OsuMode` is true (allow adjusting in GUI).")]
-    public int OsuModeAudioOffset
+    [Description("The offset when `RealtimeMode` is true (allow adjusting in GUI).")]
+    public int RealtimeModeAudioOffset
     {
-        get => _osuModeAudioOffset;
+        get => _realtimeModeAudioOffset;
         set
         {
-            if (value == _osuModeAudioOffset) return;
-            _osuModeAudioOffset = value;
+            if (value == _realtimeModeAudioOffset) return;
+            _realtimeModeAudioOffset = value;
             OnPropertyChanged();
         }
     }
@@ -48,7 +48,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     [Description("Default hitsound path (relative or absolute) for playing.")]
     public string HitsoundPath { get; set; } = "click.wav";
 
-    [Description("The skin folder when `OsuMode` is true.")]
+    [Description("The skin folder when `RealtimeMode` is true.")]
     public string SkinFolder { get; set; } = "";
 
     [Description("Show debug logs.")]
@@ -62,7 +62,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     [Description("Device configuration (Recommend to configure in GUI).")]
     public DeviceDescription? Device { get; set; }
 
-    [Description("Software volume control. Disable for extremely low latency when `OsuMode` is false.")]
+    [Description("Software volume control. Disable for extremely low latency when `RealtimeMode` is false.")]
     public bool VolumeEnabled { get; set; } = true;
 
     [Description("Configured device volume.")]
