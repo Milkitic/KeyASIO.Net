@@ -42,7 +42,24 @@ public partial class MainWindow : Window
         _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
+        CreateShortcuts();
+
         cp.Content = ((App)Application.Current).RichTextBox;
+    }
+
+    private void CreateShortcuts()
+    {
+        var ignoreBeatmapHitsound = _appSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
+        if (ignoreBeatmapHitsound?.Keys != null)
+        {
+            _keyboardHook.RegisterHotkey(ignoreBeatmapHitsound.ModifierKeys, ignoreBeatmapHitsound.Keys.Value,
+                (_, _, _) =>
+                {
+                    _appSettings.RealtimeOptions.IgnoreBeatmapHitsound =
+                        !_appSettings.RealtimeOptions.IgnoreBeatmapHitsound;
+                    _appSettings.Save();
+                });
+        }
     }
 
     private async Task SelectDevice()
