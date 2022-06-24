@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using HandyControl.Controls;
 using KeyAsio.Gui.Configuration;
+using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.Devices;
@@ -161,7 +162,7 @@ public partial class MainWindow : Window
         {
             if (action == KeyAction.KeyDown)
             {
-                if (!_appSettings.RealtimeMode)
+                if (!_appSettings.RealtimeOptions.RealtimeMode)
                 {
                     if (_cacheSound != null)
                     {
@@ -340,5 +341,15 @@ public partial class MainWindow : Window
         {
             RegisterHotKey(key);
         }
+    }
+
+    private void btnRealtimeOptions_OnClick(object sender, RoutedEventArgs e)
+    {
+        var latencyGuideWindow = new RealtimeOptionsWindow
+        {
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        latencyGuideWindow.ShowDialog();
     }
 }

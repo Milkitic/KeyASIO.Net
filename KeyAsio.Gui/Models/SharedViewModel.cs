@@ -3,7 +3,7 @@ using System.IO;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Models;
 
 public class SharedViewModel : ViewModelBase
 {

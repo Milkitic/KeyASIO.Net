@@ -2,6 +2,7 @@
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
+using KeyAsio.Gui.Models;
 using NLog;
 using NLog.Targets;
 

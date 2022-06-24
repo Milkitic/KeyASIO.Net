@@ -1,6 +1,6 @@
 ﻿using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Models;
 
 public class PlaybackInfo
 {

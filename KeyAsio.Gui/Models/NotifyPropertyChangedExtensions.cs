@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Models;
 
 public static class NotifyPropertyChangedExtensions
 {

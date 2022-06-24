@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using KeyAsio.Gui.Models;
 using Milki.Extensions.MixPlayer.Devices;
 
 namespace KeyAsio.Gui.Windows;

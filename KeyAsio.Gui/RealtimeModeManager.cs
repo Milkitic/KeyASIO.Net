@@ -3,10 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
+using KeyAsio.Gui.Configuration;
+using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
@@ -25,7 +28,6 @@ public class RealtimeModeManager : ViewModelBase
     private int _playTime;
     private Beatmap? _beatmap;
     private bool _isStarted;
-    private List<PlayableNode>? _hitsoundList;
 
     private readonly object _isStartedLock = new();
     private readonly HitsoundFileCache _hitsoundFileCache = new();
@@ -44,7 +46,7 @@ public class RealtimeModeManager : ViewModelBase
         get => _playTime;
         set
         {
-            value += (SharedViewModel.Instance.AppSettings?.RealtimeModeAudioOffset ?? 0);
+            value += AppSettings.RealtimeOptions.RealtimeModeAudioOffset;
             if (value == _playTime) return;
             var val = _playTime;
             _playTime = value;
@@ -52,8 +54,6 @@ public class RealtimeModeManager : ViewModelBase
             OnPropertyChanged();
         }
     }
-
-    //public ObservableCollection<int> PlayTimeList { get; } = new();
 
     public OsuListenerManager.OsuStatus OsuStatus
     {
@@ -80,21 +80,31 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    public List<PlayableNode>? HitsoundList
-    {
-        get => _hitsoundList;
-        set => this.RaiseAndSetIfChanged(ref _hitsoundList, value);
-    }
+    public List<PlayableNode> HitsoundList { get; } = new();
 
-    public List<PlayableNode> AutoList { get; set; }
+    public List<PlayableNode> AutoList { get; } = new();
 
     public bool IsStarted
     {
-        get { lock (_isStartedLock) { return _isStarted; } }
-        set { lock (_isStartedLock) { this.RaiseAndSetIfChanged(ref _isStarted, value); } }
+        get
+        {
+            lock (_isStartedLock)
+            {
+                return _isStarted;
+            }
+        }
+        set
+        {
+            lock (_isStartedLock)
+            {
+                this.RaiseAndSetIfChanged(ref _isStarted, value);
+            }
+        }
     }
 
     public OsuListenerManager? OsuListenerManager { get; set; }
+
+    public AppSettings AppSettings { get; } = ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public IEnumerable<PlaybackInfo> GetCurrentHitsounds()
     {
@@ -135,7 +145,6 @@ public class RealtimeModeManager : ViewModelBase
         IEnumerable<PlaybackInfo> GetHitsoundList(bool checkPreTiming)
         {
             int counter = 0;
-            //var list = new List<PlaybackInfo>();
             while (first != null)
             {
                 if (!checkPreTiming && playTime < first.Offset - thresholdMs)
@@ -170,7 +179,6 @@ public class RealtimeModeManager : ViewModelBase
 
     public IEnumerable<PlaybackInfo> GetPlaybackHitsounds(bool isAuto)
     {
-        //using var _ = DebugUtils.CreateTimer($"GetSound", Logger);
         var playTime = PlayTime;
 
         var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
@@ -274,33 +282,7 @@ public class RealtimeModeManager : ViewModelBase
                 throw new Exception("The beatmap folder is null!");
             }
 
-            var osuDir = new OsuDirectory(folder);
-            using (DebugUtils.CreateTimer("InitFolder", Logger))
-            {
-                await osuDir.InitializeAsync(Beatmap.Filename);
-            }
-
-            if (osuDir.OsuFiles.Count <= 0)
-            {
-                Logger.LogWarning(
-                    $"There is no available beatmaps after scanning. Directory: {folder}; File: {Beatmap.Filename}");
-                return;
-            }
-
-            using (DebugUtils.CreateTimer("InitSound", Logger))
-            {
-                var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
-                HitsoundList = hitsoundList
-                    .OrderBy(k => k.Offset)
-                    .Where(k => k is PlayableNode { PlayablePriority: PlayablePriority.Primary })
-                    .Cast<PlayableNode>()
-                    .ToList();
-                AutoList = hitsoundList
-                    .OrderBy(k => k.Offset)
-                    .Where(k => k is PlayableNode { PlayablePriority: PlayablePriority.Secondary or PlayablePriority.Effects })
-                    .Cast<PlayableNode>()
-                    .ToList();
-            }
+            await InitSoundListAsync(folder, Beatmap.Filename);
 
             RequeueNodes();
             IsStarted = true;
@@ -312,17 +294,81 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
+    private async Task InitSoundListAsync(string folder, string diffFilename)
+    {
+        HitsoundList.Clear();
+        AutoList.Clear();
+
+        var osuDir = new OsuDirectory(folder);
+        using (DebugUtils.CreateTimer("InitFolder", Logger))
+        {
+            await osuDir.InitializeAsync(diffFilename);
+        }
+
+        if (osuDir.OsuFiles.Count <= 0)
+        {
+            Logger.LogWarning($"There is no available beatmaps after scanning. " +
+                              $"Directory: {folder}; File: {diffFilename}");
+            return;
+        }
+
+        using var _ = DebugUtils.CreateTimer("InitSound", Logger);
+        var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
+        var secondaryCache = new List<PlayableNode>();
+
+        foreach (var hitsoundNode in hitsoundList.OrderBy(k => k.Offset)) // Should be stable sort here
+        {
+            if (hitsoundNode is not PlayableNode playableNode) continue;
+
+            if (playableNode.PlayablePriority == PlayablePriority.Primary)
+            {
+                CheckSecondary();
+                AutoList.Clear();
+                HitsoundList.Add(playableNode);
+            }
+            else if (playableNode.PlayablePriority is PlayablePriority.Secondary)
+            {
+                var sliderTailBehavior = AppSettings.RealtimeOptions.SliderTailPlaybackBehavior;
+                if (sliderTailBehavior == SliderTailPlaybackBehavior.Normal)
+                {
+                    AutoList.Add(playableNode);
+                }
+                else if (sliderTailBehavior == SliderTailPlaybackBehavior.KeepReverse)
+                {
+                    secondaryCache.Add(playableNode);
+                }
+            }
+            else if (playableNode.PlayablePriority is PlayablePriority.Effects)
+            {
+                if (!AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides)
+                {
+                    AutoList.Add(playableNode);
+                }
+            }
+            else if (playableNode.PlayablePriority is PlayablePriority.Sampling)
+            {
+                if (!AppSettings.RealtimeOptions.IgnoreStoryboardSamples)
+                {
+                    AutoList.Add(playableNode);
+                }
+            }
+        }
+
+        CheckSecondary();
+
+        void CheckSecondary()
+        {
+            if (secondaryCache.Count <= 1) return;
+            AutoList.AddRange(secondaryCache);
+        }
+    }
+
     private void OnBeatmapChanged(Beatmap? beatmap)
     {
     }
 
     private void OnPlayTimeChanged(int oldMs, int newMs)
     {
-        //Application.Current.Dispatcher.InvokeAsync(() =>
-        //{
-        //    PlayTimeList.Add(newMs);
-        //});
-
         if (IsStarted && oldMs > newMs) // Retry
         {
             RequeueNodes();
@@ -340,8 +386,6 @@ public class RealtimeModeManager : ViewModelBase
         {
             foreach (var playbackObject in GetPlaybackHitsounds(false))
             {
-                //SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
-                //    playbackObject.Volume, playbackObject.Balance);
                 PlaySound(playbackObject);
             }
         }
@@ -350,8 +394,6 @@ public class RealtimeModeManager : ViewModelBase
         {
             foreach (var playbackObject in GetPlaybackHitsounds(true))
             {
-                //SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
-                //    playbackObject.Volume, playbackObject.Balance);
                 PlaySound(playbackObject);
             }
         }
@@ -379,9 +421,8 @@ public class RealtimeModeManager : ViewModelBase
 
     private void RequeueNodes()
     {
-        _hitQueue = new Queue<PlayableNode>(HitsoundList!);
-        _secondaryHitQueue = new Queue<PlayableNode>(AutoList!);
-        //Application.Current.Dispatcher.InvokeAsync(() => PlayTimeList.Clear());
+        _hitQueue = new Queue<PlayableNode>(HitsoundList);
+        _secondaryHitQueue = new Queue<PlayableNode>(AutoList);
         _firstNode = _hitQueue.Dequeue();
         _firstAutoNode = _hitQueue.Dequeue();
         AddHitsoundCacheInBackground(0, 13000, HitsoundList);
@@ -389,7 +430,9 @@ public class RealtimeModeManager : ViewModelBase
         _nextReadTime = 10000;
     }
 
-    private void AddHitsoundCacheInBackground(int startTime, int endTime, List<PlayableNode>? playableNodes)
+    private void AddHitsoundCacheInBackground(int startTime, int endTime, List<PlayableNode> playableNodes,
+        [CallerArgumentExpression("playableNodes")]
+        string? expression = null)
     {
         if (_folder == null)
         {
@@ -403,9 +446,9 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (playableNodes == null)
+        if (playableNodes.Count == 0)
         {
-            Logger.LogWarning($"{nameof(playableNodes)} is null, stop adding cache.");
+            Logger.LogWarning($"{expression} has no hitsounds, stop adding cache.");
             return;
         }
 

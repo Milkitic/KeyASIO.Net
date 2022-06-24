@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using KeyAsio.Gui.Configuration;
+using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using NLog.Config;
@@ -27,7 +28,7 @@ public partial class App : Application
 
         SharedViewModel.Instance.Debugging = settings.Debugging;
 
-        if (settings.RealtimeMode)
+        if (settings.RealtimeOptions.RealtimeMode)
         {
             OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
             OrtdpSetting.ListenInterval = 3;

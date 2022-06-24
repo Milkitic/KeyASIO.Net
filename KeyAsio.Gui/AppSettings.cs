@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using KeyAsio.Gui.Configuration;
+using KeyAsio.Gui.Models;
 using Milki.Extensions.MixPlayer.Annotations;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
@@ -16,22 +17,9 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
         HookKeys.X
     };
 
-    private int _realtimeModeAudioOffset;
+    private RealtimeOptions? _realtimeOptions;
 
-    [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
-    public bool RealtimeMode { get; set; } = true;
 
-    [Description("The offset when `RealtimeMode` is true (allow adjusting in GUI).")]
-    public int RealtimeModeAudioOffset
-    {
-        get => _realtimeModeAudioOffset;
-        set
-        {
-            if (value == _realtimeModeAudioOffset) return;
-            _realtimeModeAudioOffset = value;
-            OnPropertyChanged();
-        }
-    }
 
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public HashSet<HookKeys> Keys
@@ -67,6 +55,12 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
 
     [Description("Configured device volume.")]
     public float Volume { get; set; } = 1;
+
+    public RealtimeOptions RealtimeOptions
+    {
+        get => _realtimeOptions ??= new();
+        set => _realtimeOptions = value;
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
+using KeyAsio.Gui.Models;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Gui.Windows;

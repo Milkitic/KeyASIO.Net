@@ -1,0 +1,40 @@
+﻿<Window
+    x:Class="KeyAsio.Gui.Windows.RealtimeOptionsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gui="clr-namespace:KeyAsio.Gui"
+    xmlns:local="clr-namespace:KeyAsio.Gui.Windows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Realtime Options"
+    Width="800"
+    Height="450"
+    d:DataContext="{d:DesignInstance gui:SharedViewModel,
+                                     IsDesignTimeCreatable=False}"
+    Background="{StaticResource RegionBrush}"
+    FontFamily="Segoe UI,微软雅黑"
+    FontSize="14"
+    TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
+    mc:Ignorable="d">
+    <Grid>
+        <StackPanel>
+            <TextBlock
+                Margin="0,0,0,10"
+                FontSize="12"
+                Foreground="{StaticResource SecondaryTextBrush}"
+                Text="WASAPI Exclusive" />
+            <StackPanel Orientation="Horizontal">
+                <ToggleButton
+                    x:Name="toggIgnoreBeatmapHitsound"
+                    Margin="0,0,8,0"
+                    HorizontalAlignment="Left"
+                    IsChecked="{Binding AppSettings.IgnoreBeatmapHitsound}"
+                    Style="{StaticResource ToggleButtonSwitch}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Text="{Binding AppSettings.IgnoreBeatmapHitsound}" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

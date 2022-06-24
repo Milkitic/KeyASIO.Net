@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using Milki.Extensions.MixPlayer.Annotations;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Models;
 
 /// <summary>
 /// ViewModel基础类
@@ -34,10 +34,4 @@ public abstract class ViewModelBase : IInvokableVm, INotifyPropertyChanged, INot
     {
         PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
     }
-}
-
-public interface IInvokableVm
-{
-    internal void RaisePropertyChanged(string propertyName);
-    internal void RaisePropertyChanging(string propertyName);
 }
