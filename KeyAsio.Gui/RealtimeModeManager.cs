@@ -261,7 +261,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnComboChanged(int oldCombo, int newCombo)
     {
-        if (IsStarted && newCombo < oldCombo && oldCombo >= 20)
+        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak && newCombo < oldCombo && oldCombo >= 20)
         {
             if (_skinToCachedSoundMapping.TryGetValue("combobreak", out var cachedSound))
             {

@@ -9,7 +9,7 @@
     xmlns:models="clr-namespace:KeyAsio.Gui.Models"
     Title="Realtime Options"
     Width="500"
-    Height="500"
+    Height="525"
     d:DataContext="{d:DesignInstance models:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -131,6 +131,11 @@
                     FontSize="12"
                     Text="{Binding AppSettings.RealtimeOptions.BalanceFactor, StringFormat=P0}" />
             </StackPanel>
+            <TextBlock
+                FontSize="12"
+                Foreground="{StaticResource WarningBrush}"
+                Text="Note: some options will be applied after new playing session."
+                TextWrapping="Wrap" />
         </StackPanel>
     </Grid>
 </Window>
