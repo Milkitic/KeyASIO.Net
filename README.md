@@ -1,7 +1,7 @@
 # KeyASIO.Net
 Low-latency and safe osu! audio playback experience (ASIO support).
 
-**NOTE:** The `OsuMode` in the configuration use [ORTDP](https://github.com/OsuSync/OsuRTDataProvider) to read(only) osu's memory, but it will not modify the memory. The ORTDP is commonly used for broadcasting and approved by peppy, so it's relatively safe. But I still can't guarantee that nothing will happen, so I should still say please do at your own risk :#.
+**NOTE:** The `RealtimeMode` in the configuration use [ORTDP](https://github.com/OsuSync/OsuRTDataProvider) to read(only) osu's memory, but it will not modify the memory. The ORTDP is commonly used for broadcasting and approved by peppy, so it's relatively safe. But I still can't guarantee that nothing will happen, so I should still say please do at your own risk :#.
 
 ## Overview 
 ![overview](docs/overview.png)
@@ -25,11 +25,11 @@ Full options in `appsettings.yaml`:
 | Device             | Device configuration (Recommend to configure in GUI).                                                                                      |
 | HitsoundPath       | Default hitsound path (relative or absolute) for playing.                                                                                  |
 | Keys               | # Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion. |
-| OsuMode            | If true, the software will enable memory scanning and play the right hitsounds of beatmaps.                                                |
-| OsuModeAudioOffset | The offset when `OsuMode` is true (allow adjusting in GUI).                                                                                |
+| RealtimeMode            | If true, the software will enable memory scanning and play the right hitsounds of beatmaps.                                                |
+| RealtimeModeAudioOffset | The offset when `RealtimeMode` is true (allow adjusting in GUI).                                                                                |
 | SampleRate         | Device's sample rate (allow adjusting in GUI).                                                                                             |
-| SkinFolder         | The skin folder when `OsuMode` is true.                                                                                                    |
-| VolumeEnabled      | Software volume control. Disable for extremely low latency when `OsuMode` is false                                                         |
+| SkinFolder         | The skin folder when `RealtimeMode` is true.                                                                                                    |
+| VolumeEnabled      | Software volume control. Disable for extremely low latency when `RealtimeMode` is false                                                         |
 | Volume             | Configured device volume.                                                                                                                  |
 
 ## Todo
