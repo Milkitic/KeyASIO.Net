@@ -123,7 +123,7 @@ public class RealtimeModeManager : ViewModelBase
 
     public IEnumerable<PlaybackInfo> GetCurrentHitsounds()
     {
-        int thresholdMs = 70; // determine by od
+        int thresholdMs = 52; // determine by od
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", Logger);
         var playTime = PlayTime;
 
@@ -332,7 +332,8 @@ public class RealtimeModeManager : ViewModelBase
         Task.Run(() =>
         {
             SkinSounds.AsParallel()
-                .WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
+                .WithDegreeOfParallelism(1)
+                //.WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
                 .ForAll(skinSound =>
                 {
                     AddSkinCache(skinSound).Wait();
@@ -370,7 +371,7 @@ public class RealtimeModeManager : ViewModelBase
             if (playableNode.PlayablePriority == PlayablePriority.Primary)
             {
                 CheckSecondary();
-                _playList.Clear();
+                secondaryCache.Clear();
                 _hitList.Add(playableNode);
             }
             else if (playableNode.PlayablePriority is PlayablePriority.Secondary)
@@ -477,8 +478,8 @@ public class RealtimeModeManager : ViewModelBase
     {
         _hitQueue = new Queue<PlayableNode>(_hitList);
         _playQueue = new Queue<PlayableNode>(_playList);
-        _firstNode = _hitQueue.Dequeue();
-        _firstPlayNode = _hitQueue.Dequeue();
+        _hitQueue.TryDequeue(out _firstNode);
+        _playQueue.TryDequeue(out _firstPlayNode);
         AddHitsoundCacheInBackground(0, 13000, _hitList);
         AddHitsoundCacheInBackground(0, 13000, _playList);
         _nextReadTime = 10000;
@@ -516,7 +517,8 @@ public class RealtimeModeManager : ViewModelBase
             hitsoundList
                 .Where(k => k.Offset >= startTime && k.Offset < endTime)
                 .AsParallel()
-                .WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
+                .WithDegreeOfParallelism(1)
+                //.WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
                 .ForAll(playableNode =>
                 {
                     if (!IsStarted) return;

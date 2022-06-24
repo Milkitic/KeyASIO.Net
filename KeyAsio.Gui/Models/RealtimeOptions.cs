@@ -37,7 +37,7 @@ public class RealtimeOptions : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _ignoreBeatmapHitsound, value);
     }
 
-    public BindKeys IgnoreBeatmapHitsoundBindKey { get; set; } = BindKeys.Parse("Ctrl Z");
+    public BindKeys IgnoreBeatmapHitsoundBindKey { get; set; } = BindKeys.Parse("Ctrl+Z");
 
     [Description("Ignore beatmap's storyboard samples.")]
     public bool IgnoreStoryboardSamples
@@ -98,27 +98,27 @@ public class BindKeys
         {
             if (sb.Length > 0)
             {
-                sb.Append(' ');
+                sb.Append('+');
             }
 
-            sb.Append(" Shift");
+            sb.Append("Shift");
         }
 
         if (ModifierKeys.HasFlag(HookModifierKeys.Alt))
         {
             if (sb.Length > 0)
             {
-                sb.Append(' ');
+                sb.Append('+');
             }
 
-            sb.Append(" Alt");
+            sb.Append("Alt");
         }
 
         if (Keys != null)
         {
             if (sb.Length > 0)
             {
-                sb.Append(' ');
+                sb.Append('+');
             }
 
             sb.Append(Keys.ToString());
@@ -131,7 +131,7 @@ public class BindKeys
     {
         var modifierKeys = HookModifierKeys.None;
         HookKeys? keys = null;
-        var split = str.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var split = str.Split('+', StringSplitOptions.RemoveEmptyEntries);
         foreach (var s in split)
         {
             if (s.Equals("Ctrl", StringComparison.OrdinalIgnoreCase))
@@ -146,7 +146,7 @@ public class BindKeys
             {
                 modifierKeys |= HookModifierKeys.Alt;
             }
-            else if (keys != null)
+            else if (keys == null)
             {
                 keys = Enum.Parse<HookKeys>(s);
             }

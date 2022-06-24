@@ -48,11 +48,13 @@ public class YamlConverter : IConfigurationConverter
     protected virtual void ConfigSerializeBuilder(SerializerBuilder builder)
     {
         builder.WithTypeConverter(new DateTimeOffsetConverter());
+        builder.WithTypeConverter(new BindKeysConverter());
     }
 
     protected virtual void ConfigDeserializeBuilder(DeserializerBuilder builder)
     {
         builder.WithTypeConverter(new DateTimeOffsetConverter());
+        builder.WithTypeConverter(new BindKeysConverter());
     }
 
     protected virtual List<Type>? ConfigTagMapping()

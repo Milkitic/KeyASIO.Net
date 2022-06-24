@@ -18,9 +18,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     };
 
     private RealtimeOptions? _realtimeOptions;
-
-
-
+    
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public HashSet<HookKeys> Keys
     {
