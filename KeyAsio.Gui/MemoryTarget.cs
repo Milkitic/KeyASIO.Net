@@ -47,6 +47,11 @@ public sealed class MemoryTarget : TargetWithLayout
             }
 
             richTextBox.Document.Blocks.Add(paragraph);
+            if (richTextBox.Document.Blocks.Count > 500)
+            {
+                richTextBox.Document.Blocks.Remove(richTextBox.Document.Blocks.FirstBlock);
+            }
+
             if (IsScrolledToEnd(richTextBox))
             {
                 richTextBox.ScrollToEnd();

@@ -33,11 +33,13 @@ public class RealtimeModeManager : ViewModelBase
     private readonly HitsoundFileCache _hitsoundFileCache = new();
 
     private readonly ConcurrentDictionary<PlayableNode, CachedSound?> _playNodeToCachedSoundMapping = new();
+    private readonly List<PlayableNode> _hitList = new();
+    private readonly List<PlayableNode> _playList = new();
     private Queue<PlayableNode> _hitQueue = new();
-    private Queue<PlayableNode> _secondaryHitQueue = new();
+    private Queue<PlayableNode> _playQueue = new();
 
     private PlayableNode? _firstNode;
-    private PlayableNode? _firstAutoNode;
+    private PlayableNode? _firstPlayNode;
     private string? _folder;
     private int _nextReadTime;
 
@@ -79,10 +81,6 @@ public class RealtimeModeManager : ViewModelBase
             OnPropertyChanged();
         }
     }
-
-    public List<PlayableNode> HitsoundList { get; } = new();
-
-    public List<PlayableNode> AutoList { get; } = new();
 
     public bool IsStarted
     {
@@ -196,7 +194,7 @@ public class RealtimeModeManager : ViewModelBase
             return Array.Empty<PlaybackInfo>();
         }
 
-        var first = isAuto ? _firstAutoNode : _firstNode;
+        var first = isAuto ? _firstPlayNode : _firstNode;
         if (first == null)
         {
             return Array.Empty<PlaybackInfo>();
@@ -225,7 +223,7 @@ public class RealtimeModeManager : ViewModelBase
 
                 if (isAuto)
                 {
-                    _secondaryHitQueue.TryDequeue(out first);
+                    _playQueue.TryDequeue(out first);
                 }
                 else
                 {
@@ -235,7 +233,7 @@ public class RealtimeModeManager : ViewModelBase
 
             if (isAuto)
             {
-                _firstAutoNode = first;
+                _firstPlayNode = first;
             }
             else
             {
@@ -303,8 +301,8 @@ public class RealtimeModeManager : ViewModelBase
 
     private async Task InitSoundListAsync(string folder, string diffFilename)
     {
-        HitsoundList.Clear();
-        AutoList.Clear();
+        _hitList.Clear();
+        _playList.Clear();
 
         var osuDir = new OsuDirectory(folder);
         using (DebugUtils.CreateTimer("InitFolder", Logger))
@@ -330,15 +328,15 @@ public class RealtimeModeManager : ViewModelBase
             if (playableNode.PlayablePriority == PlayablePriority.Primary)
             {
                 CheckSecondary();
-                AutoList.Clear();
-                HitsoundList.Add(playableNode);
+                _playList.Clear();
+                _hitList.Add(playableNode);
             }
             else if (playableNode.PlayablePriority is PlayablePriority.Secondary)
             {
                 var sliderTailBehavior = AppSettings.RealtimeOptions.SliderTailPlaybackBehavior;
                 if (sliderTailBehavior == SliderTailPlaybackBehavior.Normal)
                 {
-                    AutoList.Add(playableNode);
+                    _playList.Add(playableNode);
                 }
                 else if (sliderTailBehavior == SliderTailPlaybackBehavior.KeepReverse)
                 {
@@ -349,14 +347,14 @@ public class RealtimeModeManager : ViewModelBase
             {
                 if (!AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides)
                 {
-                    AutoList.Add(playableNode);
+                    _playList.Add(playableNode);
                 }
             }
             else if (playableNode.PlayablePriority is PlayablePriority.Sampling)
             {
                 if (!AppSettings.RealtimeOptions.IgnoreStoryboardSamples)
                 {
-                    AutoList.Add(playableNode);
+                    _playList.Add(playableNode);
                 }
             }
         }
@@ -366,7 +364,7 @@ public class RealtimeModeManager : ViewModelBase
         void CheckSecondary()
         {
             if (secondaryCache.Count <= 1) return;
-            AutoList.AddRange(secondaryCache);
+            _playList.AddRange(secondaryCache);
         }
     }
 
@@ -384,8 +382,8 @@ public class RealtimeModeManager : ViewModelBase
 
         if (IsStarted && newMs > _nextReadTime)
         {
-            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000, HitsoundList);
-            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000, AutoList);
+            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000, _hitList);
+            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000, _playList);
             _nextReadTime += 10000;
         }
 
@@ -428,12 +426,12 @@ public class RealtimeModeManager : ViewModelBase
 
     private void RequeueNodes()
     {
-        _hitQueue = new Queue<PlayableNode>(HitsoundList);
-        _secondaryHitQueue = new Queue<PlayableNode>(AutoList);
+        _hitQueue = new Queue<PlayableNode>(_hitList);
+        _playQueue = new Queue<PlayableNode>(_playList);
         _firstNode = _hitQueue.Dequeue();
-        _firstAutoNode = _hitQueue.Dequeue();
-        AddHitsoundCacheInBackground(0, 13000, HitsoundList);
-        AddHitsoundCacheInBackground(0, 13000, AutoList);
+        _firstPlayNode = _hitQueue.Dequeue();
+        AddHitsoundCacheInBackground(0, 13000, _hitList);
+        AddHitsoundCacheInBackground(0, 13000, _playList);
         _nextReadTime = 10000;
     }
 
