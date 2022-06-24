@@ -11,6 +11,7 @@ public class RealtimeOptions : ViewModelBase
     private bool _ignoreSliderTicksAndSlides;
     private SliderTailPlaybackBehavior _sliderTailPlaybackBehavior;
     private float _balanceFactor = 0.3f;
+    private bool _ignoreComboBreak;
 
     [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
     public bool RealtimeMode
@@ -59,5 +60,12 @@ public class RealtimeOptions : ViewModelBase
     {
         get => _balanceFactor;
         set => this.RaiseAndSetIfChanged(ref _balanceFactor, value);
+    }
+
+    [Description("Ignore combo break sound.")]
+    public bool IgnoreComboBreak
+    {
+        get => _ignoreComboBreak;
+        set => this.RaiseAndSetIfChanged(ref _ignoreComboBreak, value);
     }
 }

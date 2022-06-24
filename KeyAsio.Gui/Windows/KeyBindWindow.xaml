@@ -18,7 +18,7 @@
     ResizeMode="NoResize"
     SizeToContent="Height"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
-    WindowStyle="ToolWindow"
+    WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
     <Grid Margin="25">
         <StackPanel>

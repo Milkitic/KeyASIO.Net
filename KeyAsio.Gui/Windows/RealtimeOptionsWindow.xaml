@@ -9,7 +9,7 @@
     xmlns:models="clr-namespace:KeyAsio.Gui.Models"
     Title="Realtime Options"
     Width="500"
-    Height="440"
+    Height="500"
     d:DataContext="{d:DesignInstance models:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -18,7 +18,7 @@
     FontSize="14"
     ResizeMode="NoResize"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
-    WindowStyle="ToolWindow"
+    WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
     <Grid Margin="25">
         <StackPanel>
@@ -67,6 +67,19 @@
                     Text="{Binding AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
             </StackPanel>
 
+            <TextBlock Margin="0,0,0,10" Text="Ignore combo break sound" />
+            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                <ToggleButton
+                    Margin="0,0,8,0"
+                    HorizontalAlignment="Left"
+                    IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreComboBreak}"
+                    Style="{StaticResource ToggleButtonSwitch}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Text="{Binding AppSettings.RealtimeOptions.IgnoreComboBreak, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+            </StackPanel>
+
             <TextBlock Margin="0,0,0,10" Text="Playback behavior for slider tail" />
             <ComboBox
                 Width="370"
@@ -106,16 +119,17 @@
                     Margin="0,0,8,0"
                     VerticalAlignment="Center"
                     AutoToolTipPlacement="BottomRight"
+                    AutoToolTipPrecision="2"
                     IsSnapToTickEnabled="True"
                     Maximum="1"
-                    Minimum="-1"
+                    Minimum="0"
                     TickFrequency="0.01"
                     TickPlacement="None"
                     Value="{Binding AppSettings.RealtimeOptions.BalanceFactor}" />
                 <TextBlock
                     VerticalAlignment="Center"
                     FontSize="12"
-                    Text="{Binding AppSettings.RealtimeOptions.BalanceFactor, StringFormat=0.00}" />
+                    Text="{Binding AppSettings.RealtimeOptions.BalanceFactor, StringFormat=P0}" />
             </StackPanel>
         </StackPanel>
     </Grid>

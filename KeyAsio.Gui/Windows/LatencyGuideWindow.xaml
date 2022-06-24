@@ -18,7 +18,7 @@
     FontSize="14"
     ResizeMode="NoResize"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
-    WindowStyle="ToolWindow"
+    WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
     <Grid Margin="25">
         <StackPanel HorizontalAlignment="Left">
@@ -28,17 +28,25 @@
                 FontWeight="Bold"
                 Text="Offset" />
             <TextBlock Margin="0,0,0,10" Text="General Latency Offset" />
-            <Slider
-                Width="300"
+            <StackPanel
                 Margin="0,0,8,10"
                 HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                AutoToolTipPlacement="BottomRight"
-                IsSnapToTickEnabled="True"
-                Maximum="200"
-                Minimum="-200"
-                TickPlacement="None"
-                Value="{Binding AppSettings.RealtimeOptions.RealtimeModeAudioOffset}" />
+                Orientation="Horizontal">
+                <Slider
+                    Width="300"
+                    Margin="0,0,5,0"
+                    VerticalAlignment="Center"
+                    AutoToolTipPlacement="BottomRight"
+                    IsSnapToTickEnabled="True"
+                    Maximum="200"
+                    Minimum="-200"
+                    TickPlacement="None"
+                    Value="{Binding AppSettings.RealtimeOptions.RealtimeModeAudioOffset}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Text="{Binding AppSettings.RealtimeOptions.RealtimeModeAudioOffset}" />
+            </StackPanel>
             <TextBlock
                 FontSize="12"
                 Foreground="{StaticResource PrimaryTextBrush}"

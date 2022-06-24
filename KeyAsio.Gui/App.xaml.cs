@@ -66,6 +66,11 @@ public partial class App : Application
             OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
             OrtdpSetting.ListenInterval = 3;
             var manager = new OsuListenerManager();
+            if (settings.RealtimeOptions.IgnoreComboBreak)
+            {
+                manager.OnComboChanged += combo => RealtimeModeManager.Instance.Combo = combo;
+            }
+
             manager.OnPlayingTimeChanged += playTime => RealtimeModeManager.Instance.PlayTime = playTime;
             manager.OnBeatmapChanged += beatmap => RealtimeModeManager.Instance.Beatmap = beatmap;
             manager.OnStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
