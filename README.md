@@ -32,3 +32,8 @@ Full options in `appsettings.yaml`:
 | VolumeEnabled      | Software volume control. Disable for extremely low latency when `OsuMode` is false                                                         |
 | Volume             | Configured device volume.                                                                                                                  |
 
+## Todo
+- [ ] Allow to ignore the beatmap's hitsound
+- [ ] Allow to ignore sliderends (be able to preserve the reverse sliders)
+- [ ] Do not mute if user double tapping or do something others in the OD range
+- [ ] Fully mania support
