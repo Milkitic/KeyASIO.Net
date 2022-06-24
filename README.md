@@ -1,7 +1,7 @@
 # KeyASIO.Net
 Low-latency and safe osu! audio playback experience (ASIO support).
 
-**NOTE:** The `OsuMode` in the configuration use [ORTDP](https://github.com/OsuSync/OsuRTDataProvider) to read(only) osu's memory, but it will not modify the memory. The ORTDP is commonly used for broadcasting and approved by peppy, so it's relatively safe. But I still can't guarantee that nothing will happen. Do at your own risk :#.
+**NOTE:** The `OsuMode` in the configuration use [ORTDP](https://github.com/OsuSync/OsuRTDataProvider) to read(only) osu's memory, but it will not modify the memory. The ORTDP is commonly used for broadcasting and approved by peppy, so it's relatively safe. But I still can't guarantee that nothing will happen, so I should still say please do at your own risk :#.
 
 ## Overview 
 ![overview](docs/overview.png)
@@ -36,6 +36,6 @@ Full options in `appsettings.yaml`:
 - [ ] Allow to ignore the beatmap's hitsound
 - [ ] Allow to ignore sliderends (be able to preserve the reverse sliders)
 - [ ] Support playing storyboard sound (And have switches).
-- [ ] Do not mute if user double tapping or do something others in the OD range (need an OD calculator)
+- [ ] Wrong behaviors when user double tapping or do something others in the overlapped OD range (need an OD calculator and other logics)
 - [ ] Fully mania support (per column sounding like the game)
 - [ ] ? Improve ortdp performance. (Maybe wait Deliay's?)
