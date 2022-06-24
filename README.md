@@ -10,7 +10,7 @@ Benifits of KeyASIO.Net
 1. Support extremely low-latency playback around 0.5ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557))*.
 2. Fully support for playing beatmap's custom hitsound. (WIP)
 3. Safe relatively. I cannot say it's absolutely safe, but the software use ORTDP's provided data, which is commonly used for broadcasting and approved by peppy.
-4. A easy-to-use GUI.
+4. A easy-to-use user interface.
 
 ## Configuration
 The least steps:
@@ -35,5 +35,7 @@ Full options in `appsettings.yaml`:
 ## Todo
 - [ ] Allow to ignore the beatmap's hitsound
 - [ ] Allow to ignore sliderends (be able to preserve the reverse sliders)
-- [ ] Do not mute if user double tapping or do something others in the OD range
-- [ ] Fully mania support
+- [ ] Support playing storyboard sound (And have switches).
+- [ ] Do not mute if user double tapping or do something others in the OD range (need an OD calculator)
+- [ ] Fully mania support (per column sounding like the game)
+- [ ] ? Improve ortdp performance. (Maybe wait Deliay's?)
