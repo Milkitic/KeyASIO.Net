@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Utils;
 
 public class UpdateUtils
 {

@@ -170,11 +170,11 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    var hitsounds = _viewModel.OsuManager.GetCurrentHitsounds(70);
+                    var hitsounds = _viewModel.OsuManager.GetCurrentHitsounds();
                     foreach (var playbackObject in hitsounds)
                     {
-                        SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new BalanceSampleProvider(
-                            new VolumeSampleProvider(new CachedSoundSampleProvider(playbackObject.CachedSound))
+                        SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new Waves.BalanceSampleProvider(
+                            new VolumeSampleProvider(new Waves.CachedSoundSampleProvider(playbackObject.CachedSound))
                             {
                                 Volume = playbackObject.Volume
                             })

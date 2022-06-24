@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
@@ -98,8 +96,9 @@ public class OsuManager : ViewModelBase
 
     public OsuListenerManager? OsuListenerManager { get; set; }
 
-    public IEnumerable<PlaybackInfo> GetCurrentHitsounds(int thresholdMs = 30)
+    public IEnumerable<PlaybackInfo> GetCurrentHitsounds()
     {
+        int thresholdMs = 70; // determine by od
         using var _ = DebugUtils.CreateTimer($"GetSound", Logger);
         var playTime = PlayTime;
 
@@ -360,14 +359,13 @@ public class OsuManager : ViewModelBase
 
     private static void PlaySound(PlaybackInfo playbackObject)
     {
-        SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new BalanceSampleProvider(
-            new VolumeSampleProvider(new CachedSoundSampleProvider(playbackObject.CachedSound))
-            {
-                Volume = playbackObject.Volume
-            })
-        {
-            Balance = playbackObject.Balance * 0.3f
-        });
+        SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new Waves.BalanceSampleProvider(
+                new VolumeSampleProvider(
+                        new Waves.CachedSoundSampleProvider(playbackObject.CachedSound))
+                    { Volume = playbackObject.Volume }
+            )
+            { Balance = playbackObject.Balance * 0.3f }
+        );
         Logger.LogDebug($"Play {Path.GetFileNameWithoutExtension(playbackObject.CachedSound.SourcePath)}; " +
                         $"Vol. {playbackObject.Volume}; " +
                         $"Bal. {playbackObject.Balance}");

@@ -9,11 +9,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using KeyAsio.Gui.Configuration;
-using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Semver;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Utils;
 
 public static class Updater
 {
