@@ -23,7 +23,7 @@ public partial class App : Application
         ConfigurationItemFactory
             .Default
             .Targets
-            .RegisterDefinition("MemoryTarget", typeof(MemoryTarget));
+            .RegisterDefinition(nameof(RichTextBoxTarget), typeof(RichTextBoxTarget));
         var shared = SharedViewModel.Instance;
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
 

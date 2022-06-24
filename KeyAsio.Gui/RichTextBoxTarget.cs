@@ -8,8 +8,8 @@ using NLog.Targets;
 
 namespace KeyAsio.Gui;
 
-[Target("MemoryTarget")]
-public sealed class MemoryTarget : TargetWithLayout
+[Target("RichTextBoxTarget")]
+public sealed class RichTextBoxTarget : TargetWithLayout
 {
     private Brush? _secondaryTextBrush;
     private Brush? _dangerBrush;
@@ -58,6 +58,7 @@ public sealed class MemoryTarget : TargetWithLayout
             }
         });
     }
+
     private static bool IsScrolledToEnd(TextBoxBase textBox)
     {
         return (textBox.VerticalOffset + textBox.ViewportHeight - textBox.ExtentHeight) >= -2;
