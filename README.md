@@ -33,9 +33,9 @@ Full options in `appsettings.yaml`:
 | Volume             | Configured device volume.                                                                                                                  |
 
 ## Todo
-- [ ] Allow to ignore the beatmap's hitsound
-- [ ] Allow to ignore sliderends (be able to preserve the reverse sliders)
-- [ ] Support playing storyboard sound (And have switches).
+- [x] Allow to ignore the beatmap's hitsound
+- [x] Allow to ignore sliderends (be able to preserve the reverse sliders)
+- [x] Support playing storyboard sound (And have switches).
 - [ ] Wrong behaviors when user double tapping or do something others in the overlapped OD range (need an OD calculator and other logics)
 - [ ] Fully mania support (per column sounding like the game)
 - [ ] ? Improve ortdp performance. (Maybe wait Deliay's?)

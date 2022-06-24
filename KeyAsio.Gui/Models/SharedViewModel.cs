@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using KeyAsio.Gui.Configuration;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
 
@@ -9,7 +10,6 @@ public class SharedViewModel : ViewModelBase
 {
     private AudioPlaybackEngine? _audioPlaybackEngine;
     private DeviceDescription? _deviceDescription;
-    private AppSettings? _appSettings;
     private int _framesPerBuffer;
     private int _playbackLatency;
     private bool _debugging;
@@ -32,11 +32,7 @@ public class SharedViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _deviceDescription, value);
     }
 
-    public AppSettings? AppSettings
-    {
-        get => _appSettings;
-        set => this.RaiseAndSetIfChanged(ref _appSettings, value);
-    }
+    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public int FramesPerBuffer
     {

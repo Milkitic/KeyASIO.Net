@@ -15,8 +15,10 @@
     Closed="KeyBindWindow_OnClosed"
     FontFamily="Segoe UI,微软雅黑"
     FontSize="14"
+    ResizeMode="NoResize"
     SizeToContent="Height"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
+    WindowStyle="ToolWindow"
     mc:Ignorable="d">
     <Grid Margin="25">
         <StackPanel>

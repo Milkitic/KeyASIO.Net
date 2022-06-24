@@ -104,16 +104,20 @@ public class RealtimeModeManager : ViewModelBase
 
     public OsuListenerManager? OsuListenerManager { get; set; }
 
-    public AppSettings AppSettings { get; } = ConfigurationFactory.GetConfiguration<AppSettings>();
+    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public IEnumerable<PlaybackInfo> GetCurrentHitsounds()
     {
         int thresholdMs = 70; // determine by od
-        using var _ = DebugUtils.CreateTimer($"GetSound", Logger);
+        using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", Logger);
         var playTime = PlayTime;
 
         var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
-        if (audioPlaybackEngine == null) return Array.Empty<PlaybackInfo>();
+        if (audioPlaybackEngine == null)
+        {
+            Logger.LogWarning($"Engine not ready, return empty.");
+            return Array.Empty<PlaybackInfo>();
+        }
 
         if (!IsStarted)
         {
@@ -182,7 +186,10 @@ public class RealtimeModeManager : ViewModelBase
         var playTime = PlayTime;
 
         var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
-        if (audioPlaybackEngine == null) return Array.Empty<PlaybackInfo>();
+        if (audioPlaybackEngine == null)
+        {
+            return Array.Empty<PlaybackInfo>();
+        }
 
         if (!IsStarted)
         {
@@ -399,14 +406,14 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    private static void PlaySound(PlaybackInfo playbackObject)
+    public void PlaySound(PlaybackInfo playbackObject)
     {
         SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new Waves.BalanceSampleProvider(
                 new VolumeSampleProvider(
                         new Waves.CachedSoundSampleProvider(playbackObject.CachedSound))
                 { Volume = playbackObject.Volume }
             )
-        { Balance = playbackObject.Balance * 0.3f }
+        { Balance = playbackObject.Balance * AppSettings.RealtimeOptions.BalanceFactor }
         );
         Logger.LogDebug($"Play {Path.GetFileNameWithoutExtension(playbackObject.CachedSound.SourcePath)}; " +
                         $"Vol. {playbackObject.Volume}; " +
@@ -489,7 +496,7 @@ public class RealtimeModeManager : ViewModelBase
                     }
                     else if (status == true)
                     {
-                        Logger.LogWarning("Cached sound: " + path);
+                        Logger.LogInformation("Cached sound: " + path);
                     }
 
                     _playNodeToCachedSoundMapping.TryAdd(playableNode, result);

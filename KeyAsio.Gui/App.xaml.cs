@@ -24,9 +24,10 @@ public partial class App : Application
             .Default
             .Targets
             .RegisterDefinition("MemoryTarget", typeof(MemoryTarget));
+        var shared = SharedViewModel.Instance;
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
 
-        SharedViewModel.Instance.Debugging = settings.Debugging;
+        shared.Debugging = settings.Debugging;
 
         if (settings.RealtimeOptions.RealtimeMode)
         {

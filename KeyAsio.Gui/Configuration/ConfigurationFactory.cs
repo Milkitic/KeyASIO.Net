@@ -99,12 +99,22 @@ public static class ConfigurationFactory
         }
         else
         {
+            bool save = false;
             var content = File.ReadAllText(path, encoding);
-            if (string.IsNullOrWhiteSpace(content)) content = "default:\r\n";
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                save = true;
+                content = "default:\r\n";
+            }
+
             try
             {
                 config = converter.DeserializeSettings(content, type);
-                SaveConfig(config, path, converter, encoding);
+                if (save)
+                {
+                    SaveConfig(config, path, converter, encoding);
+                }
+
                 Logger.LogDebug($"Config file \"{Path.GetFileName(path)}\" was loaded.");
             }
             catch (Exception ex)

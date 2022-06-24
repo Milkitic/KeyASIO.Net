@@ -9,12 +9,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:mouseKeyHook="clr-namespace:Milki.Extensions.MouseKeyHook;assembly=Milki.Extensions.MouseKeyHook"
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
+    xmlns:models="clr-namespace:KeyAsio.Gui.Models"
     Title="KeyASIO Control Panel"
     Width="880"
     Height="550"
     MinWidth="800"
     MinHeight="550"
-    d:DataContext="{d:DesignInstance local:SharedViewModel,
+    d:DataContext="{d:DesignInstance models:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
     Closed="MainWindow_OnClosed"

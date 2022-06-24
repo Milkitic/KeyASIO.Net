@@ -1,27 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using KeyAsio.Gui.Models;
 
-namespace KeyAsio.Gui.Windows
+namespace KeyAsio.Gui.Windows;
+
+/// <summary>
+/// OptionsWindow.xaml 的交互逻辑
+/// </summary>
+public partial class RealtimeOptionsWindow : Window
 {
-    /// <summary>
-    /// OptionsWindow.xaml 的交互逻辑
-    /// </summary>
-    public partial class RealtimeOptionsWindow : Window
+    private readonly SharedViewModel _viewModel;
+
+    public RealtimeOptionsWindow()
     {
-        public RealtimeOptionsWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+        DataContext = _viewModel = SharedViewModel.Instance;
+    }
+
+    private void RealtimeOptionsWindow_OnClosed(object? sender, EventArgs e)
+    {
+        _viewModel.AppSettings.Save();
     }
 }

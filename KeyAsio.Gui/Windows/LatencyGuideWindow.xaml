@@ -6,16 +6,19 @@
     xmlns:gui="clr-namespace:KeyAsio.Gui"
     xmlns:local="clr-namespace:KeyAsio.Gui.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:KeyAsio.Gui.Models"
     Title="Offset Configuration Guide"
     Width="450"
     Height="320"
-    d:DataContext="{d:DesignInstance gui:SharedViewModel,
+    d:DataContext="{d:DesignInstance models:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
     Closed="LatencyGuideWindow_OnClosed"
     FontFamily="Segoe UI,微软雅黑"
     FontSize="14"
+    ResizeMode="NoResize"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
+    WindowStyle="ToolWindow"
     mc:Ignorable="d">
     <Grid Margin="25">
         <StackPanel HorizontalAlignment="Left">
@@ -35,7 +38,7 @@
                 Maximum="200"
                 Minimum="-200"
                 TickPlacement="None"
-                Value="{Binding AppSettings.RealtimeModeAudioOffset}" />
+                Value="{Binding AppSettings.RealtimeOptions.RealtimeModeAudioOffset}" />
             <TextBlock
                 FontSize="12"
                 Foreground="{StaticResource PrimaryTextBrush}"

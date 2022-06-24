@@ -115,7 +115,7 @@
                         <TextBlock
                             VerticalAlignment="Center"
                             FontSize="12"
-                            Text="{Binding IsExclusive}" />
+                            Text="{Binding IsExclusive, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
                     </StackPanel>
                 </StackPanel>
 

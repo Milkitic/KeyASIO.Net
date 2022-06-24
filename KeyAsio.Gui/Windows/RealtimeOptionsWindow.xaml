@@ -6,34 +6,116 @@
     xmlns:gui="clr-namespace:KeyAsio.Gui"
     xmlns:local="clr-namespace:KeyAsio.Gui.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:KeyAsio.Gui.Models"
     Title="Realtime Options"
-    Width="800"
-    Height="450"
-    d:DataContext="{d:DesignInstance gui:SharedViewModel,
+    Width="500"
+    Height="440"
+    d:DataContext="{d:DesignInstance models:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
+    Closed="RealtimeOptionsWindow_OnClosed"
     FontFamily="Segoe UI,微软雅黑"
     FontSize="14"
+    ResizeMode="NoResize"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
+    WindowStyle="ToolWindow"
     mc:Ignorable="d">
-    <Grid>
+    <Grid Margin="25">
         <StackPanel>
             <TextBlock
-                Margin="0,0,0,10"
-                FontSize="12"
-                Foreground="{StaticResource SecondaryTextBrush}"
-                Text="WASAPI Exclusive" />
-            <StackPanel Orientation="Horizontal">
+                Margin="0,0,0,25"
+                FontSize="21"
+                FontWeight="Bold"
+                Text="Realtime Options" />
+
+            <TextBlock Margin="0,0,0,10" Text="Ignore beatmap hitsounds" />
+            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                 <ToggleButton
-                    x:Name="toggIgnoreBeatmapHitsound"
                     Margin="0,0,8,0"
                     HorizontalAlignment="Left"
-                    IsChecked="{Binding AppSettings.IgnoreBeatmapHitsound}"
+                    IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreBeatmapHitsound}"
                     Style="{StaticResource ToggleButtonSwitch}" />
                 <TextBlock
                     VerticalAlignment="Center"
                     FontSize="12"
-                    Text="{Binding AppSettings.IgnoreBeatmapHitsound}" />
+                    Text="{Binding AppSettings.RealtimeOptions.IgnoreBeatmapHitsound, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+            </StackPanel>
+
+            <TextBlock Margin="0,0,0,10" Text="Ignore storyboard samples" />
+            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                <ToggleButton
+                    Margin="0,0,8,0"
+                    HorizontalAlignment="Left"
+                    IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreStoryboardSamples}"
+                    Style="{StaticResource ToggleButtonSwitch}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Text="{Binding AppSettings.RealtimeOptions.IgnoreStoryboardSamples, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+            </StackPanel>
+
+            <TextBlock Margin="0,0,0,10" Text="Ignore slider ticks and slides" />
+            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                <ToggleButton
+                    Margin="0,0,8,0"
+                    HorizontalAlignment="Left"
+                    IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides}"
+                    Style="{StaticResource ToggleButtonSwitch}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Text="{Binding AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+            </StackPanel>
+
+            <TextBlock Margin="0,0,0,10" Text="Playback behavior for slider tail" />
+            <ComboBox
+                Width="370"
+                Height="26"
+                MinHeight="0"
+                Margin="0,0,0,10"
+                Padding="6,0"
+                HorizontalAlignment="Left"
+                FontSize="12"
+                ItemsSource="{Binding AppSettings.RealtimeOptions.SliderTailPlaybackBehavior, Converter={StaticResource Enum2ListConverter}, ConverterParameter={x:Type models:SliderTailPlaybackBehavior}}"
+                SelectedItem="{Binding AppSettings.RealtimeOptions.SliderTailPlaybackBehavior}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="models:SliderTailPlaybackBehavior">
+                        <TextBlock FontFamily="Consolas">
+                            <Run Text="{Binding Mode=OneWay}" /><Run x:Name="Description" />
+                        </TextBlock>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding}" Value="{x:Static models:SliderTailPlaybackBehavior.Normal}">
+                                <Setter TargetName="Description" Property="Text" Value=": Play all slider tail sounds." />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding}" Value="{x:Static models:SliderTailPlaybackBehavior.KeepReverse}">
+                                <Setter TargetName="Description" Property="Text" Value=": Play only if a slider with reverses." />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding}" Value="{x:Static models:SliderTailPlaybackBehavior.Ignore}">
+                                <Setter TargetName="Description" Property="Text" Value=": Ignore slider tail sounds." />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Margin="0,0,0,10" Text="Balance Factor" />
+
+            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                <Slider
+                    Width="300"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    AutoToolTipPlacement="BottomRight"
+                    IsSnapToTickEnabled="True"
+                    Maximum="1"
+                    Minimum="-1"
+                    TickFrequency="0.01"
+                    TickPlacement="None"
+                    Value="{Binding AppSettings.RealtimeOptions.BalanceFactor}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Text="{Binding AppSettings.RealtimeOptions.BalanceFactor, StringFormat=0.00}" />
             </StackPanel>
         </StackPanel>
     </Grid>

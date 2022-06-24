@@ -40,7 +40,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = _viewModel = SharedViewModel.Instance;
-        _viewModel.AppSettings = _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
+        _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
         cp.Content = ((App)Application.Current).RichTextBox;
@@ -160,44 +160,23 @@ public partial class MainWindow : Window
     {
         _registerList.Add(_keyboardHook.RegisterKey(key, (_, hookKey, action) =>
         {
-            if (action == KeyAction.KeyDown)
-            {
-                if (!_appSettings.RealtimeOptions.RealtimeMode)
-                {
-                    if (_cacheSound != null)
-                    {
-                        _viewModel.AudioPlaybackEngine?.PlaySound(_cacheSound);
-                    }
-                }
-                else
-                {
-                    var hitsounds = _viewModel.RealtimeModeManager.GetCurrentHitsounds();
-                    foreach (var playbackObject in hitsounds)
-                    {
-                        SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(new Waves.BalanceSampleProvider(
-                            new VolumeSampleProvider(new Waves.CachedSoundSampleProvider(playbackObject.CachedSound))
-                            {
-                                Volume = playbackObject.Volume
-                            })
-                        {
-                            Balance = playbackObject.Balance * 0.3f
-                        });
-                        //SharedViewModel.Instance.AudioPlaybackEngine?.PlaySound(playbackObject.CachedSound,
-                        //    playbackObject.Volume, playbackObject.Balance);
-                    }
-                }
+            if (action != KeyAction.KeyDown) return;
 
-                if (SharedViewModel.Instance.Debugging)
-                {
-                    Logger.LogDebug($"{hookKey} {action}");
-                }
-            }
-            else
+            if (SharedViewModel.Instance.Debugging)
             {
-                //if (SharedViewModel.Instance.Debugging)
-                //{
-                //    Logger.LogDebug($"{hookKey} {action}");
-                //}
+                Logger.LogDebug($"{hookKey} {action}");
+            }
+
+            if (!_appSettings.RealtimeOptions.RealtimeMode && _cacheSound != null)
+            {
+                _viewModel.AudioPlaybackEngine?.PlaySound(_cacheSound);
+                return;
+            }
+
+            var playbackInfos = _viewModel.RealtimeModeManager.GetCurrentHitsounds();
+            foreach (var playbackInfo in playbackInfos)
+            {
+                _viewModel.RealtimeModeManager.PlaySound(playbackInfo);
             }
         }));
     }
@@ -240,7 +219,7 @@ public partial class MainWindow : Window
 
     private void MainWindow_OnClosed(object? sender, EventArgs e)
     {
-        _viewModel.AudioPlaybackEngine?.OutputDevice?.Dispose();
+        DisposeDevice(false);
         _appSettings.Save();
         Application.Current.Shutdown();
     }
@@ -297,6 +276,7 @@ public partial class MainWindow : Window
         if (window.ShowDialog() == true)
         {
             _appSettings.Keys = window.ViewModel.Keys.ToHashSet();
+            _appSettings.Save();
         }
 
         foreach (var key in _appSettings.Keys)

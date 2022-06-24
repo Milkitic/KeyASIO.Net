@@ -10,6 +10,7 @@ public class RealtimeOptions : ViewModelBase
     private bool _ignoreStoryboardSamples;
     private bool _ignoreSliderTicksAndSlides;
     private SliderTailPlaybackBehavior _sliderTailPlaybackBehavior;
+    private float _balanceFactor = 0.3f;
 
     [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
     public bool RealtimeMode
@@ -46,10 +47,17 @@ public class RealtimeOptions : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _ignoreSliderTicksAndSlides, value);
     }
 
-    [Description("Slider tail's playback behavior. Normal: Force to play sider tail's sounds; KeepReverse: Play only if a slider with multiple reverses; Ignore: Ignore slider tail's sounds.")]
+    [Description("Slider tail's playback behavior. Normal: Force to play slider tail's sounds; KeepReverse: Play only if a slider with multiple reverses; Ignore: Ignore slider tail's sounds.")]
     public SliderTailPlaybackBehavior SliderTailPlaybackBehavior
     {
         get => _sliderTailPlaybackBehavior;
         set => this.RaiseAndSetIfChanged(ref _sliderTailPlaybackBehavior, value);
+    }
+
+    [Description("Balance factor.")]
+    public float BalanceFactor
+    {
+        get => _balanceFactor;
+        set => this.RaiseAndSetIfChanged(ref _balanceFactor, value);
     }
 }
