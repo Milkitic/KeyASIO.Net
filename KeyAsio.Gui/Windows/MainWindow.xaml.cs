@@ -16,7 +16,6 @@ using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
 using Window = System.Windows.Window;
 
 namespace KeyAsio.Gui.Windows;
@@ -193,7 +192,6 @@ public partial class MainWindow : Window
         else
         {
             await LoadDevice(_appSettings.Device, false);
-            //Hide();
         }
 
         foreach (var key in _appSettings.Keys)

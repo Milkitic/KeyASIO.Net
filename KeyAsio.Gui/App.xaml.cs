@@ -1,4 +1,9 @@
-﻿using System.Windows;
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows;
 using System.Windows.Controls;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
@@ -17,6 +22,33 @@ namespace KeyAsio.Gui;
 public partial class App : Application
 {
     internal readonly RichTextBox RichTextBox = new();
+
+    [STAThread]
+    internal static void Main()
+    {
+        var mutex = new Mutex(true, "KeyAsio.Net", out bool createNew);
+        if (!createNew)
+        {
+            var process = Process
+                .GetProcessesByName(Process.GetCurrentProcess().ProcessName)
+                .FirstOrDefault(k => k.Id != Environment.ProcessId && k.MainWindowHandle != IntPtr.Zero);
+            if (process == null) return;
+            ProcessUtils.ShowWindow(process.MainWindowHandle, ProcessUtils.SW_SHOW);
+            ProcessUtils.SetForegroundWindow(process.MainWindowHandle);
+            return;
+        }
+
+        try
+        {
+            var app = new App();
+            app.InitializeComponent();
+            app.Run();
+        }
+        finally
+        {
+            mutex.ReleaseMutex();
+        }
+    }
 
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
