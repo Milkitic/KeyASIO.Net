@@ -6,9 +6,9 @@
     xmlns:gui="clr-namespace:KeyAsio.Gui"
     xmlns:local="clr-namespace:KeyAsio.Gui.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="Latency Guide"
+    Title="Offset Configuration Guide"
     Width="450"
-    Height="300"
+    Height="320"
     d:DataContext="{d:DesignInstance gui:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -23,8 +23,8 @@
                 Margin="0,0,0,25"
                 FontSize="21"
                 FontWeight="Bold"
-                Text="Latency" />
-            <TextBlock Margin="0,0,0,10" Text="Audio Offset" />
+                Text="Offset" />
+            <TextBlock Margin="0,0,0,10" Text="General Latency Offset" />
             <Slider
                 Width="300"
                 Margin="0,0,8,10"
@@ -36,7 +36,16 @@
                 Minimum="-200"
                 TickPlacement="None"
                 Value="{Binding AppSettings.RealtimeModeAudioOffset}" />
-            <TextBlock Foreground="{StaticResource WarningBrush}" Text="Please play osu! beatmaps with auto and adjust the offset." />
+            <TextBlock
+                FontSize="12"
+                Foreground="{StaticResource PrimaryTextBrush}"
+                Text="Please play with &quot;Auto&quot; or &quot;No Fail&quot;, and hear the hitsounds to adjust the offset."
+                TextWrapping="Wrap" />
+            <TextBlock
+                FontSize="12"
+                Foreground="{StaticResource WarningBrush}"
+                Text="Note: this may be affected by system's background usage, but won't be too much."
+                TextWrapping="Wrap" />
         </StackPanel>
 
         <Button
@@ -45,6 +54,7 @@
             Click="btnConfirm_OnClick"
             Content="Confirm"
             FontWeight="Bold"
-            Style="{StaticResource ButtonPrimary}" />
+            Style="{StaticResource ButtonPrimary}"
+            TextBlock.FontFamily="Consolas" />
     </Grid>
 </Window>

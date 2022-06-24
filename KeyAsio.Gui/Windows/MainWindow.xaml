@@ -12,6 +12,8 @@
     Title="KeyASIO Control Panel"
     Width="800"
     Height="550"
+    MinWidth="800"
+    MinHeight="550"
     d:DataContext="{d:DesignInstance local:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -20,7 +22,7 @@
     FontFamily="Segoe UI,微软雅黑"
     FontSize="14"
     Loaded="MainWindow_OnLoaded"
-    ResizeMode="NoResize"
+    ResizeMode="CanResize"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
@@ -41,14 +43,16 @@
                     Padding="8,3"
                     VerticalAlignment="Center"
                     Click="btnChangeDevice_OnClick"
-                    Content="Change..."
+                    Content="Change.."
                     FontSize="12"
                     Style="{StaticResource ButtonDefault.Small}"
+                    TextBlock.FontFamily="Consolas"
                     UseLayoutRounding="True" />
             </StackPanel>
             <Grid
                 MaxWidth="740"
                 Margin="0,0,0,25"
+                HorizontalAlignment="Left"
                 TextBlock.FontSize="14">
                 <StackPanel Orientation="Horizontal" Visibility="{Binding DeviceDescription, Converter={StaticResource IsNullToVisibilityConverter}}">
                     <TextBlock
@@ -66,8 +70,9 @@
                         Padding="4,1"
                         VerticalAlignment="Center"
                         Click="btnAsioControlPanel_OnClick"
-                        Content="Control Panel"
+                        Content="Config.."
                         FontSize="12"
+                        TextBlock.FontFamily="Consolas"
                         UseLayoutRounding="True">
                         <Button.Style>
                             <Style BasedOn="{StaticResource ButtonSuccess.Small}" TargetType="Button">
@@ -88,11 +93,13 @@
                         Content="Dispose"
                         FontSize="12"
                         Style="{StaticResource ButtonDanger.Small}"
+                        TextBlock.FontFamily="Consolas"
                         UseLayoutRounding="True" />
                 </StackPanel>
                 <TextBlock
                     Foreground="{StaticResource DangerBrush}"
                     Text="No device selected."
+                    TextBlock.FontFamily="Consolas"
                     Visibility="{Binding DeviceDescription, Converter={StaticResource IsNullToVisibilityReConverter}}" />
             </Grid>
 
@@ -107,9 +114,10 @@
                     Padding="8,3"
                     VerticalAlignment="Center"
                     Click="btnChangeKey_OnClick"
-                    Content="Change..."
+                    Content="Change.."
                     FontSize="12"
                     Style="{StaticResource ButtonDefault.Small}"
+                    TextBlock.FontFamily="Consolas"
                     UseLayoutRounding="True" />
             </StackPanel>
 
@@ -140,7 +148,7 @@
                     FontSize="21"
                     FontWeight="Bold"
                     Text="Information" />
-                <Grid>
+                <Grid TextBlock.FontFamily="Consolas" TextBlock.FontSize="13">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition />
@@ -163,7 +171,8 @@
                     <TextBlock
                         Grid.Row="0"
                         Grid.Column="1"
-                        Text="{Binding DeviceDescription.WavePlayerType}" />
+                        Text="{Binding DeviceDescription.WavePlayerType}"
+                        TextWrapping="Wrap" />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
@@ -171,7 +180,8 @@
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="1"
-                        Text="{Binding DeviceDescription.DeviceId}" />
+                        Text="{Binding DeviceDescription.DeviceId}"
+                        TextWrapping="Wrap" />
                     <TextBlock
                         Grid.Row="2"
                         Grid.Column="0"
@@ -179,7 +189,8 @@
                     <TextBlock
                         Grid.Row="2"
                         Grid.Column="1"
-                        Text="{Binding DeviceDescription.FriendlyName}" />
+                        Text="{Binding DeviceDescription.FriendlyName}"
+                        TextWrapping="Wrap" />
                     <TextBlock
                         Grid.Row="3"
                         Grid.Column="0"
@@ -198,7 +209,8 @@
                     <TextBlock
                         Grid.Row="3"
                         Grid.Column="1"
-                        Text="{Binding DeviceDescription.IsExclusive}">
+                        Text="{Binding DeviceDescription.IsExclusive}"
+                        TextWrapping="Wrap">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -228,7 +240,8 @@
                     <TextBlock
                         Grid.Row="4"
                         Grid.Column="1"
-                        Text="{Binding FramesPerBuffer}">
+                        Text="{Binding FramesPerBuffer}"
+                        TextWrapping="Wrap">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -243,7 +256,7 @@
                     <TextBlock
                         Grid.Row="5"
                         Grid.Column="0"
-                        Text="Latency (Desired): ">
+                        Text="Latency (?): ">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Visible" />
@@ -258,7 +271,8 @@
                     <TextBlock
                         Grid.Row="5"
                         Grid.Column="1"
-                        Text="{Binding DeviceDescription.Latency}">
+                        Text="{Binding DeviceDescription.Latency}"
+                        TextWrapping="Wrap">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Visible" />
@@ -288,7 +302,8 @@
                     <TextBlock
                         Grid.Row="5"
                         Grid.Column="1"
-                        Text="{Binding PlaybackLatency}">
+                        Text="{Binding PlaybackLatency}"
+                        TextWrapping="Wrap">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -325,12 +340,13 @@
                         Padding="8,3"
                         VerticalAlignment="Center"
                         Click="btnLatencyCheck_OnClick"
-                        Content="Latency Check..."
-                        FontSize="12" 
+                        Content="Offset.."
+                        FontSize="12"
                         Style="{StaticResource ButtonDefault.Small}"
+                        TextBlock.FontFamily="Consolas"
                         UseLayoutRounding="True" />
                 </StackPanel>
-                <Grid>
+                <Grid TextBlock.FontFamily="Consolas" TextBlock.FontSize="13">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition />
@@ -470,7 +486,7 @@
                     <Style BasedOn="{StaticResource {x:Type RichTextBox}}" TargetType="RichTextBox">
                         <Setter Property="FontSize" Value="11" />
                         <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-                        <!--<Setter Property="TextWrapping" Value="Wrap" />-->
+                        <Setter Property="FontFamily" Value="Consolas" />
                         <Setter Property="Padding" Value="2,1" />
                         <!--<Setter Property="Padding" Value="2,1" />-->
                         <Setter Property="IsReadOnly" Value="True" />

@@ -107,7 +107,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (!IsStarted)
         {
-            Logger.LogWarning($"Haven't started, return empty.");
+            Logger.LogWarning($"Game hasn't started, return empty.");
             return Array.Empty<PlaybackInfo>();
         }
 

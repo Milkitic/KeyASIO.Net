@@ -46,7 +46,10 @@
                 </hc:TagContainer.ItemTemplate>
                 <!--<hc:Tag IsSelected="True" Selectable="True" Content="{ex:Lang Key={x:Static langs:LangKeys.Text}, Converter={StaticResource StringRepeatConverter}, ConverterParameter=3}"/>-->
             </hc:TagContainer>
-            <TextBlock Foreground="{StaticResource WarningBrush}" Text="Press keys to add to list." />
+            <TextBlock
+                FontSize="12"
+                Foreground="{StaticResource PrimaryTextBrush}"
+                Text="Please press keys to add to list." />
         </StackPanel>
 
         <Button
@@ -55,6 +58,7 @@
             Click="btnConfirm_OnClick"
             Content="Confirm"
             FontWeight="Bold"
-            Style="{StaticResource ButtonPrimary}" />
+            Style="{StaticResource ButtonPrimary}"
+            TextBlock.FontFamily="Consolas" />
     </Grid>
 </Window>

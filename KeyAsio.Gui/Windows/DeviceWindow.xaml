@@ -33,7 +33,8 @@
                 Margin="0,0,0,10"
                 FontSize="12"
                 Style="{StaticResource TextBox.Small}"
-                Text="{Binding SampleRate, Mode=TwoWay}" />
+                Text="{Binding SampleRate, Mode=TwoWay}"
+                TextBlock.FontFamily="Consolas" />
 
             <TextBlock Margin="0,0,0,10" Text="Device list" />
             <ComboBox
@@ -47,7 +48,7 @@
                 SelectedItem="{Binding SelectedDevice}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate DataType="devices:DeviceDescription">
-                        <TextBlock>
+                        <TextBlock TextBlock.FontFamily="Consolas">
                             <Run Text="{Binding WavePlayerType}" /><Run Text=": " /><Run Text="{Binding FriendlyName}" />
                         </TextBlock>
                     </DataTemplate>
@@ -127,6 +128,7 @@
             Click="btnConfirm_OnClick"
             Content="Confirm"
             FontWeight="Bold"
-            Style="{StaticResource ButtonPrimary}" />
+            Style="{StaticResource ButtonPrimary}"
+            TextBlock.FontFamily="Consolas" />
     </Grid>
 </Window>
