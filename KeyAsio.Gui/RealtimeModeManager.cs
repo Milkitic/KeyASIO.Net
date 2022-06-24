@@ -350,7 +350,7 @@ public class RealtimeModeManager : ViewModelBase
         var osuDir = new OsuDirectory(folder);
         using (DebugUtils.CreateTimer("InitFolder", Logger))
         {
-            await osuDir.InitializeAsync(diffFilename);
+            await osuDir.InitializeAsync(diffFilename, ignoreWaveFiles: AppSettings.RealtimeOptions.IgnoreBeatmapHitsound);
         }
 
         if (osuDir.OsuFiles.Count <= 0)
