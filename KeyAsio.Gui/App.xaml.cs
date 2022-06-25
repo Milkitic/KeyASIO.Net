@@ -64,7 +64,7 @@ public partial class App : Application
         if (settings.RealtimeOptions.RealtimeMode)
         {
             OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
-            OrtdpSetting.ListenInterval = 0;
+            OrtdpSetting.ListenInterval = 3;
             var manager = new OsuListenerManager();
             manager.OnComboChanged += combo => RealtimeModeManager.Instance.Combo = combo;
             manager.OnScoreChanged += score => RealtimeModeManager.Instance.Score = score;
