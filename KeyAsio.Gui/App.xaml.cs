@@ -67,6 +67,7 @@ public partial class App : Application
             OrtdpSetting.ListenInterval = 3;
             var manager = new OsuListenerManager();
             manager.OnComboChanged += combo => RealtimeModeManager.Instance.Combo = combo;
+            manager.OnScoreChanged += score => RealtimeModeManager.Instance.Score = score;
             manager.OnPlayingTimeChanged += playTime => RealtimeModeManager.Instance.PlayTime = playTime;
             manager.OnBeatmapChanged += beatmap => RealtimeModeManager.Instance.Beatmap = beatmap;
             manager.OnStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;

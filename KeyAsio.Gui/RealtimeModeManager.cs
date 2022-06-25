@@ -29,6 +29,7 @@ public class RealtimeModeManager : ViewModelBase
     private OsuListenerManager.OsuStatus _osuStatus;
     private int _playTime;
     private int _combo;
+    private int _score;
     private Beatmap? _beatmap;
     private bool _isStarted;
 
@@ -61,6 +62,7 @@ public class RealtimeModeManager : ViewModelBase
             OnPropertyChanged();
         }
     }
+
     public int Combo
     {
         get => _combo;
@@ -70,6 +72,17 @@ public class RealtimeModeManager : ViewModelBase
             var val = _combo;
             _combo = value;
             OnComboChanged(val, value);
+            OnPropertyChanged();
+        }
+    }
+
+    public int Score
+    {
+        get => _score;
+        set
+        {
+            if (value == _score) return;
+            _score = value;
             OnPropertyChanged();
         }
     }
@@ -123,7 +136,7 @@ public class RealtimeModeManager : ViewModelBase
 
     public IEnumerable<PlaybackInfo> GetCurrentHitsounds()
     {
-        int thresholdMs = 102; // determine by od
+        int thresholdMs = 100; // todo: determine by od
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", Logger);
         var playTime = PlayTime;
 
@@ -269,7 +282,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnComboChanged(int oldCombo, int newCombo)
     {
-        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak && newCombo < oldCombo && oldCombo >= 20)
+        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak && newCombo < oldCombo && oldCombo >= 20 && Score != 0)
         {
             if (_skinToCachedSoundMapping.TryGetValue("combobreak", out var cachedSound))
             {
@@ -297,6 +310,7 @@ public class RealtimeModeManager : ViewModelBase
         IsStarted = false;
         _playTime = 0;
         PlayTime = 0;
+        Combo = 0;
     }
 
     private async Task StartAsync()
