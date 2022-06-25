@@ -165,18 +165,23 @@ public class RealtimeModeManager : ViewModelBase
         {
             int counter = 0;
             bool isFirst = true;
+            PlayableNode? preNode = null;
             while (first != null)
             {
-                if (!isFirst && !checkPreTiming && playTime < first.Offset - 3)
+                if (preNode?.Guid != first.Guid)
                 {
-                    //Logger.LogWarning($"Haven't reached first, return empty.");
-                    break;
-                }
+                    if (!isFirst && !checkPreTiming && playTime < first.Offset - 3)
+                    {
+                        //Logger.LogWarning($"Haven't reached first, return empty.");
+                        break;
+                    }
 
-                if (checkPreTiming && playTime >= first.Offset + thresholdMs)
-                {
-                    _hitQueue.TryDequeue(out first);
-                    continue;
+                    if (checkPreTiming && playTime >= first.Offset + thresholdMs)
+                    {
+                        _hitQueue.TryDequeue(out first);
+                        continue;
+                    }
+
                 }
 
                 isFirst = false;
@@ -184,6 +189,7 @@ public class RealtimeModeManager : ViewModelBase
                 if (_playNodeToCachedSoundMapping.TryGetValue(first, out var cachedSound) && cachedSound != null)
                 {
                     counter++;
+                    preNode = first;
                     yield return new PlaybackInfo(cachedSound, first.Volume, first.Balance);
                 }
 
