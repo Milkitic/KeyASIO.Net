@@ -60,6 +60,30 @@ public partial class MainWindow : Window
                     _appSettings.Save();
                 });
         }
+
+        var ignoreSliderTicksAndSlides = _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlidesBindKey;
+        if (ignoreSliderTicksAndSlides?.Keys != null)
+        {
+            _keyboardHook.RegisterHotkey(ignoreSliderTicksAndSlides.ModifierKeys, ignoreSliderTicksAndSlides.Keys.Value,
+                (_, _, _) =>
+                {
+                    _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides =
+                        !_appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides;
+                    _appSettings.Save();
+                });
+        }
+
+        var ignoreStoryboardSamples = _appSettings.RealtimeOptions.IgnoreStoryboardSamplesBindKey;
+        if (ignoreStoryboardSamples?.Keys != null)
+        {
+            _keyboardHook.RegisterHotkey(ignoreStoryboardSamples.ModifierKeys, ignoreStoryboardSamples.Keys.Value,
+                (_, _, _) =>
+                {
+                    _appSettings.RealtimeOptions.IgnoreStoryboardSamples =
+                        !_appSettings.RealtimeOptions.IgnoreStoryboardSamples;
+                    _appSettings.Save();
+                });
+        }
     }
 
     private async Task SelectDevice()
@@ -172,9 +196,9 @@ public partial class MainWindow : Window
         _appSettings.Save();
     }
 
-    private void RegisterHotKey(HookKeys key)
+    private void RegisterKey(HookKeys key)
     {
-        _registerList.Add(_keyboardHook.RegisterKey(key, (_, hookKey, action) =>
+        KeyboardCallback callback = (_, hookKey, action) =>
         {
             if (action != KeyAction.KeyDown) return;
 
@@ -194,7 +218,15 @@ public partial class MainWindow : Window
             {
                 _viewModel.RealtimeModeManager.PlaySound(playbackInfo);
             }
-        }));
+        };
+        _registerList.Add(_keyboardHook.RegisterKey(key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Alt, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Alt, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
     }
 
     private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -213,7 +245,7 @@ public partial class MainWindow : Window
 
         foreach (var key in _appSettings.Keys)
         {
-            RegisterHotKey(key);
+            RegisterKey(key);
         }
 
         var result = await Updater.CheckUpdateAsync();
@@ -296,7 +328,7 @@ public partial class MainWindow : Window
 
         foreach (var key in _appSettings.Keys)
         {
-            RegisterHotKey(key);
+            RegisterKey(key);
         }
     }
 
@@ -334,7 +366,7 @@ public partial class MainWindow : Window
 
         foreach (var key in _appSettings.Keys)
         {
-            RegisterHotKey(key);
+            RegisterKey(key);
         }
     }
 

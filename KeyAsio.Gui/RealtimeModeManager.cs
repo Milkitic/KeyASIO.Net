@@ -499,7 +499,7 @@ public class RealtimeModeManager : ViewModelBase
     private void RequeueNodes()
     {
         _hitQueue = new Queue<PlayableNode>(_hitList);
-        _playQueue = new Queue<PlayableNode>(_playList);
+        _playQueue = new Queue<PlayableNode>(_playList.Where(k => k.Offset >= PlayTime));
         _hitQueue.TryDequeue(out _firstNode);
         _playQueue.TryDequeue(out _firstPlayNode);
         AddHitsoundCacheInBackground(0, 13000, _hitList);
