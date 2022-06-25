@@ -123,7 +123,7 @@ public class RealtimeModeManager : ViewModelBase
 
     public IEnumerable<PlaybackInfo> GetCurrentHitsounds()
     {
-        int thresholdMs = 52; // determine by od
+        int thresholdMs = 102; // determine by od
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", Logger);
         var playTime = PlayTime;
 
@@ -136,7 +136,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (!IsStarted)
         {
-            Logger.LogWarning($"Game hasn't started, return empty.");
+            Logger.LogDebug($"Game hasn't started, return empty.");
             return Array.Empty<PlaybackInfo>();
         }
 
@@ -144,13 +144,13 @@ public class RealtimeModeManager : ViewModelBase
         Logger.LogDebug($"Click at {playTime}, first node at {(first?.Offset.ToString() ?? "null")}");
         if (first == null)
         {
-            Logger.LogWarning($"First is null, return empty.");
+            Logger.LogDebug($"First is null, no item returns.");
             return Array.Empty<PlaybackInfo>();
         }
 
         if (playTime < first.Offset - thresholdMs)
         {
-            Logger.LogWarning($"Haven't reached first, return empty.");
+            Logger.LogDebug($"Haven't reached first, no item returns.");
             return Array.Empty<PlaybackInfo>();
         }
 
@@ -164,11 +164,12 @@ public class RealtimeModeManager : ViewModelBase
         IEnumerable<PlaybackInfo> GetHitsoundList(bool checkPreTiming)
         {
             int counter = 0;
+            bool isFirst = true;
             while (first != null)
             {
-                if (!checkPreTiming && playTime < first.Offset - thresholdMs)
+                if (!isFirst && !checkPreTiming && playTime < first.Offset - 3)
                 {
-                    Logger.LogWarning($"Haven't reached first, return empty.");
+                    //Logger.LogWarning($"Haven't reached first, return empty.");
                     break;
                 }
 
@@ -178,6 +179,7 @@ public class RealtimeModeManager : ViewModelBase
                     continue;
                 }
 
+                isFirst = false;
                 checkPreTiming = false;
                 if (_playNodeToCachedSoundMapping.TryGetValue(first, out var cachedSound) && cachedSound != null)
                 {
@@ -191,7 +193,7 @@ public class RealtimeModeManager : ViewModelBase
             _firstNode = first;
             if (counter == 0)
             {
-                Logger.LogWarning($"List is empty!!");
+                Logger.LogWarning($"Counter is zero, no item returns.");
             }
         }
     }

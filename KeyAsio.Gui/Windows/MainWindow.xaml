@@ -7,9 +7,9 @@
     xmlns:hc="https://handyorg.github.io/handycontrol"
     xmlns:local="clr-namespace:KeyAsio.Gui"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:KeyAsio.Gui.Models"
     xmlns:mouseKeyHook="clr-namespace:Milki.Extensions.MouseKeyHook;assembly=Milki.Extensions.MouseKeyHook"
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
-    xmlns:models="clr-namespace:KeyAsio.Gui.Models"
     Title="KeyASIO Control Panel"
     Width="880"
     Height="550"
@@ -195,6 +195,15 @@
                     <TextBlock
                         Grid.Row="3"
                         Grid.Column="0"
+                        Text="Sample rate: " />
+                    <TextBlock
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        Text="{Binding AudioPlaybackEngine.WaveFormat.SampleRate}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Grid.Row="4"
+                        Grid.Column="0"
                         Text="Exclusive: ">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -208,7 +217,7 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <TextBlock
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Grid.Column="1"
                         Text="{Binding DeviceDescription.IsExclusive}"
                         TextWrapping="Wrap">
@@ -224,7 +233,7 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <TextBlock
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Grid.Column="0"
                         Text="ASIO FramesPerBuffer: ">
                         <TextBlock.Style>
@@ -239,7 +248,7 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <TextBlock
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Grid.Column="1"
                         Text="{Binding FramesPerBuffer}"
                         TextWrapping="Wrap">
@@ -255,7 +264,7 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <TextBlock
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Grid.Column="0"
                         Text="Latency (?): ">
                         <TextBlock.Style>
@@ -270,7 +279,7 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <TextBlock
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Grid.Column="1"
                         Text="{Binding DeviceDescription.Latency}"
                         TextWrapping="Wrap">
@@ -286,9 +295,9 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <TextBlock
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Grid.Column="0"
-                        Text="ASIO Latency(?): ">
+                        Text="ASIO Latency: ">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -301,9 +310,8 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <TextBlock
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Grid.Column="1"
-                        Text="{Binding PlaybackLatency}"
                         TextWrapping="Wrap">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -315,6 +323,17 @@
                                 </Style.Triggers>
                             </Style>
                         </TextBlock.Style>
+                        <Run Text="{Binding PlaybackLatency}" /><Run Text=" (" /><Run>
+                            <Run.Text>
+                                <MultiBinding
+                                    Converter="{StaticResource Multi_LatencySampleRate2LatencyConverter}"
+                                    Mode="OneWay"
+                                    StringFormat="0.000">
+                                    <Binding Mode="OneWay" Path="PlaybackLatency" />
+                                    <Binding Mode="OneWay" Path="AudioPlaybackEngine.WaveFormat.SampleRate" />
+                                </MultiBinding>
+                            </Run.Text>
+                        </Run><Run Text="ms)" />
                     </TextBlock>
                 </Grid>
             </StackPanel>

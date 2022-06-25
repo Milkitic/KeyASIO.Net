@@ -19,6 +19,7 @@
             <converters:IntMillisecond2TimeSpanConverter x:Key="IntMillisecond2TimeSpanConverter" />
             <converters:IsNullToVisibilityReConverter x:Key="IsNullToVisibilityReConverter" />
             <converters:IsNullToVisibilityConverter x:Key="IsNullToVisibilityConverter" />
+            <converters:Multi_LatencySampleRate2LatencyConverter x:Key="Multi_LatencySampleRate2LatencyConverter" />
 
             <Style x:Key="VolumeSliderRepeatButtonBaseStyle" TargetType="RepeatButton">
                 <Setter Property="OverridesDefaultStyle" Value="true" />
