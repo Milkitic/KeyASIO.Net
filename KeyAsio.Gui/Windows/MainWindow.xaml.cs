@@ -213,10 +213,10 @@ public partial class MainWindow : Window
                 return;
             }
 
-            var playbackInfos = _viewModel.RealtimeModeManager.GetCurrentHitsounds();
+            var playbackInfos = _viewModel.RealtimeModeManager.GetKeyAudio();
             foreach (var playbackInfo in playbackInfos)
             {
-                _viewModel.RealtimeModeManager.PlaySound(playbackInfo);
+                _viewModel.RealtimeModeManager.PlayAudio(playbackInfo);
             }
         };
         _registerList.Add(_keyboardHook.RegisterKey(key, callback));

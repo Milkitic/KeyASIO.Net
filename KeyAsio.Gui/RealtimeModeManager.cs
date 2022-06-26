@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -10,9 +11,11 @@ using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.Realtime;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using OsuRTDataProvider.BeatmapInfo;
 using OsuRTDataProvider.Listen;
@@ -21,7 +24,7 @@ namespace KeyAsio.Gui;
 
 public class RealtimeModeManager : ViewModelBase
 {
-    private static readonly string[] SkinSounds = { "combobreak" };
+    private static readonly string[] SkinAudioFiles = { "combobreak" };
 
     public static RealtimeModeManager Instance { get; } = new();
     private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(RealtimeModeManager));
@@ -37,17 +40,20 @@ public class RealtimeModeManager : ViewModelBase
     private readonly HitsoundFileCache _hitsoundFileCache = new();
 
     private readonly ConcurrentDictionary<PlayableNode, CachedSound?> _playNodeToCachedSoundMapping = new();
-    private readonly ConcurrentDictionary<string, CachedSound?> _skinToCachedSoundMapping = new();
+    private readonly ConcurrentDictionary<string, CachedSound?> _filenameToCachedSoundMapping = new();
 
-    private readonly List<PlayableNode> _hitList = new();
-    private readonly List<PlayableNode> _playList = new();
-    private Queue<PlayableNode> _hitQueue = new();
-    private Queue<PlayableNode> _playQueue = new();
+    private readonly List<PlayableNode> _keyList = new();
+    private readonly List<PlayableNode> _playbackList = new();
 
-    private PlayableNode? _firstNode;
-    private PlayableNode? _firstPlayNode;
+    private readonly StandardAudioProvider _standardAudioProvider;
+
     private string? _folder;
     private int _nextReadTime;
+
+    public RealtimeModeManager()
+    {
+        _standardAudioProvider = new StandardAudioProvider(this);
+    }
 
     public int PlayTime
     {
@@ -114,367 +120,38 @@ public class RealtimeModeManager : ViewModelBase
 
     public bool IsStarted
     {
-        get
-        {
-            lock (_isStartedLock)
-            {
-                return _isStarted;
-            }
-        }
-        set
-        {
-            lock (_isStartedLock)
-            {
-                this.RaiseAndSetIfChanged(ref _isStarted, value);
-            }
-        }
+        get { lock (_isStartedLock) { return _isStarted; } }
+        set { lock (_isStartedLock) { this.RaiseAndSetIfChanged(ref _isStarted, value); } }
     }
 
     public OsuListenerManager? OsuListenerManager { get; set; }
 
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
-    public IEnumerable<PlaybackInfo> GetCurrentHitsounds()
+    public IReadOnlyList<PlayableNode> PlaybackList => _playbackList;
+    public IReadOnlyList<PlayableNode> KeyList => _keyList;
+
+    public bool TryGetAudioByNode(PlayableNode playableNode, [NotNullWhen(true)] out CachedSound? cachedSound)
     {
-        int thresholdMs = 100; // todo: determine by od
-        using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", Logger);
-        var playTime = PlayTime;
-
-        var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
-        if (audioPlaybackEngine == null)
-        {
-            Logger.LogWarning($"Engine not ready, return empty.");
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        if (!IsStarted)
-        {
-            Logger.LogDebug($"Game hasn't started, return empty.");
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        var first = _firstNode;
-        Logger.LogDebug($"Click at {playTime}, first node at {(first?.Offset.ToString() ?? "null")}");
-        if (first == null)
-        {
-            Logger.LogDebug($"First is null, no item returns.");
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        if (playTime < first.Offset - thresholdMs)
-        {
-            Logger.LogDebug($"Haven't reached first, no item returns.");
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        if (playTime < first.Offset + thresholdMs) // click soon~0~late
-        {
-            return GetHitsoundList(false);
-        }
-
-        return GetHitsoundList(true);
-
-        IEnumerable<PlaybackInfo> GetHitsoundList(bool checkPreTiming)
-        {
-            int counter = 0;
-            bool isFirst = true;
-            PlayableNode? preNode = null;
-            while (first != null)
-            {
-                if (preNode?.Guid != first.Guid)
-                {
-                    if (!isFirst && !checkPreTiming && playTime < first.Offset - 3)
-                    {
-                        //Logger.LogWarning($"Haven't reached first, return empty.");
-                        break;
-                    }
-
-                    if (checkPreTiming && playTime >= first.Offset + thresholdMs)
-                    {
-                        _hitQueue.TryDequeue(out first);
-                        continue;
-                    }
-
-                }
-
-                isFirst = false;
-                checkPreTiming = false;
-                if (_playNodeToCachedSoundMapping.TryGetValue(first, out var cachedSound) && cachedSound != null)
-                {
-                    counter++;
-                    preNode = first;
-                    yield return new PlaybackInfo(cachedSound, first.Volume, first.Balance);
-                }
-
-                _hitQueue.TryDequeue(out first);
-            }
-
-            _firstNode = first;
-            if (counter == 0)
-            {
-                Logger.LogWarning($"Counter is zero, no item returns.");
-            }
-        }
+        return _playNodeToCachedSoundMapping.TryGetValue(playableNode, out cachedSound) && cachedSound != null;
     }
 
-    public IEnumerable<PlaybackInfo> GetPlaybackHitsounds(bool isAuto)
+    public IEnumerable<PlaybackInfo> GetKeyAudio()
     {
-        var playTime = PlayTime;
-
-        var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
-        if (audioPlaybackEngine == null)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        if (!IsStarted)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        var first = isAuto ? _firstPlayNode : _firstNode;
-        if (first == null)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        if (playTime < first.Offset)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        return GetHitsoundList();
-
-        IEnumerable<PlaybackInfo> GetHitsoundList()
-        {
-            while (first != null)
-            {
-                if (playTime < first.Offset)
-                {
-                    break;
-                }
-
-                if (_playNodeToCachedSoundMapping.TryGetValue(first, out var cachedSound) && cachedSound != null)
-                {
-                    yield return new PlaybackInfo(cachedSound, first.Volume, first.Balance);
-                }
-
-                if (isAuto)
-                {
-                    _playQueue.TryDequeue(out first);
-                }
-                else
-                {
-                    _hitQueue.TryDequeue(out first);
-                }
-            }
-
-            if (isAuto)
-            {
-                _firstPlayNode = first;
-            }
-            else
-            {
-                _firstNode = first;
-            }
-        }
+        return _standardAudioProvider.GetKeyAudio(0, 0);
     }
 
-    private void OnComboChanged(int oldCombo, int newCombo)
+    public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool isAuto)
     {
-        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak && newCombo < oldCombo && oldCombo >= 20 && Score != 0)
-        {
-            if (_skinToCachedSoundMapping.TryGetValue("combobreak", out var cachedSound))
-            {
-                PlaySound(cachedSound, 1, 0);
-            }
-        }
+        return _standardAudioProvider.GetPlaybackAudio(isAuto);
     }
 
-    private async void OnStatusChanged(OsuListenerManager.OsuStatus pre, OsuListenerManager.OsuStatus cur)
+    public void PlayAudio(PlaybackInfo playbackObject)
     {
-        if (pre != OsuListenerManager.OsuStatus.Playing &&
-            cur == OsuListenerManager.OsuStatus.Playing)
-        {
-            await StartAsync();
-        }
-        else
-        {
-            Stop();
-        }
+        PlayAudio(playbackObject.CachedSound, playbackObject.Volume, playbackObject.Balance);
     }
 
-    private void Stop()
-    {
-        Logger.LogDebug("Stop playing.");
-        IsStarted = false;
-        _playTime = 0;
-        PlayTime = 0;
-        Combo = 0;
-    }
-
-    private async Task StartAsync()
-    {
-        // Load beatmap & hitsounds
-        try
-        {
-            Logger.LogDebug("Start playing.");
-            if (Beatmap == null)
-            {
-                throw new Exception("The beatmap is null!");
-            }
-
-            var folder = Path.GetDirectoryName(Beatmap.FilenameFull);
-            if (_folder != folder)
-            {
-                Logger.LogDebug("Folder changed, cleaning caches.");
-                CleanHitsoundCaches();
-            }
-
-            _folder = folder;
-            if (folder == null)
-            {
-                throw new Exception("The beatmap folder is null!");
-            }
-
-            await InitSoundListAsync(folder, Beatmap.Filename);
-            AddSkinCacheInBackground();
-            RequeueNodes();
-            IsStarted = true;
-        }
-        catch (Exception ex)
-        {
-            IsStarted = false;
-            Logger.LogError(ex, "Error while starting a beatmap");
-        }
-    }
-
-    private void AddSkinCacheInBackground()
-    {
-        Task.Run(() =>
-        {
-            SkinSounds.AsParallel()
-                .WithDegreeOfParallelism(1)
-                //.WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
-                .ForAll(skinSound =>
-                {
-                    AddSkinCache(skinSound).Wait();
-                });
-        });
-
-    }
-
-    private async Task InitSoundListAsync(string folder, string diffFilename)
-    {
-        _hitList.Clear();
-        _playList.Clear();
-
-        var osuDir = new OsuDirectory(folder);
-        using (DebugUtils.CreateTimer("InitFolder", Logger))
-        {
-            await osuDir.InitializeAsync(diffFilename, ignoreWaveFiles: AppSettings.RealtimeOptions.IgnoreBeatmapHitsound);
-        }
-
-        if (osuDir.OsuFiles.Count <= 0)
-        {
-            Logger.LogWarning($"There is no available beatmaps after scanning. " +
-                              $"Directory: {folder}; File: {diffFilename}");
-            return;
-        }
-
-        using var _ = DebugUtils.CreateTimer("InitSound", Logger);
-        var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
-        var secondaryCache = new List<PlayableNode>();
-
-        foreach (var hitsoundNode in hitsoundList.OrderBy(k => k.Offset)) // Should be stable sort here
-        {
-            if (hitsoundNode is not PlayableNode playableNode) continue;
-
-            if (playableNode.PlayablePriority == PlayablePriority.Primary)
-            {
-                CheckSecondary();
-                secondaryCache.Clear();
-                _hitList.Add(playableNode);
-            }
-            else if (playableNode.PlayablePriority is PlayablePriority.Secondary)
-            {
-                var sliderTailBehavior = AppSettings.RealtimeOptions.SliderTailPlaybackBehavior;
-                if (sliderTailBehavior == SliderTailPlaybackBehavior.Normal)
-                {
-                    _playList.Add(playableNode);
-                }
-                else if (sliderTailBehavior == SliderTailPlaybackBehavior.KeepReverse)
-                {
-                    secondaryCache.Add(playableNode);
-                }
-            }
-            else if (playableNode.PlayablePriority is PlayablePriority.Effects)
-            {
-                if (!AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides)
-                {
-                    _playList.Add(playableNode);
-                }
-            }
-            else if (playableNode.PlayablePriority is PlayablePriority.Sampling)
-            {
-                if (!AppSettings.RealtimeOptions.IgnoreStoryboardSamples)
-                {
-                    _playList.Add(playableNode);
-                }
-            }
-        }
-
-        CheckSecondary();
-
-        void CheckSecondary()
-        {
-            if (secondaryCache.Count <= 1) return;
-            _playList.AddRange(secondaryCache);
-        }
-    }
-
-    private void OnBeatmapChanged(Beatmap? beatmap)
-    {
-    }
-
-    private void OnPlayTimeChanged(int oldMs, int newMs)
-    {
-        if (IsStarted && oldMs > newMs) // Retry
-        {
-            RequeueNodes();
-            return;
-        }
-
-        if (IsStarted && newMs > _nextReadTime)
-        {
-            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000, _hitList);
-            AddHitsoundCacheInBackground(_nextReadTime, _nextReadTime + 13000, _playList);
-            _nextReadTime += 10000;
-        }
-
-        if (IsStarted && SharedViewModel.Instance.LatencyTestMode)
-        {
-            foreach (var playbackObject in GetPlaybackHitsounds(false))
-            {
-                PlaySound(playbackObject);
-            }
-        }
-
-        if (IsStarted)
-        {
-            foreach (var playbackObject in GetPlaybackHitsounds(true))
-            {
-                PlaySound(playbackObject);
-            }
-        }
-    }
-
-    public void PlaySound(PlaybackInfo playbackObject)
-    {
-        PlaySound(playbackObject.CachedSound, playbackObject.Volume, playbackObject.Balance);
-    }
-
-    public void PlaySound(CachedSound cachedSound, float volume, float balance)
+    public void PlayAudio(CachedSound cachedSound, float volume, float balance)
     {
         balance *= AppSettings.RealtimeOptions.BalanceFactor;
         SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(
@@ -489,25 +166,118 @@ public class RealtimeModeManager : ViewModelBase
                         $"Bal. {balance}");
     }
 
-    private void CleanHitsoundCaches()
+    private async Task StartAsync()
+    {
+        try
+        {
+            Logger.LogDebug("Start playing.");
+            if (Beatmap == null)
+            {
+                throw new Exception("The beatmap is null!");
+            }
+
+            var folder = Path.GetDirectoryName(Beatmap.FilenameFull);
+            if (_folder != folder)
+            {
+                Logger.LogDebug("Folder changed, cleaning caches.");
+                CleanAudioCaches();
+            }
+
+            _folder = folder;
+            if (folder == null)
+            {
+                throw new Exception("The beatmap folder is null!");
+            }
+
+            await InitializeNodeListsAsync(folder, Beatmap.Filename);
+            AddSkinCacheInBackground();
+            ResetNodes();
+            IsStarted = true;
+        }
+        catch (Exception ex)
+        {
+            IsStarted = false;
+            Logger.LogError(ex, "Error while starting a beatmap");
+        }
+    }
+
+    private void Stop()
+    {
+        Logger.LogDebug("Stop playing.");
+        IsStarted = false;
+        _playTime = 0;
+        PlayTime = 0;
+        Combo = 0;
+    }
+
+    private void CleanAudioCaches()
     {
         CachedSoundFactory.ClearCacheSounds();
         _playNodeToCachedSoundMapping.Clear();
-        _skinToCachedSoundMapping.Clear();
+        _filenameToCachedSoundMapping.Clear();
     }
 
-    private void RequeueNodes()
+    private void ResetNodes()
     {
-        _hitQueue = new Queue<PlayableNode>(_hitList);
-        _playQueue = new Queue<PlayableNode>(_playList.Where(k => k.Offset >= PlayTime));
-        _hitQueue.TryDequeue(out _firstNode);
-        _playQueue.TryDequeue(out _firstPlayNode);
-        AddHitsoundCacheInBackground(0, 13000, _hitList);
-        AddHitsoundCacheInBackground(0, 13000, _playList);
+        _standardAudioProvider.ResetNodes(PlayTime);
+        AddAudioCacheInBackground(0, 13000, _keyList);
+        AddAudioCacheInBackground(0, 13000, _playbackList);
         _nextReadTime = 10000;
     }
 
-    private void AddHitsoundCacheInBackground(int startTime, int endTime, List<PlayableNode> playableNodes,
+    private async Task InitializeNodeListsAsync(string folder, string diffFilename)
+    {
+        _keyList.Clear();
+        _playbackList.Clear();
+
+        var osuDir = new OsuDirectory(folder);
+        using (DebugUtils.CreateTimer("InitFolder", Logger))
+        {
+            await osuDir.InitializeAsync(diffFilename, ignoreWaveFiles: AppSettings.RealtimeOptions.IgnoreBeatmapHitsound);
+        }
+
+        if (osuDir.OsuFiles.Count <= 0)
+        {
+            Logger.LogWarning($"There is no available beatmaps after scanning. " +
+                              $"Directory: {folder}; File: {diffFilename}");
+            return;
+        }
+
+        using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
+        var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
+        _standardAudioProvider.FillAudioList(hitsoundList, _keyList, _playbackList);
+    }
+
+    private void AddSkinCacheInBackground()
+    {
+        if (_folder == null)
+        {
+            Logger.LogWarning($"{nameof(_folder)} is null, stop adding cache.");
+            return;
+        }
+
+        if (SharedViewModel.Instance.AudioPlaybackEngine == null)
+        {
+            Logger.LogWarning($"{nameof(SharedViewModel.Instance.AudioPlaybackEngine)} is null, stop adding cache.");
+            return;
+        }
+
+        var folder = _folder;
+        var waveFormat = SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat;
+        var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
+        Task.Run(() =>
+        {
+            SkinAudioFiles.AsParallel()
+                .WithDegreeOfParallelism(1)
+                //.WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
+                .ForAll(skinSound =>
+                {
+                    AddSkinCache(skinSound, folder, skinFolder, waveFormat).Wait();
+                });
+        });
+    }
+
+    private void AddAudioCacheInBackground(int startTime, int endTime, List<PlayableNode> playableNodes,
         [CallerArgumentExpression("playableNodes")]
         string? expression = null)
     {
@@ -535,7 +305,7 @@ public class RealtimeModeManager : ViewModelBase
         var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
         Task.Run(() =>
         {
-            using var _ = DebugUtils.CreateTimer($"CacheSound {startTime}~{endTime}", Logger);
+            using var _ = DebugUtils.CreateTimer($"CacheAudio {startTime}~{endTime}", Logger);
             hitsoundList
                 .Where(k => k.Offset >= startTime && k.Offset < endTime)
                 .AsParallel()
@@ -543,62 +313,20 @@ public class RealtimeModeManager : ViewModelBase
                 //.WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
                 .ForAll(playableNode =>
                 {
-                    if (!IsStarted) return;
-                    if (playableNode.Filename == null) return;
-
-                    var path = Path.Combine(folder, playableNode.Filename);
-                    string? identifier = null;
-                    if (playableNode.UseUserSkin)
-                    {
-                        identifier = "internal";
-                        var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, playableNode.Filename,
-                            out var useUserSkin);
-                        path = useUserSkin
-                            ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{playableNode.Filename}.ogg")
-                            : Path.Combine(skinFolder, filename);
-                    }
-
-                    var (result, status) = CachedSoundFactory
-                        .GetOrCreateCacheSoundStatus(waveFormat, path, identifier, checkFileExist: false).Result;
-
-                    if (result == null)
-                    {
-                        Logger.LogWarning("Caching sound failed: " + path);
-                    }
-                    else if (status == true)
-                    {
-                        Logger.LogInformation("Cached sound: " + path);
-                    }
-
-                    _playNodeToCachedSoundMapping.TryAdd(playableNode, result);
+                    AddHitsoundCache(playableNode, folder, skinFolder, waveFormat).Wait();
                 });
-            //foreach (var playableNode in allHitsounds)
-            //{
-            //    if (!IsStarted) break;
-            //    if (playableNode.Filename != null)
-            //    {
-            //        var path = Path.Combine(_folder!, playableNode.Filename);
-            //        var identifier = playableNode.UseUserSkin ? "internal" : null;
-            //        CachedSoundFactory.GetOrCreateCacheSound(waveFormat, path, identifier).Wait();
-            //    }
-
-            //    if (!IsStarted) break;
-            //}
         });
     }
 
-    private async Task<CachedSound?> AddSkinCache(string filenameWithoutExt)
+    private async Task<CachedSound?> AddSkinCache(string filenameWithoutExt,
+        string beatmapFolder,
+        string skinFolder,
+        WaveFormat waveFormat)
     {
-        if (SharedViewModel.Instance.AudioPlaybackEngine == null) return null;
-        if (_folder == null) return null;
-
-        if (_skinToCachedSoundMapping.TryGetValue(filenameWithoutExt, out var value)) return value;
-
-        var waveFormat = SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
+        if (_filenameToCachedSoundMapping.TryGetValue(filenameWithoutExt, out var value)) return value;
 
         string? identifier = null;
-        var filename = _hitsoundFileCache.GetFileUntilFind(_folder, filenameWithoutExt, out var useUserSkin);
+        var filename = _hitsoundFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var useUserSkin);
         string path;
         if (useUserSkin)
         {
@@ -611,7 +339,7 @@ public class RealtimeModeManager : ViewModelBase
         }
         else
         {
-            path = Path.Combine(_folder, filename);
+            path = Path.Combine(beatmapFolder, filename);
         }
 
         var (result, status) = await CachedSoundFactory
@@ -619,15 +347,111 @@ public class RealtimeModeManager : ViewModelBase
 
         if (result == null)
         {
-            Logger.LogWarning("Caching skin sound failed: " + path);
+            Logger.LogWarning("Caching skin audio failed: " + path);
         }
         else if (status == true)
         {
-            Logger.LogInformation("Cached skin sound: " + path);
+            Logger.LogInformation("Cached skin audio: " + path);
         }
 
-        _skinToCachedSoundMapping.TryAdd(filenameWithoutExt, result);
+        _filenameToCachedSoundMapping.TryAdd(filenameWithoutExt, result);
 
         return result;
+    }
+
+    private async Task AddHitsoundCache(PlayableNode playableNode,
+        string beatmapFolder,
+        string skinFolder,
+        WaveFormat waveFormat)
+    {
+        if (!IsStarted) return;
+        if (playableNode.Filename == null) return;
+
+        var path = Path.Combine(beatmapFolder, playableNode.Filename);
+        string? identifier = null;
+        if (playableNode.UseUserSkin)
+        {
+            identifier = "internal";
+            var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, playableNode.Filename,
+                out var useUserSkin);
+            path = useUserSkin
+                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{playableNode.Filename}.ogg")
+                : Path.Combine(skinFolder, filename);
+        }
+
+        var (result, status) = await CachedSoundFactory
+            .GetOrCreateCacheSoundStatus(waveFormat, path, identifier, checkFileExist: false);
+
+        if (result == null)
+        {
+            Logger.LogWarning("Caching sound failed: " + path);
+        }
+        else if (status == true)
+        {
+            Logger.LogInformation("Cached sound: " + path);
+        }
+
+        _playNodeToCachedSoundMapping.TryAdd(playableNode, result);
+        _filenameToCachedSoundMapping.TryAdd(Path.GetFileNameWithoutExtension(path), result);
+    }
+
+    private void OnComboChanged(int oldCombo, int newCombo)
+    {
+        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak && newCombo < oldCombo && oldCombo >= 20 && Score != 0)
+        {
+            if (_filenameToCachedSoundMapping.TryGetValue("combobreak", out var cachedSound))
+            {
+                PlayAudio(cachedSound, 1, 0);
+            }
+        }
+    }
+
+    private async void OnStatusChanged(OsuListenerManager.OsuStatus pre, OsuListenerManager.OsuStatus cur)
+    {
+        if (pre != OsuListenerManager.OsuStatus.Playing &&
+            cur == OsuListenerManager.OsuStatus.Playing)
+        {
+            await StartAsync();
+        }
+        else
+        {
+            Stop();
+        }
+    }
+
+    private void OnBeatmapChanged(Beatmap? beatmap)
+    {
+    }
+
+    private void OnPlayTimeChanged(int oldMs, int newMs)
+    {
+        if (IsStarted && oldMs > newMs) // Retry
+        {
+            ResetNodes();
+            return;
+        }
+
+        if (IsStarted && newMs > _nextReadTime)
+        {
+            AddAudioCacheInBackground(_nextReadTime, _nextReadTime + 13000, _keyList);
+            AddAudioCacheInBackground(_nextReadTime, _nextReadTime + 13000, _playbackList);
+            _nextReadTime += 10000;
+        }
+
+        if (IsStarted && SharedViewModel.Instance.LatencyTestMode)
+        {
+            foreach (var playbackObject in GetPlaybackAudio(false))
+            {
+                PlayAudio(playbackObject);
+            }
+        }
+
+        if (IsStarted)
+        {
+            foreach (var playbackObject in GetPlaybackAudio(true))
+            {
+                PlayAudio(playbackObject);
+            }
+        }
     }
 }
