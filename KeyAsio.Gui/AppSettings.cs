@@ -11,7 +11,7 @@ namespace KeyAsio.Gui;
 
 public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
 {
-    private HashSet<HookKeys> _keys = new()
+    private List<HookKeys> _keys = new()
     {
         HookKeys.Z,
         HookKeys.X
@@ -20,7 +20,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     private RealtimeOptions? _realtimeOptions;
     
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
-    public HashSet<HookKeys> Keys
+    public List<HookKeys> Keys
     {
         get => _keys;
         set

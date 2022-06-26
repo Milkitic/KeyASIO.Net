@@ -213,12 +213,13 @@ public partial class MainWindow : Window
                 return;
             }
 
-            var playbackInfos = _viewModel.RealtimeModeManager.GetKeyAudio();
+            var playbackInfos = _viewModel.RealtimeModeManager.GetKeyAudio(_appSettings.Keys.IndexOf(hookKey), _appSettings.Keys.Count);
             foreach (var playbackInfo in playbackInfos)
             {
                 _viewModel.RealtimeModeManager.PlayAudio(playbackInfo);
             }
         };
+
         _registerList.Add(_keyboardHook.RegisterKey(key, callback));
         _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control, key, callback));
         _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift, key, callback));
@@ -322,7 +323,7 @@ public partial class MainWindow : Window
 
         if (window.ShowDialog() == true)
         {
-            _appSettings.Keys = window.ViewModel.Keys.ToHashSet();
+            _appSettings.Keys = window.ViewModel.Keys.ToList();
             _appSettings.Save();
         }
 

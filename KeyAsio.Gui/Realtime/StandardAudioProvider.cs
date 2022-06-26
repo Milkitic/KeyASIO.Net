@@ -187,7 +187,7 @@ public class StandardAudioProvider : IAudioProvider
         }
     }
 
-    IEnumerable<PlaybackInfo> GetNextPlaybackAudio(PlayableNode? firstNode, int playTime, bool includeKey)
+    private IEnumerable<PlaybackInfo> GetNextPlaybackAudio(PlayableNode? firstNode, int playTime, bool includeKey)
     {
         while (firstNode != null)
         {

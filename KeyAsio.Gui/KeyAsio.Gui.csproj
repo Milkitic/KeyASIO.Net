@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Coosu.Beatmap" Version="2.2.7" />
+    <PackageReference Include="Coosu.Beatmap" Version="2.2.8" />
     <PackageReference Include="HandyControl" Version="3.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.8" />

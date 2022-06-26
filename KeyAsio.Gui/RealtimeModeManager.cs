@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
+using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Realtime;
@@ -45,14 +46,24 @@ public class RealtimeModeManager : ViewModelBase
     private readonly List<PlayableNode> _keyList = new();
     private readonly List<PlayableNode> _playbackList = new();
 
+    private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
     private readonly StandardAudioProvider _standardAudioProvider;
 
     private string? _folder;
-    private int _nextReadTime;
+
+    private int _nextCachingTime;
 
     public RealtimeModeManager()
     {
         _standardAudioProvider = new StandardAudioProvider(this);
+        var maniaAudioProvider = new ManiaAudioProvider(this);
+        _audioProviderDictionary = new Dictionary<GameMode, IAudioProvider>()
+        {
+            [GameMode.Circle] = _standardAudioProvider,
+            [GameMode.Taiko] = _standardAudioProvider,
+            [GameMode.Catch] = _standardAudioProvider,
+            [GameMode.Mania] = maniaAudioProvider,
+        };
     }
 
     public int PlayTime
@@ -106,6 +117,8 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
+    public OsuFile? OsuFile { get; /*private*/ set; }
+
     public Beatmap? Beatmap
     {
         get => _beatmap;
@@ -129,21 +142,21 @@ public class RealtimeModeManager : ViewModelBase
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public IReadOnlyList<PlayableNode> PlaybackList => _playbackList;
-    public IReadOnlyList<PlayableNode> KeyList => _keyList;
+    public List<PlayableNode> KeyList => _keyList;
 
     public bool TryGetAudioByNode(PlayableNode playableNode, [NotNullWhen(true)] out CachedSound? cachedSound)
     {
         return _playNodeToCachedSoundMapping.TryGetValue(playableNode, out cachedSound) && cachedSound != null;
     }
 
-    public IEnumerable<PlaybackInfo> GetKeyAudio()
+    public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
     {
-        return _standardAudioProvider.GetKeyAudio(0, 0);
+        return GetCurrentAudioProvider().GetKeyAudio(keyIndex, keyTotal);
     }
 
     public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool isAuto)
     {
-        return _standardAudioProvider.GetPlaybackAudio(isAuto);
+        return GetCurrentAudioProvider().GetPlaybackAudio(isAuto);
     }
 
     public void PlayAudio(PlaybackInfo playbackObject)
@@ -219,10 +232,10 @@ public class RealtimeModeManager : ViewModelBase
 
     private void ResetNodes()
     {
-        _standardAudioProvider.ResetNodes(PlayTime);
+        GetCurrentAudioProvider().ResetNodes(PlayTime);
         AddAudioCacheInBackground(0, 13000, _keyList);
         AddAudioCacheInBackground(0, 13000, _playbackList);
-        _nextReadTime = 10000;
+        _nextCachingTime = 10000;
     }
 
     private async Task InitializeNodeListsAsync(string folder, string diffFilename)
@@ -243,9 +256,11 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
+        var osuFile = osuDir.OsuFiles[0];
+        OsuFile = osuFile;
         using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
-        var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuDir.OsuFiles[0]);
-        _standardAudioProvider.FillAudioList(hitsoundList, _keyList, _playbackList);
+        var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
+        GetCurrentAudioProvider().FillAudioList(hitsoundList, _keyList, _playbackList);
     }
 
     private void AddSkinCacheInBackground()
@@ -395,6 +410,12 @@ public class RealtimeModeManager : ViewModelBase
         _filenameToCachedSoundMapping.TryAdd(Path.GetFileNameWithoutExtension(path), result);
     }
 
+    private IAudioProvider GetCurrentAudioProvider()
+    {
+        if (OsuFile == null) return _standardAudioProvider;
+        return _audioProviderDictionary[OsuFile.General.Mode];
+    }
+
     private void OnComboChanged(int oldCombo, int newCombo)
     {
         if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak && newCombo < oldCombo && oldCombo >= 20 && Score != 0)
@@ -431,11 +452,11 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (IsStarted && newMs > _nextReadTime)
+        if (IsStarted && newMs > _nextCachingTime)
         {
-            AddAudioCacheInBackground(_nextReadTime, _nextReadTime + 13000, _keyList);
-            AddAudioCacheInBackground(_nextReadTime, _nextReadTime + 13000, _playbackList);
-            _nextReadTime += 10000;
+            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _keyList);
+            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _playbackList);
+            _nextCachingTime += 10000;
         }
 
         if (IsStarted && SharedViewModel.Instance.LatencyTestMode)
