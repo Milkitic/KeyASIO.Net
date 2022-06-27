@@ -267,7 +267,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (_folder == null)
         {
-            Logger.LogWarning($"{nameof(_folder)} is null, stop adding cache.");
+            Logger.LogDebug($"{nameof(_folder)} is null, stop adding cache.");
             return;
         }
 
@@ -310,7 +310,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (playableNodes.Count == 0)
         {
-            Logger.LogWarning($"{expression} has no hitsounds, stop adding cache.");
+            Logger.LogDebug($"{expression} has no hitsounds, stop adding cache.");
             return;
         }
 
