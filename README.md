@@ -47,20 +47,27 @@ Common steps:
 
 
 Full options in `appsettings.yaml`: 
-| Item               | Description                                                                                                                                |
-| ------------------ | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| Debugging          | Show debug logs.                                                                                                                           |
-| Device             | Device configuration (Recommend to configure in GUI).                                                                                      |
-| HitsoundPath       | Default hitsound path (relative or absolute) for playing.                                                                                  |
-| Keys               | # Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion. |
-| RealtimeMode            | If true, the software will enable memory scanning and play the right hitsounds of beatmaps.                                                |
-| RealtimeModeAudioOffset | The offset when `RealtimeMode` is true (allow adjusting in GUI).                                                                                |
-| SampleRate         | Device's sample rate (allow adjusting in GUI).                                                                                             |
-| SkinFolder         | The skin folder when `RealtimeMode` is true.                                                                                                    |
-| VolumeEnabled      | Software volume control. Disable for extremely low latency when `RealtimeMode` is false                                                         |
-| Volume             | Configured device volume.                                                                                                                  |
+| Item                                    | Description                                                                                                                                                                  |
+| --------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Debugging                               | Show debug logs.                                                                                                                                                             |
+| Device                                  | Device configuration (Recommend to configure in GUI).                                                                                                                        |
+| HitsoundPath                            | Default hitsound path (relative or absolute) for playing.                                                                                                                    |
+| Keys                                    | Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.                                     |
+| RealtimeMode                            | If true, the software will enable memory scanning and play the right hitsounds of beatmaps.                                                                                  |
+| RealtimeMode.AudioOffset                 | The offset when `RealtimeMode` is true (allow adjusting in GUI).                                                                                                             |
+| RealtimeMode.BalanceFactor              | Balance factor.                                                                                                                                                              |
+| RealtimeMode.IgnoreBeatmapHitsound      | Ignore beatmap's hitsound and force using user skin instead.                                                                                                                 |
+| RealtimeMode.IgnoreComboBreak           | Ignore combo break sound.                                                                                                                                                    |
+| RealtimeMode.IgnoreSliderTicksAndSlides | Ignore slider's ticks and slides.                                                                                                                                            |
+| RealtimeMode.IgnoreStoryboardSamples    | Ignore beatmap's storyboard samples.                                                                                                                                         |
+| RealtimeMode.SliderTailPlaybackBehavior | Slider tail's playback behavior. Normal: Force to play slider tail's sounds; KeepReverse: Play only if a slider with multiple reverses; Ignore: Ignore slider tail's sounds. |
+| SampleRate                              | Device's sample rate (allow adjusting in GUI).                                                                                                                               |
+| SkinFolder                              | The skin folder when `RealtimeMode` is true.                                                                                                                                 |
+| VolumeEnabled                           | Software volume control. Disable for extremely low latency when `RealtimeMode` is false                                                                                      |
+| Volume                                  | Configured device volume.                                                                                                                                                    |
 
 ## Todo
 - [ ] Ignore volumes.
+- [ ] Play sliderslides.
 - [ ] Wrong behaviors while user double tapping or do something others in the overlapped OD range (need an OD calculator and other logics)
 - [ ] Audio has lags while dynamically reading hitsound in the background.
