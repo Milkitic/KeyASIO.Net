@@ -29,18 +29,19 @@ Benifits of KeyASIO.Net
 </p>
 
 ## Configuration
-If you have no other standalone soundcard, please try those steps:
+If you have no other standalone soundcard, you have to use ASIO4ALL. Make sure you have at least 2 audio output devices (including HDMI Audio), then these following steps can be referenced:
 1. Use HDMI output with display monitor or HDMI decoder, and line-out to some standalone mixers. Low-end device is just ok, since they are always very cheap. **DO NOT USE WINDOWS MIXER SOFTWARES**, they will only increase the latency.
-2. Line-out your onboard soundcard to the mixer.
+2. Line-out your motherboard soundcard to the mixer.
 3. Plug your headphone into the mixer.
 4. Install [asio4all](https://www.asio4all.org/).
 5. Change the device in the software GUI, select `ASIO4ALL` and confirm.
 6. Open the ASIO4ALL control panel, and select something like `HDMI Out` with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
+7. Select your motherboard device in osu. (Do not select the same device as ASIO4ALL, it will not work.)
 
 Common steps:
 1. Change the device in the software GUI, and select your ASIO Device.
 2. Change options in your ASIO control panel to lower the latency (Check latency at the software GUI).
-3. Select your fit device in osu. (mixer or something others, and can be the same device as KeyASIO.Net if your soundcard driver supports ASIO concurrency)
+3. Select your fit device in osu. (motherboard output, your mixer or something others, and can be the same device as KeyASIO.Net if your soundcard driver supports ASIO concurrency)
 4. Change your own key bindings in the software GUI.
 5. Set the effect volume to 0 in osu!.
 6. Open offset wizard, play with `Auto` mod and adjust the software's offset and osu!'s offset.
