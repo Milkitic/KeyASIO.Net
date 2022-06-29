@@ -1,22 +1,44 @@
 # KeyASIO.Net
-Low-latency and safe osu! audio playback experience (ASIO support).
+Low-latency ASIO/WASAPI_EXCLUSIVE and safe osu! audio playback experience.
 
-**NOTE:** The `RealtimeMode` in the configuration use [ORTDP](https://github.com/OsuSync/OsuRTDataProvider) to read(only) osu's memory, but it will not modify the memory. The ORTDP is commonly used for broadcasting and approved by peppy, so it's relatively safe. But I still can't guarantee that nothing will happen, so I should still say please do at your own risk :#.
+While the original osu's audio system has a latency for about 40 ms, this program can provide extremely low lantency to as low as 0.5ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 15ms *(with no professional soundcard, from tapping to hearing)*.
 
-## Overview 
-![overview](docs/overview.png)
+We have been waiting for the [very near future](https://osu.ppy.sh/community/forums/topics/428222?n=13) for several years, but it looks like that the dev team has been given up to support legacy osu! development. So there are many external community audio tools before like [REAL](https://github.com/miniant-git/REAL), [osu-External-ASIO-Sound](https://github.com/XTXTMTXTX/osu-External-ASIO-Sound), [AsioHookForOsu](https://github.com/zzhouhe/AsioHookForOsu), etc. But:
+* Even with REAL, the osu!'s playback latency is still about 25ms. Anyway this is the easiest way to gain such improvement.
+* Tools like osu-External-ASIO-Sound or AsioHookForOsu gives ASIO support, but they have some inevitable problems: 1. Inject and hook which is unsafe for your account. 2. Not perfect for custom hitsound support.
+
+This project born to resolve these problems. As default, this program enables `RealtimeMode` in the configuration, which will use [OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider) to read osu's without modifying. The OsuRTDataProvider is commonly used for broadcasting tools ([RTPP Displayer](https://osu.ppy.sh/community/forums/topics/685031?n=1)), and it's safe because it was [approved by peppy](https://i.ppy.sh/6c651103246da60f794606d63b8fc30c3aafd4fa/68747470733a2f2f692e696d6775722e636f6d2f767744337a64302e706e67). *But nothing will be guaranteed, so I should still say please do at your own risk.*
 
 Benifits of KeyASIO.Net
-1. Support extremely low-latency playback around 0.5ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557))*.
-2. Fully support for playing beatmap's custom hitsound. (WIP)
-3. Safe relatively. I cannot say it's absolutely safe, but the software use ORTDP's provided data, which is commonly used for broadcasting and approved by peppy.
-4. A easy-to-use user interface.
+1. Support extremely low-latency playback around 0.5ms (determine by your devices, from tapping to hearing).
+2. Fully support for playing beatmap's custom hitsound including storyboard samples, and hitsound customization like: User skin, Ignore custom hitsound, Ignore samples, Ignore volumes, Ignore slidertails, etc.
+3. Optimise mania as per-key sound, just like behaviors in the game.
+4. Safe for your account, **but no guarantee**.
+5. A easy-to-use user interface.
+
+## Screenshots 
+<centre>![overview](docs/overview.png)
+overview
+![realtimeoptions](docs/realtimeoptions.png)
+realtime options</centre>
 
 ## Configuration
-The least steps:
-1. Change the device in the software GUI.
-2. Change your own key bindings in the software GUI.
-3. Set the effect volume to 0 in osu!. (Or a skin with all hitsound muted, then ignore custom sounds when playing. I recommend to do so because this will keep storyboard samples.)
+If you have no other standalone soundcard, please try those steps:
+1. Use HDMI output with display monitor or HDMI decoder, and line-out to some standalone mixers (low-end is just ok, since they are always very cheap. **DO NOT USE WINDOWS MIXER SOFTWARES**, they will only increase the latency).
+2. Line-out your onboard soundcard to the mixer.
+3. Plug your headphone into the mixer.
+4. Install [asio4all](https://www.asio4all.org/).
+5. Change the device in the software GUI, select `ASIO4ALL` and confirm.
+6. Open the ASIO4ALL control panel, and select something like `HDMI Out` with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
+
+Common steps:
+1. Change the device in the software GUI, and select your ASIO Device.
+2. Change options in your ASIO control panel to lower the latency (Check latency at the software GUI).
+3. Select your fit device in osu. (mixer or something others, and can be the same device as KeyASIO.Net if your soundcard driver supports ASIO concurrency)
+4. Change your own key bindings in the software GUI.
+5. Set the effect volume to 0 in osu!.
+6. Open offset wizard, play with `Auto` mod and adjust the software's offset and osu!'s offset.
+
 
 Full options in `appsettings.yaml`: 
 | Item               | Description                                                                                                                                |
