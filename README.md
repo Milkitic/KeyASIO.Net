@@ -17,10 +17,16 @@ Benifits of KeyASIO.Net
 5. A easy-to-use user interface.
 
 ## Screenshots 
-<centre>![overview](docs/overview.png)
-overview
-![realtimeoptions](docs/realtimeoptions.png)
-realtime options</centre>
+<p align="center">
+  <img src="docs/overview.png">
+  <br>
+  <sub>Overview</sub>
+</p>
+<p align="center">
+  <img src="docs/realtimeoptions.png">
+  <br>
+  <sub>Realtime options</sub>
+</p>
 
 ## Configuration
 If you have no other standalone soundcard, please try those steps:
@@ -55,11 +61,6 @@ Full options in `appsettings.yaml`:
 | Volume             | Configured device volume.                                                                                                                  |
 
 ## Todo
-- [x] Allow to ignore the beatmap's hitsound
-- [x] Allow to ignore sliderends (be able to preserve the reverse sliders)
-- [x] Support playing storyboard sound (And have switches).
+- [ ] Ignore volumes.
 - [ ] Wrong behaviors while user double tapping or do something others in the overlapped OD range (need an OD calculator and other logics)
-- [ ] Fully mania support (per column sounding like the game)
-- [ ] ? Improve ortdp performance. (Maybe wait Deliay's?)
-- [ ] ? Lag while playing mania.
 - [ ] Audio has lags while dynamically reading hitsound in the background.
