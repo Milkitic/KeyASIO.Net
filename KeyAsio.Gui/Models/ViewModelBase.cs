@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Milki.Extensions.MixPlayer.Annotations;
+using JetBrains.Annotations;
 
 namespace KeyAsio.Gui.Models;
 

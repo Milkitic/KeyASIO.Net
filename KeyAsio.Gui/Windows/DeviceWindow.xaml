@@ -56,38 +56,78 @@
             </ComboBox>
 
             <StackPanel>
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Setter Property="Visibility" Value="Visible" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
-                                <Setter Property="Visibility" Value="Hidden" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
-
                 <TextBlock Margin="0,0,0,10" Text="Detail Configuration" />
 
-                <TextBlock
-                    Margin="0,0,0,10"
-                    FontSize="12"
-                    Foreground="{StaticResource SecondaryTextBrush}"
-                    Text="Latency" />
-                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                    <Slider
-                        Width="300"
-                        Margin="0,0,8,0"
-                        VerticalAlignment="Center"
-                        AutoToolTipPlacement="BottomRight"
-                        IsSnapToTickEnabled="True"
-                        Maximum="200"
-                        TickPlacement="None"
-                        Value="{Binding Latency}" />
+                <StackPanel HorizontalAlignment="Left">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Hidden" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+
                     <TextBlock
-                        VerticalAlignment="Center"
+                        Margin="0,0,0,10"
                         FontSize="12"
-                        Text="{Binding Latency}" />
+                        Foreground="{StaticResource SecondaryTextBrush}"
+                        Text="Force buffer size (0 as default size)" />
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <Slider
+                            Width="345"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            AutoToolTipPlacement="BottomRight"
+                            IsSnapToTickEnabled="True"
+                            LargeChange="16"
+                            Maximum="2048"
+                            TickFrequency="1"
+                            TickPlacement="None"
+                            Value="{Binding ForceAsioBufferSize}" />
+                        <TextBox
+                            Width="45"
+                            VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding ForceAsioBufferSize, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Left">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+
+                    <TextBlock
+                        Margin="0,0,0,10"
+                        FontSize="12"
+                        Foreground="{StaticResource SecondaryTextBrush}"
+                        Text="Latency" />
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <Slider
+                            Width="300"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            AutoToolTipPlacement="BottomRight"
+                            IsSnapToTickEnabled="True"
+                            Maximum="200"
+                            TickPlacement="None"
+                            Value="{Binding Latency}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding Latency}" />
+                    </StackPanel>
                 </StackPanel>
 
                 <StackPanel HorizontalAlignment="Left">

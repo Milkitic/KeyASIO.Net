@@ -14,6 +14,7 @@ public class DeviceWindowViewModel : ViewModelBase
     private int _latency = 3;
     private int _sampleRate = 44100;
     private bool _isExclusive;
+    private ushort _forceAsioBufferSize;
 
     public List<DeviceDescription>? Devices
     {
@@ -43,6 +44,12 @@ public class DeviceWindowViewModel : ViewModelBase
     {
         get => _isExclusive;
         set => this.RaiseAndSetIfChanged(ref _isExclusive, value);
+    }
+
+    public ushort ForceAsioBufferSize
+    {
+        get => _forceAsioBufferSize;
+        set => this.RaiseAndSetIfChanged(ref _forceAsioBufferSize, value);
     }
 }
 

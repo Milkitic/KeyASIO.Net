@@ -102,8 +102,10 @@ public partial class MainWindow : Window
 
         var latency = window.ViewModel.Latency;
         var isExclusive = window.ViewModel.IsExclusive;
+        var forceBufferSize = window.ViewModel.ForceAsioBufferSize;
         deviceDescription.Latency = latency;
         deviceDescription.IsExclusive = isExclusive;
+        deviceDescription.ForceASIOBufferSize = forceBufferSize;
         _appSettings.SampleRate = window.ViewModel.SampleRate;
 
         await LoadDevice(deviceDescription, true);

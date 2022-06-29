@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
-using Milki.Extensions.MixPlayer.Annotations;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
 
@@ -18,7 +18,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     };
 
     private RealtimeOptions? _realtimeOptions;
-    
+
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public List<HookKeys> Keys
     {
