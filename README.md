@@ -3,13 +3,14 @@ External ASIO/WASAPI_EXCLUSIVE backend for low-latency and safe osu! audio playb
 
 While the original osu's audio system has a latency for about 40 ms, this program can provide extremely low latency to as low as 0.5ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 15ms *(with no professional soundcard, from tapping to hearing)*.
 
+## Introduction
 We have been waiting for the [very near future](https://osu.ppy.sh/community/forums/topics/428222?n=13) for several years, but it looks like that the dev team has been given up to support legacy osu! development. So there are many external community audio tools before like [REAL](https://github.com/miniant-git/REAL), [osu-External-ASIO-Sound](https://github.com/XTXTMTXTX/osu-External-ASIO-Sound), [AsioHookForOsu](https://github.com/zzhouhe/AsioHookForOsu), etc. But:
 * Even with REAL, the osu!'s playback latency is still about 25ms. Anyway this is the easiest way to gain such improvement.
 * Tools like osu-External-ASIO-Sound or AsioHookForOsu gives ASIO support, but they have some inevitable problems: 1. Inject and hook which is unsafe for your account. 2. Not perfect for custom hitsound support.
 
 This project born to resolve these problems. As default, this program enables `RealtimeMode` in the configuration, which will use [OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider) to read osu's memory without modifying. The OsuRTDataProvider is commonly used for broadcasting tools (like [RTPP Displayer](https://osu.ppy.sh/community/forums/topics/685031?n=1)), and it's safe because it was [approved by peppy](https://i.ppy.sh/6c651103246da60f794606d63b8fc30c3aafd4fa/68747470733a2f2f692e696d6775722e636f6d2f767744337a64302e706e67). *But nothing will be guaranteed, so I should still say please do at your own risk.*
 
-Benifits of KeyASIO.Net
+**Benifits of KeyASIO.Net**
 1. Support extremely low-latency playback around 0.5ms (determine by your devices, from tapping to hearing).
 2. Fully support for playing beatmap's custom hitsound including storyboard samples, and hitsound customization like: User skin, Ignore custom hitsound, Ignore samples, Ignore volumes, Ignore slidertails, etc.
 3. Optimise mania as per-key sound, just like behaviors in the game.
@@ -29,25 +30,25 @@ Benifits of KeyASIO.Net
 </p>
 
 ## Configuration
-If you have no other standalone soundcard, you have to use ASIO4ALL. Make sure you have at least 2 audio output devices (including HDMI Audio), then these following steps can be referenced:
+**If you have no other standalone soundcard, you have to use software like ASIO4ALL. Make sure you have at least 2 audio output devices (including HDMI Audio), then these following steps can be referenced:**
 1. Use HDMI output with display monitor or HDMI decoder, and line-out to some standalone mixers. Low-end device is just ok, since they are always very cheap. **DO NOT USE WINDOWS MIXER SOFTWARES**, they will only increase the latency.
 2. Line-out your motherboard soundcard to the mixer.
 3. Plug your headphone into the mixer.
-4. Install [asio4all](https://www.asio4all.org/).
+4. Install [ASIO4ALL](https://www.asio4all.org/).
 5. Change the device in the software GUI, select `ASIO4ALL` and confirm.
 6. Open the ASIO4ALL control panel, and select something like `HDMI Out` with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
 7. Select your motherboard device in osu. (Do not select the same device as ASIO4ALL, it will not work.)
 
-Common steps:
+**Common steps:**
 1. Change the device in the software GUI, and select your ASIO Device.
 2. Change options in your ASIO control panel to lower the latency (Check latency at the software GUI).
 3. Select your fit device in osu. (motherboard output, your mixer or something others, and can be the same device as KeyASIO.Net if your soundcard driver supports ASIO concurrency)
 4. Change your own key bindings in the software GUI.
 5. Set the effect volume to 0 in osu!.
 6. Open offset wizard, play with `Auto` mod and adjust the software's offset and osu!'s offset.
+7. Play!
 
-
-Full options in `appsettings.yaml`: 
+**Full options in `appsettings.yaml`:** (Modify after program closed) 
 | Item                                    | Description                                                                                                                                                                  |
 | --------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Debugging                               | Show debug logs.                                                                                                                                                             |
@@ -66,6 +67,13 @@ Full options in `appsettings.yaml`:
 | SkinFolder                              | The skin folder when `RealtimeMode` is true.                                                                                                                                 |
 | VolumeEnabled                           | Software volume control. Disable for extremely low latency when `RealtimeMode` is false                                                                                      |
 | Volume                                  | Configured device volume.                                                                                                                                                    |
+## FAQs
+
+#### How to change skins?
+Please change it in configuration file.
+
+#### It has bugs please help!
+If you're sure it's a bug and have steps to reproduce, please open issue. For any other questions please reply in the forum page or Github's disscusion page.
 
 ## Todo
 - [ ] Ignore volumes.
