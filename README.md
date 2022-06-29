@@ -1,7 +1,7 @@
 # KeyASIO.Net
 External ASIO/WASAPI_EXCLUSIVE backend for low-latency and safe osu! audio playback experience.
 
-While the original osu's audio system has a latency for about 40 ms, this program can provide extremely low latency to as low as 0.5ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 15ms *(with no professional soundcard, from tapping to hearing)*.
+While the original osu's audio system has a latency for about 40 ms, this program can provide extremely low latency to as low as 0.6ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 15ms *(with no professional soundcard, from tapping to hearing)*.
 
 ## Introduction
 We have been waiting for the [very near future](https://osu.ppy.sh/community/forums/topics/428222?n=13) for several years, but it looks like that the dev team has been given up to support legacy osu! development. So there are many external community audio tools before like [REAL](https://github.com/miniant-git/REAL), [osu-External-ASIO-Sound](https://github.com/XTXTMTXTX/osu-External-ASIO-Sound), [AsioHookForOsu](https://github.com/zzhouhe/AsioHookForOsu), etc. But:
@@ -11,7 +11,7 @@ We have been waiting for the [very near future](https://osu.ppy.sh/community/for
 This project born to resolve these problems. As default, this program enables `RealtimeMode` in the configuration, which will use [OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider) to read osu's memory without modifying. The OsuRTDataProvider is commonly used for broadcasting tools (like [RTPP Displayer](https://osu.ppy.sh/community/forums/topics/685031?n=1)), and it's safe because it was [approved by peppy](https://i.ppy.sh/6c651103246da60f794606d63b8fc30c3aafd4fa/68747470733a2f2f692e696d6775722e636f6d2f767744337a64302e706e67). *But nothing will be guaranteed, so I should still say please do at your own risk.*
 
 **Benifits of KeyASIO.Net**
-1. Support extremely low-latency playback around 0.5ms (determine by your devices, from tapping to hearing).
+1. Support extremely low-latency playback around 0.6ms (determine by your devices, from tapping to hearing).
 2. Fully support for playing beatmap's custom hitsound including storyboard samples, and hitsound customization like: User skin, Ignore custom hitsound, Ignore samples, Ignore volumes, Ignore slidertails, etc.
 3. Optimise mania as per-key sound, just like behaviors in the game.
 4. Safe for your account, **but no guarantee**.
