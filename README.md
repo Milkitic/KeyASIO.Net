@@ -4,7 +4,7 @@ External ASIO/WASAPI_EXCLUSIVE backend for low-latency and safe osu! audio playb
 While the original osu's audio system has a latency for about 40 ms, this program can provide extremely low latency to as low as 0.6ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 15ms *(with no professional soundcard, from tapping to hearing)*.
 
 ## Introduction
-We have been waiting for the [very near future](https://osu.ppy.sh/community/forums/topics/428222?n=13) for several years, but it looks like that the dev team has been given up to support legacy osu! development. So there are many external community audio tools before like [REAL](https://github.com/miniant-git/REAL), [osu-External-ASIO-Sound](https://github.com/XTXTMTXTX/osu-External-ASIO-Sound), [AsioHookForOsu](https://github.com/zzhouhe/AsioHookForOsu), etc. But:
+We have been waiting for the [very near future](https://osu.ppy.sh/community/forums/topics/428222?n=13) for several years, but it looks like that the dev team has been stopped supporting such heavy development for legacy osu. So there are many nice external community audio tools before like [REAL](https://github.com/miniant-git/REAL), [osu-External-ASIO-Sound](https://github.com/XTXTMTXTX/osu-External-ASIO-Sound), [AsioHookForOsu](https://github.com/zzhouhe/AsioHookForOsu), etc. But:
 * Even with REAL, the osu!'s playback latency is still about 25ms. Anyway this is the easiest way to gain such improvement.
 * Tools like osu-External-ASIO-Sound or AsioHookForOsu gives ASIO support, but they have some inevitable problems: 1. Inject and hook which is unsafe for your account. 2. Not perfect for custom hitsound support.
 
