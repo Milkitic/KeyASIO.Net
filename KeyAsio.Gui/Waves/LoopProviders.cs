@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -90,10 +91,11 @@ internal class LoopProviders
         var slideChannel = controlNode.SlideChannel;
         Remove(slideChannel, mixer);
 
-        var byteArray = new byte[cachedSound.AudioData.Length * sizeof(float)];
+        var audioDataLength = cachedSound.AudioData.Length * sizeof(float);
+        var byteArray = ArrayPool<byte>.Shared.Rent(audioDataLength);
         Buffer.BlockCopy(cachedSound.AudioData, 0, byteArray, 0, byteArray.Length);
 
-        var memoryStream = new MemoryStream(byteArray);
+        var memoryStream = new MemoryStream(byteArray, 0, audioDataLength);
         var waveStream = new RawSourceWaveStream(memoryStream, cachedSound.WaveFormat);
         var loopStream = new LoopStream(waveStream);
         var volumeProvider = new VolumeSampleProvider(loopStream.ToSampleProvider())
@@ -105,7 +107,8 @@ internal class LoopProviders
             Balance = controlNode.Balance * balanceFactor
         };
 
-        _dictionary.Add(slideChannel, new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream));
+        _dictionary.Add(slideChannel,
+            new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream, byteArray));
         mixer?.AddMixerInput(balanceProvider);
     }
 }

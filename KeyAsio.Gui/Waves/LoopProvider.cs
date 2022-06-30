@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.IO;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
@@ -13,18 +14,21 @@ internal sealed class LoopProvider : IDisposable
     private readonly MemoryStream _memoryStream;
     private readonly RawSourceWaveStream _waveStream;
     private readonly LoopStream _loopStream;
+    private readonly byte[] _byteArray;
 
     public LoopProvider(BalanceSampleProvider balanceProvider,
         VolumeSampleProvider volumeProvider,
         MemoryStream memoryStream,
         RawSourceWaveStream waveStream,
-        LoopStream loopStream)
+        LoopStream loopStream,
+        byte[] byteArray)
     {
         _balanceProvider = balanceProvider;
         _volumeProvider = volumeProvider;
         _memoryStream = memoryStream;
         _waveStream = waveStream;
         _loopStream = loopStream;
+        _byteArray = byteArray;
     }
 
     public void SetBalance(float balance)
@@ -44,8 +48,15 @@ internal sealed class LoopProvider : IDisposable
 
     public void Dispose()
     {
-        _loopStream.Dispose();
-        _waveStream.Dispose();
-        _memoryStream.Dispose();
+        try
+        {
+            _loopStream.Dispose();
+            _waveStream.Dispose();
+            _memoryStream.Dispose();
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(_byteArray);
+        }
     }
 }
