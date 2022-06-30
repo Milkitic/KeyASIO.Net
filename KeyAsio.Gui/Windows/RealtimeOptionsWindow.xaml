@@ -9,7 +9,7 @@
     xmlns:models="clr-namespace:KeyAsio.Gui.Models"
     Title="Realtime Options"
     Width="500"
-    Height="525"
+    MinHeight="325"
     d:DataContext="{d:DesignInstance models:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource RegionBrush}"
@@ -17,6 +17,7 @@
     FontFamily="Segoe UI,微软雅黑"
     FontSize="14"
     ResizeMode="NoResize"
+    SizeToContent="Height"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
     WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
@@ -27,59 +28,82 @@
                 FontSize="21"
                 FontWeight="Bold"
                 Text="Realtime Options" />
+            <UniformGrid Columns="2">
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,10" Text="Ignore beatmap hitsounds" />
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <ToggleButton
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreBeatmapHitsound}"
+                            Style="{StaticResource ToggleButtonSwitch}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding AppSettings.RealtimeOptions.IgnoreBeatmapHitsound, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+                    </StackPanel>
+                </StackPanel>
 
-            <TextBlock Margin="0,0,0,10" Text="Ignore beatmap hitsounds" />
-            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                <ToggleButton
-                    Margin="0,0,8,0"
-                    HorizontalAlignment="Left"
-                    IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreBeatmapHitsound}"
-                    Style="{StaticResource ToggleButtonSwitch}" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    Text="{Binding AppSettings.RealtimeOptions.IgnoreBeatmapHitsound, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
-            </StackPanel>
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,10" Text="Ignore storyboard samples" />
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <ToggleButton
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreStoryboardSamples}"
+                            Style="{StaticResource ToggleButtonSwitch}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding AppSettings.RealtimeOptions.IgnoreStoryboardSamples, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+                    </StackPanel>
+                </StackPanel>
 
-            <TextBlock Margin="0,0,0,10" Text="Ignore storyboard samples" />
-            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                <ToggleButton
-                    Margin="0,0,8,0"
-                    HorizontalAlignment="Left"
-                    IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreStoryboardSamples}"
-                    Style="{StaticResource ToggleButtonSwitch}" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    Text="{Binding AppSettings.RealtimeOptions.IgnoreStoryboardSamples, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
-            </StackPanel>
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,10" Text="Ignore slider ticks and slides" />
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <ToggleButton
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides}"
+                            Style="{StaticResource ToggleButtonSwitch}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+                    </StackPanel>
+                </StackPanel>
 
-            <TextBlock Margin="0,0,0,10" Text="Ignore slider ticks and slides" />
-            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                <ToggleButton
-                    Margin="0,0,8,0"
-                    HorizontalAlignment="Left"
-                    IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides}"
-                    Style="{StaticResource ToggleButtonSwitch}" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    Text="{Binding AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
-            </StackPanel>
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,10" Text="Ignore combo break sound" />
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <ToggleButton
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreComboBreak}"
+                            Style="{StaticResource ToggleButtonSwitch}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding AppSettings.RealtimeOptions.IgnoreComboBreak, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+                    </StackPanel>
+                </StackPanel>
 
-            <TextBlock Margin="0,0,0,10" Text="Ignore combo break sound" />
-            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                <ToggleButton
-                    Margin="0,0,8,0"
-                    HorizontalAlignment="Left"
-                    IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreComboBreak}"
-                    Style="{StaticResource ToggleButtonSwitch}" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    Text="{Binding AppSettings.RealtimeOptions.IgnoreComboBreak, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
-            </StackPanel>
-
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,10" Text="Ignore beatmap volume" />
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <ToggleButton
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            IsChecked="{Binding AppSettings.RealtimeOptions.IgnoreLineVolumes}"
+                            Style="{StaticResource ToggleButtonSwitch}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding AppSettings.RealtimeOptions.IgnoreLineVolumes, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+                    </StackPanel>
+                </StackPanel>
+            </UniformGrid>
             <TextBlock Margin="0,0,0,10" Text="Playback behavior for slider tail" />
             <ComboBox
                 Width="370"

@@ -178,8 +178,19 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    public void PlayAudio(CachedSound cachedSound, float volume, float balance)
+    public void PlayAudio(CachedSound? cachedSound, float volume, float balance)
     {
+        if (cachedSound is null)
+        {
+            Logger.LogWarning("No cached sound!");
+            return;
+        }
+
+        if (AppSettings.RealtimeOptions.IgnoreBeatmapHitsound)
+        {
+            volume = 1;
+        }
+
         balance *= AppSettings.RealtimeOptions.BalanceFactor;
         SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(
             new Waves.BalanceSampleProvider(
@@ -461,7 +472,9 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnComboChanged(int oldCombo, int newCombo)
     {
-        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak && newCombo < oldCombo && oldCombo >= 20 && Score != 0)
+        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak &&
+            newCombo < oldCombo && oldCombo >= 20 &&
+            Score != 0)
         {
             if (_filenameToCachedSoundMapping.TryGetValue("combobreak", out var cachedSound))
             {
