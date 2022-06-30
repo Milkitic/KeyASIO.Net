@@ -445,7 +445,7 @@
                 IsEnabled="{Binding AppSettings.VolumeEnabled}"
                 IsSnapToTickEnabled="True"
                 LargeChange="0.1"
-                Maximum="1"
+                Maximum="1.5"
                 Minimum="0"
                 Orientation="Vertical"
                 SnapsToDevicePixels="True"

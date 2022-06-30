@@ -120,7 +120,7 @@ public partial class MainWindow : Window
                 _appSettings.SampleRate, /*_appSettings.Channels*/2,
                 notifyProgress: false, enableVolume: _appSettings.VolumeEnabled)
             {
-                Volume = _appSettings.Volume
+                Volume = _appSettings.Volume / 100f
             };
 
             if (device is AsioOut asioOut)
@@ -341,7 +341,8 @@ public partial class MainWindow : Window
         if (_viewModel.AudioPlaybackEngine is null) return;
         if (!_appSettings.VolumeEnabled) return;
 
-        _appSettings.Volume = (float)((Slider)sender).Value;
+        var slider = (Slider)sender;
+        _appSettings.Volume = (int)Math.Round(slider.Value * 100);
     }
 
     private void btnLatencyCheck_OnClick(object sender, RoutedEventArgs e)

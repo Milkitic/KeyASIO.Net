@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
@@ -6,6 +7,7 @@ using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
+using YamlDotNet.Serialization;
 
 namespace KeyAsio.Gui;
 
@@ -18,6 +20,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     };
 
     private RealtimeOptions? _realtimeOptions;
+    private int _volume = 100;
 
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public List<HookKeys> Keys
@@ -49,10 +52,21 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     public DeviceDescription? Device { get; set; }
 
     [Description("Software volume control. Disable for extremely low latency when `RealtimeMode` is false.")]
+    [YamlIgnore]
     public bool VolumeEnabled { get; set; } = true;
 
-    [Description("Configured device volume.")]
-    public float Volume { get; set; } = 1;
+    [Description("Configured device volume, range: 0~150")]
+    public float Volume
+    {
+        get => _volume;
+        set
+        {
+            if (value > 150) value = 150;
+            else if (value < 0) value = 0;
+            else if (value < 1) value *= 100; // Convert from old version
+            _volume = (int)Math.Round(value);
+        }
+    }
 
     public RealtimeOptions RealtimeOptions
     {
