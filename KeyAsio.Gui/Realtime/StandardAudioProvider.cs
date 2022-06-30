@@ -96,7 +96,6 @@ public class StandardAudioProvider : IAudioProvider
             {
                 var controlNode = (ControlNode)hitsoundNode;
                 if (controlNode.ControlType is ControlType.ChangeBalance or ControlType.None) continue;
-                //controlNode.Balance = 1;
                 playbackList.Add(controlNode);
                 continue;
             }

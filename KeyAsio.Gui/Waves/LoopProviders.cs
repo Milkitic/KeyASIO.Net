@@ -93,7 +93,7 @@ internal class LoopProviders
 
         var audioDataLength = cachedSound.AudioData.Length * sizeof(float);
         var byteArray = ArrayPool<byte>.Shared.Rent(audioDataLength);
-        Buffer.BlockCopy(cachedSound.AudioData, 0, byteArray, 0, byteArray.Length);
+        Buffer.BlockCopy(cachedSound.AudioData, 0, byteArray, 0, audioDataLength);
 
         var memoryStream = new MemoryStream(byteArray, 0, audioDataLength);
         var waveStream = new RawSourceWaveStream(memoryStream, cachedSound.WaveFormat);
