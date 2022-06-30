@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -40,11 +41,12 @@ public class RealtimeModeManager : ViewModelBase
     private readonly object _isStartedLock = new();
     private readonly HitsoundFileCache _hitsoundFileCache = new();
 
-    private readonly ConcurrentDictionary<PlayableNode, CachedSound?> _playNodeToCachedSoundMapping = new();
+    private readonly ConcurrentDictionary<HitsoundNode, CachedSound?> _playNodeToCachedSoundMapping = new();
     private readonly ConcurrentDictionary<string, CachedSound?> _filenameToCachedSoundMapping = new();
 
     private readonly List<PlayableNode> _keyList = new();
     private readonly List<PlayableNode> _playbackList = new();
+    private readonly List<ControlNode> _loopEffectList = new();
 
     private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
     private readonly StandardAudioProvider _standardAudioProvider;
@@ -235,6 +237,7 @@ public class RealtimeModeManager : ViewModelBase
         GetCurrentAudioProvider().ResetNodes(PlayTime);
         AddAudioCacheInBackground(0, 13000, _keyList);
         AddAudioCacheInBackground(0, 13000, _playbackList);
+        AddAudioCacheInBackground(0, 13000, _loopEffectList);
         _nextCachingTime = 10000;
     }
 
@@ -242,6 +245,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         _keyList.Clear();
         _playbackList.Clear();
+        _loopEffectList.Clear();
 
         var osuDir = new OsuDirectory(folder);
         using (DebugUtils.CreateTimer("InitFolder", Logger))
@@ -260,7 +264,7 @@ public class RealtimeModeManager : ViewModelBase
         OsuFile = osuFile;
         using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
         var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
-        GetCurrentAudioProvider().FillAudioList(hitsoundList, _keyList, _playbackList);
+        GetCurrentAudioProvider().FillAudioList(hitsoundList, _keyList, _playbackList, _loopEffectList);
     }
 
     private void AddSkinCacheInBackground()
@@ -292,7 +296,8 @@ public class RealtimeModeManager : ViewModelBase
         });
     }
 
-    private void AddAudioCacheInBackground(int startTime, int endTime, List<PlayableNode> playableNodes,
+    private void AddAudioCacheInBackground(int startTime, int endTime,
+        IEnumerable<HitsoundNode> playableNodes,
         [CallerArgumentExpression("playableNodes")]
         string? expression = null)
     {
@@ -308,7 +313,7 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (playableNodes.Count == 0)
+        if (playableNodes is IList { Count: 0 })
         {
             Logger.LogDebug($"{expression} has no hitsounds, stop adding cache.");
             return;
@@ -374,7 +379,7 @@ public class RealtimeModeManager : ViewModelBase
         return result;
     }
 
-    private async Task AddHitsoundCache(PlayableNode playableNode,
+    private async Task AddHitsoundCache(HitsoundNode playableNode,
         string beatmapFolder,
         string skinFolder,
         WaveFormat waveFormat)
@@ -456,6 +461,7 @@ public class RealtimeModeManager : ViewModelBase
         {
             AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _keyList);
             AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _playbackList);
+            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _loopEffectList);
             _nextCachingTime += 10000;
         }
 

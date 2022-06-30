@@ -17,8 +17,9 @@ var maniaAudioProvider = new ManiaAudioProvider(realtimeModeManager);
 
 List<PlayableNode> keyList = new();
 List<PlayableNode> playbackList = new();
+List<ControlNode> loopList = new();
 
-maniaAudioProvider.FillAudioList(hitsoundList, keyList, playbackList);
+maniaAudioProvider.FillAudioList(hitsoundList, keyList, playbackList, loopList);
 realtimeModeManager.KeyList.AddRange(keyList);
 maniaAudioProvider.ResetNodes(0);
 

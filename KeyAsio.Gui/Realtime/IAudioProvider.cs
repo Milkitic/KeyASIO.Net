@@ -9,6 +9,7 @@ public interface IAudioProvider
     IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey);
     IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal);
 
-    void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<PlayableNode> playbackList);
+    void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
+        List<PlayableNode> playbackList, List<ControlNode> loopEffectList);
     void ResetNodes(int playTime);
 }

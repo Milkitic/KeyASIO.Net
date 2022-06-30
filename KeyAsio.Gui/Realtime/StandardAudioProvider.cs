@@ -87,12 +87,20 @@ public class StandardAudioProvider : IAudioProvider
         return GetNextKeyAudio(first, playTime, true);
     }
 
-    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<PlayableNode> playbackList)
+    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
+        List<PlayableNode> playbackList, List<ControlNode> loopEffectList)
     {
         var secondaryCache = new List<PlayableNode>();
         foreach (var hitsoundNode in nodeList)
         {
-            if (hitsoundNode is not PlayableNode playableNode) continue;
+            if (hitsoundNode is not PlayableNode playableNode)
+            {
+                var controlNode = (ControlNode)hitsoundNode;
+                if (controlNode.ControlType is ControlType.ChangeBalance or ControlType.None) continue;
+
+                loopEffectList.Add(controlNode);
+                continue;
+            }
 
             if (playableNode.PlayablePriority == PlayablePriority.Primary)
             {

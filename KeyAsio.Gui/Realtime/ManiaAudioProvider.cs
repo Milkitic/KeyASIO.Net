@@ -121,7 +121,8 @@ public class ManiaAudioProvider : IAudioProvider
         return ReturnDefaultAndLog("No audio returns.");
     }
 
-    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<PlayableNode> playbackList)
+    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
+        List<PlayableNode> playbackList, List<ControlNode> loopEffectList)
     {
         foreach (var hitsoundNode in nodeList)
         {
