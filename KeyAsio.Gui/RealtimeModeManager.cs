@@ -168,7 +168,11 @@ public class RealtimeModeManager : ViewModelBase
         {
             if (playbackObject.CachedSound != null)
             {
-                PlayAudio(playbackObject.CachedSound, playableNode.Volume, playableNode.Balance);
+                var volume = playableNode.PlayablePriority == PlayablePriority.Effects
+                    ? playableNode.Volume * 1.25f
+                    : playableNode.Volume;
+
+                PlayAudio(playbackObject.CachedSound, volume, playableNode.Balance);
             }
         }
         else
@@ -186,7 +190,7 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (AppSettings.RealtimeOptions.IgnoreBeatmapHitsound)
+        if (AppSettings.RealtimeOptions.IgnoreLineVolumes)
         {
             volume = 1;
         }
@@ -209,6 +213,8 @@ public class RealtimeModeManager : ViewModelBase
         var rootMixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
         if (rootMixer == null) return;
 
+        var volume = AppSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
+
         if (controlNode.ControlType == ControlType.StartSliding)
         {
             if (_loopProviders.ShouldRemoveAll(controlNode.SlideChannel))
@@ -216,7 +222,7 @@ public class RealtimeModeManager : ViewModelBase
                 _loopProviders.RemoveAll(rootMixer);
             }
 
-            _loopProviders.Create(controlNode, cachedSound, rootMixer, 0);
+            _loopProviders.Create(controlNode, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
         }
         else if (controlNode.ControlType == ControlType.StopSliding)
         {
@@ -224,7 +230,7 @@ public class RealtimeModeManager : ViewModelBase
         }
         else if (controlNode.ControlType == ControlType.ChangeVolume)
         {
-            _loopProviders.ChangeAllVolumes(controlNode.Volume);
+            _loopProviders.ChangeAllVolumes(volume);
         }
     }
 
@@ -460,7 +466,7 @@ public class RealtimeModeManager : ViewModelBase
         }
         else if (status == true)
         {
-            Logger.LogInformation("Cached sound: " + path);
+            Logger.LogDebug("Cached sound: " + path);
         }
 
         _playNodeToCachedSoundMapping.TryAdd(playableNode, result);

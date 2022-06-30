@@ -19,40 +19,40 @@ internal class LoopProviders
         return _dictionary.ContainsKey(channel);
     }
 
-    public bool ChangeAllVolumes(float volume)
+    public bool ChangeAllVolumes(float volume, float volumeFactor = 1.25f)
     {
         foreach (var kvp in _dictionary.ToList())
         {
             var channel = kvp.Key;
             var loopProvider = kvp.Value;
-            loopProvider.SetVolume(volume);
+            loopProvider.SetVolume(volume * volumeFactor);
         }
         return true;
     }
 
-    public bool ChangeAllBalances(float balance)
+    public bool ChangeAllBalances(float balance, float balanceFactor = 1)
     {
         foreach (var kvp in _dictionary.ToList())
         {
             var channel = kvp.Key;
             var loopProvider = kvp.Value;
-            loopProvider.SetBalance(balance);
+            loopProvider.SetBalance(balance * balanceFactor);
         }
 
         return true;
     }
 
-    public bool ChangeVolume(SlideChannel slideChannel, float volume)
+    public bool ChangeVolume(SlideChannel slideChannel, float volume, float volumeFactor = 1.25f)
     {
         if (!_dictionary.TryGetValue(slideChannel, out var loopProvider)) return false;
-        loopProvider.SetVolume(volume);
+        loopProvider.SetVolume(volume * volumeFactor);
         return true;
     }
 
-    public bool ChangeBalance(SlideChannel slideChannel, float balance)
+    public bool ChangeBalance(SlideChannel slideChannel, float balance, float balanceFactor = 1)
     {
         if (!_dictionary.TryGetValue(slideChannel, out var loopProvider)) return false;
-        loopProvider.SetBalance(balance);
+        loopProvider.SetBalance(balance * balanceFactor);
         return true;
     }
 
@@ -84,6 +84,9 @@ internal class LoopProviders
     public void Create(ControlNode controlNode,
         CachedSound? cachedSound,
         MixingSampleProvider mixer,
+        float volume,
+        float balance,
+        float volumeFactor = 1.25f,
         float balanceFactor = 1)
     {
         if (cachedSound is null) return;
@@ -100,11 +103,11 @@ internal class LoopProviders
         var loopStream = new LoopStream(waveStream);
         var volumeProvider = new VolumeSampleProvider(loopStream.ToSampleProvider())
         {
-            Volume = controlNode.Volume
+            Volume = volume * volumeFactor
         };
         var balanceProvider = new BalanceSampleProvider(volumeProvider)
         {
-            Balance = controlNode.Balance * balanceFactor
+            Balance = balance * balanceFactor
         };
 
         _dictionary.Add(slideChannel,

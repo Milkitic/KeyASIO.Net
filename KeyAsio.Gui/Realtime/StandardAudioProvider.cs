@@ -96,6 +96,7 @@ public class StandardAudioProvider : IAudioProvider
             {
                 var controlNode = (ControlNode)hitsoundNode;
                 if (controlNode.ControlType is ControlType.ChangeBalance or ControlType.None) continue;
+                if (AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides) continue;
                 playbackList.Add(controlNode);
                 continue;
             }
