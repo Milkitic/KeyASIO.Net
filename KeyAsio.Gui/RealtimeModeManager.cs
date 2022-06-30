@@ -266,10 +266,10 @@ public class RealtimeModeManager : ViewModelBase
     private void Stop()
     {
         Logger.LogDebug("Stop playing.");
+        IsStarted = false;
         var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
         _loopProviders.RemoveAll(mixer);
         mixer?.RemoveAllMixerInputs();
-        IsStarted = false;
         _playTime = 0;
         PlayTime = 0;
         Combo = 0;
