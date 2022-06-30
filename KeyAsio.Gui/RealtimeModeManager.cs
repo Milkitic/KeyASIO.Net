@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -15,6 +14,7 @@ using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Realtime;
 using KeyAsio.Gui.Utils;
+using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
@@ -45,11 +45,11 @@ public class RealtimeModeManager : ViewModelBase
     private readonly ConcurrentDictionary<string, CachedSound?> _filenameToCachedSoundMapping = new();
 
     private readonly List<PlayableNode> _keyList = new();
-    private readonly List<PlayableNode> _playbackList = new();
-    private readonly List<ControlNode> _loopEffectList = new();
+    private readonly List<HitsoundNode> _playbackList = new();
 
     private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
     private readonly StandardAudioProvider _standardAudioProvider;
+    private readonly LoopProviders _loopProviders = new();
 
     private string? _folder;
 
@@ -143,12 +143,13 @@ public class RealtimeModeManager : ViewModelBase
 
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
-    public IReadOnlyList<PlayableNode> PlaybackList => _playbackList;
+    public IReadOnlyList<HitsoundNode> PlaybackList => _playbackList;
     public List<PlayableNode> KeyList => _keyList;
 
-    public bool TryGetAudioByNode(PlayableNode playableNode, [NotNullWhen(true)] out CachedSound? cachedSound)
+    public bool TryGetAudioByNode(HitsoundNode playableNode, out CachedSound? cachedSound)
     {
-        return _playNodeToCachedSoundMapping.TryGetValue(playableNode, out cachedSound) && cachedSound != null;
+        if (!_playNodeToCachedSoundMapping.TryGetValue(playableNode, out cachedSound)) return false;
+        return playableNode is not PlayableNode || cachedSound != null;
     }
 
     public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
@@ -163,7 +164,18 @@ public class RealtimeModeManager : ViewModelBase
 
     public void PlayAudio(PlaybackInfo playbackObject)
     {
-        PlayAudio(playbackObject.CachedSound, playbackObject.Volume, playbackObject.Balance);
+        if (playbackObject.HitsoundNode is PlayableNode playableNode)
+        {
+            if (playbackObject.CachedSound != null)
+            {
+                PlayAudio(playbackObject.CachedSound, playableNode.Volume, playableNode.Balance);
+            }
+        }
+        else
+        {
+            var controlNode = (ControlNode)playbackObject.HitsoundNode;
+            PlayLoopAudio(playbackObject.CachedSound, controlNode);
+        }
     }
 
     public void PlayAudio(CachedSound cachedSound, float volume, float balance)
@@ -179,6 +191,30 @@ public class RealtimeModeManager : ViewModelBase
         Logger.LogDebug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourcePath)}; " +
                         $"Vol. {volume}; " +
                         $"Bal. {balance}");
+    }
+
+    private void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode)
+    {
+        var rootMixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
+        if (rootMixer == null) return;
+
+        if (controlNode.ControlType == ControlType.StartSliding)
+        {
+            if (_loopProviders.ShouldRemoveAll(controlNode.SlideChannel))
+            {
+                _loopProviders.RemoveAll(rootMixer);
+            }
+
+            _loopProviders.Create(controlNode, cachedSound, rootMixer, 0);
+        }
+        else if (controlNode.ControlType == ControlType.StopSliding)
+        {
+            _loopProviders.Remove(controlNode.SlideChannel, rootMixer);
+        }
+        else if (controlNode.ControlType == ControlType.ChangeVolume)
+        {
+            _loopProviders.ChangeAllVolumes(controlNode.Volume);
+        }
     }
 
     private async Task StartAsync()
@@ -237,7 +273,6 @@ public class RealtimeModeManager : ViewModelBase
         GetCurrentAudioProvider().ResetNodes(PlayTime);
         AddAudioCacheInBackground(0, 13000, _keyList);
         AddAudioCacheInBackground(0, 13000, _playbackList);
-        AddAudioCacheInBackground(0, 13000, _loopEffectList);
         _nextCachingTime = 10000;
     }
 
@@ -245,7 +280,6 @@ public class RealtimeModeManager : ViewModelBase
     {
         _keyList.Clear();
         _playbackList.Clear();
-        _loopEffectList.Clear();
 
         var osuDir = new OsuDirectory(folder);
         using (DebugUtils.CreateTimer("InitFolder", Logger))
@@ -264,7 +298,7 @@ public class RealtimeModeManager : ViewModelBase
         OsuFile = osuFile;
         using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
         var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
-        GetCurrentAudioProvider().FillAudioList(hitsoundList, _keyList, _playbackList, _loopEffectList);
+        GetCurrentAudioProvider().FillAudioList(hitsoundList, _keyList, _playbackList);
     }
 
     private void AddSkinCacheInBackground()
@@ -385,7 +419,11 @@ public class RealtimeModeManager : ViewModelBase
         WaveFormat waveFormat)
     {
         if (!IsStarted) return;
-        if (playableNode.Filename == null) return;
+        if (playableNode.Filename == null)
+        {
+            _playNodeToCachedSoundMapping.TryAdd(playableNode, null);
+            return;
+        }
 
         var path = Path.Combine(beatmapFolder, playableNode.Filename);
         string? identifier = null;
@@ -461,7 +499,6 @@ public class RealtimeModeManager : ViewModelBase
         {
             AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _keyList);
             AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _playbackList);
-            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _loopEffectList);
             _nextCachingTime += 10000;
         }
 

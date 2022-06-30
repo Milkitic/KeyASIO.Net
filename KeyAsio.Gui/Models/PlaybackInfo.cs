@@ -1,17 +1,17 @@
-﻿using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+﻿using Coosu.Beatmap.Extensions.Playback;
+using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 
 namespace KeyAsio.Gui.Models;
 
 public class PlaybackInfo
 {
-    public PlaybackInfo(CachedSound cachedSound, float volume, float balance)
+
+    public PlaybackInfo(CachedSound? cachedSound, HitsoundNode hitsoundNode)
     {
         CachedSound = cachedSound;
-        Volume = volume;
-        Balance = balance;
+        HitsoundNode = hitsoundNode;
     }
+    public HitsoundNode HitsoundNode { get; }
 
-    public CachedSound CachedSound { get; }
-    public float Volume { get; }
-    public float Balance { get; }
+    public CachedSound? CachedSound { get; }
 }

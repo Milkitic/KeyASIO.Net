@@ -16,10 +16,10 @@ public class StandardAudioProvider : IAudioProvider
     private readonly RealtimeModeManager _realtimeModeManager;
 
     private Queue<PlayableNode> _hitQueue = new();
-    private Queue<PlayableNode> _playQueue = new();
+    private Queue<HitsoundNode> _playQueue = new();
 
     private PlayableNode? _firstNode;
-    private PlayableNode? _firstPlayNode;
+    private HitsoundNode? _firstPlayNode;
 
     public StandardAudioProvider(RealtimeModeManager realtimeModeManager)
     {
@@ -87,8 +87,7 @@ public class StandardAudioProvider : IAudioProvider
         return GetNextKeyAudio(first, playTime, true);
     }
 
-    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
-        List<PlayableNode> playbackList, List<ControlNode> loopEffectList)
+    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<HitsoundNode> playbackList)
     {
         var secondaryCache = new List<PlayableNode>();
         foreach (var hitsoundNode in nodeList)
@@ -97,8 +96,8 @@ public class StandardAudioProvider : IAudioProvider
             {
                 var controlNode = (ControlNode)hitsoundNode;
                 if (controlNode.ControlType is ControlType.ChangeBalance or ControlType.None) continue;
-
-                loopEffectList.Add(controlNode);
+                //controlNode.Balance = 1;
+                playbackList.Add(controlNode);
                 continue;
             }
 
@@ -148,7 +147,7 @@ public class StandardAudioProvider : IAudioProvider
     public void ResetNodes(int playTime)
     {
         _hitQueue = new Queue<PlayableNode>(_realtimeModeManager.KeyList);
-        _playQueue = new Queue<PlayableNode>(_realtimeModeManager.PlaybackList.Where(k => k.Offset >= PlayTime));
+        _playQueue = new Queue<HitsoundNode>(_realtimeModeManager.PlaybackList.Where(k => k.Offset >= PlayTime));
         _hitQueue.TryDequeue(out _firstNode);
         _playQueue.TryDequeue(out _firstPlayNode);
     }
@@ -182,7 +181,7 @@ public class StandardAudioProvider : IAudioProvider
             {
                 counter++;
                 preNode = firstNode;
-                yield return new PlaybackInfo(cachedSound, firstNode.Volume, firstNode.Balance);
+                yield return new PlaybackInfo(cachedSound, firstNode);
             }
 
             _hitQueue.TryDequeue(out firstNode);
@@ -195,7 +194,7 @@ public class StandardAudioProvider : IAudioProvider
         }
     }
 
-    private IEnumerable<PlaybackInfo> GetNextPlaybackAudio(PlayableNode? firstNode, int playTime, bool includeKey)
+    private IEnumerable<PlaybackInfo> GetNextPlaybackAudio(HitsoundNode? firstNode, int playTime, bool includeKey)
     {
         while (firstNode != null)
         {
@@ -206,7 +205,7 @@ public class StandardAudioProvider : IAudioProvider
 
             if (_realtimeModeManager.TryGetAudioByNode(firstNode, out var cachedSound))
             {
-                yield return new PlaybackInfo(cachedSound, firstNode.Volume, firstNode.Balance);
+                yield return new PlaybackInfo(cachedSound, firstNode);
             }
 
             if (includeKey)
@@ -215,7 +214,8 @@ public class StandardAudioProvider : IAudioProvider
             }
             else
             {
-                _hitQueue.TryDequeue(out firstNode);
+                _hitQueue.TryDequeue(out var node);
+                firstNode = node;
             }
         }
 
@@ -225,7 +225,7 @@ public class StandardAudioProvider : IAudioProvider
         }
         else
         {
-            _firstNode = firstNode;
+            _firstNode = (PlayableNode?)firstNode;
         }
     }
 

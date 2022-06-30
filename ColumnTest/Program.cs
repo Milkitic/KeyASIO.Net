@@ -16,10 +16,9 @@ var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
 var maniaAudioProvider = new ManiaAudioProvider(realtimeModeManager);
 
 List<PlayableNode> keyList = new();
-List<PlayableNode> playbackList = new();
-List<ControlNode> loopList = new();
+List<HitsoundNode> playbackList = new();
 
-maniaAudioProvider.FillAudioList(hitsoundList, keyList, playbackList, loopList);
+maniaAudioProvider.FillAudioList(hitsoundList, keyList, playbackList);
 realtimeModeManager.KeyList.AddRange(keyList);
 maniaAudioProvider.ResetNodes(0);
 

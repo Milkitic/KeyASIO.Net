@@ -18,11 +18,11 @@ public class ManiaAudioProvider : IAudioProvider
     private List<Queue<PlayableNode>> _hitQueue = new();
     private PlayableNode?[] _hitQueueCache = Array.Empty<PlayableNode>();
 
-    private Queue<PlayableNode> _playQueue = new();
-    private Queue<PlayableNode> _autoPlayQueue = new();
+    private Queue<HitsoundNode> _playQueue = new();
+    private Queue<HitsoundNode> _autoPlayQueue = new();
 
-    private PlayableNode? _firstAutoNode;
-    private PlayableNode? _firstPlayNode;
+    private HitsoundNode? _firstAutoNode;
+    private HitsoundNode? _firstPlayNode;
 
     public ManiaAudioProvider(RealtimeModeManager realtimeModeManager)
     {
@@ -72,7 +72,7 @@ public class ManiaAudioProvider : IAudioProvider
 
         if (audioPlaybackEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
         if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.");
-        
+
         var queue = _hitQueue[keyIndex];
         while (true)
         {
@@ -115,14 +115,13 @@ public class ManiaAudioProvider : IAudioProvider
 
         if (playableNode != null && _realtimeModeManager.TryGetAudioByNode(playableNode, out var cachedSound))
         {
-            return new[] { new PlaybackInfo(cachedSound, playableNode.Volume, playableNode.Balance) };
+            return new[] { new PlaybackInfo(cachedSound, playableNode) };
         }
 
         return ReturnDefaultAndLog("No audio returns.");
     }
 
-    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
-        List<PlayableNode> playbackList, List<ControlNode> loopEffectList)
+    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<HitsoundNode> playbackList)
     {
         foreach (var hitsoundNode in nodeList)
         {
@@ -147,8 +146,8 @@ public class ManiaAudioProvider : IAudioProvider
         _hitQueue = GetHitQueue(_realtimeModeManager.KeyList, playTime);
         _hitQueueCache = new PlayableNode[_hitQueue.Count];
 
-        _autoPlayQueue = new Queue<PlayableNode>(_realtimeModeManager.KeyList);
-        _playQueue = new Queue<PlayableNode>(_realtimeModeManager.PlaybackList.Where(k => k.Offset >= playTime));
+        _autoPlayQueue = new Queue<HitsoundNode>(_realtimeModeManager.KeyList);
+        _playQueue = new Queue<HitsoundNode>(_realtimeModeManager.PlaybackList.Where(k => k.Offset >= playTime));
         _autoPlayQueue.TryDequeue(out _firstAutoNode);
         _playQueue.TryDequeue(out _firstPlayNode);
     }
@@ -175,7 +174,7 @@ public class ManiaAudioProvider : IAudioProvider
         return list;
     }
 
-    private IEnumerable<PlaybackInfo> GetNextPlaybackAudio(PlayableNode? firstNode, int playTime, bool includeKey)
+    private IEnumerable<PlaybackInfo> GetNextPlaybackAudio(HitsoundNode? firstNode, int playTime, bool includeKey)
     {
         while (firstNode != null)
         {
@@ -186,7 +185,7 @@ public class ManiaAudioProvider : IAudioProvider
 
             if (_realtimeModeManager.TryGetAudioByNode(firstNode, out var cachedSound))
             {
-                yield return new PlaybackInfo(cachedSound, firstNode.Volume, firstNode.Balance);
+                yield return new PlaybackInfo(cachedSound, firstNode);
             }
 
             if (includeKey)
