@@ -77,4 +77,5 @@ If you're sure it's a bug and have steps to reproduce, please open Github issue.
 
 ## Todo
 - [ ] Sometimes the hit is muted. (headache thing)
+- [ ] Nightcore beats
 - [ ] Try to sync with the music, and be able to mute completely in osu.
