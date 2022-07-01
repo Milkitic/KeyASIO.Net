@@ -529,6 +529,9 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (IsStarted && oldMs > newMs) // Retry
         {
+            var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
+            _loopProviders.RemoveAll(mixer);
+            mixer?.RemoveAllMixerInputs();
             ResetNodes();
             return;
         }
