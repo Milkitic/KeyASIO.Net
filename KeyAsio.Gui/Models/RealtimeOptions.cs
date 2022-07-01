@@ -13,6 +13,14 @@ public class RealtimeOptions : ViewModelBase
     private float _balanceFactor = 0.3f;
     private bool _ignoreComboBreak;
     private bool _ignoreLineVolumes;
+    private bool _ignoreMusicTrack;
+
+    [Description("If true, the software will enable music related functions.")]
+    public bool IgnoreMusicTrack
+    {
+        get => _ignoreMusicTrack;
+        set => this.RaiseAndSetIfChanged(ref _ignoreMusicTrack, value);
+    }
 
     [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
     public bool RealtimeMode

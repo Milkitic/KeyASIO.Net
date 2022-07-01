@@ -66,6 +66,7 @@ public partial class App : Application
             OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
             OrtdpSetting.ListenInterval = 3;
             var manager = new OsuListenerManager();
+            manager.OnModsChanged += modsInfo => RealtimeModeManager.Instance.PlayMods = modsInfo.Mod;
             manager.OnComboChanged += combo => RealtimeModeManager.Instance.Combo = combo;
             manager.OnScoreChanged += score => RealtimeModeManager.Instance.Score = score;
             manager.OnPlayingTimeChanged += playTime => RealtimeModeManager.Instance.PlayTime = playTime;
