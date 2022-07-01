@@ -81,6 +81,28 @@ internal class LoopProviders
         }
     }
 
+    public void PauseAll(MixingSampleProvider? mixer)
+    {
+        foreach (var kvp in _dictionary)
+        {
+            var channel = kvp.Key;
+            var loopProvider = kvp.Value;
+
+            loopProvider.RemoveFrom(mixer);
+        }
+    }
+
+    public void RecoverAll(MixingSampleProvider? mixer)
+    {
+        foreach (var kvp in _dictionary)
+        {
+            var channel = kvp.Key;
+            var loopProvider = kvp.Value;
+
+            loopProvider.AddTo(mixer);
+        }
+    }
+
     public void Create(ControlNode controlNode,
         CachedSound? cachedSound,
         MixingSampleProvider mixer,
@@ -110,8 +132,8 @@ internal class LoopProviders
             Balance = balance * balanceFactor
         };
 
-        _dictionary.Add(slideChannel,
-            new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream, byteArray));
-        mixer?.AddMixerInput(balanceProvider);
+        var loopProvider = new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream, byteArray);
+        _dictionary.Add(slideChannel, loopProvider);
+        loopProvider.AddTo(mixer);
     }
 }

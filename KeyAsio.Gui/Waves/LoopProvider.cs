@@ -15,6 +15,7 @@ internal sealed class LoopProvider : IDisposable
     private readonly RawSourceWaveStream _waveStream;
     private readonly LoopStream _loopStream;
     private readonly byte[] _byteArray;
+    private bool _isAdded;
 
     public LoopProvider(BalanceSampleProvider balanceProvider,
         VolumeSampleProvider volumeProvider,
@@ -41,9 +42,17 @@ internal sealed class LoopProvider : IDisposable
         _volumeProvider.Volume = volume;
     }
 
+    public void AddTo(MixingSampleProvider? mixer)
+    {
+        if (_isAdded) return;
+        mixer?.AddMixerInput(_balanceProvider);
+        _isAdded = true;
+    }
+
     public void RemoveFrom(MixingSampleProvider? mixer)
     {
         mixer?.RemoveMixerInput(_balanceProvider);
+        _isAdded = false;
     }
 
     public void Dispose()
