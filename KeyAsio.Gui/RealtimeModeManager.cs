@@ -216,7 +216,7 @@ public class RealtimeModeManager : ViewModelBase
             Logger.DebuggingWarn($"RootMixer is null, stop adding cache.");
             return;
         }
-        
+
         var volume = AppSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
 
         if (controlNode.ControlType == ControlType.StartSliding)
@@ -238,17 +238,12 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    private async Task StartAsync()
+    public async Task StartAsync(string beatmapFilenameFull, string beatmapFilename)
     {
         try
         {
             Logger.DebuggingInfo("Start playing.");
-            if (Beatmap == null)
-            {
-                throw new Exception("The beatmap is null!");
-            }
-
-            var folder = Path.GetDirectoryName(Beatmap.FilenameFull);
+            var folder = Path.GetDirectoryName(beatmapFilenameFull);
             if (_folder != folder)
             {
                 Logger.DebuggingInfo("Cleaning caches caused by folder changing.");
@@ -261,7 +256,7 @@ public class RealtimeModeManager : ViewModelBase
                 throw new Exception("The beatmap folder is null!");
             }
 
-            await InitializeNodeListsAsync(folder, Beatmap.Filename);
+            await InitializeNodeListsAsync(folder, beatmapFilename);
             AddSkinCacheInBackground();
             ResetNodes();
             IsStarted = true;
@@ -273,7 +268,7 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    private void Stop()
+    public void Stop()
     {
         Logger.DebuggingInfo("Stop playing.");
         IsStarted = false;
@@ -507,7 +502,14 @@ public class RealtimeModeManager : ViewModelBase
         if (pre != OsuListenerManager.OsuStatus.Playing &&
             cur == OsuListenerManager.OsuStatus.Playing)
         {
-            await StartAsync();
+            if (Beatmap == null)
+            {
+                Logger.LogWarning("Failed to start: the beatmap is null");
+            }
+            else
+            {
+                await StartAsync(Beatmap.FilenameFull, Beatmap.Filename);
+            }
         }
         else
         {
