@@ -46,9 +46,9 @@ public class BalanceSampleProvider : ISampleProvider
     }
 
     public WaveFormat WaveFormat => _sourceProvider.WaveFormat;
-
     public int Read(float[] buffer, int offset, int count)
     {
+        if (count == 0) return 0;
         int samplesRead = _sourceProvider.Read(buffer, offset, count);
         if (_channels != 2) return samplesRead;
         if (Balance == 0) return samplesRead;
@@ -57,21 +57,33 @@ public class BalanceSampleProvider : ISampleProvider
         {
             for (int n = 0; n < count; n += 4)
             {
-                buffer[offset + n] *= _leftVolume;
-                buffer[offset + n + 1] *= _rightVolume;
+                var i0 = offset + n;
+                var i1 = i0 + 1;
+                var i2 = i0 + 2;
+                var i3 = i0 + 3;
 
-                buffer[offset + n + 2] *= _leftVolume;
-                buffer[offset + n + 3] *= _rightVolume;
+                var d0New = buffer[i0] * _leftVolume;
+                var d0Diff = buffer[i0] - d0New;
+                buffer[i0] = d0New;
+                buffer[i1] += d0Diff;
+
+                var d2New = buffer[i2] * _leftVolume;
+                var d2Diff = buffer[i2] - d2New;
+                buffer[i2] = d2New;
+                buffer[i3] += d2Diff;
             }
         }
         else
         {
             for (int n = 0; n < count; n += 2)
             {
-                //var oldLeft = buffer[offset + n];
-                //var oldRight = buffer[offset + n + 1];
-                buffer[offset + n] *= _leftVolume;
-                buffer[offset + n + 1] *= _rightVolume;
+                var i0 = offset + n;
+                var i1 = i0 + 1;
+
+                var d0New = buffer[i0] * _leftVolume;
+                var d0Diff = buffer[i0] - d0New;
+                buffer[i0] = d0New;
+                buffer[i1] += d0Diff;
             }
         }
 

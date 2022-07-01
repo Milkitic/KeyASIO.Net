@@ -44,9 +44,17 @@ public class ManiaAudioProvider : IAudioProvider
         if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var first = includeKey ? _firstPlayNode : _firstAutoNode;
-        if (first == null) return ReturnDefaultAndLog("First is null, no item returned.", LogLevel.Warning);
+        if (first == null)
+        {
+            return Array.Empty<PlaybackInfo>();
+            return ReturnDefaultAndLog("First is null, no item returned.", LogLevel.Warning);
+        }
 
-        if (playTime < first.Offset) return ReturnDefaultAndLog("Haven't reached first, no item returned.", LogLevel.Warning);
+        if (playTime < first.Offset)
+        {
+            return Array.Empty<PlaybackInfo>();
+            return ReturnDefaultAndLog("Haven't reached first, no item returned.", LogLevel.Warning);
+        }
 
         return GetNextPlaybackAudio(first, playTime, includeKey);
     }

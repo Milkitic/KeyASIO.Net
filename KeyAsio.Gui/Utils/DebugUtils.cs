@@ -127,9 +127,9 @@ public static class DebugUtils
 
         public TimerImpl(string name, ILogger? logger)
         {
-            Print($"[{_name}] executing");
             _name = name;
             _logger = logger;
+            Print($"[{_name}] executing");
             _sw = Stopwatch.StartNew();
         }
 
@@ -147,7 +147,7 @@ public static class DebugUtils
             }
             else
             {
-                _logger.LogDebug(message);
+                _logger.DebuggingDebug(message);
             }
         }
     }

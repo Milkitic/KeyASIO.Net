@@ -432,7 +432,7 @@ public class RealtimeModeManager : ViewModelBase
         return result;
     }
 
-    private async Task AddHitsoundCache(HitsoundNode playableNode,
+    private async Task AddHitsoundCache(HitsoundNode hitsoundNode,
         string beatmapFolder,
         string skinFolder,
         WaveFormat waveFormat)
@@ -443,22 +443,26 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (playableNode.Filename == null)
+        if (hitsoundNode.Filename == null)
         {
-            Logger.DebuggingWarn($"Filename is null, add null cache.");
-            _playNodeToCachedSoundMapping.TryAdd(playableNode, null);
+            if (hitsoundNode is PlayableNode)
+            {
+                Logger.DebuggingWarn($"Filename is null, add null cache.");
+            }
+
+            _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, null);
             return;
         }
 
-        var path = Path.Combine(beatmapFolder, playableNode.Filename);
+        var path = Path.Combine(beatmapFolder, hitsoundNode.Filename);
         string? identifier = null;
-        if (playableNode.UseUserSkin)
+        if (hitsoundNode.UseUserSkin)
         {
             identifier = "internal";
-            var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, playableNode.Filename,
+            var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, hitsoundNode.Filename,
                 out var useUserSkin);
             path = useUserSkin
-                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{playableNode.Filename}.ogg")
+                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{hitsoundNode.Filename}.ogg")
                 : Path.Combine(skinFolder, filename);
         }
 
@@ -474,7 +478,7 @@ public class RealtimeModeManager : ViewModelBase
             Logger.DebuggingInfo("Cached sound: " + path);
         }
 
-        _playNodeToCachedSoundMapping.TryAdd(playableNode, result);
+        _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, result);
         _filenameToCachedSoundMapping.TryAdd(Path.GetFileNameWithoutExtension(path), result);
     }
 
