@@ -15,7 +15,11 @@ using Milki.Extensions.MixPlayer.Utilities;
 var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
 appSettings.Debugging = true;
 
-SharedViewModel.Instance.AudioPlaybackEngine = new AudioPlaybackEngine((DeviceDescription?)null);
+SharedViewModel.Instance.AudioPlaybackEngine = new AudioPlaybackEngine(new DeviceDescription()
+{
+    WavePlayerType = WavePlayerType.WASAPI,
+    Latency = 1
+});
 SharedViewModel.Instance.LatencyTestMode = true;
 appSettings.RealtimeOptions.BalanceFactor = 0.5f;
 
