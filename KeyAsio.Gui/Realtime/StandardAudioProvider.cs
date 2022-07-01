@@ -35,28 +35,16 @@ public class StandardAudioProvider : IAudioProvider
     public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)
     {
         var playTime = PlayTime;
+        var audioPlaybackEngine = AudioPlaybackEngine;
+        var isStarted = IsStarted;
 
-        var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
-        if (audioPlaybackEngine == null)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        if (!IsStarted)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
+        if (audioPlaybackEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
+        if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var first = includeKey ? _firstPlayNode : _firstNode;
-        if (first == null)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
+        if (first == null) return ReturnDefaultAndLog("First is null, no item returned.", LogLevel.Warning);
 
-        if (playTime < first.Offset)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
+        if (playTime < first.Offset) return ReturnDefaultAndLog("Haven't reached first, no item returned.", LogLevel.Warning);
 
         return GetNextPlaybackAudio(first, playTime, includeKey);
     }
@@ -70,14 +58,14 @@ public class StandardAudioProvider : IAudioProvider
         var isStarted = IsStarted;
 
         if (audioPlaybackEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
-        if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.");
+        if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var first = _firstNode;
-        if (first == null) return ReturnDefaultAndLog("First is null, no item returns.");
+        if (first == null) return ReturnDefaultAndLog("First is null, no item returned.", LogLevel.Warning);
 
         Logger.LogDebug($"Click: {playTime}; First node: {first.Offset}");
 
-        if (playTime < first.Offset - KeyThresholdMilliseconds) return ReturnDefaultAndLog("Haven't reached first, no item returns.");
+        if (playTime < first.Offset - KeyThresholdMilliseconds) return ReturnDefaultAndLog("Haven't reached first, no item returned.", LogLevel.Warning);
 
         if (playTime < first.Offset + KeyThresholdMilliseconds) // click soon~0~late
         {
@@ -190,7 +178,7 @@ public class StandardAudioProvider : IAudioProvider
         _firstNode = firstNode;
         if (counter == 0)
         {
-            Logger.LogWarning($"Counter is zero, no item returns.");
+            Logger.DebuggingWarn($"Counter is zero, no item returned.");
         }
     }
 
@@ -231,7 +219,7 @@ public class StandardAudioProvider : IAudioProvider
 
     private static IEnumerable<PlaybackInfo> ReturnDefaultAndLog(string message, LogLevel logLevel = LogLevel.Debug)
     {
-        Logger.Log(logLevel, message);
+        Logger.DebuggingLog(logLevel, message);
         return Array.Empty<PlaybackInfo>();
     }
 }

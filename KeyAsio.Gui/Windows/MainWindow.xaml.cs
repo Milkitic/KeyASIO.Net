@@ -197,10 +197,7 @@ public partial class MainWindow : Window
         {
             if (action != KeyAction.KeyDown) return;
 
-            if (SharedViewModel.Instance.Debugging)
-            {
-                Logger.LogDebug($"{hookKey} {action}");
-            }
+            Logger.DebuggingDebug($"{hookKey} {action}");
 
             if (!_appSettings.RealtimeOptions.RealtimeMode && _cacheSound != null)
             {

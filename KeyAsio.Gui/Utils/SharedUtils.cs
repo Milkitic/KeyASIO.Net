@@ -1,4 +1,5 @@
 ﻿using System;
+using KeyAsio.Gui.Configuration;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 
@@ -46,5 +47,77 @@ internal static class SharedUtils
     public static ILogger<T> GetLogger<T>()
     {
         return LoggerFactory.CreateLogger<T>();
+    }
+
+    public static void DebuggingLog(this ILogger logger, LogLevel logLevel, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.Log(logLevel, content);
+        }
+    }
+
+    public static void DebuggingDebug(this ILogger logger, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.LogDebug(content);
+        }
+    }
+
+    public static void DebuggingInfo(this ILogger logger, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.LogInformation(content);
+        }
+    }
+
+    public static void DebuggingWarn(this ILogger logger, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.LogWarning(content);
+        }
+    }
+
+    public static void DebuggingError(this ILogger logger, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.LogError(content);
+        }
+    }
+
+    public static void DebuggingDebug(this ILogger logger, Exception ex, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.LogDebug(ex, content);
+        }
+    }
+
+    public static void DebuggingInfo(this ILogger logger, Exception ex, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.LogInformation(ex, content);
+        }
+    }
+
+    public static void DebuggingWarn(this ILogger logger, Exception ex, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.LogWarning(ex, content);
+        }
+    }
+
+    public static void DebuggingError(this ILogger logger, Exception ex, string content)
+    {
+        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
+        {
+            logger.LogError(ex, content);
+        }
     }
 }

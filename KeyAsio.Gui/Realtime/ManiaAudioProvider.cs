@@ -37,28 +37,16 @@ public class ManiaAudioProvider : IAudioProvider
     public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)
     {
         var playTime = PlayTime;
+        var audioPlaybackEngine = AudioPlaybackEngine;
+        var isStarted = IsStarted;
 
-        var audioPlaybackEngine = SharedViewModel.Instance.AudioPlaybackEngine;
-        if (audioPlaybackEngine == null)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
-
-        if (!IsStarted)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
+        if (audioPlaybackEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
+        if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var first = includeKey ? _firstPlayNode : _firstAutoNode;
-        if (first == null)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
+        if (first == null) return ReturnDefaultAndLog("First is null, no item returned.", LogLevel.Warning);
 
-        if (playTime < first.Offset)
-        {
-            return Array.Empty<PlaybackInfo>();
-        }
+        if (playTime < first.Offset) return ReturnDefaultAndLog("Haven't reached first, no item returned.", LogLevel.Warning);
 
         return GetNextPlaybackAudio(first, playTime, includeKey);
     }
@@ -71,7 +59,7 @@ public class ManiaAudioProvider : IAudioProvider
         var isStarted = IsStarted;
 
         if (audioPlaybackEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
-        if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.");
+        if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var queue = _hitQueue[keyIndex];
         while (true)
@@ -87,12 +75,12 @@ public class ManiaAudioProvider : IAudioProvider
                 if (playTime <= node.Offset + 50 /*odMax*/)
                 {
                     _hitQueueCache[keyIndex] = queue.Dequeue();
-                    Logger.LogDebug("Dequeued and will use Col." + keyIndex);
+                    Logger.DebuggingInfo("Dequeued and will use Col." + keyIndex);
                     break;
                 }
 
                 queue.Dequeue();
-                Logger.LogDebug("Dropped Col." + keyIndex);
+                Logger.DebuggingInfo("Dropped Col." + keyIndex);
                 _hitQueueCache[keyIndex] = null;
             }
             else
@@ -106,11 +94,11 @@ public class ManiaAudioProvider : IAudioProvider
         if (playableNode == null)
         {
             _hitQueue[keyIndex].TryPeek(out playableNode);
-            Logger.LogDebug("Use first");
+            Logger.DebuggingDebug("Use first");
         }
         else
         {
-            Logger.LogDebug("Use cache");
+            Logger.DebuggingDebug("Use cache");
         }
 
         if (playableNode != null && _realtimeModeManager.TryGetAudioByNode(playableNode, out var cachedSound))
@@ -118,7 +106,7 @@ public class ManiaAudioProvider : IAudioProvider
             return new[] { new PlaybackInfo(cachedSound, playableNode) };
         }
 
-        return ReturnDefaultAndLog("No audio returns.");
+        return ReturnDefaultAndLog("No audio returned.", LogLevel.Warning);
     }
 
     public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<HitsoundNode> playbackList)
@@ -210,7 +198,7 @@ public class ManiaAudioProvider : IAudioProvider
 
     private static IEnumerable<PlaybackInfo> ReturnDefaultAndLog(string message, LogLevel logLevel = LogLevel.Debug)
     {
-        Logger.Log(logLevel, message);
+        Logger.DebuggingLog(logLevel, message);
         return Array.Empty<PlaybackInfo>();
     }
 }
