@@ -51,22 +51,26 @@ public class RealtimeModeManager : ViewModelBase
 
     private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
     private readonly StandardAudioProvider _standardAudioProvider;
+    private readonly MusicTrack _musicTrack;
     private readonly LoopProviders _loopProviders = new();
 
     private string? _folder;
 
     private int _nextCachingTime;
-    private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
-    private CachedSound? _bgmCachedSound;
+    //private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
+    //private CachedSound? _bgmCachedSound;
     private ModsInfo.Mods _playMods;
-    private VariableSpeedSampleProvider? _variableSampleProvider;
-    private VolumeSampleProvider? _volumeSampleProvider;
-    private ISampleProvider _actualSampleProvider;
+
+    //private VariableSpeedSampleProvider? _variableSampleProvider;
+    //private VolumeSampleProvider? _volumeSampleProvider;
+    //private ISampleProvider _actualSampleProvider;
 
     public RealtimeModeManager()
     {
         _standardAudioProvider = new StandardAudioProvider(this);
         var maniaAudioProvider = new ManiaAudioProvider(this);
+        _musicTrack = new MusicTrack();
+
         _audioProviderDictionary = new Dictionary<GameMode, IAudioProvider>()
         {
             [GameMode.Circle] = _standardAudioProvider,
@@ -232,105 +236,6 @@ public class RealtimeModeManager : ViewModelBase
                         $"Bal. {balance}");
     }
 
-    private void PlayBgmAudio(CachedSound? cachedSound, float volume, int playTime)
-    {
-        if (cachedSound is null)
-        {
-            Logger.DebuggingWarn("Fail to play: CachedSound not found");
-            return;
-        }
-
-        GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
-            out var diffTolerance);
-
-        var timeSpan = TimeSpan.FromMilliseconds(playTime);
-        if (_bgmCachedSoundSampleProvider == null)
-        {
-            if (playbackRate == 1)
-            {
-                //Logger.DebuggingError("WHAT");
-            }
-
-            _bgmCachedSoundSampleProvider = new SeekableCachedSoundSampleProvider(cachedSound, 2000 + (OsuFile?.General.AudioLeadIn ?? 0)) { PlayTime = timeSpan };
-
-            ISampleProvider sampleProvider = _bgmCachedSoundSampleProvider;
-            sampleProvider = _volumeSampleProvider = new VolumeSampleProvider(sampleProvider) { Volume = volume };
-            if (!keepSpeed)
-            {
-                sampleProvider = _variableSampleProvider =
-                    new VariableSpeedSampleProvider(sampleProvider, 10, new VariableSpeedOptions(keepTune, false))
-                    {
-                        PlaybackRate = playbackRate
-                    };
-            }
-
-            _actualSampleProvider = sampleProvider;
-            SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(sampleProvider);
-        }
-        else
-        {
-            if (_volumeSampleProvider != null)
-            {
-                _volumeSampleProvider.Volume = volume;
-            }
-
-            var currentPlayTime = _bgmCachedSoundSampleProvider.PlayTime;
-            var diff = Math.Abs((currentPlayTime - timeSpan).TotalMilliseconds);
-            if (diff > diffTolerance)
-            {
-                if (playbackRate == 1)
-                {
-                    //Logger.DebuggingError("WHAT");
-                }
-                
-                Logger.DebuggingWarn($"Music offset too large ({diff:N2}ms), will force to seek.");
-                _bgmCachedSoundSampleProvider.PlayTime = timeSpan;
-                if (_variableSampleProvider != null)
-                {
-                    _variableSampleProvider.PlaybackRate = playbackRate;
-                    _variableSampleProvider.SetSoundTouchProfile(new VariableSpeedOptions(keepTune, false));
-                }
-            }
-        }
-    }
-
-    private static void GetPlayInfoByPlayMod(ref int playTime, ModsInfo.Mods playMods, out bool keepTune, out bool keepSpeed,
-        out float playbackRate, out int diffTolerance)
-    {
-        diffTolerance = 8;
-        keepTune = false;
-        keepSpeed = true;
-        playbackRate = 1f;
-        playTime += 8;
-        //if ((playMods & ModsInfo.Mods.Nightcore) != 0)
-        //{
-        //    playTime += 90;
-        //    diffTolerance = 55;
-        //    keepSpeed = false;
-        //    keepTune = false;
-        //    playbackRate = 1.5f;
-        //    //Logger.DebuggingWarn("Nightcore Mode");
-        //}
-        //else if ((playMods & ModsInfo.Mods.DoubleTime) != 0)
-        //{
-        //    playTime += 95;
-        //    diffTolerance = 55;
-        //    keepSpeed = false;
-        //    keepTune = true;
-        //    playbackRate = 1.5f;
-        //    //Logger.DebuggingWarn("DoubleTime Mode");
-        //}
-        //else if ((playMods & ModsInfo.Mods.HalfTime) != 0)
-        //{
-        //    playTime += 75;
-        //    diffTolerance = 50;
-        //    keepSpeed = false;
-        //    keepTune = true;
-        //    playbackRate = 0.75f;
-        //    //Logger.DebuggingWarn("HalfTime Mode");
-        //}
-    }
-
     private void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode)
     {
         var rootMixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
@@ -398,11 +303,8 @@ public class RealtimeModeManager : ViewModelBase
         IsStarted = false;
         var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
         _loopProviders.RemoveAll(mixer);
+        _musicTrack.StopMusic();
         mixer?.RemoveAllMixerInputs();
-        mixer?.RemoveMixerInput(_actualSampleProvider);
-        _variableSampleProvider?.Dispose();
-        _bgmCachedSoundSampleProvider = null;
-        _bgmCachedSound = null;
         _playTime = 0;
         Combo = 0;
     }
@@ -481,7 +383,7 @@ public class RealtimeModeManager : ViewModelBase
                     Logger.DebuggingInfo("Cached music: " + musicPath);
                 }
 
-                _bgmCachedSound = result;
+                //_bgmCachedSound = result;
             }
 
             SkinAudioFiles.AsParallel()
@@ -681,10 +583,7 @@ public class RealtimeModeManager : ViewModelBase
             var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
             _loopProviders.RemoveAll(mixer);
             mixer?.RemoveAllMixerInputs();
-            if (_bgmCachedSoundSampleProvider != null)
-            {
-                mixer?.AddMixerInput(_bgmCachedSoundSampleProvider);
-            }
+            _musicTrack.StopMusic();
 
             ResetNodes();
             return;
@@ -692,13 +591,22 @@ public class RealtimeModeManager : ViewModelBase
 
         if (IsStarted && !AppSettings.RealtimeOptions.IgnoreMusicTrack)
         {
-            if (OsuFile != null && AudioFilename != null && _bgmCachedSound != null)
+            if (OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioPlaybackEngine != null)
             {
-                const int codeLatency = -1;
-                const int osuForceLatency = 15;
-                var oldMapForceOffset = OsuFile.Version < 5 ? 24 : 0;
-                //todo: online offset && local offset
-                PlayBgmAudio(_bgmCachedSound, AppSettings.RealtimeOptions.MusicVolume, newMs + osuForceLatency + codeLatency + oldMapForceOffset);
+                var musicPath = Path.Combine(_folder, AudioFilename);
+                if (CachedSoundFactory.ContainsCache(musicPath))
+                {
+                    //todo: online offset && local offset
+                    const int codeLatency = -1;
+                    const int osuForceLatency = 15;
+                    var oldMapForceOffset = OsuFile.Version < 5 ? 24 : 0;
+                    _musicTrack.Offset = osuForceLatency + codeLatency + oldMapForceOffset;
+                    _musicTrack.LeadInMilliseconds = OsuFile.General.AudioLeadIn;
+                    _musicTrack.PlaySingleAudio(
+                        CachedSoundFactory
+                            .GetOrCreateCacheSound(SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat, musicPath)
+                            .Result, AppSettings.RealtimeOptions.MusicVolume, newMs);
+                }
             }
         }
 
