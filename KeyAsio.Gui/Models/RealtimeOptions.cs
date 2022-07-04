@@ -14,6 +14,7 @@ public class RealtimeOptions : ViewModelBase
     private bool _ignoreComboBreak;
     private bool _ignoreLineVolumes;
     private bool _ignoreMusicTrack;
+    private float _musicVolume = 1f;
 
     [Description("If true, the software will enable music related functions.")]
     public bool IgnoreMusicTrack
@@ -89,5 +90,12 @@ public class RealtimeOptions : ViewModelBase
     {
         get => _ignoreLineVolumes;
         set => this.RaiseAndSetIfChanged(ref _ignoreLineVolumes, value);
+    }
+
+    [Description("Music track volume.")]
+    public float MusicVolume
+    {
+        get => _musicVolume;
+        set => this.RaiseAndSetIfChanged(ref _musicVolume, value);
     }
 }

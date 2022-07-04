@@ -59,6 +59,9 @@ public class RealtimeModeManager : ViewModelBase
     private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
     private CachedSound? _bgmCachedSound;
     private ModsInfo.Mods _playMods;
+    private VariableSpeedSampleProvider? _variableSampleProvider;
+    private VolumeSampleProvider? _volumeSampleProvider;
+    private ISampleProvider _actualSampleProvider;
 
     public RealtimeModeManager()
     {
@@ -243,29 +246,50 @@ public class RealtimeModeManager : ViewModelBase
         var timeSpan = TimeSpan.FromMilliseconds(playTime);
         if (_bgmCachedSoundSampleProvider == null)
         {
-            _bgmCachedSoundSampleProvider = new SeekableCachedSoundSampleProvider(cachedSound, 500) { PlayTime = timeSpan };
+            if (playbackRate == 1)
+            {
+                //Logger.DebuggingError("WHAT");
+            }
+
+            _bgmCachedSoundSampleProvider = new SeekableCachedSoundSampleProvider(cachedSound, 2000 + (OsuFile?.General.AudioLeadIn ?? 0)) { PlayTime = timeSpan };
 
             ISampleProvider sampleProvider = _bgmCachedSoundSampleProvider;
-            sampleProvider = new VolumeSampleProvider(sampleProvider) { Volume = volume };
+            sampleProvider = _volumeSampleProvider = new VolumeSampleProvider(sampleProvider) { Volume = volume };
             if (!keepSpeed)
             {
-                sampleProvider =
+                sampleProvider = _variableSampleProvider =
                     new VariableSpeedSampleProvider(sampleProvider, 10, new VariableSpeedOptions(keepTune, false))
                     {
                         PlaybackRate = playbackRate
                     };
             }
 
+            _actualSampleProvider = sampleProvider;
             SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(sampleProvider);
         }
         else
         {
+            if (_volumeSampleProvider != null)
+            {
+                _volumeSampleProvider.Volume = volume;
+            }
+
             var currentPlayTime = _bgmCachedSoundSampleProvider.PlayTime;
             var diff = Math.Abs((currentPlayTime - timeSpan).TotalMilliseconds);
             if (diff > diffTolerance)
             {
+                if (playbackRate == 1)
+                {
+                    //Logger.DebuggingError("WHAT");
+                }
+                
                 Logger.DebuggingWarn($"Music offset too large ({diff:N2}ms), will force to seek.");
                 _bgmCachedSoundSampleProvider.PlayTime = timeSpan;
+                if (_variableSampleProvider != null)
+                {
+                    _variableSampleProvider.PlaybackRate = playbackRate;
+                    _variableSampleProvider.SetSoundTouchProfile(new VariableSpeedOptions(keepTune, false));
+                }
             }
         }
     }
@@ -277,30 +301,34 @@ public class RealtimeModeManager : ViewModelBase
         keepTune = false;
         keepSpeed = true;
         playbackRate = 1f;
-        if ((playMods & ModsInfo.Mods.DoubleTime) != 0)
-        {
-            playTime += 95;
-            diffTolerance = 55;
-            keepSpeed = false;
-            keepTune = true;
-            playbackRate = 1.5f;
-        }
-        else if ((playMods & ModsInfo.Mods.Nightcore) != 0)
-        {
-            playTime += 90;
-            diffTolerance = 55;
-            keepSpeed = false;
-            keepTune = false;
-            playbackRate = 1.5f;
-        }
-        else if ((playMods & ModsInfo.Mods.HalfTime) != 0)
-        {
-            playTime += 75;
-            diffTolerance = 50;
-            keepSpeed = false;
-            keepTune = true;
-            playbackRate = 0.75f;
-        }
+        playTime += 8;
+        //if ((playMods & ModsInfo.Mods.Nightcore) != 0)
+        //{
+        //    playTime += 90;
+        //    diffTolerance = 55;
+        //    keepSpeed = false;
+        //    keepTune = false;
+        //    playbackRate = 1.5f;
+        //    //Logger.DebuggingWarn("Nightcore Mode");
+        //}
+        //else if ((playMods & ModsInfo.Mods.DoubleTime) != 0)
+        //{
+        //    playTime += 95;
+        //    diffTolerance = 55;
+        //    keepSpeed = false;
+        //    keepTune = true;
+        //    playbackRate = 1.5f;
+        //    //Logger.DebuggingWarn("DoubleTime Mode");
+        //}
+        //else if ((playMods & ModsInfo.Mods.HalfTime) != 0)
+        //{
+        //    playTime += 75;
+        //    diffTolerance = 50;
+        //    keepSpeed = false;
+        //    keepTune = true;
+        //    playbackRate = 0.75f;
+        //    //Logger.DebuggingWarn("HalfTime Mode");
+        //}
     }
 
     private void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode)
@@ -371,9 +399,11 @@ public class RealtimeModeManager : ViewModelBase
         var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
         _loopProviders.RemoveAll(mixer);
         mixer?.RemoveAllMixerInputs();
+        mixer?.RemoveMixerInput(_actualSampleProvider);
+        _variableSampleProvider?.Dispose();
         _bgmCachedSoundSampleProvider = null;
+        _bgmCachedSound = null;
         _playTime = 0;
-        PlayTime = 0;
         Combo = 0;
     }
 
@@ -651,15 +681,24 @@ public class RealtimeModeManager : ViewModelBase
             var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
             _loopProviders.RemoveAll(mixer);
             mixer?.RemoveAllMixerInputs();
+            if (_bgmCachedSoundSampleProvider != null)
+            {
+                mixer?.AddMixerInput(_bgmCachedSoundSampleProvider);
+            }
+
             ResetNodes();
             return;
         }
 
         if (IsStarted && !AppSettings.RealtimeOptions.IgnoreMusicTrack)
         {
-            if (AudioFilename != null && _bgmCachedSound != null)
+            if (OsuFile != null && AudioFilename != null && _bgmCachedSound != null)
             {
-                PlayBgmAudio(_bgmCachedSound, 1, newMs);
+                const int codeLatency = -1;
+                const int osuForceLatency = 15;
+                var oldMapForceOffset = OsuFile.Version < 5 ? 24 : 0;
+                //todo: online offset && local offset
+                PlayBgmAudio(_bgmCachedSound, AppSettings.RealtimeOptions.MusicVolume, newMs + osuForceLatency + codeLatency + oldMapForceOffset);
             }
         }
 
