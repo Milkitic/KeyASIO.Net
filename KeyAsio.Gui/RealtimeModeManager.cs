@@ -57,13 +57,7 @@ public class RealtimeModeManager : ViewModelBase
     private string? _folder;
 
     private int _nextCachingTime;
-    //private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
-    //private CachedSound? _bgmCachedSound;
     private ModsInfo.Mods _playMods;
-
-    //private VariableSpeedSampleProvider? _variableSampleProvider;
-    //private VolumeSampleProvider? _volumeSampleProvider;
-    //private ISampleProvider _actualSampleProvider;
 
     public RealtimeModeManager()
     {
@@ -382,8 +376,6 @@ public class RealtimeModeManager : ViewModelBase
                 {
                     Logger.DebuggingInfo("Cached music: " + musicPath);
                 }
-
-                //_bgmCachedSound = result;
             }
 
             SkinAudioFiles.AsParallel()
