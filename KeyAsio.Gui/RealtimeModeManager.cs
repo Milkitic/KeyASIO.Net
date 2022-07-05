@@ -49,29 +49,37 @@ public class RealtimeModeManager : ViewModelBase
     private readonly List<PlayableNode> _keyList = new();
     private readonly List<HitsoundNode> _playbackList = new();
 
-    private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
     private readonly StandardAudioProvider _standardAudioProvider;
-    private readonly MusicTrack _musicTrack;
+    private readonly ManiaAudioProvider _maniaAudioProvider;
+
+    private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
+
+    private readonly SingleSynchronousTrack _singleSynchronousTrack;
+    private readonly SelectSongTrack _selectSongTrack;
+
     private readonly LoopProviders _loopProviders = new();
 
     private string? _folder;
+    private string? _audioFilePath;
 
     private int _nextCachingTime;
     private ModsInfo.Mods _playMods;
     private bool _firstStartInitialized; // After starting a map and playtime to zero
+    private bool _result;
 
     public RealtimeModeManager()
     {
         _standardAudioProvider = new StandardAudioProvider(this);
-        var maniaAudioProvider = new ManiaAudioProvider(this);
-        _musicTrack = new MusicTrack();
+        _maniaAudioProvider = new ManiaAudioProvider(this);
+        _singleSynchronousTrack = new SingleSynchronousTrack();
+        _selectSongTrack = new SelectSongTrack();
 
         _audioProviderDictionary = new Dictionary<GameMode, IAudioProvider>()
         {
             [GameMode.Circle] = _standardAudioProvider,
             [GameMode.Taiko] = _standardAudioProvider,
             [GameMode.Catch] = _standardAudioProvider,
-            [GameMode.Mania] = maniaAudioProvider,
+            [GameMode.Mania] = _maniaAudioProvider,
         };
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
     }
@@ -299,10 +307,16 @@ public class RealtimeModeManager : ViewModelBase
         _firstStartInitialized = false;
         var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
         _loopProviders.RemoveAll(mixer);
-        _musicTrack.StopMusic();
+        _singleSynchronousTrack.StopMusic();
         mixer?.RemoveAllMixerInputs();
         _playTime = 0;
         Combo = 0;
+
+        if (_folder != null && OsuFile != null)
+        {
+            _selectSongTrack.PlaySingleAudio(Path.Combine(_folder, OsuFile.General.AudioFilename),
+                AppSettings.RealtimeOptions.MusicVolume, OsuFile.General.PreviewTime);
+        }
     }
 
     private void CleanAudioCaches()
@@ -343,8 +357,10 @@ public class RealtimeModeManager : ViewModelBase
         AudioFilename = osuFile.General?.AudioFilename;
         using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
         var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
-        if ((PlayMods & ModsInfo.Mods.Nightcore) != 0)
+        await Task.Delay(100);
+        if (PlayMods != ModsInfo.Mods.Unknown && (PlayMods & ModsInfo.Mods.Nightcore) != 0)
         {
+            Logger.DebuggingInfo("Current Mods:" + PlayMods);
             var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);
             hitsoundList.AddRange(list);
             hitsoundList = hitsoundList.OrderBy(k => k.Offset).ToList();
@@ -554,6 +570,7 @@ public class RealtimeModeManager : ViewModelBase
         if (pre != OsuListenerManager.OsuStatus.Playing &&
             cur == OsuListenerManager.OsuStatus.Playing)
         {
+            _result = false;
             if (Beatmap == null)
             {
                 Logger.LogWarning("Failed to start: the beatmap is null");
@@ -563,14 +580,35 @@ public class RealtimeModeManager : ViewModelBase
                 await StartAsync(Beatmap.FilenameFull, Beatmap.Filename);
             }
         }
+        else if (pre == OsuListenerManager.OsuStatus.Playing && cur == OsuListenerManager.OsuStatus.Rank)
+        {
+            _result = true;
+            _singleSynchronousTrack.PlayMods = ModsInfo.Mods.None;
+        }
         else
         {
+            _result = false;
             Stop();
         }
     }
 
     private void OnBeatmapChanged(Beatmap? beatmap)
     {
+        if (OsuStatus == OsuListenerManager.OsuStatus.SelectSong && beatmap != null)
+        {
+            var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k => k.IncludeSection("General"));
+            var audioFilePath = Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
+            if (audioFilePath == _audioFilePath)
+            {
+                return;
+            }
+
+            _folder = beatmap.Folder;
+            _audioFilePath = audioFilePath;
+            _selectSongTrack.StopMusic();
+            _selectSongTrack.PlaySingleAudio(audioFilePath,
+                AppSettings.RealtimeOptions.MusicVolume, coosu.General.PreviewTime);
+        }
     }
 
     private void OnPlayModsChanged(ModsInfo.Mods oldMods, ModsInfo.Mods newMods)
@@ -581,11 +619,12 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (IsStarted && oldMs > newMs) // Retry
         {
+            _selectSongTrack.StopMusic();
             _firstStartInitialized = true;
             var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
             _loopProviders.RemoveAll(mixer);
             mixer?.RemoveAllMixerInputs();
-            _musicTrack.StopMusic();
+            _singleSynchronousTrack.StopMusic();
 
             ResetNodes();
             return;
@@ -602,10 +641,14 @@ public class RealtimeModeManager : ViewModelBase
                     const int codeLatency = -1;
                     const int osuForceLatency = 15;
                     var oldMapForceOffset = OsuFile.Version < 5 ? 24 : 0;
-                    _musicTrack.Offset = osuForceLatency + codeLatency + oldMapForceOffset;
-                    _musicTrack.LeadInMilliseconds = OsuFile.General.AudioLeadIn;
-                    _musicTrack.PlayMods = PlayMods;
-                    _musicTrack.PlaySingleAudio(CachedSoundFactory.GetCacheSound(musicPath),
+                    _singleSynchronousTrack.Offset = osuForceLatency + codeLatency + oldMapForceOffset;
+                    _singleSynchronousTrack.LeadInMilliseconds = OsuFile.General.AudioLeadIn;
+                    if (!_result)
+                    {
+                        _singleSynchronousTrack.PlayMods = PlayMods;
+                    }
+
+                    _singleSynchronousTrack.PlaySingleAudio(CachedSoundFactory.GetCacheSound(musicPath),
                         AppSettings.RealtimeOptions.MusicVolume, newMs);
                 }
             }

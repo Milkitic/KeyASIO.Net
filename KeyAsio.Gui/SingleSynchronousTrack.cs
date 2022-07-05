@@ -10,16 +10,16 @@ using OsuRTDataProvider.Mods;
 
 namespace KeyAsio.Gui;
 
-public class MusicTrack
+public class SingleSynchronousTrack
 {
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(MusicTrack));
+    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(SingleSynchronousTrack));
 
     private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
     private VariableSpeedSampleProvider? _variableSampleProvider;
     private VolumeSampleProvider? _volumeSampleProvider;
 
     private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
-    public MusicTrack()
+    public SingleSynchronousTrack()
     {
     }
 
@@ -114,7 +114,7 @@ public class MusicTrack
         keepTune = false;
         keepSpeed = true;
         playbackRate = 1f;
-        if ((playMods & ModsInfo.Mods.Nightcore) != 0)
+        if (playMods != ModsInfo.Mods.Unknown &&(playMods & ModsInfo.Mods.Nightcore) != 0)
         {
             playTime += 100;
             diffTolerance = 55;
@@ -122,7 +122,7 @@ public class MusicTrack
             keepTune = false;
             playbackRate = 1.5f;
         }
-        else if ((playMods & ModsInfo.Mods.DoubleTime) != 0)
+        else if (playMods != ModsInfo.Mods.Unknown && (playMods & ModsInfo.Mods.DoubleTime) != 0)
         {
             playTime += 100;
             diffTolerance = 55;
@@ -130,7 +130,7 @@ public class MusicTrack
             keepTune = true;
             playbackRate = 1.5f;
         }
-        else if ((playMods & ModsInfo.Mods.HalfTime) != 0)
+        else if (playMods != ModsInfo.Mods.Unknown && (playMods & ModsInfo.Mods.HalfTime) != 0)
         {
             playTime += 80;
             diffTolerance = 50;
