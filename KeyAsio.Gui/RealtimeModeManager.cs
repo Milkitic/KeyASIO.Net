@@ -58,6 +58,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private int _nextCachingTime;
     private ModsInfo.Mods _playMods;
+    private bool _firstStartInitialized;
 
     public RealtimeModeManager()
     {
@@ -295,6 +296,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         Logger.DebuggingInfo("Stop playing.");
         IsStarted = false;
+        _firstStartInitialized = false;
         var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
         _loopProviders.RemoveAll(mixer);
         _musicTrack.StopMusic();
@@ -572,6 +574,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (IsStarted && oldMs > newMs) // Retry
         {
+            _firstStartInitialized = true;
             var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
             _loopProviders.RemoveAll(mixer);
             mixer?.RemoveAllMixerInputs();
@@ -583,7 +586,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (IsStarted && !AppSettings.RealtimeOptions.IgnoreMusicTrack)
         {
-            if (OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioPlaybackEngine != null)
+            if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioPlaybackEngine != null)
             {
                 var musicPath = Path.Combine(_folder, AudioFilename);
                 if (CachedSoundFactory.ContainsCache(musicPath))
