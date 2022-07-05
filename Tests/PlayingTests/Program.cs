@@ -57,11 +57,18 @@ static class Program
         {
             while (true)
             {
-                realtimeModeManager.PlayTime = (int)sw.ElapsedMilliseconds;
+                realtimeModeManager.PlayTime = (int)sw.ElapsedMilliseconds - 1000;
                 Thread.Sleep(3);
             }
         });
         sw.Start();
+
+        await Task.Delay(3000);
+        sw.Reset();
+        //realtimeModeManager.Stop();
+        await Task.Delay(500);
+        sw.Restart();
+        await realtimeModeManager.StartAsync(filenameFull, filename);
 
         Console.ReadKey();
         device.Dispose();
