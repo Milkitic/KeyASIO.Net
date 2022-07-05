@@ -14,17 +14,13 @@ public class SeekableCachedSoundSampleProvider : ISampleProvider
     public SeekableCachedSoundSampleProvider(in CachedSound cachedSound, int leadinMilliseconds = 0)
     {
         _sourceSound = cachedSound;
-        if (leadinMilliseconds == 0)
-        {
-            _audioData = cachedSound.AudioData;
-        }
-        else
+        if (leadinMilliseconds != 0)
         {
             _preSamples = TimeSpanToSamples(TimeSpan.FromMilliseconds(leadinMilliseconds));
             _position = _preSamples;
-            _audioData = new float[cachedSound.AudioData.Length + _preSamples];
-            cachedSound.AudioData.CopyTo(_audioData, _preSamples);
         }
+
+        _audioData = cachedSound.AudioData;
     }
 
     public WaveFormat WaveFormat => _sourceSound.WaveFormat;
@@ -51,12 +47,39 @@ public class SeekableCachedSoundSampleProvider : ISampleProvider
     {
         lock (_sourceSound)
         {
-            var availableSamples = _audioData.Length - _position;
+            var availableSamples = (_audioData.Length + _preSamples) - _position;
             if (availableSamples <= 0) return 0;
-            var samplesToCopy = Math.Min(availableSamples, count);
-            _audioData.AsSpan()
-                .Slice(_position, samplesToCopy)
-                .CopyTo(buffer.AsSpan(offset));
+
+            var samplesToCopy = Math.Min(availableSamples, count); //4000
+
+            if (_preSamples == 0)
+            {
+                _audioData.AsSpan()
+                    .Slice(_position, samplesToCopy)
+                    .CopyTo(buffer.AsSpan(offset));
+                _position += samplesToCopy;
+                return samplesToCopy;
+            }
+
+            var preLeft = _preSamples - _position;//1200-1000
+            if (preLeft <= 0)
+            {
+                _audioData.AsSpan()
+                    .Slice(_position - _preSamples, samplesToCopy)
+                    .CopyTo(buffer.AsSpan(offset));
+            }
+            else if (preLeft >= samplesToCopy)
+            {
+                buffer.AsSpan(offset, samplesToCopy).Fill(0f);
+            }
+            else
+            {
+                buffer.AsSpan(offset, preLeft).Fill(0f);
+                _audioData.AsSpan()
+                    .Slice(0, samplesToCopy - preLeft)
+                    .CopyTo(buffer.AsSpan(offset + preLeft));
+            }
+
             _position += samplesToCopy;
             return samplesToCopy;
         }
