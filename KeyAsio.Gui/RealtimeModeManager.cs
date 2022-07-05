@@ -58,7 +58,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private int _nextCachingTime;
     private ModsInfo.Mods _playMods;
-    private bool _firstStartInitialized;
+    private bool _firstStartInitialized; // After starting a map and playtime to zero
 
     public RealtimeModeManager()
     {
@@ -343,6 +343,13 @@ public class RealtimeModeManager : ViewModelBase
         AudioFilename = osuFile.General?.AudioFilename;
         using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
         var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
+        if ((PlayMods & ModsInfo.Mods.Nightcore) != 0)
+        {
+            var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);
+            hitsoundList.AddRange(list);
+            hitsoundList = hitsoundList.OrderBy(k => k.Offset).ToList();
+        }
+
         GetCurrentAudioProvider().FillAudioList(hitsoundList, _keyList, _playbackList);
     }
 
