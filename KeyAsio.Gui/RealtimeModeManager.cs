@@ -594,10 +594,9 @@ public class RealtimeModeManager : ViewModelBase
                     var oldMapForceOffset = OsuFile.Version < 5 ? 24 : 0;
                     _musicTrack.Offset = osuForceLatency + codeLatency + oldMapForceOffset;
                     _musicTrack.LeadInMilliseconds = OsuFile.General.AudioLeadIn;
-                    _musicTrack.PlaySingleAudio(
-                        CachedSoundFactory
-                            .GetOrCreateCacheSound(SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat, musicPath)
-                            .Result, AppSettings.RealtimeOptions.MusicVolume, newMs);
+                    _musicTrack.PlayMods = PlayMods;
+                    _musicTrack.PlaySingleAudio(CachedSoundFactory.GetCacheSound(musicPath),
+                        AppSettings.RealtimeOptions.MusicVolume, newMs);
                 }
             }
         }
