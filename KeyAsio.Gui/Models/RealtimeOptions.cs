@@ -14,8 +14,8 @@ public class RealtimeOptions : ViewModelBase
     private bool _ignoreComboBreak;
     private bool _ignoreLineVolumes;
     private bool _disableMusicFunctions;
-    private float _musicVolume = 1f;
-    private float _effectVolume = 1f;
+    private int _musicTrackVolume = 100;
+    private int _effectTrackVolume = 100;
 
     [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
     public bool RealtimeMode
@@ -94,16 +94,16 @@ public class RealtimeOptions : ViewModelBase
     }
 
     [Description("Music track volume.")]
-    public float MusicVolume
+    public int MusicTrackVolume
     {
-        get => _musicVolume;
-        set => this.RaiseAndSetIfChanged(ref _musicVolume, value);
+        get => _musicTrackVolume;
+        set => this.RaiseAndSetIfChanged(ref _musicTrackVolume, value);
     }
 
     [Description("Effect track volume.")]
-    public float EffectVolume
+    public int EffectTrackVolume
     {
-        get => _effectVolume;
-        set => this.RaiseAndSetIfChanged(ref _effectVolume, value);
+        get => _effectTrackVolume;
+        set => this.RaiseAndSetIfChanged(ref _effectTrackVolume, value);
     }
 }

@@ -26,7 +26,7 @@ public class SingleSynchronousTrack
     public ModsInfo.Mods PlayMods { get; set; }
     private AudioEngine? AudioEngine => SharedViewModel.Instance.AudioEngine;
 
-    public void SyncAudio(CachedSound? cachedSound, float volume, int playTime)
+    public void SyncAudio(CachedSound? cachedSound, int playTime)
     {
         if (_cachedSound?.SourcePath != cachedSound?.SourcePath)
         {
@@ -42,11 +42,11 @@ public class SingleSynchronousTrack
 
         if (_bgmCachedSoundSampleProvider == null)
         {
-            SetNewMixerInput(cachedSound, volume, playTime);
+            SetNewMixerInput(cachedSound, 1, playTime);
         }
         else
         {
-            UpdateCurrentMixerInput(_bgmCachedSoundSampleProvider, volume, playTime);
+            UpdateCurrentMixerInput(_bgmCachedSoundSampleProvider, 1, playTime);
         }
     }
 

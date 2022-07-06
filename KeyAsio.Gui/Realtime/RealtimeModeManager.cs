@@ -228,7 +228,7 @@ public class RealtimeModeManager : ViewModelBase
         }
 
         balance *= AppSettings.RealtimeOptions.BalanceFactor;
-        SharedViewModel.Instance.AudioEngine?.AddMixerInput(
+        SharedViewModel.Instance.AudioEngine?.EffectMixer.AddMixerInput(
             new Waves.BalanceSampleProvider(
                     new VolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
                     { Volume = volume }
@@ -242,7 +242,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode)
     {
-        var rootMixer = SharedViewModel.Instance.AudioEngine?.RootMixer;
+        var rootMixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
         if (rootMixer == null)
         {
             Logger.DebuggingWarn($"RootMixer is null, stop adding cache.");
@@ -306,7 +306,7 @@ public class RealtimeModeManager : ViewModelBase
         Logger.DebuggingInfo("Stop playing.");
         IsStarted = false;
         _firstStartInitialized = false;
-        var mixer = SharedViewModel.Instance.AudioEngine?.RootMixer;
+        var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
         _loopProviders.RemoveAll(mixer);
         _singleSynchronousTrack.ClearAudio();
         mixer?.RemoveAllMixerInputs();
@@ -315,8 +315,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (_folder != null && OsuFile != null)
         {
-            _selectSongTrack.PlaySingleAudio(Path.Combine(_folder, OsuFile.General.AudioFilename),
-                AppSettings.RealtimeOptions.MusicVolume, OsuFile.General.PreviewTime);
+            _selectSongTrack.PlaySingleAudio(Path.Combine(_folder, OsuFile.General.AudioFilename), OsuFile.General.PreviewTime);
         }
     }
 
@@ -607,8 +606,7 @@ public class RealtimeModeManager : ViewModelBase
             _folder = beatmap.Folder;
             _audioFilePath = audioFilePath;
             _selectSongTrack.StopCurrentMusic(200);
-            _selectSongTrack.PlaySingleAudio(audioFilePath,
-                AppSettings.RealtimeOptions.MusicVolume, coosu.General.PreviewTime);
+            _selectSongTrack.PlaySingleAudio(audioFilePath, coosu.General.PreviewTime);
         }
     }
 
@@ -622,7 +620,7 @@ public class RealtimeModeManager : ViewModelBase
         {
             _selectSongTrack.StopCurrentMusic();
             _firstStartInitialized = true;
-            var mixer = SharedViewModel.Instance.AudioEngine?.RootMixer;
+            var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
             _loopProviders.RemoveAll(mixer);
             mixer?.RemoveAllMixerInputs();
             _singleSynchronousTrack.ClearAudio();
@@ -649,8 +647,7 @@ public class RealtimeModeManager : ViewModelBase
                         _singleSynchronousTrack.PlayMods = PlayMods;
                     }
 
-                    _singleSynchronousTrack.SyncAudio(CachedSoundFactory.GetCacheSound(musicPath),
-                        AppSettings.RealtimeOptions.MusicVolume, newMs);
+                    _singleSynchronousTrack.SyncAudio(CachedSoundFactory.GetCacheSound(musicPath), newMs);
                 }
             }
         }

@@ -121,8 +121,8 @@ public partial class MainWindow : Window
                 notifyProgress: false, enableVolume: _appSettings.VolumeEnabled)
             {
                 Volume = _appSettings.Volume / 100f,
-                MusicVolume = _appSettings.RealtimeOptions.MusicVolume,
-                EffectVolume = _appSettings.RealtimeOptions.EffectVolume
+                MusicVolume = _appSettings.RealtimeOptions.MusicTrackVolume / 100f,
+                EffectVolume = _appSettings.RealtimeOptions.EffectTrackVolume / 100f
             };
 
             if (device is AsioOut asioOut)
@@ -342,6 +342,15 @@ public partial class MainWindow : Window
 
         var slider = (Slider)sender;
         _appSettings.Volume = (int)Math.Round(slider.Value * 100);
+    }
+
+    private void MusicRangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_viewModel.AudioEngine is null) return;
+        if (!_appSettings.VolumeEnabled) return;
+
+        var slider = (Slider)sender;
+        _appSettings.RealtimeOptions.MusicTrackVolume = (int)Math.Round(slider.Value * 100);
     }
 
     private void btnLatencyCheck_OnClick(object sender, RoutedEventArgs e)

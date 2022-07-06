@@ -504,13 +504,13 @@
                     Style="{StaticResource VolumeSlider}"
                     TickFrequency="0.01"
                     UseLayoutRounding="True"
-                    ValueChanged="RangeBase_OnValueChanged"
-                    Value="{Binding AppSettings.RealtimeOptions.MusicVolume}" />
+                    ValueChanged="MusicRangeBase_OnValueChanged"
+                    Value="{Binding AudioEngine.MusicVolume}" />
                 <TextBlock
                     Grid.Row="2"
                     HorizontalAlignment="Center"
                     FontSize="11"
-                    Text="{Binding AppSettings.RealtimeOptions.MusicVolume, StringFormat=P0}"
+                    Text="{Binding AudioEngine.MusicVolume, StringFormat=P0}"
                     Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityConverter}}" />
                 <TextBlock
                     Grid.Row="2"
