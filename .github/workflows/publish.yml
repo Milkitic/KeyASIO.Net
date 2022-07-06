@@ -53,8 +53,17 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
       env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        GITHUB_TOKEN: ${{secrets.RELEASE_TOKEN}}
       with:
+        body: |
+          [Forum page](https://osu.ppy.sh/community/forums/topics/1602658)
+
+          ## Release notes
+          1. Place holder
+          
+          ### Installation
+          .NET 6.0 Desktop Runtime is required for the smallest asset.
+          For the other two assets with "-win32" and "-win64" postfix, you don't need to install anything more.
         name: ${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}
         prerelease: true
         draft: false
