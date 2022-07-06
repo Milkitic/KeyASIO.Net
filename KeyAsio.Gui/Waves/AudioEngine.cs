@@ -55,14 +55,20 @@ public class AudioEngine : AudioPlaybackEngine
         {
             ReadFully = true
         };
-        _hitsoundVolumeSampleProvider = new VolumeSampleProvider(EffectMixer);
+        _hitsoundVolumeSampleProvider = new VolumeSampleProvider(EffectMixer)
+        {
+            Volume = 1f
+        };
         RootMixer.AddMixerInput(_hitsoundVolumeSampleProvider);
 
         MusicMixer = new MixingSampleProvider(WaveFormat)
         {
             ReadFully = true
         };
-        _musicVolumeSampleProvider = new VolumeSampleProvider(MusicMixer);
+        _musicVolumeSampleProvider = new VolumeSampleProvider(MusicMixer)
+        {
+            Volume = 1f
+        };
         RootMixer.AddMixerInput(_musicVolumeSampleProvider);
     }
 }

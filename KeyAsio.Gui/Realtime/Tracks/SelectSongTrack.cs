@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
-using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
@@ -19,16 +18,14 @@ public class SelectSongTrack
     private VolumeSampleProvider? _volumeSampleProvider;
     private MyAudioFileReader? _audioFileReader;
     private WdlResamplingSampleProvider? _resampler;
-    private TimingSampleProvider _timingSampleProvider;
+    private TimingSampleProvider? _timingSampleProvider;
 
-    public SelectSongTrack()
-    {
-    }
+    private MixingSampleProvider? Mixer => SharedViewModel.Instance.AudioEngine?.MusicMixer;
+    private WaveFormat? WaveFormat => SharedViewModel.Instance.AudioEngine?.WaveFormat;
 
-    private AudioEngine? AudioEngine => SharedViewModel.Instance.AudioEngine;
-    public void PlaySingleAudio(string? path, float volume, int playTime, int fadeInMilliseconds = 2000)
+    public void PlaySingleAudio(string? path, float volume, int playTime, int fadeInMilliseconds = 1000)
     {
-        if (AudioEngine is null) return;
+        if (Mixer is null || WaveFormat is null) return;
 
         lock (_instanceLock)
         {
@@ -36,19 +33,25 @@ public class SelectSongTrack
             if (_audioFileReader is not null) return;
 
             var audioFileReader = _audioFileReader = new MyAudioFileReader(path);
-            _resampler = new WdlResamplingSampleProvider(_audioFileReader, AudioEngine.WaveFormat.SampleRate);
-            _volumeSampleProvider = new VolumeSampleProvider(_resampler) { Volume = volume };
-            _timingSampleProvider = new TimingSampleProvider(_volumeSampleProvider);
-            var fadeInOutSampleProvider = _fadeInOutSampleProvider = new FadeInOutSampleProvider(_timingSampleProvider, true);
+            var resampler = _resampler = new WdlResamplingSampleProvider(audioFileReader, WaveFormat.SampleRate);
+            var volumeSampleProvider = _volumeSampleProvider = new VolumeSampleProvider(resampler) { Volume = volume };
+            var timingSampleProvider = _timingSampleProvider = new TimingSampleProvider(volumeSampleProvider);
+            var fadeInOutSampleProvider = _fadeInOutSampleProvider = new FadeInOutSampleProvider(timingSampleProvider);
             RepositionAndFadeIn(audioFileReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
             _timingSampleProvider.Updated += (oldTime, newTime) =>
             {
-                if (newTime >= audioFileReader.TotalTime)
+                if (audioFileReader.CurrentTime >= audioFileReader.TotalTime.Add(TimeSpan.FromMilliseconds(50)))
                 {
                     RepositionAndFadeIn(audioFileReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
                 }
             };
-            AudioEngine?.EffectMixer.AddMixerInput(_fadeInOutSampleProvider);
+            try
+            {
+                Mixer.AddMixerInput(fadeInOutSampleProvider);
+            }
+            catch (Exception e)
+            {
+            }
         }
     }
 
@@ -71,13 +74,14 @@ public class SelectSongTrack
 
         fadeInOutSampleProvider.BeginFadeOut(fadeOutMilliseconds);
         await Task.Delay(fadeOutMilliseconds);
-        AudioEngine?.RootMixer.RemoveMixerInput(fadeInOutSampleProvider);
+        Mixer?.RemoveMixerInput(fadeInOutSampleProvider);
         await audioFileReader.DisposeAsync();
     }
 
     private static void RepositionAndFadeIn(WaveStream waveStream, int playTime,
         FadeInOutSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds)
     {
+        //waveStream.Position = (long)(waveStream.Length * 0.95);
         if (playTime == -1)
         {
             waveStream.Position = (long)(waveStream.Length * 0.4);

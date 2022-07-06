@@ -64,7 +64,7 @@ public class SingleSynchronousTrack
         var timeSpan = TimeSpan.FromMilliseconds(playTime);
 
         _bgmCachedSoundSampleProvider = new SeekableCachedSoundSampleProvider(cachedSound,
-            (int.MaxValue / 2) + LeadInMilliseconds)
+            (int.MaxValue / 100) + LeadInMilliseconds)
         {
             PlayTime = timeSpan
         };

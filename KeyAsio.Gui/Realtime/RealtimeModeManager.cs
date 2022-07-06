@@ -606,7 +606,7 @@ public class RealtimeModeManager : ViewModelBase
 
             _folder = beatmap.Folder;
             _audioFilePath = audioFilePath;
-            _selectSongTrack.StopCurrentMusic();
+            _selectSongTrack.StopCurrentMusic(200);
             _selectSongTrack.PlaySingleAudio(audioFilePath,
                 AppSettings.RealtimeOptions.MusicVolume, coosu.General.PreviewTime);
         }

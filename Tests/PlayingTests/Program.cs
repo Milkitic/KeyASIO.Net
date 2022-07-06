@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using KeyAsio.Gui;
@@ -12,6 +13,8 @@ using KeyAsio.Gui.Waves;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.Threading;
 using Milki.Extensions.MixPlayer.Utilities;
+using OsuRTDataProvider.BeatmapInfo;
+using OsuRTDataProvider.Listen;
 using OsuRTDataProvider.Mods;
 
 namespace PlayingTests;
@@ -42,13 +45,40 @@ static class Program
         var realtimeModeManager = new RealtimeModeManager()
         {
             PlayTime = -1,
-            PlayMods = ModsInfo.Mods.Nightcore
+            PlayMods = ModsInfo.Mods.None
         };
-        await realtimeModeManager.StartAsync(filenameFull, filename);
+        realtimeModeManager.OsuStatus = OsuListenerManager.OsuStatus.SelectSong;
+        var files = Directory.EnumerateFiles(@"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\", "*.osu",
+            SearchOption.AllDirectories).ToArray();
+        int i = 0;
+        string? folder = "";
+        while (i < files.Length)
+        {
+            var file = files[i];
+            var f = Path.GetDirectoryName(file);
+            if (f == folder)
+            {
+                i++;
+                continue;
+            }
+
+            folder = f;
+            //realtimeModeManager.Beatmap = new Beatmap(0, 0, 0,
+            //    @"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\739119 3L - Spring of Dreams\3L - Spring of Dreams (Trust) [Lunatic].osu");
+            Console.WriteLine(file);
+            //var k = Console.ReadKey();
+            //await realtimeModeManager.StartAsync(filenameFull, filename);
+            realtimeModeManager.Beatmap = new Beatmap(0, 0, 0, file);
+            if (Console.ReadKey().KeyChar == 'q') break;
+            i++;
+        }
+
+        Console.WriteLine("Playing");
+        realtimeModeManager.OsuStatus = OsuListenerManager.OsuStatus.Playing;
 
         var sw = new VariableStopwatch()
         {
-            Rate = 1.5f
+            Rate = 1f
         };
 
         await Task.Delay(1500);
