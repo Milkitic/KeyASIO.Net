@@ -8,7 +8,7 @@ using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave.SampleProviders;
 using OsuRTDataProvider.Mods;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Realtime.Tracks;
 
 public class SingleSynchronousTrack
 {
@@ -114,7 +114,7 @@ public class SingleSynchronousTrack
         keepTune = false;
         keepSpeed = true;
         playbackRate = 1f;
-        if (playMods != ModsInfo.Mods.Unknown &&(playMods & ModsInfo.Mods.Nightcore) != 0)
+        if (playMods != ModsInfo.Mods.Unknown && (playMods & ModsInfo.Mods.Nightcore) != 0)
         {
             playTime += 100;
             diffTolerance = 55;

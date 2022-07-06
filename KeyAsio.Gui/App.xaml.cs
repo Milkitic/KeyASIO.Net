@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.Realtime;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using NLog.Config;

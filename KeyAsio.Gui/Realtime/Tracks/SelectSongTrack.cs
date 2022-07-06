@@ -4,10 +4,9 @@ using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
-using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Realtime.Tracks;
 
 public class SelectSongTrack
 {

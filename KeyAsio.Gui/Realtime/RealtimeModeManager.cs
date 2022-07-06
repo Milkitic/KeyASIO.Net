@@ -13,7 +13,7 @@ using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
-using KeyAsio.Gui.Realtime;
+using KeyAsio.Gui.Realtime.Tracks;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
@@ -24,7 +24,7 @@ using OsuRTDataProvider.BeatmapInfo;
 using OsuRTDataProvider.Listen;
 using OsuRTDataProvider.Mods;
 
-namespace KeyAsio.Gui;
+namespace KeyAsio.Gui.Realtime;
 
 public class RealtimeModeManager : ViewModelBase
 {
