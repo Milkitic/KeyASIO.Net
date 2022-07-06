@@ -606,7 +606,7 @@ public class RealtimeModeManager : ViewModelBase
 
             _folder = beatmap.Folder;
             _audioFilePath = audioFilePath;
-            _selectSongTrack.StopMusic();
+            _selectSongTrack.StopCurrentMusic();
             _selectSongTrack.PlaySingleAudio(audioFilePath,
                 AppSettings.RealtimeOptions.MusicVolume, coosu.General.PreviewTime);
         }
@@ -620,7 +620,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (IsStarted && oldMs > newMs) // Retry
         {
-            _selectSongTrack.StopMusic();
+            _selectSongTrack.StopCurrentMusic();
             _firstStartInitialized = true;
             var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
             _loopProviders.RemoveAll(mixer);
