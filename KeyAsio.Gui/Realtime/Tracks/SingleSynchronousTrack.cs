@@ -24,7 +24,7 @@ public class SingleSynchronousTrack
     public int LeadInMilliseconds { get; set; }
     public int Offset { get; set; }
     public ModsInfo.Mods PlayMods { get; set; }
-    private AudioPlaybackEngine? AudioPlaybackEngine => SharedViewModel.Instance.AudioPlaybackEngine;
+    private AudioEngine? AudioEngine => SharedViewModel.Instance.AudioEngine;
 
     public void SyncAudio(CachedSound? cachedSound, float volume, int playTime)
     {
@@ -52,7 +52,7 @@ public class SingleSynchronousTrack
 
     public void ClearAudio()
     {
-        AudioPlaybackEngine?.RootMixer.RemoveMixerInput(_volumeSampleProvider);
+        AudioEngine?.RootMixer.RemoveMixerInput(_volumeSampleProvider);
         _variableSampleProvider?.Dispose();
         _bgmCachedSoundSampleProvider = null;
     }
@@ -84,7 +84,7 @@ public class SingleSynchronousTrack
             _volumeSampleProvider = new VolumeSampleProvider(_bgmCachedSoundSampleProvider) { Volume = volume };
         }
 
-        AudioPlaybackEngine?.AddMixerInput(_volumeSampleProvider);
+        AudioEngine?.AddMixerInput(_volumeSampleProvider);
     }
 
     private void UpdateCurrentMixerInput(SeekableCachedSoundSampleProvider sampleProvider, float volume, int playTime)

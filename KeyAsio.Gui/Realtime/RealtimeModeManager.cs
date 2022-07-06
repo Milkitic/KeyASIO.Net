@@ -228,7 +228,7 @@ public class RealtimeModeManager : ViewModelBase
         }
 
         balance *= AppSettings.RealtimeOptions.BalanceFactor;
-        SharedViewModel.Instance.AudioPlaybackEngine?.AddMixerInput(
+        SharedViewModel.Instance.AudioEngine?.AddMixerInput(
             new Waves.BalanceSampleProvider(
                     new VolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
                     { Volume = volume }
@@ -242,7 +242,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode)
     {
-        var rootMixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
+        var rootMixer = SharedViewModel.Instance.AudioEngine?.RootMixer;
         if (rootMixer == null)
         {
             Logger.DebuggingWarn($"RootMixer is null, stop adding cache.");
@@ -306,7 +306,7 @@ public class RealtimeModeManager : ViewModelBase
         Logger.DebuggingInfo("Stop playing.");
         IsStarted = false;
         _firstStartInitialized = false;
-        var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
+        var mixer = SharedViewModel.Instance.AudioEngine?.RootMixer;
         _loopProviders.RemoveAll(mixer);
         _singleSynchronousTrack.ClearAudio();
         mixer?.RemoveAllMixerInputs();
@@ -378,14 +378,14 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (SharedViewModel.Instance.AudioPlaybackEngine == null)
+        if (SharedViewModel.Instance.AudioEngine == null)
         {
-            Logger.DebuggingWarn($"{nameof(SharedViewModel.Instance.AudioPlaybackEngine)} is null, stop adding cache.");
+            Logger.DebuggingWarn($"{nameof(SharedViewModel.Instance.AudioEngine)} is null, stop adding cache.");
             return;
         }
 
         var folder = _folder;
-        var waveFormat = SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat;
+        var waveFormat = SharedViewModel.Instance.AudioEngine.WaveFormat;
         var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
         Task.Run(() =>
         {
@@ -425,9 +425,9 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (SharedViewModel.Instance.AudioPlaybackEngine == null)
+        if (SharedViewModel.Instance.AudioEngine == null)
         {
-            Logger.DebuggingWarn($"{nameof(SharedViewModel.Instance.AudioPlaybackEngine)} is null, stop adding cache.");
+            Logger.DebuggingWarn($"{nameof(SharedViewModel.Instance.AudioEngine)} is null, stop adding cache.");
             return;
         }
 
@@ -439,7 +439,7 @@ public class RealtimeModeManager : ViewModelBase
 
         var hitsoundList = playableNodes;
         var folder = _folder;
-        var waveFormat = SharedViewModel.Instance.AudioPlaybackEngine.WaveFormat;
+        var waveFormat = SharedViewModel.Instance.AudioEngine.WaveFormat;
         var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
         Task.Run(() =>
         {
@@ -622,7 +622,7 @@ public class RealtimeModeManager : ViewModelBase
         {
             _selectSongTrack.StopCurrentMusic();
             _firstStartInitialized = true;
-            var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
+            var mixer = SharedViewModel.Instance.AudioEngine?.RootMixer;
             _loopProviders.RemoveAll(mixer);
             mixer?.RemoveAllMixerInputs();
             _singleSynchronousTrack.ClearAudio();
@@ -633,7 +633,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (IsStarted && !AppSettings.RealtimeOptions.DisableMusicFunctions)
         {
-            if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioPlaybackEngine != null)
+            if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioEngine != null)
             {
                 var musicPath = Path.Combine(_folder, AudioFilename);
                 if (CachedSoundFactory.ContainsCache(musicPath))

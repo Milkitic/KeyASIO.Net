@@ -199,7 +199,7 @@
                     <TextBlock
                         Grid.Row="3"
                         Grid.Column="1"
-                        Text="{Binding AudioPlaybackEngine.WaveFormat.SampleRate}"
+                        Text="{Binding AudioEngine.WaveFormat.SampleRate}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Grid.Row="4"
@@ -330,7 +330,7 @@
                                     Mode="OneWay"
                                     StringFormat="0.000">
                                     <Binding Mode="OneWay" Path="PlaybackLatency" />
-                                    <Binding Mode="OneWay" Path="AudioPlaybackEngine.WaveFormat.SampleRate" />
+                                    <Binding Mode="OneWay" Path="AudioEngine.WaveFormat.SampleRate" />
                                 </MultiBinding>
                             </Run.Text>
                         </Run><Run Text="ms)" />
@@ -460,12 +460,12 @@
                     TickFrequency="0.01"
                     UseLayoutRounding="True"
                     ValueChanged="RangeBase_OnValueChanged"
-                    Value="{Binding AudioPlaybackEngine.Volume}" />
+                    Value="{Binding AudioEngine.Volume}" />
                 <TextBlock
                     Grid.Row="2"
                     HorizontalAlignment="Center"
                     FontSize="11"
-                    Text="{Binding AudioPlaybackEngine.Volume, StringFormat=P0}"
+                    Text="{Binding AudioEngine.Volume, StringFormat=P0}"
                     Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityConverter}}" />
                 <TextBlock
                     Grid.Row="2"

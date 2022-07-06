@@ -116,7 +116,7 @@ public partial class MainWindow : Window
         try
         {
             var device = DeviceCreationHelper.CreateDevice(out var actualDescription, deviceDescription);
-            _viewModel.AudioPlaybackEngine = new AudioEngine(device,
+            _viewModel.AudioEngine = new AudioEngine(device,
                 _appSettings.SampleRate, /*_appSettings.Channels*/2,
                 notifyProgress: false, enableVolume: _appSettings.VolumeEnabled)
             {
@@ -145,7 +145,7 @@ public partial class MainWindow : Window
                 }, null, 0, 100);
             }
 
-            var waveFormat = _viewModel.AudioPlaybackEngine.WaveFormat;
+            var waveFormat = _viewModel.AudioEngine.WaveFormat;
             _cacheSound = await CachedSoundFactory.GetOrCreateCacheSound(waveFormat, _appSettings.HitsoundPath);
 
             _viewModel.DeviceDescription = actualDescription;
@@ -163,9 +163,9 @@ public partial class MainWindow : Window
 
     private void DisposeDevice(bool saveToSettings)
     {
-        if (_viewModel.AudioPlaybackEngine == null) return;
+        if (_viewModel.AudioEngine == null) return;
 
-        if (_viewModel.AudioPlaybackEngine.OutputDevice is AsioOut asioOut)
+        if (_viewModel.AudioEngine.OutputDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
             _timer?.Dispose();
@@ -175,7 +175,7 @@ public partial class MainWindow : Window
         {
             try
             {
-                _viewModel.AudioPlaybackEngine.OutputDevice?.Dispose();
+                _viewModel.AudioEngine.OutputDevice?.Dispose();
                 break;
             }
             catch (Exception ex)
@@ -184,7 +184,7 @@ public partial class MainWindow : Window
                 Thread.Sleep(100);
             }
         }
-        _viewModel.AudioPlaybackEngine = null;
+        _viewModel.AudioEngine = null;
         _viewModel.DeviceDescription = null;
         CachedSoundFactory.ClearCacheSounds();
 
@@ -203,7 +203,7 @@ public partial class MainWindow : Window
 
             if (!_appSettings.RealtimeOptions.RealtimeMode && _cacheSound != null)
             {
-                _viewModel.AudioPlaybackEngine?.PlaySound(_cacheSound);
+                _viewModel.AudioEngine?.PlaySound(_cacheSound);
                 return;
             }
 
@@ -329,7 +329,7 @@ public partial class MainWindow : Window
 
     private void btnAsioControlPanel_OnClick(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.AudioPlaybackEngine?.OutputDevice is AsioOut asioOut)
+        if (_viewModel.AudioEngine?.OutputDevice is AsioOut asioOut)
         {
             asioOut.ShowControlPanel();
         }
@@ -337,7 +337,7 @@ public partial class MainWindow : Window
 
     private void RangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_viewModel.AudioPlaybackEngine is null) return;
+        if (_viewModel.AudioEngine is null) return;
         if (!_appSettings.VolumeEnabled) return;
 
         var slider = (Slider)sender;

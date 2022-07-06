@@ -9,7 +9,7 @@ namespace KeyAsio.Gui.Models;
 
 public class SharedViewModel : ViewModelBase
 {
-    private AudioEngine? _audioPlaybackEngine;
+    private AudioEngine? _audioEngine;
     private DeviceDescription? _deviceDescription;
     private int _framesPerBuffer;
     private int _playbackLatency;
@@ -21,10 +21,10 @@ public class SharedViewModel : ViewModelBase
 
     public static SharedViewModel Instance { get; } = new();
 
-    public AudioEngine? AudioPlaybackEngine
+    public AudioEngine? AudioEngine
     {
-        get => _audioPlaybackEngine;
-        set => this.RaiseAndSetIfChanged(ref _audioPlaybackEngine, value);
+        get => _audioEngine;
+        set => this.RaiseAndSetIfChanged(ref _audioEngine, value);
     }
 
     public DeviceDescription? DeviceDescription

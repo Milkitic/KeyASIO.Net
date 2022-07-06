@@ -31,16 +31,16 @@ public class ManiaAudioProvider : IAudioProvider
 
     public bool IsStarted => _realtimeModeManager.IsStarted;
     public int PlayTime => _realtimeModeManager.PlayTime;
-    public AudioEngine? AudioPlaybackEngine => SharedViewModel.Instance.AudioPlaybackEngine;
+    public AudioEngine? AudioEngine => SharedViewModel.Instance.AudioEngine;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)
     {
         var playTime = PlayTime;
-        var audioPlaybackEngine = AudioPlaybackEngine;
+        var audioEngine = AudioEngine;
         var isStarted = IsStarted;
 
-        if (audioPlaybackEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
+        if (audioEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
         if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var first = includeKey ? _firstPlayNode : _firstAutoNode;
@@ -63,10 +63,10 @@ public class ManiaAudioProvider : IAudioProvider
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", Logger);
         var playTime = PlayTime;
-        var audioPlaybackEngine = AudioPlaybackEngine;
+        var audioEngine = AudioEngine;
         var isStarted = IsStarted;
 
-        if (audioPlaybackEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
+        if (audioEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
         if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var queue = _hitQueue[keyIndex];

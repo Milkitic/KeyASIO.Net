@@ -32,7 +32,7 @@ static class Program
             WavePlayerType = WavePlayerType.ASIO,
             Latency = 1
         }, context);
-        SharedViewModel.Instance.AudioPlaybackEngine = new AudioEngine(device);
+        SharedViewModel.Instance.AudioEngine = new AudioEngine(device);
         SharedViewModel.Instance.LatencyTestMode = true;
         appSettings.RealtimeOptions.BalanceFactor = 0.5f;
 
