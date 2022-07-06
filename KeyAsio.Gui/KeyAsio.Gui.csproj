@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Coosu.Beatmap" Version="2.3.4" />
+    <PackageReference Include="Coosu.Beatmap" Version="2.3.5" />
     <PackageReference Include="HandyControl" Version="3.3.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
