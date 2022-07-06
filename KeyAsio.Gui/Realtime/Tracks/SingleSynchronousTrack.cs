@@ -19,17 +19,21 @@ public class SingleSynchronousTrack
     private VolumeSampleProvider? _volumeSampleProvider;
 
     private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
-    public SingleSynchronousTrack()
-    {
-    }
+    private CachedSound? _cachedSound;
 
     public int LeadInMilliseconds { get; set; }
     public int Offset { get; set; }
     public ModsInfo.Mods PlayMods { get; set; }
     private AudioPlaybackEngine? AudioPlaybackEngine => SharedViewModel.Instance.AudioPlaybackEngine;
 
-    public void PlaySingleAudio(CachedSound? cachedSound, float volume, int playTime)
+    public void SyncAudio(CachedSound? cachedSound, float volume, int playTime)
     {
+        if (_cachedSound?.SourcePath != cachedSound?.SourcePath)
+        {
+            ClearAudio();
+            _cachedSound = cachedSound;
+        }
+
         if (cachedSound is null)
         {
             Logger.DebuggingWarn("Fail to play: CachedSound not found");
@@ -46,7 +50,7 @@ public class SingleSynchronousTrack
         }
     }
 
-    public void StopMusic()
+    public void ClearAudio()
     {
         AudioPlaybackEngine?.RootMixer.RemoveMixerInput(_volumeSampleProvider);
         _variableSampleProvider?.Dispose();

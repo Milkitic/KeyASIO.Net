@@ -308,7 +308,7 @@ public class RealtimeModeManager : ViewModelBase
         _firstStartInitialized = false;
         var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
         _loopProviders.RemoveAll(mixer);
-        _singleSynchronousTrack.StopMusic();
+        _singleSynchronousTrack.ClearAudio();
         mixer?.RemoveAllMixerInputs();
         _playTime = 0;
         Combo = 0;
@@ -625,7 +625,7 @@ public class RealtimeModeManager : ViewModelBase
             var mixer = SharedViewModel.Instance.AudioPlaybackEngine?.RootMixer;
             _loopProviders.RemoveAll(mixer);
             mixer?.RemoveAllMixerInputs();
-            _singleSynchronousTrack.StopMusic();
+            _singleSynchronousTrack.ClearAudio();
 
             ResetNodes();
             return;
@@ -649,7 +649,7 @@ public class RealtimeModeManager : ViewModelBase
                         _singleSynchronousTrack.PlayMods = PlayMods;
                     }
 
-                    _singleSynchronousTrack.PlaySingleAudio(CachedSoundFactory.GetCacheSound(musicPath),
+                    _singleSynchronousTrack.SyncAudio(CachedSoundFactory.GetCacheSound(musicPath),
                         AppSettings.RealtimeOptions.MusicVolume, newMs);
                 }
             }
