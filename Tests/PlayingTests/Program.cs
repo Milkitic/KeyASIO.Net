@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using KeyAsio.Gui;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.Realtime;
+using KeyAsio.Gui.Waves;
 using Milki.Extensions.MixPlayer.Devices;
-using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.Threading;
 using Milki.Extensions.MixPlayer.Utilities;
-using OsuRTDataProvider.Listen;
 using OsuRTDataProvider.Mods;
 
 namespace PlayingTests;
@@ -32,7 +32,7 @@ static class Program
             WavePlayerType = WavePlayerType.ASIO,
             Latency = 1
         }, context);
-        SharedViewModel.Instance.AudioPlaybackEngine = new AudioPlaybackEngine(device);
+        SharedViewModel.Instance.AudioPlaybackEngine = new AudioEngine(device);
         SharedViewModel.Instance.LatencyTestMode = true;
         appSettings.RealtimeOptions.BalanceFactor = 0.5f;
 

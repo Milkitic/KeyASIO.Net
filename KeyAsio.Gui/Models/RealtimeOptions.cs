@@ -15,6 +15,7 @@ public class RealtimeOptions : ViewModelBase
     private bool _ignoreLineVolumes;
     private bool _disableMusicFunctions;
     private float _musicVolume = 1f;
+    private float _effectVolume = 1f;
 
     [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
     public bool RealtimeMode
@@ -97,5 +98,12 @@ public class RealtimeOptions : ViewModelBase
     {
         get => _musicVolume;
         set => this.RaiseAndSetIfChanged(ref _musicVolume, value);
+    }
+
+    [Description("Effect track volume.")]
+    public float EffectVolume
+    {
+        get => _effectVolume;
+        set => this.RaiseAndSetIfChanged(ref _effectVolume, value);
     }
 }

@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
+using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -23,7 +23,7 @@ public class SelectSongTrack
     {
     }
 
-    private AudioPlaybackEngine? AudioPlaybackEngine => SharedViewModel.Instance.AudioPlaybackEngine;
+    private AudioEngine? AudioPlaybackEngine => SharedViewModel.Instance.AudioPlaybackEngine;
     public void PlaySingleAudio(string? path, float volume, int playTime, int fadeInMilliseconds = 2000)
     {
         if (AudioPlaybackEngine is null) return;

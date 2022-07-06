@@ -5,8 +5,8 @@ using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
+using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.MixPlayer.NAudioExtensions;
 
 namespace KeyAsio.Gui.Realtime.AudioProviders;
 
@@ -31,7 +31,7 @@ public class ManiaAudioProvider : IAudioProvider
 
     public bool IsStarted => _realtimeModeManager.IsStarted;
     public int PlayTime => _realtimeModeManager.PlayTime;
-    public AudioPlaybackEngine? AudioPlaybackEngine => SharedViewModel.Instance.AudioPlaybackEngine;
+    public AudioEngine? AudioPlaybackEngine => SharedViewModel.Instance.AudioPlaybackEngine;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)

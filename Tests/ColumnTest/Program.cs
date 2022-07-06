@@ -2,9 +2,8 @@
 
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Gui;
 using KeyAsio.Gui.Realtime;
-using KeyAsio.Gui.Utils;
+using KeyAsio.Gui.Realtime.AudioProviders;
 
 var realtimeModeManager = new RealtimeModeManager();
 var osuDir = new OsuDirectory(@"E:\Games\osu!\Songs\807527 IOSYS - Miracle Hinacle");

@@ -10,9 +10,9 @@ using HandyControl.Controls;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
+using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.Devices;
-using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
@@ -116,11 +116,13 @@ public partial class MainWindow : Window
         try
         {
             var device = DeviceCreationHelper.CreateDevice(out var actualDescription, deviceDescription);
-            _viewModel.AudioPlaybackEngine = new AudioPlaybackEngine(device,
+            _viewModel.AudioPlaybackEngine = new AudioEngine(device,
                 _appSettings.SampleRate, /*_appSettings.Channels*/2,
                 notifyProgress: false, enableVolume: _appSettings.VolumeEnabled)
             {
-                Volume = _appSettings.Volume / 100f
+                Volume = _appSettings.Volume / 100f,
+                MusicVolume = _appSettings.RealtimeOptions.MusicVolume,
+                EffectVolume = _appSettings.RealtimeOptions.EffectVolume
             };
 
             if (device is AsioOut asioOut)

@@ -2,14 +2,14 @@
 using System.IO;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
+using KeyAsio.Gui.Waves;
 using Milki.Extensions.MixPlayer.Devices;
-using Milki.Extensions.MixPlayer.NAudioExtensions;
 
 namespace KeyAsio.Gui.Models;
 
 public class SharedViewModel : ViewModelBase
 {
-    private AudioPlaybackEngine? _audioPlaybackEngine;
+    private AudioEngine? _audioPlaybackEngine;
     private DeviceDescription? _deviceDescription;
     private int _framesPerBuffer;
     private int _playbackLatency;
@@ -21,7 +21,7 @@ public class SharedViewModel : ViewModelBase
 
     public static SharedViewModel Instance { get; } = new();
 
-    public AudioPlaybackEngine? AudioPlaybackEngine
+    public AudioEngine? AudioPlaybackEngine
     {
         get => _audioPlaybackEngine;
         set => this.RaiseAndSetIfChanged(ref _audioPlaybackEngine, value);
