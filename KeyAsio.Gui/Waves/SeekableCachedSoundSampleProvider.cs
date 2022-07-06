@@ -11,12 +11,12 @@ public class SeekableCachedSoundSampleProvider : ISampleProvider
     private readonly int _preSamples;
     private int _position;
 
-    public SeekableCachedSoundSampleProvider(in CachedSound cachedSound, int leadinMilliseconds = 0)
+    public SeekableCachedSoundSampleProvider(in CachedSound cachedSound, int leadInMilliseconds = 0)
     {
         _sourceSound = cachedSound;
-        if (leadinMilliseconds != 0)
+        if (leadInMilliseconds != 0)
         {
-            _preSamples = TimeSpanToSamples(TimeSpan.FromMilliseconds(leadinMilliseconds));
+            _preSamples = TimeSpanToSamples(TimeSpan.FromMilliseconds(leadInMilliseconds));
             _position = _preSamples;
         }
 

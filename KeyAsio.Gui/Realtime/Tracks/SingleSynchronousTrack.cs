@@ -59,8 +59,11 @@ public class SingleSynchronousTrack
             out var diffTolerance);
         var timeSpan = TimeSpan.FromMilliseconds(playTime);
 
-        _bgmCachedSoundSampleProvider = new SeekableCachedSoundSampleProvider(cachedSound, 2000 + LeadInMilliseconds)
-        { PlayTime = timeSpan };
+        _bgmCachedSoundSampleProvider = new SeekableCachedSoundSampleProvider(cachedSound,
+            (int.MaxValue / 2) + LeadInMilliseconds)
+        {
+            PlayTime = timeSpan
+        };
 
         if (!keepSpeed)
         {
