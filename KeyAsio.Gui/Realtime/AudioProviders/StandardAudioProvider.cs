@@ -8,7 +8,7 @@ using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
 
-namespace KeyAsio.Gui.Realtime;
+namespace KeyAsio.Gui.Realtime.AudioProviders;
 
 public class StandardAudioProvider : IAudioProvider
 {

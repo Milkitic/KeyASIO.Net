@@ -13,6 +13,7 @@ using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.Realtime.AudioProviders;
 using KeyAsio.Gui.Realtime.Tracks;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
@@ -630,7 +631,7 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreMusicTrack)
+        if (IsStarted && !AppSettings.RealtimeOptions.DisableMusicFunctions)
         {
             if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioPlaybackEngine != null)
             {
