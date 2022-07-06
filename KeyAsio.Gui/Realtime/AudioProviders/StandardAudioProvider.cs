@@ -199,7 +199,8 @@ public class StandardAudioProvider : IAudioProvider
                 break;
             }
 
-            if (_realtimeModeManager.TryGetAudioByNode(firstNode, out var cachedSound))
+            if (playTime < firstNode.Offset + 200 &&
+                _realtimeModeManager.TryGetAudioByNode(firstNode, out var cachedSound))
             {
                 yield return new PlaybackInfo(cachedSound, firstNode);
             }
