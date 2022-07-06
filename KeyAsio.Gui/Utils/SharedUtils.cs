@@ -51,73 +51,46 @@ internal static class SharedUtils
 
     public static void DebuggingLog(this ILogger logger, LogLevel logLevel, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.Log(logLevel, content);
-        }
+        logger.Log(logLevel, "[DEBUGGING] " + content);
     }
 
     public static void DebuggingDebug(this ILogger logger, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.LogDebug(content);
-        }
+        logger.LogDebug("[DEBUGGING] " + content);
     }
 
     public static void DebuggingInfo(this ILogger logger, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.LogInformation(content);
-        }
+        logger.LogInformation("[DEBUGGING] " + content);
     }
 
     public static void DebuggingWarn(this ILogger logger, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.LogWarning(content);
-        }
+        logger.LogWarning("[DEBUGGING] " + content);
     }
 
     public static void DebuggingError(this ILogger logger, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.LogError(content);
-        }
+        logger.LogError("[DEBUGGING] " + content);
     }
 
     public static void DebuggingDebug(this ILogger logger, Exception ex, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.LogDebug(ex, content);
-        }
+        logger.LogDebug(ex, "[DEBUGGING] " + content);
     }
 
     public static void DebuggingInfo(this ILogger logger, Exception ex, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.LogInformation(ex, content);
-        }
+        logger.LogInformation(ex, "[DEBUGGING] " + content);
     }
 
     public static void DebuggingWarn(this ILogger logger, Exception ex, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.LogWarning(ex, content);
-        }
+        logger.LogWarning(ex, "[DEBUGGING] " + content);
     }
 
     public static void DebuggingError(this ILogger logger, Exception ex, string content)
     {
-        if (ConfigurationFactory.GetConfiguration<AppSettings>().Debugging)
-        {
-            logger.LogError(ex, content);
-        }
+        logger.LogError(ex, "[DEBUGGING] " + content);
     }
 }

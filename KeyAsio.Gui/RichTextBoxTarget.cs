@@ -22,6 +22,14 @@ public sealed class RichTextBoxTarget : TargetWithLayout
             return;
         }
 
+        if (logEvent.Message.StartsWith("[DEBUGGING] "))
+        {
+            if (!SharedViewModel.Instance.Debugging)
+            {
+                return;
+            }
+        }
+
         string logMessage = Layout.Render(logEvent);
         Application.Current.Dispatcher.InvokeAsync(() =>
         {
