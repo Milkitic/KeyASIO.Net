@@ -13,7 +13,7 @@ public class RealtimeOptions : ViewModelBase
     private float _balanceFactor = 0.3f;
     private bool _ignoreComboBreak;
     private bool _ignoreLineVolumes;
-    private bool _disableMusicFunctions;
+    private bool _enableMusicFunctions = true;
     private int _musicTrackVolume = 100;
     private int _effectTrackVolume = 100;
 
@@ -24,11 +24,11 @@ public class RealtimeOptions : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _realtimeMode, value);
     }
 
-    [Description("If true, the software will disable music related functions.")]
-    public bool DisableMusicFunctions
+    [Description("[EXPERIMENTAL] If true, the software will enable music related functions.")]
+    public bool EnableMusicFunctions
     {
-        get => _disableMusicFunctions;
-        set => this.RaiseAndSetIfChanged(ref _disableMusicFunctions, value);
+        get => _enableMusicFunctions;
+        set => this.RaiseAndSetIfChanged(ref _enableMusicFunctions, value);
     }
 
     [Description("The offset when `RealtimeMode` is true (allow adjusting in GUI).")]

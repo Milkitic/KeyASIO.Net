@@ -1,4 +1,5 @@
 ﻿using System;
+using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
@@ -28,6 +29,7 @@ public class SingleSynchronousTrack
 
     public void SyncAudio(CachedSound? cachedSound, int playTime)
     {
+        if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
         if (_cachedSound?.SourcePath != cachedSound?.SourcePath)
         {
             ClearAudio();

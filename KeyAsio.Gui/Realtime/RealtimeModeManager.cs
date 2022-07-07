@@ -634,7 +634,7 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (IsStarted && !AppSettings.RealtimeOptions.DisableMusicFunctions)
+        if (IsStarted && AppSettings.RealtimeOptions.EnableMusicFunctions)
         {
             if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioEngine != null)
             {

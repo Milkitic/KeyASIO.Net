@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Coosu.Beatmap;
+using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,7 @@ public class SelectSongTrack
 
     public async void PlaySingleAudio(OsuFile osuFile, string? path, int playTime, int fadeInMilliseconds = 1000)
     {
+        if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
         if (Mixer is null || WaveFormat is null) return;
 
         MyAudioFileReader? audioFileReader;
@@ -125,7 +127,7 @@ public class SelectSongTrack
                 var ratio = sw.ElapsedMilliseconds / (double)fadeMilliseconds;
                 var val = currentVol + (targetVol - currentVol) * ratio;
                 volumeSampleProvider.Volume = (float)val;
-                Thread.Sleep(20);
+                Thread.Sleep(100);
             }
 
             volumeSampleProvider.Volume = targetVol;
