@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using HandyControl.Controls;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.UserControls;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
@@ -16,14 +17,13 @@ using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
-using Window = System.Windows.Window;
 
 namespace KeyAsio.Gui.Windows;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : DialogWindow
 {
     private static readonly ILogger Logger = LogUtils.GetLogger("STA Window");
 

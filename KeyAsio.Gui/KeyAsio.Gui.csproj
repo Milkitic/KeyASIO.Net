@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="KeyAsio.ico" />
+    <Resource Include="KeyAsio.ico" />
   </ItemGroup>
 
   <ItemGroup>

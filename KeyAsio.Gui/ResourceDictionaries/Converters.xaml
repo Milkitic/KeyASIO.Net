@@ -1,0 +1,13 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:KeyAsio.Gui.Converters">
+
+    <converters:Enum2ListConverter x:Key="Enum2ListConverter" />
+    <converters:UpperCaseConverter x:Key="UpperCaseConverter" />
+    <converters:IntMillisecond2TimeSpanConverter x:Key="IntMillisecond2TimeSpanConverter" />
+    <converters:IsNullToVisibilityReConverter x:Key="IsNullToVisibilityReConverter" />
+    <converters:IsNullToVisibilityConverter x:Key="IsNullToVisibilityConverter" />
+    <converters:Multi_LatencySampleRate2LatencyConverter x:Key="Multi_LatencySampleRate2LatencyConverter" />
+
+</ResourceDictionary>

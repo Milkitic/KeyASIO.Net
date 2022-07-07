@@ -1,4 +1,4 @@
-﻿<Window
+﻿<userControls:DialogWindow
     x:Class="KeyAsio.Gui.Windows.DeviceWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,6 +6,7 @@
     xmlns:devices="clr-namespace:Milki.Extensions.MixPlayer.Devices;assembly=Milki.Extensions.MixPlayer"
     xmlns:local="clr-namespace:KeyAsio.Gui"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
     Title="Device Configuration Guide"
     Width="600"
@@ -18,7 +19,7 @@
     Loaded="DeviceWindow_OnLoaded"
     ResizeMode="NoResize"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
-    WindowStyle="SingleBorderWindow"
+    WindowStyle="ToolWindow"
     mc:Ignorable="d">
     <Grid Margin="25">
         <StackPanel HorizontalAlignment="Left">
@@ -171,4 +172,4 @@
             Style="{StaticResource ButtonPrimary}"
             TextBlock.FontFamily="Consolas" />
     </Grid>
-</Window>
+</userControls:DialogWindow>

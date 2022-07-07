@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.UserControls;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Gui.Windows;
@@ -21,7 +22,7 @@ public class KeyBindWindowViewModel : ViewModelBase
 /// <summary>
 /// KeyBindWindow.xaml 的交互逻辑
 /// </summary>
-public partial class KeyBindWindow : Window
+public partial class KeyBindWindow : DialogWindow
 {
     private readonly IKeyboardHook _keyboardHook;
     public KeyBindWindowViewModel ViewModel { get; }

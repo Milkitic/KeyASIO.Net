@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Windows;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.UserControls;
 
 namespace KeyAsio.Gui.Windows;
 
 /// <summary>
 /// OptionsWindow.xaml 的交互逻辑
 /// </summary>
-public partial class RealtimeOptionsWindow : Window
+public partial class RealtimeOptionsWindow : DialogWindow
 {
     private readonly SharedViewModel _viewModel;
 

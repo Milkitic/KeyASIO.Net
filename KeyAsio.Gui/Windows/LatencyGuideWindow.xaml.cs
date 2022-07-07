@@ -1,24 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.UserControls;
 
 namespace KeyAsio.Gui.Windows;
 
 /// <summary>
 /// LatencyGuideWindow.xaml 的交互逻辑
 /// </summary>
-public partial class LatencyGuideWindow : Window
+public partial class LatencyGuideWindow : DialogWindow
 {
     private readonly SharedViewModel _viewModel;
     private readonly int _offset;

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using KeyAsio.Gui.Models;
+using KeyAsio.Gui.UserControls;
 using Milki.Extensions.MixPlayer.Devices;
 
 namespace KeyAsio.Gui.Windows;
@@ -56,7 +58,7 @@ public class DeviceWindowViewModel : ViewModelBase
 /// <summary>
 /// DeviceWindow.xaml 的交互逻辑
 /// </summary>
-public partial class DeviceWindow : Window
+public partial class DeviceWindow : DialogWindow
 {
     public DeviceWindowViewModel ViewModel { get; }
 
@@ -66,11 +68,11 @@ public partial class DeviceWindow : Window
         DataContext = ViewModel = new DeviceWindowViewModel();
     }
 
-    private void DeviceWindow_OnLoaded(object sender, RoutedEventArgs e)
+    private async void DeviceWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
-        ViewModel.Devices = DeviceCreationHelper.GetCachedAvailableDevices()
+        ViewModel.Devices = await Task.Run(() => DeviceCreationHelper.GetCachedAvailableDevices()
             .OrderBy(k => k, new DeviceDescriptionComparer())
-            .ToList();
+            .ToList());
 
         ViewModel.SelectedDevice = ViewModel.Devices.FirstOrDefault(k => k.WavePlayerType == WavePlayerType.ASIO) ??
                                    ViewModel.Devices.FirstOrDefault(k => k.WavePlayerType == WavePlayerType.WASAPI) ??
