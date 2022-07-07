@@ -81,6 +81,8 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
         }
     }
 
+    public bool SendAnonymousLogsToDeveloperConfirmed { get; set; }
+
     public RealtimeOptions RealtimeOptions
     {
         get => _realtimeOptions ??= new();

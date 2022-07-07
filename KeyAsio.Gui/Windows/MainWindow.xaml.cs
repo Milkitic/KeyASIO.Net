@@ -243,20 +243,33 @@ public partial class MainWindow : Window
             RegisterKey(key);
         }
 
-        var result = await Updater.CheckUpdateAsync();
-
-        if (result != true) return;
-        Growl.Ask($"Found new version: {Updater.NewRelease!.NewVerString}. " +
-                  $"Click yes to open the release page.",
+        if (!_appSettings.SendAnonymousLogsToDeveloperConfirmed)
+        {
+            Growl.Ask($"Send anonymous logs/errors to developer?\r\n" +
+                      $"You can change option later in configuration file.",
             dialogResult =>
             {
-                if (dialogResult)
-                {
-                    Updater.OpenLastReleasePage();
-                }
-
-                return dialogResult;
+                _appSettings.SendAnonymousLogsToDeveloper = dialogResult;
+                _appSettings.SendAnonymousLogsToDeveloperConfirmed = true;
+                return true;
             });
+        }
+
+        var result = await Updater.CheckUpdateAsync();
+        if (result == true)
+        {
+            Growl.Ask($"Found new version: {Updater.NewRelease!.NewVerString}. " +
+                   $"Click yes to open the release page.",
+                dialogResult =>
+                {
+                    if (dialogResult)
+                    {
+                        Updater.OpenLastReleasePage();
+                    }
+
+                    return true;
+                });
+        }
     }
 
     private void MainWindow_OnClosed(object? sender, EventArgs e)
