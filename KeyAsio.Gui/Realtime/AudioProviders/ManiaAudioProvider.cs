@@ -12,7 +12,7 @@ namespace KeyAsio.Gui.Realtime.AudioProviders;
 
 public class ManiaAudioProvider : IAudioProvider
 {
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(ManiaAudioProvider));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(ManiaAudioProvider));
     private readonly RealtimeModeManager _realtimeModeManager;
 
     private List<Queue<PlayableNode>> _hitQueue = new();

@@ -16,7 +16,7 @@ namespace KeyAsio.Gui.Utils;
 
 public static class Updater
 {
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(Updater));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(Updater));
     private const string Repo = "Milkitic/KeyAsio.Net";
     private static string? _version;
     private const int Timeout = 10000;

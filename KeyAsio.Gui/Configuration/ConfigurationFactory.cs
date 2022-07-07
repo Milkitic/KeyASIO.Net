@@ -14,7 +14,7 @@ public static class ConfigurationFactory
     private static readonly Dictionary<Type, ConfigurationInformation> InformationDictionary = new();
     private static readonly Dictionary<string, ConfigurationInformation> InformationDictionary2 = new();
     private static readonly Dictionary<object, ConfigurationInformation> InstanceDictionary = new();
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(ConfigurationFactory));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(ConfigurationFactory));
 
     public static T GetConfiguration<T>(IConfigurationConverter? converter = null, string? baseFolder = null)
     {

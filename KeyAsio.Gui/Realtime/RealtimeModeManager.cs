@@ -32,7 +32,7 @@ public class RealtimeModeManager : ViewModelBase
     private static readonly string[] SkinAudioFiles = { "combobreak" };
 
     public static RealtimeModeManager Instance { get; } = new();
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(RealtimeModeManager));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(RealtimeModeManager));
 
     private OsuListenerManager.OsuStatus _osuStatus;
     private int _playTime;
@@ -315,7 +315,8 @@ public class RealtimeModeManager : ViewModelBase
 
         if (_folder != null && OsuFile != null)
         {
-            _selectSongTrack.PlaySingleAudio(Path.Combine(_folder, OsuFile.General.AudioFilename), OsuFile.General.PreviewTime);
+            _selectSongTrack.PlaySingleAudio(OsuFile, Path.Combine(_folder, OsuFile.General.AudioFilename ?? ""),
+                OsuFile.General.PreviewTime);
         }
     }
 
@@ -596,7 +597,11 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (OsuStatus == OsuListenerManager.OsuStatus.SelectSong && beatmap != null)
         {
-            var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k => k.IncludeSection("General"));
+            var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
+            {
+                k.IncludeSection("General");
+                k.IncludeSection("Metadata");
+            });
             var audioFilePath = Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
             if (audioFilePath == _audioFilePath)
             {
@@ -606,7 +611,7 @@ public class RealtimeModeManager : ViewModelBase
             _folder = beatmap.Folder;
             _audioFilePath = audioFilePath;
             _selectSongTrack.StopCurrentMusic(200);
-            _selectSongTrack.PlaySingleAudio(audioFilePath, coosu.General.PreviewTime);
+            _selectSongTrack.PlaySingleAudio(coosu, audioFilePath, coosu.General.PreviewTime);
         }
     }
 

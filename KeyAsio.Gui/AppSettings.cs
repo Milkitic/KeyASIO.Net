@@ -21,6 +21,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
 
     private RealtimeOptions? _realtimeOptions;
     private int _volume = 100;
+    private bool _sendAnonymousLogsToDeveloper = true;
 
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public List<HookKeys> Keys
@@ -65,6 +66,18 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
             else if (value < 0) value = 0;
             else if (value < 1) value *= 100; // Convert from old version
             _volume = (int)Math.Round(value);
+        }
+    }
+
+    [Description("Set whether the software can report anonymous logs/bugs to developer.")]
+    public bool SendAnonymousLogsToDeveloper
+    {
+        get => _sendAnonymousLogsToDeveloper;
+        set
+        {
+            if (Equals(value, _sendAnonymousLogsToDeveloper)) return;
+            _sendAnonymousLogsToDeveloper = value;
+            OnPropertyChanged();
         }
     }
 

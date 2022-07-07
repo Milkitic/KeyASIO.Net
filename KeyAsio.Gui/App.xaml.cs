@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -39,15 +38,18 @@ public partial class App : Application
             return;
         }
 
-        try
+        using (new EmbeddedSentryConfiguration())
         {
-            var app = new App();
-            app.InitializeComponent();
-            app.Run();
-        }
-        finally
-        {
-            mutex.ReleaseMutex();
+            try
+            {
+                var app = new App();
+                app.InitializeComponent();
+                app.Run();
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+            }
         }
     }
 
@@ -64,7 +66,7 @@ public partial class App : Application
 
         if (settings.RealtimeOptions.RealtimeMode)
         {
-            OrtdpLogger.SetLoggerFactory(SharedUtils.LoggerFactory);
+            OrtdpLogger.SetLoggerFactory(LogUtils.LoggerFactory);
             OrtdpSetting.ListenInterval = 3;
             var manager = new OsuListenerManager();
             manager.OnModsChanged += modsInfo => RealtimeModeManager.Instance.PlayMods = modsInfo.Mod;

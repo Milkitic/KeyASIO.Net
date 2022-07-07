@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Coosu.Beatmap;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
@@ -12,9 +13,10 @@ using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Gui.Realtime.Tracks;
 
+// Todo: will write new FadingInOutSampleProvider
 public class SelectSongTrack
 {
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(SelectSongTrack));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SelectSongTrack));
     private readonly object _instanceLock = new();
 
     private MyAudioFileReader? _audioFileReader;
@@ -26,7 +28,7 @@ public class SelectSongTrack
     private MixingSampleProvider? Mixer => SharedViewModel.Instance.AudioEngine?.MusicMixer;
     private WaveFormat? WaveFormat => SharedViewModel.Instance.AudioEngine?.WaveFormat;
 
-    public async void PlaySingleAudio(string? path, int playTime, int fadeInMilliseconds = 1000)
+    public async void PlaySingleAudio(OsuFile osuFile, string? path, int playTime, int fadeInMilliseconds = 1000)
     {
         if (Mixer is null || WaveFormat is null) return;
 
@@ -64,6 +66,7 @@ public class SelectSongTrack
             }
             catch (Exception e)
             {
+                Logger.LogWarning(e, $"Preview error: {osuFile}");
                 Mixer.RemoveMixerInput(volumeSampleProvider);
                 return;
             }

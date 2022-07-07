@@ -53,6 +53,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\dependencies\OsuRTDataProviderCore\OsuRTDataProvider.csproj" />
+    <ProjectReference Include="..\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,7 +12,7 @@ namespace KeyAsio.Gui.Realtime.Tracks;
 
 public class SingleSynchronousTrack
 {
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(SingleSynchronousTrack));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SingleSynchronousTrack));
 
     private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
     private VariableSpeedSampleProvider? _variableSampleProvider;

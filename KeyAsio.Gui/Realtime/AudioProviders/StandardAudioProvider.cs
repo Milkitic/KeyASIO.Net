@@ -12,7 +12,7 @@ namespace KeyAsio.Gui.Realtime.AudioProviders;
 
 public class StandardAudioProvider : IAudioProvider
 {
-    private static readonly ILogger Logger = SharedUtils.GetLogger(nameof(StandardAudioProvider));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(StandardAudioProvider));
     private readonly RealtimeModeManager _realtimeModeManager;
 
     private Queue<PlayableNode> _hitQueue = new();

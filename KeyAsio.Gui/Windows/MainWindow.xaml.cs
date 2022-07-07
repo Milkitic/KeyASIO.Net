@@ -25,7 +25,7 @@ namespace KeyAsio.Gui.Windows;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private static readonly ILogger Logger = SharedUtils.GetLogger("STA Window");
+    private static readonly ILogger Logger = LogUtils.GetLogger("STA Window");
 
     private bool _forceClose;
     private readonly AppSettings _appSettings;
