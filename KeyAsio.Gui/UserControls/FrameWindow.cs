@@ -22,6 +22,7 @@ public class FrameWindow : Window
         Initialized += FrameWindow_Initialized;
         StateChanged += FrameWindow_StateChanged;
     }
+
     public bool CanClose
     {
         get => (bool)GetValue(CanCloseProperty);
@@ -72,6 +73,7 @@ public class FrameWindow : Window
         {
             Frame.HasMax = false;
             Frame.HasMin = false;
+            Frame.HasIcon = Icon is not null;
         }
     }
 }

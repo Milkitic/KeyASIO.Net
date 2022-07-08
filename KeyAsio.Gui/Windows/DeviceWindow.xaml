@@ -19,7 +19,7 @@
     Loaded="DeviceWindow_OnLoaded"
     ResizeMode="NoResize"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
-    WindowStyle="ToolWindow"
+    WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
     <Grid Margin="25">
         <StackPanel HorizontalAlignment="Left">
@@ -62,7 +62,7 @@
                 <StackPanel HorizontalAlignment="Left">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Hidden" />
+                            <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
                                     <Setter Property="Visibility" Value="Visible" />

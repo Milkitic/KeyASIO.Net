@@ -67,6 +67,7 @@ public partial class App : Application
         if (settings.RealtimeOptions.RealtimeMode)
         {
             OrtdpLogger.SetLoggerFactory(LogUtils.LoggerFactory);
+            OrtdpSetting.DisableProcessNotFoundInformation = true;
             OrtdpSetting.ListenInterval = 3;
             var manager = new OsuListenerManager();
             manager.OnModsChanged += modsInfo => RealtimeModeManager.Instance.PlayMods = modsInfo.Mod;

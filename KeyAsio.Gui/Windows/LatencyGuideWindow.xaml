@@ -19,7 +19,7 @@
     FontSize="14"
     ResizeMode="NoResize"
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
-    WindowStyle="ToolWindow"
+    WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
     <Grid Margin="25">
         <StackPanel HorizontalAlignment="Left">

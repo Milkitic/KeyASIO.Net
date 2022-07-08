@@ -28,6 +28,10 @@ public sealed class RichTextBoxTarget : TargetWithLayout
             {
                 return;
             }
+            else
+            {
+                logEvent.Message = logEvent.Message[12..];
+            }
         }
 
         string logMessage = Layout.Render(logEvent);

@@ -115,7 +115,7 @@
                         </DataTrigger>
                         <DataTrigger Binding="{Binding ElementName=MainBorder, Path=Tag}" Value="True">
                             <Setter TargetName="IconContent" Property="Template" Value="{DynamicResource RecoverTempl}" />
-                            <Setter TargetName="IconViewBox" Property="Margin" Value="0,0,0,1" />
+                            <Setter TargetName="IconViewBox" Property="Margin" Value="0,0,0,2" />
                             <Setter TargetName="IconViewBox" Property="Width" Value="20" />
                             <Setter TargetName="IconViewBox" Property="Height" Value="23" />
                         </DataTrigger>

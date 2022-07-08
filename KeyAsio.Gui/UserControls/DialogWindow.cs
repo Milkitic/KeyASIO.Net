@@ -23,7 +23,11 @@ public class DialogWindow : FrameWindow
     {
         WindowChrome.SetWindowChrome(this, new WindowChrome
         {
-            CaptionHeight = 40,
+            CaptionHeight = 31,
+            CornerRadius = new CornerRadius(0),
+            GlassFrameThickness = new Thickness(1),
+            ResizeBorderThickness = new Thickness(4),
+            NonClientFrameEdges = NonClientFrameEdges.None,
             UseAeroCaptionButtons = false
         });
         StateChanged += DialogWindow_StateChanged;

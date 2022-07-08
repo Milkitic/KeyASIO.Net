@@ -9,7 +9,7 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid x:Name="BaseGrid">
+    <Grid x:Name="BaseGrid" Background="#2B2B2B">
         <Grid.RowDefinitions>
             <RowDefinition Height="31" />
             <RowDefinition />
@@ -47,7 +47,10 @@
                 <local:CloseButton Height="31" IconSize="14" />
             </StackPanel>
         </DockPanel>
-        <Grid Grid.Row="1">
+        <Grid
+            Grid.Row="1"
+            Margin="4,0,4,4"
+            Background="{DynamicResource RegionBrush}">
             <ContentPresenter Content="{Binding ElementName=Self, Path=Child}" />
         </Grid>
     </Grid>
