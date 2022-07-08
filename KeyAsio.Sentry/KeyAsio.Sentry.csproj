@@ -6,6 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup Condition="$(Configuration) != 'Release'">
+    <Compile Remove="EmbeddedSentryConfiguration.Secret.cs" />
+    <None Include="EmbeddedSentryConfiguration.Secret.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(Configuration) == 'Release'">
+    <Compile Remove="EmbeddedSentryConfiguration.SecretNonRelease.cs" />
+    <None Include="EmbeddedSentryConfiguration.SecretNonRelease.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Sentry" Version="3.19.0" />
   </ItemGroup>
