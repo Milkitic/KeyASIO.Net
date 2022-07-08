@@ -85,6 +85,8 @@ public class RealtimeModeManager : ViewModelBase
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
     }
 
+    public string Username { get; set; } = "";
+
     public ModsInfo.Mods PlayMods
     {
         get => _playMods;

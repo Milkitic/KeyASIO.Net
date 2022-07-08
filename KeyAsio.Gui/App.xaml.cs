@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +10,7 @@ using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Realtime;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
+using Microsoft.Extensions.Logging;
 using NLog.Config;
 using OsuRTDataProvider.Listen;
 using OrtdpLogger = OsuRTDataProvider.Logger;
@@ -21,6 +23,7 @@ namespace KeyAsio.Gui;
 /// </summary>
 public partial class App : Application
 {
+    private static readonly ILogger Logger = LogUtils.GetLogger("Application");
     internal readonly RichTextBox RichTextBox = new();
 
     [STAThread]
@@ -38,23 +41,31 @@ public partial class App : Application
             return;
         }
 
-        using (new EmbeddedSentryConfiguration())
+        using var _ = new EmbeddedSentryConfiguration(k =>
         {
-            try
-            {
-                var app = new App();
-                app.InitializeComponent();
-                app.Run();
-            }
-            finally
-            {
-                mutex.ReleaseMutex();
-            }
+            k.DefaultTags.Add("osu.username", RealtimeModeManager.Instance.Username);
+            k.DefaultTags.Add("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
+            k.DefaultTags.Add("os.detail", HardwareInformationHelper.GetOsInformation());
+            k.DefaultTags.Add("processor", HardwareInformationHelper.GetProcessorInformation());
+            k.DefaultTags.Add("total_memory", HardwareInformationHelper.GetPhysicalMemory());
+        });
+
+        try
+        {
+            var app = new App();
+            app.InitializeComponent();
+            app.Run();
+        }
+        finally
+        {
+            mutex.ReleaseMutex();
         }
     }
 
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
+        Dispatcher.UnhandledException += Dispatcher_UnhandledException;
+
         ConfigurationItemFactory
             .Default
             .Targets
@@ -70,6 +81,7 @@ public partial class App : Application
             OrtdpSetting.DisableProcessNotFoundInformation = true;
             OrtdpSetting.ListenInterval = 3;
             var manager = new OsuListenerManager();
+            manager.OnPlayerChanged += player => RealtimeModeManager.Instance.Username = player;
             manager.OnModsChanged += modsInfo => RealtimeModeManager.Instance.PlayMods = modsInfo.Mod;
             manager.OnComboChanged += combo => RealtimeModeManager.Instance.Combo = combo;
             manager.OnScoreChanged += score => RealtimeModeManager.Instance.Score = score;
@@ -90,13 +102,24 @@ public partial class App : Application
         };
         RichTextBox.Document.Blocks.Clear();
         miClearAll.Click += miClearAll_Click;
+
+        Logger.DebuggingInfo("Just say hi", true);
+
         MainWindow = new MainWindow();
         MainWindow.Show();
+        throw new Exception("Test unhandled");
     }
 
     private void miClearAll_Click(object sender, RoutedEventArgs e)
     {
         RichTextBox.Document.Blocks.Clear();
         //TextBox.Clear();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+    {
+        Logger.Error(e.Exception, "Unhandled Exception (Dispatcher)", true);
+        e.Handled = true;
     }
 }

@@ -5,7 +5,7 @@ public partial class EmbeddedSentryConfiguration : IDisposable
 {
     private readonly IDisposable _sentrySdk;
 
-    public EmbeddedSentryConfiguration()
+    public EmbeddedSentryConfiguration(Action<SentryOptions>? configureOptions = null)
     {
         _sentrySdk = SentrySdk.Init(options =>
         {
@@ -22,6 +22,8 @@ public partial class EmbeddedSentryConfiguration : IDisposable
             options.SendDefaultPii = true;
             options.AttachStacktrace = true;
             options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+
+            configureOptions?.Invoke(options);
         });
     }
 
