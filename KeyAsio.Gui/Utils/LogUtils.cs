@@ -38,15 +38,15 @@ internal static class LogUtils
 
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
         if (!settings.SendLogsToDeveloper) return;
-        //if (exception != null)
-        //{
-        //    SentrySdk.CaptureException(exception, k =>
-        //    {
-        //        k.SetTag("message", content);
-        //        ConfigureScope(k);
-        //    });
-        //}
-        //else
+        if (exception != null)
+        {
+            SentrySdk.CaptureException(exception, k =>
+            {
+                k.SetTag("message", content);
+                ConfigureScope(k);
+            });
+        }
+        else
         {
             var sentryLevel = logLevel switch
             {
