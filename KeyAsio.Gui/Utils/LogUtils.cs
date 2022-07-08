@@ -28,14 +28,6 @@ internal static class LogUtils
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void LogToSentry(LogLevel logLevel, string content, Exception? exception = null, Action<Scope>? configureScope = null)
     {
-        void ConfigureScope(Scope scope)
-        {
-            scope.SetTag("osu.filename_real", RealtimeModeManager.Instance.OsuFile?.ToString() ?? "");
-            scope.SetTag("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
-            scope.SetTag("osu.username", RealtimeModeManager.Instance.Username);
-            configureScope?.Invoke(scope);
-        }
-
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
         if (!settings.SendLogsToDeveloper) return;
         if (exception != null)
@@ -66,6 +58,14 @@ internal static class LogUtils
             }
 
             SentrySdk.CaptureMessage(content, ConfigureScope, sentryLevel);
+        }
+
+        void ConfigureScope(Scope scope)
+        {
+            scope.SetTag("osu.filename_real", RealtimeModeManager.Instance.OsuFile?.ToString() ?? "");
+            scope.SetTag("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
+            scope.SetTag("osu.username", RealtimeModeManager.Instance.Username);
+            configureScope?.Invoke(scope);
         }
     }
 

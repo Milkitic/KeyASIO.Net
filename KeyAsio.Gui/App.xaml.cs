@@ -53,6 +53,7 @@ public partial class App : Application
 
         try
         {
+            LogUtils.LogToSentry(LogLevel.Information, "Application started.");
             var app = new App();
             app.InitializeComponent();
             app.Run();
@@ -60,6 +61,7 @@ public partial class App : Application
         finally
         {
             mutex.ReleaseMutex();
+            LogUtils.LogToSentry(LogLevel.Information, "Application stopped.");
         }
     }
 
