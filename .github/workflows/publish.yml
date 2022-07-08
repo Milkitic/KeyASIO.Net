@@ -34,7 +34,7 @@ jobs:
       run: |
         echo 'public partial class EmbeddedSentryConfiguration { private static readonly string __dsn ="${{ secrets.SENTRY_DSN }}"; }'>KeyAsio.Sentry/EmbeddedSentryConfiguration.Secret.cs      
    
-     - name: Publish
+    - name: Publish
       if: ${{ success() }}
       run: |
         echo ${{ github.ref }}      
