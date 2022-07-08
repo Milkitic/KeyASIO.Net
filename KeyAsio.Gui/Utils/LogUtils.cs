@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
@@ -29,13 +28,25 @@ internal static class LogUtils
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void LogToSentry(LogLevel logLevel, string content, Exception? exception = null, Action<Scope>? configureScope = null)
     {
-        var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
-        if (!settings.SendAnonymousLogsToDeveloper) return;
-        if (exception != null)
+        void ConfigureScope(Scope scope)
         {
-            SentrySdk.CaptureException(exception);
+            scope.SetTag("osu.filename_real", RealtimeModeManager.Instance.OsuFile?.ToString() ?? "");
+            scope.SetTag("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
+            scope.SetTag("osu.username", RealtimeModeManager.Instance.Username);
+            configureScope?.Invoke(scope);
         }
-        else
+
+        var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
+        if (!settings.SendLogsToDeveloper) return;
+        //if (exception != null)
+        //{
+        //    SentrySdk.CaptureException(exception, k =>
+        //    {
+        //        k.SetTag("message", content);
+        //        ConfigureScope(k);
+        //    });
+        //}
+        //else
         {
             var sentryLevel = logLevel switch
             {
@@ -48,14 +59,13 @@ internal static class LogUtils
                 LogLevel.None => SentryLevel.Info,
                 _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null)
             };
-
-            SentrySdk.CaptureMessage(content, scope =>
+            if (exception != null)
             {
-                scope.SetTag("osu.filename_real", RealtimeModeManager.Instance.OsuFile?.ToString() ?? "");
-                scope.SetTag("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
-                scope.SetTag("osu.username", RealtimeModeManager.Instance.Username);
-                configureScope?.Invoke(scope);
-            }, sentryLevel);
+                sentryLevel = SentryLevel.Error;
+                content += $"\r\n{exception}";
+            }
+
+            SentrySdk.CaptureMessage(content, ConfigureScope, sentryLevel);
         }
     }
 

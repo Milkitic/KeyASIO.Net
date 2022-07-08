@@ -51,7 +51,7 @@ public static class Updater
             if (json == null) return null;
             if (json.Contains("API rate limit"))
             {
-                Logger.LogError("Error while checking for updates: Github API rate limit exceeded.");
+                Logger.Error("Error while checking for updates: Github API rate limit exceeded.");
                 return null;
             }
 
@@ -84,7 +84,7 @@ public static class Updater
         }
         catch (Exception ex)
         {
-            Logger.LogError($"Error while checking for updates: {ex.Message}");
+            Logger.Error($"Error while checking for updates: {ex.Message}", true);
             return null;
             //throw;
         }

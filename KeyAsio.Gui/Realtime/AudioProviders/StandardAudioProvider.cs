@@ -71,7 +71,7 @@ public class StandardAudioProvider : IAudioProvider
         var first = _firstNode;
         if (first == null) return ReturnDefaultAndLog("First is null, no item returned.", LogLevel.Warning);
 
-        Logger.LogDebug($"Click: {playTime}; First node: {first.Offset}");
+        Logger.Debug($"Click: {playTime}; First node: {first.Offset}");
 
         if (playTime < first.Offset - KeyThresholdMilliseconds) return ReturnDefaultAndLog("Haven't reached first, no item returned.", LogLevel.Warning);
 

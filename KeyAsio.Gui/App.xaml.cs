@@ -101,11 +101,8 @@ public partial class App : Application
         RichTextBox.Document.Blocks.Clear();
         miClearAll.Click += miClearAll_Click;
 
-        Logger.DebuggingInfo("Just say hi", true);
-
         MainWindow = new MainWindow();
         MainWindow.Show();
-        throw new Exception("Test unhandled");
     }
 
     private void miClearAll_Click(object sender, RoutedEventArgs e)
@@ -117,7 +114,7 @@ public partial class App : Application
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
-        Logger.Error(e.Exception, "Unhandled Exception (Dispatcher)", true);
+        Logger.Error(e.Exception, "Unhandled Exception (Dispatcher): " + e.Exception.Message, true);
         e.Handled = true;
     }
 }

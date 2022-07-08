@@ -62,13 +62,14 @@ public class SelectSongTrack
                 {
                     Mixer.AddMixerInput(volumeSampleProvider);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
+                    Logger.Warn(ex, $"Preview with warning: {ex.Message}");
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.LogWarning(e, $"Preview error: {osuFile}");
+                Logger.Warn(ex, $"Preview error: {osuFile}", true);
                 Mixer.RemoveMixerInput(volumeSampleProvider);
                 return;
             }

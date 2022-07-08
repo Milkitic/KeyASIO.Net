@@ -157,7 +157,16 @@ public partial class MainWindow : DialogWindow
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, $"Error occurs while creating device.");
+            Logger.Error(ex, $"Error occurs while creating device.");
+            LogUtils.LogToSentry(LogLevel.Error, $"Device Creation Error.", ex, scope =>
+            {
+                scope.SetTag("device.id", deviceDescription.DeviceId ?? "");
+                scope.SetTag("device.name", deviceDescription.FriendlyName ?? "");
+                scope.SetTag("device.buffer", deviceDescription.ForceASIOBufferSize.ToString());
+                scope.SetTag("device.exclusive", deviceDescription.IsExclusive.ToString());
+                scope.SetTag("device.latency", deviceDescription.Latency.ToString());
+                scope.SetTag("device.type", deviceDescription.WavePlayerType.ToString());
+            });
         }
     }
 
@@ -180,7 +189,7 @@ public partial class MainWindow : DialogWindow
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error while disposing");
+                Logger.Error(ex, "Error while disposing device.", true);
                 Thread.Sleep(100);
             }
         }
@@ -243,14 +252,14 @@ public partial class MainWindow : DialogWindow
             RegisterKey(key);
         }
 
-        if (!_appSettings.SendAnonymousLogsToDeveloperConfirmed)
+        if (!_appSettings.SendLogsToDeveloperConfirmed)
         {
-            Growl.Ask($"Send anonymous logs/errors to developer?\r\n" +
+            Growl.Ask($"Send logs and errors to developer?\r\n" +
                       $"You can change option later in configuration file.",
             dialogResult =>
             {
-                _appSettings.SendAnonymousLogsToDeveloper = dialogResult;
-                _appSettings.SendAnonymousLogsToDeveloperConfirmed = true;
+                _appSettings.SendLogsToDeveloper = dialogResult;
+                _appSettings.SendLogsToDeveloperConfirmed = true;
                 return true;
             });
         }

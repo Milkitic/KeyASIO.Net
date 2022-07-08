@@ -237,9 +237,9 @@ public class RealtimeModeManager : ViewModelBase
                 )
             { Balance = balance }
         );
-        Logger.LogDebug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourcePath)}; " +
-                        $"Vol. {volume}; " +
-                        $"Bal. {balance}");
+        Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourcePath)}; " +
+                     $"Vol. {volume}; " +
+                     $"Bal. {balance}");
     }
 
     private void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode)
@@ -356,7 +356,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (osuDir.OsuFiles.Count <= 0)
         {
-            Logger.LogWarning($"There is no available beatmaps after scanning. " +
+            Logger.Warn($"There is no available beatmaps after scanning. " +
                               $"Directory: {folder}; File: {diffFilename}");
             return;
         }
@@ -404,7 +404,7 @@ public class RealtimeModeManager : ViewModelBase
 
                 if (result == null)
                 {
-                    Logger.LogWarning("Caching music failed: " + musicPath);
+                    Logger.Warn("Caching sound failed: " + (File.Exists(musicPath) ? musicPath : "FileNotFound"));
                 }
                 else if (status == true)
                 {
@@ -493,7 +493,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (result == null)
         {
-            Logger.LogWarning("Caching skin audio failed: " + path);
+            Logger.Warn("Caching sound failed: " + (File.Exists(path) ? path : "FileNotFound"));
         }
         else if (status == true)
         {
@@ -544,7 +544,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (result == null)
         {
-            Logger.LogWarning("Caching sound failed: " + path);
+            Logger.Warn("Caching sound failed: " + (File.Exists(path) ? path : "FileNotFound"));
         }
         else if (status == true)
         {
@@ -582,7 +582,7 @@ public class RealtimeModeManager : ViewModelBase
             _result = false;
             if (Beatmap == null)
             {
-                Logger.LogWarning("Failed to start: the beatmap is null");
+                Logger.Warn("Failed to start: the beatmap is null");
             }
             else
             {

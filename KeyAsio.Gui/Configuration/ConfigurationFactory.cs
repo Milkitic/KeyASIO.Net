@@ -115,7 +115,7 @@ public static class ConfigurationFactory
                     SaveConfig(config, path, converter, encoding);
                 }
 
-                Logger.LogDebug($"Config file \"{Path.GetFileName(path)}\" was loaded.");
+                Logger.Debug($"Config file \"{Path.GetFileName(path)}\" was loaded.");
             }
             catch (Exception ex)
             {
