@@ -18,10 +18,8 @@ public partial class EmbeddedSentryConfiguration : IDisposable
             options.Environment = "production";
 #endif
             options.TracesSampleRate = 1;
-            options.HttpProxy = HttpClient.DefaultProxy;
             options.SendDefaultPii = true;
             options.AttachStacktrace = true;
-            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
 
             configureOptions?.Invoke(options);
         });

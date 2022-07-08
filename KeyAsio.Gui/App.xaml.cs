@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
@@ -41,11 +42,13 @@ public partial class App : Application
             return;
         }
 
-        using var _ = new EmbeddedSentryConfiguration(k =>
+        using var _ = new EmbeddedSentryConfiguration(options =>
         {
-            k.DefaultTags.Add("os.detail", HardwareInformationHelper.GetOsInformation());
-            k.DefaultTags.Add("processor", HardwareInformationHelper.GetProcessorInformation());
-            k.DefaultTags.Add("total_memory", HardwareInformationHelper.GetPhysicalMemory());
+            options.HttpProxy = HttpClient.DefaultProxy;
+            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+            options.DefaultTags.Add("os.detail", HardwareInformationHelper.GetOsInformation());
+            options.DefaultTags.Add("processor", HardwareInformationHelper.GetProcessorInformation());
+            options.DefaultTags.Add("total_memory", HardwareInformationHelper.GetPhysicalMemory());
         });
 
         try
