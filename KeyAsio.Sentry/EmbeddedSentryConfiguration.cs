@@ -10,7 +10,7 @@ public partial class EmbeddedSentryConfiguration : IDisposable
         _sentrySdk = SentrySdk.Init(options =>
         {
             options.Dsn = __dsn;
-#if DEBUG
+#if !RELEASE
             options.Debug = true;
             options.Environment = "debug";
 #else

@@ -277,6 +277,7 @@ public class RealtimeModeManager : ViewModelBase
         try
         {
             Logger.DebuggingInfo("Start playing.");
+            OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
             if (_folder != folder)
@@ -299,7 +300,12 @@ public class RealtimeModeManager : ViewModelBase
         catch (Exception ex)
         {
             IsStarted = false;
-            Logger.LogError(ex, "Error while starting a beatmap");
+            Logger.Error(ex, $"Error while starting a beatmap. Filename: {beatmapFilename}. FilenameReal: {OsuFile}");
+            LogUtils.LogToSentry(LogLevel.Error, "Error while starting a beatmap", ex, k =>
+            {
+                k.SetTag("osu.filename", beatmapFilename);
+                k.SetTag("osu.filename_real", OsuFile?.ToString() ?? "");
+            });
         }
     }
 

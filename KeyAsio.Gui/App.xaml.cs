@@ -43,8 +43,6 @@ public partial class App : Application
 
         using var _ = new EmbeddedSentryConfiguration(k =>
         {
-            k.DefaultTags.Add("osu.username", RealtimeModeManager.Instance.Username);
-            k.DefaultTags.Add("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
             k.DefaultTags.Add("os.detail", HardwareInformationHelper.GetOsInformation());
             k.DefaultTags.Add("processor", HardwareInformationHelper.GetProcessorInformation());
             k.DefaultTags.Add("total_memory", HardwareInformationHelper.GetPhysicalMemory());
