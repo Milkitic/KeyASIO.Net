@@ -31,6 +31,8 @@ public partial class App : Application
     [STAThread]
     internal static void Main()
     {
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
         var mutex = new Mutex(true, "KeyAsio.Net", out bool createNew);
         if (!createNew)
         {
@@ -63,6 +65,21 @@ public partial class App : Application
         {
             mutex.ReleaseMutex();
             Logger.Info("Application stopped.", true);
+        }
+    }
+
+    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        var exception = (Exception)e.ExceptionObject;
+        if (Application.Current?.MainWindow == null)
+        {
+            MessageBox.Show(exception.ToFullTypeMessage(), "KeyASIO startup error ",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        else
+        {
+            MessageBox.Show(exception.ToFullTypeMessage(), "KeyASIO untime error",
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

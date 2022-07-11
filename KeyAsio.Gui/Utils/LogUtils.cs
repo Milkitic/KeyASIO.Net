@@ -27,7 +27,8 @@ internal static class LogUtils
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void LogToSentry(LogLevel logLevel, string content, Exception? exception = null, Action<Scope>? configureScope = null)
+    public static void LogToSentry(LogLevel logLevel, string content, Exception? exception = null,
+        Action<Scope>? configureScope = null)
     {
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
         if (!settings.SendLogsToDeveloper) return;

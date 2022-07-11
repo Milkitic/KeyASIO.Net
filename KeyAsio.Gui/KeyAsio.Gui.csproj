@@ -14,6 +14,7 @@
     <Copyright>Copyright © Milki 2022</Copyright>
     <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
     <MinVerTagPrefix>v</MinVerTagPrefix>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(Configuration)=='Debug'">
