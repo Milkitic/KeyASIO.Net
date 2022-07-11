@@ -89,6 +89,8 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
         set => _realtimeOptions = value;
     }
 
+    public string PlayerBase64 { get; set; } = "";
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     [NotifyPropertyChangedInvocator]

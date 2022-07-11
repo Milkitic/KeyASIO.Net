@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Text;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
 using Microsoft.Extensions.Logging;
@@ -64,7 +65,10 @@ internal static class LogUtils
         {
             scope.SetTag("osu.filename_real", RealtimeModeManager.Instance.OsuFile?.ToString() ?? "");
             scope.SetTag("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
-            scope.SetTag("osu.username", RealtimeModeManager.Instance.Username);
+            var username = RealtimeModeManager.Instance.Username;
+            scope.SetTag("osu.username", string.IsNullOrEmpty(username)
+                ? EncodeUtils.FromBase64StringEmptyIfError(settings.PlayerBase64, Encoding.ASCII)
+                : username);
             configureScope?.Invoke(scope);
         }
     }

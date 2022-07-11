@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions;
@@ -67,6 +68,7 @@ public class RealtimeModeManager : ViewModelBase
     private ModsInfo.Mods _playMods;
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
+    private string _username = "";
 
     public RealtimeModeManager()
     {
@@ -85,7 +87,21 @@ public class RealtimeModeManager : ViewModelBase
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
     }
 
-    public string Username { get; set; } = "";
+    public string Username
+    {
+        get => _username;
+        set
+        {
+            if (value == _username) return;
+            _username = value;
+            if (!string.IsNullOrEmpty(value))
+            {
+                AppSettings.PlayerBase64 = EncodeUtils.GetBase64String(value, Encoding.ASCII);
+            }
+
+            OnPropertyChanged();
+        }
+    }
 
     public ModsInfo.Mods PlayMods
     {

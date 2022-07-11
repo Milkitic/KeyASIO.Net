@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -53,7 +54,7 @@ public partial class App : Application
 
         try
         {
-            LogUtils.LogToSentry(LogLevel.Information, "Application started.");
+            Logger.Info("Application started.", true);
             var app = new App();
             app.InitializeComponent();
             app.Run();
@@ -61,7 +62,7 @@ public partial class App : Application
         finally
         {
             mutex.ReleaseMutex();
-            LogUtils.LogToSentry(LogLevel.Information, "Application stopped.");
+            Logger.Info("Application stopped.", true);
         }
     }
 
@@ -80,6 +81,16 @@ public partial class App : Application
 
         if (settings.RealtimeOptions.RealtimeMode)
         {
+            try
+            {
+                var player = EncodeUtils.FromBase64String(settings.PlayerBase64, Encoding.ASCII);
+                RealtimeModeManager.Instance.Username = player;
+            }
+            catch
+            {
+                // ignored
+            }
+
             OrtdpLogger.SetLoggerFactory(LogUtils.LoggerFactory);
             OrtdpSetting.DisableProcessNotFoundInformation = true;
             OrtdpSetting.ListenInterval = 3;
