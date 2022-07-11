@@ -20,7 +20,7 @@ public class SelectSongTrack
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SelectSongTrack));
     private readonly object _instanceLock = new();
 
-    private MyAudioFileReader? _audioFileReader;
+    private SmartWaveReader? _smartWaveReader;
     private WdlResamplingSampleProvider? _resampler;
     private TimingSampleProvider? _timingSampleProvider;
     private VolumeSampleProvider? _volumeSampleProvider;
@@ -34,17 +34,17 @@ public class SelectSongTrack
         if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
         if (Mixer is null || WaveFormat is null) return;
 
-        MyAudioFileReader? audioFileReader;
+        SmartWaveReader? smartWaveReader;
         VolumeSampleProvider? volumeSampleProvider = null;
         SampleControl sampleControl;
         lock (_instanceLock)
         {
-            if (_audioFileReader is not null) return;
+            if (_smartWaveReader is not null) return;
 
             try
             {
-                audioFileReader = _audioFileReader = new MyAudioFileReader(path);
-                var resampler = _resampler = new WdlResamplingSampleProvider(audioFileReader, WaveFormat.SampleRate);
+                smartWaveReader = _smartWaveReader = new SmartWaveReader(path);
+                var resampler = _resampler = new WdlResamplingSampleProvider(smartWaveReader, WaveFormat.SampleRate);
                 var timingSampleProvider = _timingSampleProvider = new TimingSampleProvider(resampler);
                 volumeSampleProvider = _volumeSampleProvider = new VolumeSampleProvider(timingSampleProvider)
                 {
@@ -53,9 +53,9 @@ public class SelectSongTrack
                 sampleControl = _sampleControl = new SampleControl();
                 _timingSampleProvider.Updated += async (oldTime, newTime) =>
                 {
-                    if (audioFileReader.CurrentTime >= audioFileReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
+                    if (smartWaveReader.CurrentTime >= smartWaveReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
                     {
-                        await RepositionAndFadeIn(audioFileReader, playTime, volumeSampleProvider, fadeInMilliseconds, sampleControl);
+                        await RepositionAndFadeIn(smartWaveReader, playTime, volumeSampleProvider, fadeInMilliseconds, sampleControl);
                     }
                 };
                 try
@@ -75,29 +75,29 @@ public class SelectSongTrack
             }
         }
 
-        await RepositionAndFadeIn(audioFileReader, playTime, volumeSampleProvider, fadeInMilliseconds, sampleControl);
+        await RepositionAndFadeIn(smartWaveReader, playTime, volumeSampleProvider, fadeInMilliseconds, sampleControl);
     }
 
     public async void StopCurrentMusic(int fadeOutMilliseconds = 500)
     {
-        MyAudioFileReader? audioFileReader;
+        SmartWaveReader? smartWaveReader;
         VolumeSampleProvider? volumeSampleProvider;
         SampleControl? sampleControl;
         lock (_instanceLock)
         {
-            audioFileReader = _audioFileReader;
+            smartWaveReader = _smartWaveReader;
             volumeSampleProvider = _volumeSampleProvider;
             sampleControl = _sampleControl;
-            if (audioFileReader is null || volumeSampleProvider is null || sampleControl is null)
+            if (smartWaveReader is null || volumeSampleProvider is null || sampleControl is null)
                 return;
-            _audioFileReader = null;
+            _smartWaveReader = null;
             _volumeSampleProvider = null;
             _sampleControl = null;
         }
 
         await FadeAsync(volumeSampleProvider, fadeOutMilliseconds, false, sampleControl);
         Mixer?.RemoveMixerInput(volumeSampleProvider);
-        await audioFileReader.DisposeAsync();
+        await smartWaveReader.DisposeAsync();
     }
 
     private static async ValueTask RepositionAndFadeIn(WaveStream waveStream, int playTime,
