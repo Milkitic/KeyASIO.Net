@@ -78,7 +78,7 @@ public partial class App : Application
         }
         else
         {
-            MessageBox.Show(exception.ToFullTypeMessage(), "KeyASIO untime error",
+            MessageBox.Show(exception.ToFullTypeMessage(), "KeyASIO runtime error",
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
