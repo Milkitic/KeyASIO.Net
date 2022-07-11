@@ -54,7 +54,7 @@ public class SingleSynchronousTrack
 
     public void ClearAudio()
     {
-        AudioEngine?.RootMixer.RemoveMixerInput(_volumeSampleProvider);
+        AudioEngine?.MusicMixer.RemoveMixerInput(_volumeSampleProvider);
         _variableSampleProvider?.Dispose();
         _bgmCachedSoundSampleProvider = null;
     }
@@ -86,7 +86,7 @@ public class SingleSynchronousTrack
             _volumeSampleProvider = new VolumeSampleProvider(_bgmCachedSoundSampleProvider) { Volume = volume };
         }
 
-        AudioEngine?.AddMixerInput(_volumeSampleProvider);
+        AudioEngine?.MusicMixer.AddMixerInput(_volumeSampleProvider);
     }
 
     private void UpdateCurrentMixerInput(SeekableCachedSoundSampleProvider sampleProvider, float volume, int playTime)
