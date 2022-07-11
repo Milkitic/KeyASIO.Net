@@ -13,7 +13,7 @@ public class RealtimeOptions : ViewModelBase
     private float _balanceFactor = 0.3f;
     private bool _ignoreComboBreak;
     private bool _ignoreLineVolumes;
-    private bool _enableMusicFunctions = true;
+    private bool _enableMusicFunctions;
     private int _musicTrackVolume = 100;
     private int _effectTrackVolume = 100;
 
