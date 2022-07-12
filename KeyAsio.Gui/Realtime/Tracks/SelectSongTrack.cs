@@ -8,7 +8,6 @@ using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -24,8 +23,7 @@ public class SelectSongTrack
     private SmartWaveReader? _smartWaveReader;
     private WdlResamplingSampleProvider? _resampler;
     private NotifyingSampleProvider? _notifyingSampleProvider;
-    private VolumeSampleProvider? _volumeSampleProvider;
-    private SampleControl? _sampleControl;
+    private FadeInOutSampleProvider? _fadeInOutSampleProvider;
     private LowPassSampleProvider? _lowPassSampleProvider;
 
     private MixingSampleProvider? Mixer => SharedViewModel.Instance.AudioEngine?.MusicMixer;
@@ -37,8 +35,7 @@ public class SelectSongTrack
         if (Mixer is null || WaveFormat is null) return;
 
         SmartWaveReader? smartWaveReader;
-        VolumeSampleProvider? volumeSampleProvider = null;
-        SampleControl sampleControl;
+        FadeInOutSampleProvider? fadeInOutSampleProvider = null;
         lock (_instanceLock)
         {
             if (_smartWaveReader is not null) return;
@@ -63,21 +60,17 @@ public class SelectSongTrack
 
                 var biQuadSampleProvider = _lowPassSampleProvider = new LowPassSampleProvider(notifyingSampleProvider,
                     SharedViewModel.Instance.AudioEngine!.WaveFormat.SampleRate, 16000);
-                volumeSampleProvider = _volumeSampleProvider = new VolumeSampleProvider(biQuadSampleProvider)
-                {
-                    Volume = 0
-                };
-                sampleControl = _sampleControl = new SampleControl();
+                fadeInOutSampleProvider = _fadeInOutSampleProvider = new FadeInOutSampleProvider(biQuadSampleProvider);
                 _notifyingSampleProvider.Sample += async (_, _) =>
                 {
                     if (smartWaveReader.CurrentTime >= smartWaveReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
                     {
-                        await RepositionAndFadeIn(smartWaveReader, playTime, volumeSampleProvider, fadeInMilliseconds, sampleControl);
+                        await RepositionAndFadeIn(smartWaveReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
                     }
                 };
                 try
                 {
-                    Mixer.AddMixerInput(volumeSampleProvider);
+                    Mixer.AddMixerInput(fadeInOutSampleProvider);
                 }
                 catch (Exception ex)
                 {
@@ -87,60 +80,40 @@ public class SelectSongTrack
             catch (Exception ex)
             {
                 Logger.Warn(ex, $"Preview error: {osuFile}", true);
-                Mixer.RemoveMixerInput(volumeSampleProvider);
+                Mixer.RemoveMixerInput(fadeInOutSampleProvider);
                 return;
             }
         }
 
-        await RepositionAndFadeIn(smartWaveReader, playTime, volumeSampleProvider, fadeInMilliseconds, sampleControl);
+        await RepositionAndFadeIn(smartWaveReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
     }
 
     public async void StopCurrentMusic(int fadeOutMilliseconds = 500)
     {
         SmartWaveReader? smartWaveReader;
-        VolumeSampleProvider? volumeSampleProvider;
-        SampleControl? sampleControl;
+        FadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
             smartWaveReader = _smartWaveReader;
-            volumeSampleProvider = _volumeSampleProvider;
-            sampleControl = _sampleControl;
-            if (smartWaveReader is null || volumeSampleProvider is null || sampleControl is null)
+            fadeInOutSampleProvider = _fadeInOutSampleProvider;
+            if (smartWaveReader is null || fadeInOutSampleProvider is null)
                 return;
             _smartWaveReader = null;
-            _volumeSampleProvider = null;
-            _sampleControl = null;
+            _fadeInOutSampleProvider = null;
         }
 
-        await FadeAsync(volumeSampleProvider, fadeOutMilliseconds, false, sampleControl);
-        Mixer?.RemoveMixerInput(volumeSampleProvider);
+        await FadeAsync(fadeInOutSampleProvider, fadeOutMilliseconds, false);
+        Mixer?.RemoveMixerInput(fadeInOutSampleProvider);
         await smartWaveReader.DisposeAsync();
     }
 
-    private static async ValueTask RepositionAndFadeIn(WaveStream waveStream, int playTime,
-        VolumeSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds, SampleControl sampleControl)
-    {
-        if (playTime == -1)
-        {
-            waveStream.Position = (long)(waveStream.Length * 0.4);
-        }
-        else
-        {
-            waveStream.CurrentTime = TimeSpan.FromMilliseconds(playTime);
-        }
-
-        await FadeAsync(fadeInOutSampleProvider, fadeInMilliseconds, true, sampleControl);
-    }
-
-    public void StartLowPass(int fadeMilliseconds)
+    public void StartLowPass(int fadeMilliseconds, int targetVol)
     {
         var lowPass = _lowPassSampleProvider;
         if (lowPass is null) return;
         Task.Run(() =>
         {
             var currentVol = lowPass.Frequency;
-            var targetVol = 800;
-
             var sw = Stopwatch.StartNew();
             while (sw.ElapsedMilliseconds < fadeMilliseconds)
             {
@@ -154,23 +127,48 @@ public class SelectSongTrack
         });
     }
 
-    private static async ValueTask FadeAsync(VolumeSampleProvider volumeSampleProvider, int fadeMilliseconds, bool isFadeIn, SampleControl sampleControl)
+    private static async ValueTask RepositionAndFadeIn(WaveStream waveStream, int playTime,
+        FadeInOutSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds)
     {
-        await Task.Run(() =>
+        if (playTime == -1)
         {
-            var currentVol = volumeSampleProvider.Volume;
-            var targetVol = isFadeIn ? 1 : 0f;
+            waveStream.Position = (long)(waveStream.Length * 0.4);
+        }
+        else
+        {
+            waveStream.CurrentTime = TimeSpan.FromMilliseconds(playTime);
+        }
 
-            var sw = Stopwatch.StartNew();
-            while (sw.ElapsedMilliseconds < fadeMilliseconds)
-            {
-                var ratio = sw.ElapsedMilliseconds / (double)fadeMilliseconds;
-                var val = currentVol + (targetVol - currentVol) * ratio;
-                volumeSampleProvider.Volume = (float)val;
-                Thread.Sleep(100);
-            }
+        await FadeAsync(fadeInOutSampleProvider, fadeInMilliseconds, true);
+    }
 
-            volumeSampleProvider.Volume = targetVol;
-        });
+    private static async ValueTask FadeAsync(FadeInOutSampleProvider volumeSampleProvider, int fadeMilliseconds, bool isFadeIn)
+    {
+        if (isFadeIn)
+        {
+            volumeSampleProvider.BeginFadeIn(fadeMilliseconds);
+        }
+        else
+        {
+            volumeSampleProvider.BeginFadeOut(fadeMilliseconds);
+        }
+
+        await Task.Delay(fadeMilliseconds);
+        //await Task.Run(() =>
+        //{
+        //    var currentVol = volumeSampleProvider.Volume;
+        //    var targetVol = isFadeIn ? 1 : 0f;
+
+        //    var sw = Stopwatch.StartNew();
+        //    while (sw.ElapsedMilliseconds < fadeMilliseconds)
+        //    {
+        //        var ratio = sw.ElapsedMilliseconds / (double)fadeMilliseconds;
+        //        var val = currentVol + (targetVol - currentVol) * ratio;
+        //        volumeSampleProvider.Volume = (float)val;
+        //        Thread.Sleep(10);
+        //    }
+
+        //    volumeSampleProvider.Volume = targetVol;
+        //});
     }
 }

@@ -595,7 +595,7 @@ public class RealtimeModeManager : ViewModelBase
         if (pre != OsuListenerManager.OsuStatus.Playing &&
             cur == OsuListenerManager.OsuStatus.Playing)
         {
-            _selectSongTrack.StartLowPass(200);
+            _selectSongTrack.StartLowPass(200, 800);
             _result = false;
             if (Beatmap == null)
             {
@@ -649,6 +649,7 @@ public class RealtimeModeManager : ViewModelBase
         if (IsStarted && oldMs > newMs) // Retry
         {
             _selectSongTrack.StopCurrentMusic();
+            _selectSongTrack.StartLowPass(200, 16000);
             _firstStartInitialized = true;
             var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
             _loopProviders.RemoveAll(mixer);
