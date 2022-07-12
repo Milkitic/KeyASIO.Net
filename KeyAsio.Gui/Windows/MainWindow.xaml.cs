@@ -196,6 +196,7 @@ public partial class MainWindow : DialogWindow
         _viewModel.AudioEngine = null;
         _viewModel.DeviceDescription = null;
         CachedSoundFactory.ClearCacheSounds();
+        CachedSoundFactory.ClearCacheSounds("internal");
 
         if (!saveToSettings) return;
         _appSettings.Device = null;
