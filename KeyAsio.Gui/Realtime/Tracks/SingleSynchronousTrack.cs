@@ -118,7 +118,7 @@ public class SingleSynchronousTrack
     private static void GetPlayInfoByPlayMod(ref int playTime, ModsInfo.Mods playMods, out bool keepTune, out bool keepSpeed,
         out float playbackRate, out int diffTolerance)
     {
-        diffTolerance = 8;
+        diffTolerance = 10;
         keepTune = false;
         keepSpeed = true;
         playbackRate = 1f;
@@ -148,7 +148,7 @@ public class SingleSynchronousTrack
         }
         else
         {
-            playTime += 8;
+            playTime += 30;
         }
     }
 }

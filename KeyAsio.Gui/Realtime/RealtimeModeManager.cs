@@ -613,6 +613,7 @@ public class RealtimeModeManager : ViewModelBase
         }
         else
         {
+            _selectSongTrack.StartLowPass(200, 16000);
             _result = false;
             Stop();
         }
@@ -627,7 +628,9 @@ public class RealtimeModeManager : ViewModelBase
                 k.IncludeSection("General");
                 k.IncludeSection("Metadata");
             });
-            var audioFilePath = Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
+            var audioFilePath = coosu.General.AudioFilename == null
+                ? null
+                : Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
             if (audioFilePath == _audioFilePath)
             {
                 return;
