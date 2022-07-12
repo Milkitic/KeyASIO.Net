@@ -595,6 +595,7 @@ public class RealtimeModeManager : ViewModelBase
         if (pre != OsuListenerManager.OsuStatus.Playing &&
             cur == OsuListenerManager.OsuStatus.Playing)
         {
+            _selectSongTrack.StartLowPass(200);
             _result = false;
             if (Beatmap == null)
             {

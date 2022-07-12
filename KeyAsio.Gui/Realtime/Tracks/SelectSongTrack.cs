@@ -6,6 +6,7 @@ using Coosu.Beatmap;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
+using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
@@ -22,9 +23,10 @@ public class SelectSongTrack
 
     private SmartWaveReader? _smartWaveReader;
     private WdlResamplingSampleProvider? _resampler;
-    private TimingSampleProvider? _timingSampleProvider;
+    private NotifyingSampleProvider? _notifyingSampleProvider;
     private VolumeSampleProvider? _volumeSampleProvider;
     private SampleControl? _sampleControl;
+    private LowPassSampleProvider? _lowPassSampleProvider;
 
     private MixingSampleProvider? Mixer => SharedViewModel.Instance.AudioEngine?.MusicMixer;
     private WaveFormat? WaveFormat => SharedViewModel.Instance.AudioEngine?.WaveFormat;
@@ -44,14 +46,29 @@ public class SelectSongTrack
             try
             {
                 smartWaveReader = _smartWaveReader = new SmartWaveReader(path);
-                var resampler = _resampler = new WdlResamplingSampleProvider(smartWaveReader, WaveFormat.SampleRate);
-                var timingSampleProvider = _timingSampleProvider = new TimingSampleProvider(resampler);
-                volumeSampleProvider = _volumeSampleProvider = new VolumeSampleProvider(timingSampleProvider)
+                ISampleProvider sampleProvider = smartWaveReader.WaveFormat.Channels == 1
+                    ? new MonoToStereoSampleProvider(smartWaveReader)
+                    : smartWaveReader;
+                NotifyingSampleProvider notifyingSampleProvider;
+                if (smartWaveReader.WaveFormat.SampleRate != WaveFormat.SampleRate)
+                {
+                    var resampler = _resampler = new WdlResamplingSampleProvider(sampleProvider, WaveFormat.SampleRate);
+                    notifyingSampleProvider = _notifyingSampleProvider = new NotifyingSampleProvider(resampler);
+                }
+                else
+                {
+                    notifyingSampleProvider = _notifyingSampleProvider = new NotifyingSampleProvider(sampleProvider);
+                }
+
+
+                var biQuadSampleProvider = _lowPassSampleProvider = new LowPassSampleProvider(notifyingSampleProvider,
+                    SharedViewModel.Instance.AudioEngine!.WaveFormat.SampleRate, 16000);
+                volumeSampleProvider = _volumeSampleProvider = new VolumeSampleProvider(biQuadSampleProvider)
                 {
                     Volume = 0
                 };
                 sampleControl = _sampleControl = new SampleControl();
-                _timingSampleProvider.Updated += async (oldTime, newTime) =>
+                _notifyingSampleProvider.Sample += async (_, _) =>
                 {
                     if (smartWaveReader.CurrentTime >= smartWaveReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
                     {
@@ -113,6 +130,28 @@ public class SelectSongTrack
         }
 
         await FadeAsync(fadeInOutSampleProvider, fadeInMilliseconds, true, sampleControl);
+    }
+
+    public void StartLowPass(int fadeMilliseconds)
+    {
+        var lowPass = _lowPassSampleProvider;
+        if (lowPass is null) return;
+        Task.Run(() =>
+        {
+            var currentVol = lowPass.Frequency;
+            var targetVol = 800;
+
+            var sw = Stopwatch.StartNew();
+            while (sw.ElapsedMilliseconds < fadeMilliseconds)
+            {
+                var ratio = sw.ElapsedMilliseconds / (double)fadeMilliseconds;
+                var val = currentVol + (targetVol - currentVol) * ratio;
+                lowPass.SetFrequency((int)val);
+                Thread.Sleep(10);
+            }
+
+            lowPass.SetFrequency(targetVol);
+        });
     }
 
     private static async ValueTask FadeAsync(VolumeSampleProvider volumeSampleProvider, int fadeMilliseconds, bool isFadeIn, SampleControl sampleControl)
