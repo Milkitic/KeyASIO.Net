@@ -57,7 +57,7 @@ public class FadeInOutSampleProvider : ISampleProvider
         lock (_lockObject)
         {
             _fadeSampleCount = (int)(fadeDurationInMilliseconds * _source.WaveFormat.SampleRate / 1000);
-            _fadeSamplePosition = (int)(_fadeSampleCount * _currentMultiplier);
+            _fadeSamplePosition = (int)(_fadeSampleCount * (1f - _currentMultiplier));
             _fadeState = FadeState.FadingOut;
         }
     }
@@ -105,7 +105,7 @@ public class FadeInOutSampleProvider : ISampleProvider
         while (sample < sourceSamplesRead)
         {
             float multiplier = 1.0f - (_fadeSamplePosition / (float)_fadeSampleCount);
-            _currentMultiplier = multiplier;
+            _currentMultiplier = 1f - multiplier;
             for (int ch = 0; ch < _source.WaveFormat.Channels; ch++)
             {
                 buffer[offset + sample++] *= multiplier;
