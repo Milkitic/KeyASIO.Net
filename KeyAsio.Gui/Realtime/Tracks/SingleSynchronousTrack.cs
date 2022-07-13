@@ -5,7 +5,7 @@ using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
-using NAudio.Wave.SampleProviders;
+using NAudio.Wave;
 using OsuRTDataProvider.Mods;
 
 namespace KeyAsio.Gui.Realtime.Tracks;
@@ -14,11 +14,12 @@ public class SingleSynchronousTrack
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SingleSynchronousTrack));
 
+    private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
+
     private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
     private VariableSpeedSampleProvider? _variableSampleProvider;
-    private VolumeSampleProvider? _volumeSampleProvider;
+    private ISampleProvider? _baseSampleProvider;
 
-    private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
     private CachedSound? _cachedSound;
 
     public int LeadInMilliseconds { get; set; }
@@ -43,22 +44,27 @@ public class SingleSynchronousTrack
 
         if (_bgmCachedSoundSampleProvider == null)
         {
-            SetNewMixerInput(cachedSound, 1, playTime);
+            SetNewMixerInput(cachedSound, playTime);
         }
         else
         {
-            UpdateCurrentMixerInput(_bgmCachedSoundSampleProvider, 1, playTime);
+            UpdateCurrentMixerInput(_bgmCachedSoundSampleProvider, playTime);
         }
     }
 
     public void ClearAudio()
     {
-        AudioEngine?.MusicMixer.RemoveMixerInput(_volumeSampleProvider);
-        _variableSampleProvider?.Dispose();
+        AudioEngine?.MusicMixer.RemoveMixerInput(_baseSampleProvider);
+        if (_variableSampleProvider != null)
+        {
+            _variableSampleProvider.Dispose();
+            _variableSampleProvider = null;
+        }
+
         _bgmCachedSoundSampleProvider = null;
     }
 
-    private void SetNewMixerInput(CachedSound cachedSound, float volume, int playTime)
+    private void SetNewMixerInput(CachedSound cachedSound, int playTime)
     {
         GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
             out var diffTolerance);
@@ -78,17 +84,17 @@ public class SingleSynchronousTrack
                 {
                     PlaybackRate = playbackRate
                 };
-            _volumeSampleProvider = new VolumeSampleProvider(_variableSampleProvider) { Volume = volume };
+            _baseSampleProvider = _variableSampleProvider;
         }
         else
         {
-            _volumeSampleProvider = new VolumeSampleProvider(_bgmCachedSoundSampleProvider) { Volume = volume };
+            _baseSampleProvider = _bgmCachedSoundSampleProvider;
         }
 
-        AudioEngine?.MusicMixer.AddMixerInput(_volumeSampleProvider);
+        AudioEngine?.MusicMixer.AddMixerInput(_baseSampleProvider);
     }
 
-    private void UpdateCurrentMixerInput(SeekableCachedSoundSampleProvider sampleProvider, float volume, int playTime)
+    private void UpdateCurrentMixerInput(SeekableCachedSoundSampleProvider sampleProvider, int playTime)
     {
         GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
             out var diffTolerance);
@@ -104,14 +110,9 @@ public class SingleSynchronousTrack
 
         if (_variableSampleProvider != null)
         {
-            _variableSampleProvider.PlaybackRate = playbackRate;
             _sharedVariableSpeedOptions.KeepTune = keepTune;
+            _variableSampleProvider.PlaybackRate = playbackRate;
             _variableSampleProvider.SetSoundTouchProfile(_sharedVariableSpeedOptions);
-        }
-
-        if (_volumeSampleProvider != null)
-        {
-            _volumeSampleProvider.Volume = volume;
         }
     }
 
