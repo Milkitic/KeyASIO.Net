@@ -75,22 +75,19 @@ public class SingleSynchronousTrack
         {
             PlayTime = timeSpan
         };
+        var builder = new SampleProviderBuilder(_bgmCachedSoundSampleProvider);
 
         if (!keepSpeed)
         {
             _sharedVariableSpeedOptions.KeepTune = keepTune;
-            _variableSampleProvider =
-                new VariableSpeedSampleProvider(_bgmCachedSoundSampleProvider, 10, _sharedVariableSpeedOptions)
+            _variableSampleProvider = builder.AddSampleProvider(k =>
+                new VariableSpeedSampleProvider(k, 10, _sharedVariableSpeedOptions)
                 {
                     PlaybackRate = playbackRate
-                };
-            _baseSampleProvider = _variableSampleProvider;
-        }
-        else
-        {
-            _baseSampleProvider = _bgmCachedSoundSampleProvider;
+                });
         }
 
+        _baseSampleProvider = builder.CurrentSampleProvider;
         AudioEngine?.MusicMixer.AddMixerInput(_baseSampleProvider);
     }
 
