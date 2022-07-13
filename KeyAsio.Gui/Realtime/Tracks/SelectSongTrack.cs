@@ -11,10 +11,10 @@ using Microsoft.Extensions.Logging;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using FadeInOutSampleProvider = KeyAsio.Gui.Waves.FadeInOutSampleProvider;
 
 namespace KeyAsio.Gui.Realtime.Tracks;
 
-// Todo: will write new FadingInOutSampleProvider
 public class SelectSongTrack
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SelectSongTrack));
@@ -52,7 +52,7 @@ public class SelectSongTrack
                     builder.AddSampleProvider(k => new WdlResamplingSampleProvider(k, WaveFormat.SampleRate));
                 }
 
-                var notifyingSampleProvider 
+                var notifyingSampleProvider
                     = builder.AddSampleProvider(k => new NotifyingSampleProvider(k));
                 _lowPassSampleProvider =
                     builder.AddSampleProvider(k => new LowPassSampleProvider(k, WaveFormat.SampleRate, 16000));
@@ -141,33 +141,17 @@ public class SelectSongTrack
         await FadeAsync(fadeInOutSampleProvider, fadeInMilliseconds, true);
     }
 
-    private static async ValueTask FadeAsync(FadeInOutSampleProvider volumeSampleProvider, int fadeMilliseconds, bool isFadeIn)
+    private static async ValueTask FadeAsync(FadeInOutSampleProvider fadeInOutSampleProvider, int fadeMilliseconds, bool isFadeIn)
     {
         if (isFadeIn)
         {
-            volumeSampleProvider.BeginFadeIn(fadeMilliseconds);
+            fadeInOutSampleProvider.BeginFadeIn(fadeMilliseconds);
         }
         else
         {
-            volumeSampleProvider.BeginFadeOut(fadeMilliseconds);
+            fadeInOutSampleProvider.BeginFadeOut(fadeMilliseconds);
         }
 
         await Task.Delay(fadeMilliseconds);
-        //await Task.Run(() =>
-        //{
-        //    var currentVol = volumeSampleProvider.Volume;
-        //    var targetVol = isFadeIn ? 1 : 0f;
-
-        //    var sw = Stopwatch.StartNew();
-        //    while (sw.ElapsedMilliseconds < fadeMilliseconds)
-        //    {
-        //        var ratio = sw.ElapsedMilliseconds / (double)fadeMilliseconds;
-        //        var val = currentVol + (targetVol - currentVol) * ratio;
-        //        volumeSampleProvider.Volume = (float)val;
-        //        Thread.Sleep(10);
-        //    }
-
-        //    volumeSampleProvider.Volume = targetVol;
-        //});
     }
 }
