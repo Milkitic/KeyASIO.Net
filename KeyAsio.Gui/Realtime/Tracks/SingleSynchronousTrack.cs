@@ -38,7 +38,7 @@ public class SingleSynchronousTrack
 
         if (cachedSound is null)
         {
-            Logger.DebuggingWarn("Fail to play: CachedSound not found");
+            Logger.DebuggingWarn("Fail to sync: CachedSound is null");
             return;
         }
 
