@@ -1,7 +1,7 @@
 # KeyASIO.Net
 External ASIO/WASAPI_EXCLUSIVE backend for low-latency and safe osu! audio playback experience.
 
-While osu's original audio system has a latency for about 40 ms, this program can provide extremely low latency to as low as 0.6ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 15ms *(with no professional soundcard, from tapping to hearing)*.
+While osu's original audio system has a latency for about 40 ms, this program can provide extremely low latency to as low as 0.6ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 8-15ms *(with no professional soundcard, from tapping to hearing)*.
 
 ## Introduction
 We have been waiting for the [very near future](https://osu.ppy.sh/community/forums/topics/428222?n=13) for several years, but it looks like that the dev team has been stopped supporting such heavy development for legacy osu. So there are many nice external community audio tools before like [REAL](https://github.com/miniant-git/REAL), [osu-External-ASIO-Sound](https://github.com/XTXTMTXTX/osu-External-ASIO-Sound), [AsioHookForOsu](https://github.com/zzhouhe/AsioHookForOsu), etc. But:
@@ -30,23 +30,50 @@ This project born to resolve these problems. As default, this program enables `R
 </p>
 
 ## Configuration
-**If you have no other standalone soundcard, you have to use software like ASIO4ALL. Make sure you have at least 2 audio output devices (including HDMI Audio), then these following steps can be referenced:**
-1. Use HDMI output with display monitor or HDMI decoder, and line-out to some standalone mixers. Low-end device is just ok, since they are always very cheap. **DO NOT USE WINDOWS MIXER SOFTWARES**, they will only increase the latency.
-2. Line-out your motherboard soundcard to the mixer.
-3. Plug your headphone into the mixer.
-4. Install [ASIO4ALL](https://www.asio4all.org/).
-5. Change the device in the software GUI, select `ASIO4ALL` and confirm.
-6. Open the ASIO4ALL control panel, and select something like `HDMI Out` with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
-7. Select your motherboard device in osu. (Do not select the same device as ASIO4ALL, it will not work.)
+The KeyASIO.Net supports `FullMode`, which can also synchronize the music, that will completely replace osu's sounds. This will make you much easier to start, but it has irresolvable problems. For players who has only one soundcard, you can try the fullmode. Otherwise, I only suggest with this option off.
+### Without standalone soundcard 
+#### FullMode ENABLED
+> **Prerequisites**
+> * Install [ASIO4ALL](https://www.asio4all.org/) / Just use WASAPI_EXCLUSIVE
+> * Install [VB-CABLE](https://vb-audio.com/Cable/)
 
-**Common steps for both ASIO4ALL and standalone soundcard's driver:**
+1. Change the device in the software GUI, select ASIO4ALL or your default WASAPI device with exclusive, and confirm.
+2. If the ASIO4ALL is selected, open ASIO control panel and select your output device with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
+3. Check your osu game to test whether the game has lags or problems to play. If yes, select the game's output to `VB-CABLE Input`
+4. Enjoy
+
+#### FullMode DISABLED
+> **Prerequisites**
+> * Make sure you have at least 2 audio output devices (including HDMI Audio). An HDMI decoder with audio port is required if your monitor doesn't have audio port.
+> * A standalone mixer. Low-end device is just ok, since they are always very cheap. **DO NOT USE WINDOWS MIXER SOFTWARES**, since they will only increase the latency.
+> * Install [ASIO4ALL](https://www.asio4all.org/) / Just use WASAPI_EXCLUSIVE
+
+1. Use HDMI output to display monitor or HDMI decoder, and line-out to the mixer. Line-out your motherboard soundcard to the mixer. Plug your headphone into the mixer.
+2. Change the device in the software GUI, select ASIO4ALL and confirm.
+3. Open the ASIO4ALL control panel, and select something like `HDMI Out` with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
+4. Select your motherboard device in osu game. Please do not select the same device as ASIO4ALL. It doesn't work.
+5. Change your own key bindings in the software GUI.
+6. Set the effect volume to 0 in osu!.
+7. Open offset wizard, play with `Auto` mod and adjust the software's offset and osu!'s offset.
+8. Enjoy
+
+### With standalone soundcard 
+#### FullMode ENABLED
+Same as [Without standalone soundcard](#without-standalone-soundcard)
+
+#### FullMode DISABLED
+> **Prerequisites**
+> * Check if your soundcard has original ASIO driver. If no, install [ASIO4ALL](https://www.asio4all.org/) / just use WASAPI_EXCLUSIVE
+> * If your soundcard driver doesn't support ASIO concurrency, a standalone mixer is needed. Low-end device is just ok, since they are always very cheap. **DO NOT USE WINDOWS MIXER SOFTWARES**, since they will only increase the latency.
+
 1. Change the device in the software GUI, and select your ASIO Device.
 2. Change options in your ASIO control panel to lower the latency (Check latency at the software GUI).
-3. Select your fit device in osu. (motherboard output, your mixer or something others, and can be the same device as KeyASIO.Net if your soundcard driver supports ASIO concurrency)
-4. Change your own key bindings in the software GUI.
-5. Set the effect volume to 0 in osu!.
-6. Open offset wizard, play with `Auto` mod and adjust the software's offset and osu!'s offset.
-7. Play!
+3. If you use mixer, line-out your motherboard soundcard and soundcard to the mixer. Plug your headphone into the mixer.
+4. Select the fit device in osu game. Select motherboard if you use mixer, select your soundcard otherwise.
+5. Change your own key bindings in the software GUI.
+6. Set the effect volume to 0 in osu!.
+7. Open offset wizard, play with `Auto` mod and adjust the software's offset and osu!'s offset.
+8. Enjoy
 
 **Full options in `appsettings.yaml`:** (Modify after program closed) 
 | Item                                    | Description                                                                                                                                                                  |
