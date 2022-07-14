@@ -85,6 +85,7 @@ public partial class App : Application
         Console.WriteLine("Found File: " + configFile);
         const string ns = "http://www.nlog-project.org/schemas/NLog.xsd";
         XDocument xDocument;
+        bool changed = false;
         using (var fs = File.Open(configFile, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
             xDocument = XDocument.Load(fs);
@@ -98,13 +99,25 @@ public partial class App : Application
                     if (xa_fileName == null || !xa_fileName.Value.StartsWith("logs/")) continue;
                     var value = xa_fileName.Value;
                     xa_fileName.Value = "../" + xa_fileName.Value;
+                    changed = true;
                     Console.WriteLine($"Redirected \"{value}\" to \"{xa_fileName.Value}\"");
                 }
             }
         }
 
-        using var fsw = File.OpenWrite(configFile);
-        using var xmlWriter = XmlWriter.Create(fsw);
+        if (!changed) return;
+        xDocument.DescendantNodes().OfType<XComment>().Remove();
+
+        using var fsw = new StreamWriter(configFile, Encoding.UTF8, new FileStreamOptions
+        {
+            Mode = FileMode.Create,
+            Access = FileAccess.Write,
+            Share = FileShare.None
+        });
+        using var xmlWriter = XmlWriter.Create(fsw, new XmlWriterSettings
+        {
+            Indent = true
+        });
         xDocument.Save(xmlWriter);
     }
 
