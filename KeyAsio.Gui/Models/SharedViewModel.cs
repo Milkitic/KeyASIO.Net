@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
@@ -14,12 +15,24 @@ public class SharedViewModel : ViewModelBase
     private int _framesPerBuffer;
     private int _playbackLatency;
     private bool _debugging;
+    private SkinDescription? _selectedSkin;
 
     private SharedViewModel()
     {
     }
 
     public static SharedViewModel Instance { get; } = new();
+
+    public ObservableCollection<SkinDescription> Skins { get; } = new()
+    {
+        SkinDescription.Default
+    };
+
+    public SkinDescription? SelectedSkin
+    {
+        get => _selectedSkin;
+        set => this.RaiseAndSetIfChanged(ref _selectedSkin, value);
+    }
 
     public AudioEngine? AudioEngine
     {

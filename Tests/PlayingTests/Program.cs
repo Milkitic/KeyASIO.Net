@@ -26,14 +26,24 @@ static class Program
     {
         var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
         appSettings.Debugging = true;
-        //appSettings.RealtimeOptions.IgnoreMusicTrack = true;
+        appSettings.RealtimeOptions.EnableMusicFunctions = true;
+        appSettings.Volume = 5;
         var context = (SynchronizationContext)new StaSynchronizationContext("AudioPlaybackEngine_STA");
-        var device = DeviceCreationHelper.CreateDevice(out _, null, context);
-        SharedViewModel.Instance.AudioEngine = new AudioEngine(device);
+        var device = DeviceCreationHelper.CreateDevice(out _, new DeviceDescription()
+        {
+            DeviceId = "ASIO4ALL V2",
+            FriendlyName = "ASIO4ALL V2",
+            WavePlayerType = WavePlayerType.ASIO,
+            Latency = 1
+        }, context);
+        SharedViewModel.Instance.AudioEngine = new AudioEngine(device)
+        {
+            Volume = appSettings.Volume / 100
+        };
         SharedViewModel.Instance.LatencyTestMode = true;
         appSettings.RealtimeOptions.BalanceFactor = 0.5f;
 
-        var filenameFull = @"E:\Games\osu!\Songs\197085 Kayano Ai - Oracion(TV-Size)\Kayano Ai - Oracion(TV-Size) ([AyanoTatemaya]) [7K MX].osu";
+        var filenameFull = @"C:\Users\milkitic\Downloads\1680421 EBIMAYO - GOODTEK [no video]\EBIMAYO - GOODTEK (yf_bmp) [Maboyu's Another].osu";
         var filename = Path.GetFileName(filenameFull);
 
         var realtimeModeManager = new RealtimeModeManager()
@@ -41,31 +51,31 @@ static class Program
             PlayTime = -1,
             PlayMods = ModsInfo.Mods.None
         };
-        //realtimeModeManager.OsuStatus = OsuListenerManager.OsuStatus.SelectSong;
-        //var files = Directory.EnumerateFiles(@"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\", "*.osu",
-        //    SearchOption.AllDirectories).ToArray();
-        //int i = 0;
-        //string? folder = "";
-        //while (i < files.Length)
-        //{
-        //    var file = files[i];
-        //    var f = Path.GetDirectoryName(file);
-        //    if (f == folder)
-        //    {
-        //        i++;
-        //        continue;
-        //    }
+        realtimeModeManager.OsuStatus = OsuListenerManager.OsuStatus.SelectSong;
+        var files = Directory.EnumerateFiles(@"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\", "*.osu",
+            SearchOption.AllDirectories).ToArray();
+        int i = 0;
+        string? folder = "";
+        while (i < files.Length)
+        {
+            var file = files[i];
+            var f = Path.GetDirectoryName(file);
+            if (f == folder)
+            {
+                i++;
+                continue;
+            }
 
-        //    folder = f;
-        //    //realtimeModeManager.Beatmap = new Beatmap(0, 0, 0,
-        //    //    @"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\739119 3L - Spring of Dreams\3L - Spring of Dreams (Trust) [Lunatic].osu");
-        //    Console.WriteLine(file);
-        //    //var k = Console.ReadKey();
-        //    //await realtimeModeManager.StartAsync(filenameFull, filename);
-        //    realtimeModeManager.Beatmap = new Beatmap(0, 0, 0, file);
-        //    if (Console.ReadKey().KeyChar == 'q') break;
-        //    i++;
-        //}
+            folder = f;
+            //realtimeModeManager.Beatmap = new Beatmap(0, 0, 0,
+            //    @"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\739119 3L - Spring of Dreams\3L - Spring of Dreams (Trust) [Lunatic].osu");
+            Console.WriteLine(file);
+            //var k = Console.ReadKey();
+            //await realtimeModeManager.StartAsync(filenameFull, filename);
+            realtimeModeManager.Beatmap = new Beatmap(0, 0, 0, file);
+            if (Console.ReadKey().KeyChar == 'q') break;
+            i++;
+        }
 
         Console.WriteLine("Playing");
         realtimeModeManager.OsuStatus = OsuListenerManager.OsuStatus.Playing;
@@ -90,9 +100,9 @@ static class Program
         await Task.Delay(3000);
         sw.Reset();
         //realtimeModeManager.Stop();
-        await Task.Delay(500);
-        sw.Restart();
         await realtimeModeManager.StartAsync(filenameFull, filename);
+        await Task.Delay(800);
+        sw.Restart();
 
         Console.ReadKey();
         device.Dispose();

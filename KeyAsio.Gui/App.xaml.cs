@@ -95,7 +95,13 @@ public partial class App : Application
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
 
         shared.Debugging = settings.Debugging;
-
+        if (string.IsNullOrWhiteSpace(settings.OsuFolder))
+        {
+            SkinManager.Instance.CheckOsuRegistry();
+        }
+        
+        SkinManager.Instance.ListenPropertyChanging();
+        SkinManager.Instance.RefreshSkinInBackground();
         if (settings.RealtimeOptions.RealtimeMode)
         {
             try
@@ -121,6 +127,7 @@ public partial class App : Application
             manager.OnStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
             manager.Start();
             RealtimeModeManager.Instance.OsuListenerManager = manager;
+            SkinManager.Instance.ListenToProcess();
         }
 
         var miClearAll = new MenuItem

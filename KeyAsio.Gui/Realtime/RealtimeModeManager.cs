@@ -410,7 +410,7 @@ public class RealtimeModeManager : ViewModelBase
 
         var folder = _folder;
         var waveFormat = SharedViewModel.Instance.AudioEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
+        var skinFolder = SharedViewModel.Instance.SelectedSkin?.Folder ?? "";
         Task.Run(() =>
         {
             if (folder != null && AudioFilename != null)
@@ -464,7 +464,7 @@ public class RealtimeModeManager : ViewModelBase
         var hitsoundList = playableNodes;
         var folder = _folder;
         var waveFormat = SharedViewModel.Instance.AudioEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.AppSettings?.SkinFolder ?? "";
+        var skinFolder = SharedViewModel.Instance.SelectedSkin?.Folder ?? "";
         Task.Run(() =>
         {
             using var _ = DebugUtils.CreateTimer($"CacheAudio {startTime}~{endTime}", Logger);

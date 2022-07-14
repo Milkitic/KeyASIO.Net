@@ -21,6 +21,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     private RealtimeOptions? _realtimeOptions;
     private int _volume = 100;
     private bool _sendLogsToDeveloper = true;
+    private string? _osuFolder = "";
 
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public List<HookKeys> Keys
@@ -37,8 +38,20 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     [Description("Default hitsound path (relative or absolute) for playing.")]
     public string HitsoundPath { get; set; } = "click.wav";
 
-    [Description("The skin folder when `RealtimeMode` is true.")]
-    public string SkinFolder { get; set; } = "";
+    [Description("Osu's folder. For the most of time this value is auto detected.")]
+    public string? OsuFolder
+    {
+        get => _osuFolder;
+        set
+        {
+            if (value == _osuFolder) return;
+            _osuFolder = value;
+            OnPropertyChanged();
+        }
+    }
+
+    [Description("The skin when `RealtimeMode` is true.")]
+    public string SelectedSkin { get; set; } = "";
 
     [Description("Show debug logs.")]
     public bool Debugging { get; set; } = false;
