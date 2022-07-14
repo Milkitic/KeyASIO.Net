@@ -1,4 +1,5 @@
-﻿using NAudio.Dsp;
+﻿using System;
+using NAudio.Dsp;
 using NAudio.Wave;
 
 namespace KeyAsio.Gui.Waves;
@@ -27,12 +28,22 @@ public class LowPassSampleProvider : ISampleProvider
 
     public int Read(float[] buffer, int offset, int count)
     {
-        int samplesRead = _sourceProvider.Read(buffer, offset, count);
+        try
+        {
+            int samplesRead = _sourceProvider.Read(buffer, offset, count);
 
-        for (int i = 0; i < samplesRead; i++)
-            buffer[offset + i] = _filters[(i % _channels)].Transform(buffer[offset + i]);
+            for (int i = 0; i < samplesRead; i++)
+            {
+                buffer[offset + i] = _filters[(i % _channels)].Transform(buffer[offset + i]);
+            }
 
-        return samplesRead;
+            return samplesRead;
+        }
+        catch
+        {
+            buffer.AsSpan(offset, count).Fill(0);
+            return count;
+        }
     }
 
     public void SetFrequency(int frequency)
