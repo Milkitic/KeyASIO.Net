@@ -30,7 +30,7 @@ This project born to resolve these problems. As default, this program enables `R
 </p>
 
 ## Configuration
-The KeyASIO.Net supports `FullMode`, which can also synchronize the music, that will completely replace osu's sounds. This will make you much easier to start, but it has irresolvable problems. For players who has only one soundcard, you can try the fullmode. Otherwise, I only suggest with this option off.
+The KeyASIO.Net supports `FullMode` (`EnableMusicFunctions` in configuration), which can also synchronize the music, that will completely replace osu's sounds. This will make you much easier to start, but it has irresolvable problems. For players who has only one soundcard, you can try the fullmode. Otherwise, I only suggest with this option off.
 ### Without standalone soundcard 
 #### FullMode ENABLED
 > **Prerequisites**
