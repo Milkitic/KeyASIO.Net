@@ -67,6 +67,6 @@ public class SharedViewModel : ViewModelBase
     }
 
     public RealtimeModeManager RealtimeModeManager { get; } = RealtimeModeManager.Instance;
-    public string DefaultFolder { get; } = Path.Combine(Environment.CurrentDirectory, "Resources", "default");
+    public string DefaultFolder { get; } = Path.Combine(Environment.CurrentDirectory, "resources", "default");
     public bool LatencyTestMode { get; set; }
 }

@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Xml;
+using System.Xml.Linq;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Realtime;
@@ -32,7 +37,12 @@ public partial class App : Application
     internal static void Main()
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        RedirectLogs();
+        CreateApplication();
+    }
 
+    private static void CreateApplication()
+    {
         var mutex = new Mutex(true, "KeyAsio.Net", out bool createNew);
         if (!createNew)
         {
@@ -68,6 +78,45 @@ public partial class App : Application
         }
     }
 
+    private static void RedirectLogs()
+    {
+        var configFile = Path.Combine(Environment.CurrentDirectory, "bin", "nlog.config");
+        if (!File.Exists(configFile)) return;
+        Console.WriteLine("Found File: " + configFile);
+        const string ns = "http://www.nlog-project.org/schemas/NLog.xsd";
+        XDocument xDocument;
+        using (var fs = File.Open(configFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            xDocument = XDocument.Load(fs);
+            var xe_targets = xDocument.Root?.Element(XName.Get("targets", ns));
+            if (xe_targets != null)
+            {
+                var targets = xe_targets.Elements(XName.Get("target", ns));
+                foreach (var xe_target in targets)
+                {
+                    var xa_fileName = xe_target.Attribute("fileName");
+                    if (xa_fileName == null || !xa_fileName.Value.StartsWith("logs/")) continue;
+                    var value = xa_fileName.Value;
+                    xa_fileName.Value = "../" + xa_fileName.Value;
+                    Console.WriteLine($"Redirected \"{value}\" to \"{xa_fileName.Value}\"");
+                }
+            }
+        }
+
+        using var fsw = File.OpenWrite(configFile);
+        using var xmlWriter = XmlWriter.Create(fsw);
+        xDocument.Save(xmlWriter);
+    }
+
+    private static Assembly? ResolveAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
+    {
+        var originalPath = Path.Combine(AppContext.BaseDirectory, $"{assemblyName.Name}.dll");
+        if (File.Exists(originalPath)) return context.LoadFromAssemblyPath(originalPath);
+
+        var pathMaybe = Path.Combine(AppContext.BaseDirectory, "bin", $"{assemblyName.Name}.dll");
+        return File.Exists(pathMaybe) ? context.LoadFromAssemblyPath(pathMaybe) : null;
+    }
+
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         var exception = (Exception)e.ExceptionObject;
@@ -99,7 +148,7 @@ public partial class App : Application
         {
             SkinManager.Instance.CheckOsuRegistry();
         }
-        
+
         SkinManager.Instance.ListenPropertyChanging();
         SkinManager.Instance.RefreshSkinInBackground();
         if (settings.RealtimeOptions.RealtimeMode)

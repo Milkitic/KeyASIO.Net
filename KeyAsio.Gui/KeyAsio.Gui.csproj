@@ -49,13 +49,6 @@
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(Configuration)=='Release'">
-    <PackageReference Include="Costura.Fody" Version="5.7.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>compile; runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\dependencies\OsuRTDataProviderCore\OsuRTDataProvider.csproj" />
     <ProjectReference Include="..\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
@@ -68,7 +61,7 @@
     <None Update="runtimes\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\default\*.ogg">
+    <None Update="resources\default\*.ogg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
