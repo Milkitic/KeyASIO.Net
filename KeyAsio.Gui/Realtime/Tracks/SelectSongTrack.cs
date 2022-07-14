@@ -129,7 +129,7 @@ public class SelectSongTrack
     private static async ValueTask RepositionAndFadeIn(WaveStream waveStream, int playTime,
         FadeInOutSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds)
     {
-        if (playTime == -1)
+        if (playTime < 0)
         {
             waveStream.Position = (long)(waveStream.Length * 0.4);
         }

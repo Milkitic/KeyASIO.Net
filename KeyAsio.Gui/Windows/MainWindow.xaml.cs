@@ -116,9 +116,7 @@ public partial class MainWindow : DialogWindow
         try
         {
             var device = DeviceCreationHelper.CreateDevice(out var actualDescription, deviceDescription);
-            _viewModel.AudioEngine = new AudioEngine(device,
-                _appSettings.SampleRate, /*_appSettings.Channels*/2,
-                notifyProgress: false, enableVolume: _appSettings.VolumeEnabled)
+            _viewModel.AudioEngine = new AudioEngine(device, _appSettings.SampleRate)
             {
                 Volume = _appSettings.Volume / 100f,
                 MusicVolume = _appSettings.RealtimeOptions.MusicTrackVolume / 100f,
@@ -361,7 +359,6 @@ public partial class MainWindow : DialogWindow
     private void RangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (_viewModel.AudioEngine is null) return;
-        if (!_appSettings.VolumeEnabled) return;
 
         var slider = (Slider)sender;
         _appSettings.Volume = (int)Math.Round(slider.Value * 100);
@@ -370,7 +367,6 @@ public partial class MainWindow : DialogWindow
     private void MusicRangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (_viewModel.AudioEngine is null) return;
-        if (!_appSettings.VolumeEnabled) return;
 
         var slider = (Slider)sender;
         _appSettings.RealtimeOptions.MusicTrackVolume = (int)Math.Round(slider.Value * 100);

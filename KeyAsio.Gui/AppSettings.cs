@@ -7,7 +7,6 @@ using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
-using YamlDotNet.Serialization;
 
 namespace KeyAsio.Gui;
 
@@ -51,10 +50,6 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
 
     [Description("Device configuration (Recommend to configure in GUI).")]
     public DeviceDescription? Device { get; set; }
-
-    [Description("Software volume control. Disable for extremely low latency when `RealtimeMode` is false.")]
-    [YamlIgnore]
-    public bool VolumeEnabled { get; set; } = true;
 
     [Description("Configured device volume, range: 0~150")]
     public float Volume

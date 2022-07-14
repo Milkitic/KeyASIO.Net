@@ -10,16 +10,14 @@ public class AudioEngine : AudioPlaybackEngine
     private VolumeSampleProvider _hitsoundVolumeSampleProvider = null!;
     private VolumeSampleProvider _musicVolumeSampleProvider = null!;
 
-    public AudioEngine(IWavePlayer? outputDevice, int sampleRate = 44100, int channelCount = 2,
-        bool notifyProgress = true, bool enableVolume = true)
-        : base(outputDevice, sampleRate, channelCount, notifyProgress, enableVolume)
+    public AudioEngine(IWavePlayer? outputDevice, int sampleRate = 44100, int channelCount = 2)
+        : base(outputDevice, sampleRate, channelCount, false, true)
     {
         InitializeMixers();
     }
 
-    public AudioEngine(DeviceDescription? deviceDescription, int sampleRate = 44100, int channelCount = 2,
-        bool notifyProgress = true, bool enableVolume = true)
-        : base(deviceDescription, sampleRate, channelCount, notifyProgress, enableVolume)
+    public AudioEngine(DeviceDescription? deviceDescription, int sampleRate = 44100, int channelCount = 2)
+        : base(deviceDescription, sampleRate, channelCount, false, true)
     {
         InitializeMixers();
     }

@@ -398,7 +398,7 @@
                         Grid.Row="0"
                         Grid.Column="1"
                         Margin="0,0,0,0"
-                        Text="{Binding RealtimeModeManager.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+                        Text="{Binding RealtimeModeManager.PlayTime, IsAsync=True, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
@@ -451,7 +451,6 @@
                     Margin="0,0,0,2"
                     HorizontalAlignment="Center"
                     Background="{StaticResource SecondaryRegionBrush}"
-                    IsEnabled="{Binding AppSettings.VolumeEnabled}"
                     IsSnapToTickEnabled="True"
                     LargeChange="0.1"
                     Maximum="1.5"
@@ -467,15 +466,7 @@
                     Grid.Row="2"
                     HorizontalAlignment="Center"
                     FontSize="11"
-                    Text="{Binding AudioEngine.Volume, StringFormat=P0}"
-                    Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityConverter}}" />
-                <TextBlock
-                    Grid.Row="2"
-                    HorizontalAlignment="Center"
-                    FontSize="11"
-                    Foreground="{StaticResource DangerBrush}"
-                    Text="disab."
-                    Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityReConverter}}" />
+                    Text="{Binding AudioEngine.Volume, StringFormat=P0}" />
             </Grid>
             <Grid
                 Grid.RowSpan="3"
@@ -496,7 +487,6 @@
                     Margin="0,0,0,2"
                     HorizontalAlignment="Center"
                     Background="{StaticResource SecondaryRegionBrush}"
-                    IsEnabled="{Binding AppSettings.VolumeEnabled}"
                     IsSnapToTickEnabled="True"
                     LargeChange="0.1"
                     Maximum="1.5"
@@ -512,15 +502,7 @@
                     Grid.Row="2"
                     HorizontalAlignment="Center"
                     FontSize="11"
-                    Text="{Binding AudioEngine.MusicVolume, StringFormat=P0}"
-                    Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityConverter}}" />
-                <TextBlock
-                    Grid.Row="2"
-                    HorizontalAlignment="Center"
-                    FontSize="11"
-                    Foreground="{StaticResource DangerBrush}"
-                    Text="disab."
-                    Visibility="{Binding AppSettings.VolumeEnabled, Converter={StaticResource Boolean2VisibilityReConverter}}" />
+                    Text="{Binding AudioEngine.MusicVolume, StringFormat=P0}" />
             </Grid>
 
             <TextBlock
