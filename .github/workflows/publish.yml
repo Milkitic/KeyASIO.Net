@@ -58,7 +58,15 @@ jobs:
         del .\ci-publish\KeyAsio.Sentry.pdb -Force
         del .\ci-publish-win64\KeyAsio.Sentry.pdb -Force
         del .\ci-publish-win32\KeyAsio.Sentry.pdb -Force
-        
+
+    - name: Set dll path
+      if: ${{ success() }}
+      shell: pwsh
+      run: | 
+        .\KeyAsio.Gui\afterbuild.ps1 .\ci-publish-win64\KeyAsio.Gui.exe
+        .\KeyAsio.Gui\afterbuild.ps1 .\ci-publish-win32\KeyAsio.Gui.exe
+        .\KeyAsio.Gui\afterbuild.ps1 .\ci-publish\KeyAsio.Gui.exe
+
     - name: Get tag
       uses: dawidd6/action-get-tag@v1
       if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
