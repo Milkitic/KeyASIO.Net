@@ -63,6 +63,7 @@ jobs:
       if: ${{ success() }}
       shell: pwsh
       run: | 
+        copy .\KeyAsio.Gui\DotNetDllPathPatcher.ps1 .\DotNetDllPathPatcher.ps1
         .\KeyAsio.Gui\afterbuild.ps1 .\ci-publish-win64\KeyAsio.Gui.exe
         .\KeyAsio.Gui\afterbuild.ps1 .\ci-publish-win32\KeyAsio.Gui.exe
         .\KeyAsio.Gui\afterbuild.ps1 .\ci-publish\KeyAsio.Gui.exe
