@@ -213,7 +213,14 @@ public partial class MainWindow : DialogWindow
             {
                 if (_cacheSound != null)
                 {
-                    _viewModel.AudioEngine?.PlaySound(_cacheSound);
+                    if (_viewModel.AudioEngine != null)
+                    {
+                        _viewModel.AudioEngine.PlaySound(_cacheSound);
+                    }
+                    else
+                    {
+                        Logger.Warn("AudioEngine not ready.");
+                    }
                 }
                 else
                 {
@@ -268,6 +275,10 @@ public partial class MainWindow : DialogWindow
             if (e.PropertyName == nameof(AppSettings.RealtimeOptions.RealtimeMode))
             {
                 NotifyRestart(e.PropertyName);
+                _appSettings.Save();
+            }
+            else if (e.PropertyName == nameof(AppSettings.RealtimeOptions.EnableMusicFunctions))
+            {
                 _appSettings.Save();
             }
         };
