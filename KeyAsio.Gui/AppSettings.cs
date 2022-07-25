@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using Milki.Extensions.MixPlayer.Devices;
@@ -22,17 +20,13 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     private int _volume = 100;
     private bool _sendLogsToDeveloper = true;
     private string? _osuFolder = "";
+    private bool _debugging = false;
 
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public List<HookKeys> Keys
     {
         get => _keys;
-        set
-        {
-            if (Equals(value, _keys)) return;
-            _keys = value;
-            OnPropertyChanged();
-        }
+        set => this.RaiseAndSetIfChanged(ref _keys, value);
     }
 
     [Description("Default hitsound path (relative or absolute) for playing.")]
@@ -42,19 +36,18 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     public string? OsuFolder
     {
         get => _osuFolder;
-        set
-        {
-            if (value == _osuFolder) return;
-            _osuFolder = value;
-            OnPropertyChanged();
-        }
+        set => this.RaiseAndSetIfChanged(ref _osuFolder, value);
     }
 
     [Description("The skin when `RealtimeMode` is true.")]
     public string SelectedSkin { get; set; } = "";
 
     [Description("Show debug logs.")]
-    public bool Debugging { get; set; } = false;
+    public bool Debugging
+    {
+        get => _debugging;
+        set => this.RaiseAndSetIfChanged(ref _debugging, value);
+    }
 
     [Description("Device's sample rate (allow adjusting in GUI).")]
     public int SampleRate { get; set; } = 48000;
@@ -81,12 +74,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     public bool SendLogsToDeveloper
     {
         get => _sendLogsToDeveloper;
-        set
-        {
-            if (Equals(value, _sendLogsToDeveloper)) return;
-            _sendLogsToDeveloper = value;
-            OnPropertyChanged();
-        }
+        set => this.RaiseAndSetIfChanged(ref _sendLogsToDeveloper, value);
     }
 
     public bool SendLogsToDeveloperConfirmed { get; set; }
@@ -98,12 +86,4 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     }
 
     public string PlayerBase64 { get; set; } = "";
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    [NotifyPropertyChangedInvocator]
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 }

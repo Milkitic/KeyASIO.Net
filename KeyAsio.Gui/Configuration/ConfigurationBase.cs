@@ -1,6 +1,8 @@
-﻿namespace KeyAsio.Gui.Configuration;
+﻿using KeyAsio.Gui.Models;
 
-public abstract class ConfigurationBase
+namespace KeyAsio.Gui.Configuration;
+
+public abstract class ConfigurationBase : ViewModelBase
 {
     public void Save()
     {

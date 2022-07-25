@@ -83,12 +83,12 @@ public class ManiaAudioProvider : IAudioProvider
                 if (playTime <= node.Offset + 50 /*odMax*/)
                 {
                     _hitQueueCache[keyIndex] = queue.Dequeue();
-                    Logger.DebuggingInfo("Dequeued and will use Col." + keyIndex);
+                    Logger.Info("Dequeued and will use Col." + keyIndex);
                     break;
                 }
 
                 queue.Dequeue();
-                Logger.DebuggingInfo("Dropped Col." + keyIndex);
+                Logger.Info("Dropped Col." + keyIndex);
                 _hitQueueCache[keyIndex] = null;
             }
             else
@@ -102,11 +102,11 @@ public class ManiaAudioProvider : IAudioProvider
         if (playableNode == null)
         {
             _hitQueue[keyIndex].TryPeek(out playableNode);
-            Logger.DebuggingDebug("Use first");
+            Logger.Debug("Use first");
         }
         else
         {
-            Logger.DebuggingDebug("Use cache");
+            Logger.Debug("Use cache");
         }
 
         if (playableNode != null && _realtimeModeManager.TryGetAudioByNode(playableNode, out var cachedSound))
@@ -207,7 +207,7 @@ public class ManiaAudioProvider : IAudioProvider
 
     private static IEnumerable<PlaybackInfo> ReturnDefaultAndLog(string message, LogLevel logLevel = LogLevel.Debug)
     {
-        Logger.DebuggingLog(logLevel, message);
+        Logger.Log(logLevel, message);
         return Array.Empty<PlaybackInfo>();
     }
 }

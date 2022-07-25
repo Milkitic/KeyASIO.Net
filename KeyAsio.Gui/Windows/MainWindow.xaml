@@ -12,9 +12,9 @@
     xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
     Title="KeyASIO Control Panel"
-    Width="880"
+    Width="630"
     Height="550"
-    MinWidth="800"
+    MinWidth="550"
     MinHeight="550"
     d:DataContext="{d:DesignInstance models:SharedViewModel,
                                      IsDesignTimeCreatable=False}"
@@ -457,10 +457,10 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition />
-                <ColumnDefinition Width="350" />
+                <ColumnDefinition Width="120" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.RowSpan="3" Width="35">
+            <Grid Grid.RowSpan="3" Width="42">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition />
@@ -469,7 +469,7 @@
                 <TextBlock
                     Margin="0,0,0,2"
                     HorizontalAlignment="Center"
-                    FontSize="11"
+                    FontSize="12"
                     Text="Master" />
                 <Slider
                     Grid.Row="1"
@@ -496,7 +496,7 @@
             <Grid
                 Grid.RowSpan="3"
                 Grid.Column="1"
-                Width="35">
+                Width="42">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition />
@@ -505,7 +505,7 @@
                 <TextBlock
                     Margin="0,0,0,2"
                     HorizontalAlignment="Center"
-                    FontSize="11"
+                    FontSize="12"
                     Text="Music" />
                 <Slider
                     Grid.Row="1"
@@ -531,39 +531,70 @@
             </Grid>
 
             <TextBlock
+                Grid.Row="0"
                 Grid.Column="2"
-                Margin="10,0,0,2"
-                HorizontalAlignment="Left"
-                FontSize="11"
-                Text="Log" />
-            <!--<ListBox
-                Grid.Row="1"
-                Grid.RowSpan="2"
-                Grid.Column="1"
-                Margin="10,0,0,0" Style="{StaticResource ListBox.Small}"
-                Padding="2,0"
-                VerticalContentAlignment="Top"
-                FontSize="11"
-                ItemsSource="{Binding Logs}" />-->
-            <ContentPresenter
-                x:Name="cp"
+                Margin="0,0,0,2"
+                FontSize="12"
+                Text="Options" />
+            <Border
                 Grid.Row="1"
                 Grid.RowSpan="2"
                 Grid.Column="2"
-                Margin="10,0,0,0">
-                <ContentPresenter.Resources>
-                    <Style BasedOn="{StaticResource {x:Type RichTextBox}}" TargetType="RichTextBox">
-                        <Setter Property="FontSize" Value="11" />
-                        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-                        <Setter Property="FontFamily" Value="Consolas" />
-                        <Setter Property="Padding" Value="2,1" />
-                        <!--<Setter Property="Padding" Value="2,1" />-->
-                        <Setter Property="IsReadOnly" Value="True" />
-                        <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
-                    </Style>
-                </ContentPresenter.Resources>
-            </ContentPresenter>
+                Padding="2"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="3">
+                <Grid TextBlock.FontSize="11">
+                    <Grid.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="HorizontalAlignment" Value="Right" />
+                            <Setter Property="Margin" Value="0,0,3,3" />
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                        </Style>
+                        <Style BasedOn="{StaticResource ToggleButtonSwitch}" TargetType="ToggleButton">
+                            <Setter Property="Margin" Value="0,0,0,3" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Text="Debugging" />
+                    <ToggleButton
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        IsChecked="{Binding AppSettings.Debugging}" />
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Text="RealtimeMode" />
+                    <ToggleButton
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        IsChecked="{Binding AppSettings.RealtimeOptions.RealtimeMode}" />
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Text="Realtime.FullMode" />
+                    <ToggleButton
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        IsChecked="{Binding AppSettings.RealtimeOptions.EnableMusicFunctions}" />
+
+                </Grid>
+            </Border>
         </Grid>
 
         <hc:NotifyIcon VerticalAlignment="Bottom" Text="KeyASIO is running">

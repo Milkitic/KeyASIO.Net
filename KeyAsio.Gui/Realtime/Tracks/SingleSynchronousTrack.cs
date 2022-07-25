@@ -38,7 +38,7 @@ public class SingleSynchronousTrack
 
         if (cachedSound is null)
         {
-            Logger.DebuggingWarn("Fail to sync: CachedSound is null");
+            Logger.Warn("Fail to sync: CachedSound is null");
             return;
         }
 
@@ -101,7 +101,7 @@ public class SingleSynchronousTrack
         var diffMilliseconds = Math.Abs((currentPlayTime - timeSpan).TotalMilliseconds);
         if (diffMilliseconds > diffTolerance)
         {
-            Logger.DebuggingDebug($"Music offset too large {diffMilliseconds:N2}ms for {diffTolerance:N0}ms, will force to seek.");
+            Logger.Debug($"Music offset too large {diffMilliseconds:N2}ms for {diffTolerance:N0}ms, will force to seek.");
             sampleProvider.PlayTime = timeSpan;
         }
 

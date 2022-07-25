@@ -236,7 +236,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (cachedSound is null)
         {
-            Logger.DebuggingWarn("Fail to play: CachedSound not found");
+            Logger.Warn("Fail to play: CachedSound not found");
             return;
         }
 
@@ -263,7 +263,7 @@ public class RealtimeModeManager : ViewModelBase
         var rootMixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
         if (rootMixer == null)
         {
-            Logger.DebuggingWarn($"RootMixer is null, stop adding cache.");
+            Logger.Warn($"RootMixer is null, stop adding cache.");
             return;
         }
 
@@ -292,13 +292,13 @@ public class RealtimeModeManager : ViewModelBase
     {
         try
         {
-            Logger.DebuggingInfo("Start playing.");
+            Logger.Info("Start playing.");
             OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
             if (_folder != folder)
             {
-                Logger.DebuggingInfo("Cleaning caches caused by folder changing.");
+                Logger.Info("Cleaning caches caused by folder changing.");
                 CleanAudioCaches();
             }
 
@@ -327,7 +327,7 @@ public class RealtimeModeManager : ViewModelBase
 
     public void Stop()
     {
-        Logger.DebuggingInfo("Stop playing.");
+        Logger.Info("Stop playing.");
         IsStarted = false;
         _firstStartInitialized = false;
         var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
@@ -385,7 +385,7 @@ public class RealtimeModeManager : ViewModelBase
         await Task.Delay(100);
         if (PlayMods != ModsInfo.Mods.Unknown && (PlayMods & ModsInfo.Mods.Nightcore) != 0)
         {
-            Logger.DebuggingInfo("Current Mods:" + PlayMods);
+            Logger.Info("Current Mods:" + PlayMods);
             var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);
             hitsoundList.AddRange(list);
             hitsoundList = hitsoundList.OrderBy(k => k.Offset).ToList();
@@ -398,13 +398,13 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (_folder == null)
         {
-            Logger.DebuggingWarn($"{nameof(_folder)} is null, stop adding cache.");
+            Logger.Warn($"{nameof(_folder)} is null, stop adding cache.");
             return;
         }
 
         if (SharedViewModel.Instance.AudioEngine == null)
         {
-            Logger.DebuggingWarn($"{nameof(SharedViewModel.Instance.AudioEngine)} is null, stop adding cache.");
+            Logger.Warn($"{nameof(SharedViewModel.Instance.AudioEngine)} is null, stop adding cache.");
             return;
         }
 
@@ -424,7 +424,7 @@ public class RealtimeModeManager : ViewModelBase
                 }
                 else if (status == true)
                 {
-                    Logger.DebuggingInfo("Cached music: " + musicPath);
+                    Logger.Info("Cached music: " + musicPath);
                 }
             }
 
@@ -445,19 +445,19 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (_folder == null)
         {
-            Logger.DebuggingWarn($"{nameof(_folder)} is null, stop adding cache.");
+            Logger.Warn($"{nameof(_folder)} is null, stop adding cache.");
             return;
         }
 
         if (SharedViewModel.Instance.AudioEngine == null)
         {
-            Logger.DebuggingWarn($"{nameof(SharedViewModel.Instance.AudioEngine)} is null, stop adding cache.");
+            Logger.Warn($"{nameof(SharedViewModel.Instance.AudioEngine)} is null, stop adding cache.");
             return;
         }
 
         if (playableNodes is IList { Count: 0 })
         {
-            Logger.DebuggingWarn($"{expression} has no hitsounds, stop adding cache.");
+            Logger.Warn($"{expression} has no hitsounds, stop adding cache.");
             return;
         }
 
@@ -513,7 +513,7 @@ public class RealtimeModeManager : ViewModelBase
         }
         else if (status == true)
         {
-            Logger.DebuggingInfo("Cached skin audio: " + path);
+            Logger.Info("Cached skin audio: " + path);
         }
 
         _filenameToCachedSoundMapping.TryAdd(filenameWithoutExt, result);
@@ -528,7 +528,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (!IsStarted)
         {
-            Logger.DebuggingWarn($"Isn't started, stop adding cache.");
+            Logger.Warn($"Isn't started, stop adding cache.");
             return;
         }
 
@@ -536,7 +536,7 @@ public class RealtimeModeManager : ViewModelBase
         {
             if (hitsoundNode is PlayableNode)
             {
-                Logger.DebuggingWarn($"Filename is null, add null cache.");
+                Logger.Warn($"Filename is null, add null cache.");
             }
 
             _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, null);
@@ -564,7 +564,7 @@ public class RealtimeModeManager : ViewModelBase
         }
         else if (status == true)
         {
-            Logger.DebuggingInfo("Cached sound: " + path);
+            Logger.Info("Cached sound: " + path);
         }
 
         _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, result);

@@ -147,7 +147,7 @@ public static class DebugUtils
             }
             else
             {
-                _logger.DebuggingDebug(message);
+                _logger.Debug(message);
             }
         }
     }

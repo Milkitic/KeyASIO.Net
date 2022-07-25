@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using HandyControl.Controls;
+using HandyControl.Data;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.UserControls;
@@ -43,8 +44,7 @@ public partial class MainWindow : DialogWindow
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
-
-        cp.Content = ((App)Application.Current).RichTextBox;
+        BindOptions();
     }
 
     private void CreateShortcuts()
@@ -207,11 +207,19 @@ public partial class MainWindow : DialogWindow
         {
             if (action != KeyAction.KeyDown) return;
 
-            Logger.DebuggingDebug($"{hookKey} {action}");
+            Logger.Debug($"{hookKey} {action}");
 
-            if (!_appSettings.RealtimeOptions.RealtimeMode && _cacheSound != null)
+            if (!_appSettings.RealtimeOptions.RealtimeMode)
             {
-                _viewModel.AudioEngine?.PlaySound(_cacheSound);
+                if (_cacheSound != null)
+                {
+                    _viewModel.AudioEngine?.PlaySound(_cacheSound);
+                }
+                else
+                {
+                    Logger.Warn("Hitsound is null. Please check your path.");
+                }
+
                 return;
             }
 
@@ -230,6 +238,49 @@ public partial class MainWindow : DialogWindow
         _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift, key, callback));
         _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
         _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
+    }
+
+    private void BindOptions()
+    {
+        ConsoleManager.BindExitAction(() =>
+        {
+            MainWindow_OnClosed(null, null);
+        });
+
+        _appSettings.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppSettings.Debugging))
+            {
+                if (_appSettings.Debugging)
+                {
+                    ConsoleManager.Show();
+                }
+                else
+                {
+                    ConsoleManager.Hide();
+                }
+
+                _appSettings.Save();
+            }
+        };
+        _appSettings.RealtimeOptions.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppSettings.RealtimeOptions.RealtimeMode))
+            {
+                NotifyRestart(e.PropertyName);
+                _appSettings.Save();
+            }
+        };
+    }
+
+    private void NotifyRestart(string propertyName)
+    {
+        Growl.Info(new GrowlInfo()
+        {
+            Message = $"Restart to fully apply option: {propertyName}",
+            ShowDateTime = false,
+            WaitTime = 1
+        });
     }
 
     private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -280,7 +331,7 @@ public partial class MainWindow : DialogWindow
         }
     }
 
-    private void MainWindow_OnClosed(object? sender, EventArgs e)
+    private void MainWindow_OnClosed(object? sender, EventArgs? e)
     {
         DisposeDevice(false);
         _appSettings.Save();

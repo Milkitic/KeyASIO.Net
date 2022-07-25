@@ -186,7 +186,7 @@ public class StandardAudioProvider : IAudioProvider
         _firstNode = firstNode;
         if (counter == 0)
         {
-            Logger.DebuggingWarn($"Counter is zero, no item returned.");
+            Logger.Warn($"Counter is zero, no item returned.");
         }
     }
 
@@ -228,7 +228,7 @@ public class StandardAudioProvider : IAudioProvider
 
     private static IEnumerable<PlaybackInfo> ReturnDefaultAndLog(string message, LogLevel logLevel = LogLevel.Debug)
     {
-        Logger.DebuggingLog(logLevel, message);
+        Logger.Log(logLevel, message);
         return Array.Empty<PlaybackInfo>();
     }
 }

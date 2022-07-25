@@ -14,7 +14,6 @@ public class SharedViewModel : ViewModelBase
     private DeviceDescription? _deviceDescription;
     private int _framesPerBuffer;
     private int _playbackLatency;
-    private bool _debugging;
     private SkinDescription? _selectedSkin;
 
     private SharedViewModel()
@@ -58,12 +57,6 @@ public class SharedViewModel : ViewModelBase
     {
         get => _playbackLatency;
         set => this.RaiseAndSetIfChanged(ref _playbackLatency, value);
-    }
-
-    public bool Debugging
-    {
-        get => _debugging;
-        set => this.RaiseAndSetIfChanged(ref _debugging, value);
     }
 
     public RealtimeModeManager RealtimeModeManager { get; } = RealtimeModeManager.Instance;
