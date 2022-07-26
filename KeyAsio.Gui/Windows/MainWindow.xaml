@@ -398,7 +398,7 @@
                     <ComboBox
                         Grid.Row="0"
                         Grid.Column="1"
-                        Width="280"
+                        Width="255"
                         Height="auto"
                         MinWidth="0"
                         MinHeight="0"
@@ -457,7 +457,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition />
-                <ColumnDefinition Width="120" />
+                <ColumnDefinition Width="140" />
             </Grid.ColumnDefinitions>
 
             <Grid Grid.RowSpan="3" Width="42">
