@@ -249,11 +249,7 @@ public partial class MainWindow : DialogWindow
 
     private void BindOptions()
     {
-        ConsoleManager.BindExitAction(() =>
-        {
-            MainWindow_OnClosed(null, null);
-        });
-
+        ConsoleManager.BindExitAction(() => Dispatcher.Invoke(() => MainWindow_OnClosed(null, null)));
         _appSettings.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(AppSettings.Debugging))
