@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using System.Xml;
+using System.Xml.Linq;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
 using KeyAsio.Gui.Utils;
@@ -28,6 +33,8 @@ public partial class App : Application
     internal static void Main()
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        //AssemblyLoadContext.Default.Resolving += ResolveAssembly;
+        RedirectLogs();
         CreateApplication();
     }
 
@@ -49,9 +56,9 @@ public partial class App : Application
         {
             options.HttpProxy = HttpClient.DefaultProxy;
             options.ShutdownTimeout = TimeSpan.FromSeconds(5);
-            options.DefaultTags.Add("os.detail", HardwareInformationHelper.GetOsInformation());
-            options.DefaultTags.Add("processor", HardwareInformationHelper.GetProcessorInformation());
-            options.DefaultTags.Add("total_memory", HardwareInformationHelper.GetPhysicalMemory());
+            //options.DefaultTags.Add("os.detail", HardwareInformationHelper.GetOsInformation());
+            //options.DefaultTags.Add("processor", HardwareInformationHelper.GetProcessorInformation());
+            //options.DefaultTags.Add("total_memory", HardwareInformationHelper.GetPhysicalMemory());
         });
 
         try
@@ -66,6 +73,55 @@ public partial class App : Application
             mutex.ReleaseMutex();
             Logger.Info("Application stopped.", true);
         }
+    }
+
+    private static void RedirectLogs()
+    {
+        var configFile = Path.Combine(Environment.CurrentDirectory, "bin", "nlog.config");
+        if (!File.Exists(configFile)) return;
+        Console.WriteLine("Found File: " + configFile);
+        const string ns = "http://www.nlog-project.org/schemas/NLog.xsd";
+        XDocument xDocument;
+        bool changed = false;
+        using (var fs = File.Open(configFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            xDocument = XDocument.Load(fs);
+            var xe_targets = xDocument.Root?.Element(XName.Get("targets", ns));
+            if (xe_targets != null)
+            {
+                var targets = xe_targets.Elements(XName.Get("target", ns));
+                foreach (var xe_target in targets)
+                {
+                    var xa_fileName = xe_target.Attribute("fileName");
+                    if (xa_fileName == null || !xa_fileName.Value.StartsWith("logs/")) continue;
+                    var value = xa_fileName.Value;
+                    xa_fileName.Value = "../" + xa_fileName.Value;
+                    changed = true;
+                    Console.WriteLine($"Redirected \"{value}\" to \"{xa_fileName.Value}\"");
+                }
+            }
+        }
+        if (!changed) return;
+        xDocument.DescendantNodes().OfType<XComment>().Remove();
+        using var fsw = new StreamWriter(configFile, Encoding.UTF8, new FileStreamOptions
+        {
+            Mode = FileMode.Create,
+            Access = FileAccess.Write,
+            Share = FileShare.None
+        });
+        using var xmlWriter = XmlWriter.Create(fsw, new XmlWriterSettings
+        {
+            Indent = true
+        });
+        xDocument.Save(xmlWriter);
+    }
+
+    private static Assembly? ResolveAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
+    {
+        var originalPath = Path.Combine(AppContext.BaseDirectory, $"{assemblyName.Name}.dll");
+        if (File.Exists(originalPath)) return context.LoadFromAssemblyPath(originalPath);
+        var pathMaybe = Path.Combine(AppContext.BaseDirectory, "bin", $"{assemblyName.Name}.dll");
+        return File.Exists(pathMaybe) ? context.LoadFromAssemblyPath(pathMaybe) : null;
     }
 
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

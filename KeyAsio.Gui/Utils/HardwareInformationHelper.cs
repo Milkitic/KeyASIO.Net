@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 using System.Management;
 
 namespace KeyAsio.Gui.Utils;
@@ -54,3 +55,4 @@ public static class HardwareInformationHelper
         return "unknown";
     }
 }
+#endif
