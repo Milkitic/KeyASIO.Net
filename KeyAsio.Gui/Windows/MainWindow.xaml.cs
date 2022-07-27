@@ -249,7 +249,14 @@ public partial class MainWindow : DialogWindow
 
     private void BindOptions()
     {
-        ConsoleManager.BindExitAction(() => Dispatcher.Invoke(() => MainWindow_OnClosed(null, null)));
+        ConsoleManager.BindExitAction(() =>
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.WriteLine("User manually closes debug window. Program will now exit.");
+            Console.ResetColor();
+            Dispatcher.Invoke(ForceClose);
+            Thread.Sleep(1000);
+        });
         _appSettings.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(AppSettings.Debugging))
@@ -288,6 +295,12 @@ public partial class MainWindow : DialogWindow
             ShowDateTime = false,
             WaitTime = 1
         });
+    }
+
+    private void ForceClose()
+    {
+        _forceClose = true;
+        Close();
     }
 
     private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -365,8 +378,7 @@ public partial class MainWindow : DialogWindow
 
     private void miCloseApp_OnClick(object sender, RoutedEventArgs e)
     {
-        _forceClose = true;
-        Close();
+        ForceClose();
     }
 
     private void btnDisposeDevice_OnClick(object sender, RoutedEventArgs e)

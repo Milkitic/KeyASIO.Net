@@ -71,7 +71,10 @@ public static class ConsoleManager
         if (HasConsole) return;
         AllocConsole();
         InvalidateOutAndError();
-        
+        Console.Title = "KeyASIO Debugging Console";
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine("Note: Closing this window will lead to program exiting.");
+        Console.ResetColor();
         var hMenu = GetSystemMenu(GetConsoleWindow(), false);
         DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
     }
