@@ -569,7 +569,9 @@
                     <TextBlock
                         Grid.Row="0"
                         Grid.Column="0"
-                        Text="Debugging" />
+                        Cursor="Help"
+                        Text="Debugging"
+                        ToolTip="If true, the software will create a console window to show logs." />
                     <ToggleButton
                         Grid.Row="0"
                         Grid.Column="1"
@@ -578,7 +580,9 @@
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
-                        Text="RealtimeMode" />
+                        Cursor="Help"
+                        Text="RealtimeMode"
+                        ToolTip="If true, the software will enable memory scanning and play the right hitsounds of beatmaps." />
                     <ToggleButton
                         Grid.Row="1"
                         Grid.Column="1"
@@ -587,7 +591,9 @@
                     <TextBlock
                         Grid.Row="2"
                         Grid.Column="0"
-                        Text="Realtime.FullMode" />
+                        Cursor="Help"
+                        Text="Realtime.FullMode"
+                        ToolTip="[EXPERIMENTAL] If true, the software will enable music related functions." />
                     <ToggleButton
                         Grid.Row="2"
                         Grid.Column="1"

@@ -42,7 +42,7 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     [Description("The skin when `RealtimeMode` is true.")]
     public string SelectedSkin { get; set; } = "";
 
-    [Description("Show debug logs.")]
+    [Description("If true, the software will create a console window to show logs.")]
     public bool Debugging
     {
         get => _debugging;
