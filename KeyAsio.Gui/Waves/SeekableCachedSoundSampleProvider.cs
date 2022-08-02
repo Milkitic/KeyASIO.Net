@@ -64,20 +64,41 @@ public class SeekableCachedSoundSampleProvider : ISampleProvider
             var preLeft = _preSamples - _position;//1200-1000
             if (preLeft <= 0)
             {
-                _audioData.AsSpan()
-                    .Slice(_position - _preSamples, samplesToCopy)
-                    .CopyTo(buffer.AsSpan(offset));
+                try
+                {
+                    _audioData.AsSpan()
+                        .Slice(_position - _preSamples, samplesToCopy)
+                        .CopyTo(buffer.AsSpan(offset));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Case: arr", ex);
+                }
             }
             else if (preLeft >= samplesToCopy)
             {
-                buffer.AsSpan(offset, samplesToCopy).Fill(0f);
+                try
+                {
+                    buffer.AsSpan(offset, samplesToCopy).Fill(0f);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Case: num", ex);
+                }
             }
             else
             {
-                buffer.AsSpan(offset, preLeft).Fill(0f);
-                _audioData.AsSpan()
-                    .Slice(0, samplesToCopy - preLeft)
-                    .CopyTo(buffer.AsSpan(offset + preLeft));
+                try
+                {
+                    buffer.AsSpan(offset, preLeft).Fill(0f);
+                    _audioData.AsSpan()
+                        .Slice(0, samplesToCopy - preLeft)
+                        .CopyTo(buffer.AsSpan(offset + preLeft));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Case: mix", ex);
+                }
             }
 
             _position += samplesToCopy;
