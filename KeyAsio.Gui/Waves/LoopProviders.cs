@@ -123,7 +123,7 @@ internal class LoopProviders
         var memoryStream = new MemoryStream(byteArray, 0, audioDataLength);
         var waveStream = new RawSourceWaveStream(memoryStream, cachedSound.WaveFormat);
         var loopStream = new LoopStream(waveStream);
-        var volumeProvider = new VolumeSampleProvider(loopStream.ToSampleProvider())
+        var volumeProvider = new EnhancedVolumeSampleProvider(loopStream.ToSampleProvider())
         {
             Volume = volume * volumeFactor
         };

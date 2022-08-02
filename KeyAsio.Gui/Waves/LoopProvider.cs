@@ -10,7 +10,7 @@ namespace KeyAsio.Gui.Waves;
 internal sealed class LoopProvider : IDisposable
 {
     private readonly BalanceSampleProvider _balanceProvider;
-    private readonly VolumeSampleProvider _volumeProvider;
+    private readonly EnhancedVolumeSampleProvider _volumeProvider;
     private readonly MemoryStream _memoryStream;
     private readonly RawSourceWaveStream _waveStream;
     private readonly LoopStream _loopStream;
@@ -18,7 +18,7 @@ internal sealed class LoopProvider : IDisposable
     private bool _isAdded;
 
     public LoopProvider(BalanceSampleProvider balanceProvider,
-        VolumeSampleProvider volumeProvider,
+        EnhancedVolumeSampleProvider volumeProvider,
         MemoryStream memoryStream,
         RawSourceWaveStream waveStream,
         LoopStream loopStream,

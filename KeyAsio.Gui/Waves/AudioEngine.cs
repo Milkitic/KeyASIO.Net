@@ -1,5 +1,6 @@
 ﻿using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions;
+using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -7,8 +8,8 @@ namespace KeyAsio.Gui.Waves;
 
 public class AudioEngine : AudioPlaybackEngine
 {
-    private VolumeSampleProvider _hitsoundVolumeSampleProvider = null!;
-    private VolumeSampleProvider _musicVolumeSampleProvider = null!;
+    private EnhancedVolumeSampleProvider _hitsoundVolumeSampleProvider = null!;
+    private EnhancedVolumeSampleProvider _musicVolumeSampleProvider = null!;
 
     public AudioEngine(IWavePlayer? outputDevice, int sampleRate = 44100, int channelCount = 2)
         : base(outputDevice, sampleRate, channelCount, false, true)
@@ -53,7 +54,7 @@ public class AudioEngine : AudioPlaybackEngine
         {
             ReadFully = true
         };
-        _hitsoundVolumeSampleProvider = new VolumeSampleProvider(EffectMixer)
+        _hitsoundVolumeSampleProvider = new EnhancedVolumeSampleProvider(EffectMixer)
         {
             Volume = 1f
         };
@@ -63,7 +64,7 @@ public class AudioEngine : AudioPlaybackEngine
         {
             ReadFully = true
         };
-        _musicVolumeSampleProvider = new VolumeSampleProvider(MusicMixer)
+        _musicVolumeSampleProvider = new EnhancedVolumeSampleProvider(MusicMixer)
         {
             Volume = 1f
         };

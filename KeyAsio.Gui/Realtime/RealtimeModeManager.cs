@@ -248,7 +248,7 @@ public class RealtimeModeManager : ViewModelBase
         balance *= AppSettings.RealtimeOptions.BalanceFactor;
         SharedViewModel.Instance.AudioEngine?.EffectMixer.AddMixerInput(
             new Waves.BalanceSampleProvider(
-                    new VolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
+                    new EnhancedVolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
                     { Volume = volume }
                 )
             { Balance = balance }

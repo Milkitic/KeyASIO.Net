@@ -164,9 +164,9 @@ public class SkinManager
         string? author = null;
 
         using var fs = File.Open(iniFile, FileMode.Open, FileAccess.Read, FileShare.Read);
-        using var sw = new StreamReader(fs);
+        using var sr = new StreamReader(fs);
 
-        while (sw.ReadLine() is { } line)
+        while (sr.ReadLine() is { } line)
         {
             if (line.StartsWith("Name:", StringComparison.OrdinalIgnoreCase))
             {
