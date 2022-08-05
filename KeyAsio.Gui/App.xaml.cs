@@ -143,8 +143,7 @@ public partial class App : Application
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
         Dispatcher.UnhandledException += Dispatcher_UnhandledException;
-        var settings = ConfigurationFactory.GetConfiguration<AppSettings>(
-            converter: MyYamlConfigurationConverter.Instance);
+        var settings = ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".");
 
         if (settings.Debugging)
         {

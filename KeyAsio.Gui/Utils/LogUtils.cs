@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
@@ -30,7 +31,7 @@ internal static class LogUtils
     public static void LogToSentry(LogLevel logLevel, string content, Exception? exception = null,
         Action<Scope>? configureScope = null)
     {
-        var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
+        var settings = ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".");
         if (!settings.SendLogsToDeveloper) return;
         if (exception != null)
         {

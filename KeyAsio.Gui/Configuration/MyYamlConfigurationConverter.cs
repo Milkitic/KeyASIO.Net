@@ -9,7 +9,7 @@ internal class MyYamlConfigurationConverter : YamlConfigurationConverter
     {
     }
 
-    public static YamlConfigurationConverter Instance { get; } = new();
+    public static MyYamlConfigurationConverter Instance { get; } = new();
 
     protected override void ConfigSerializeBuilder(SerializerBuilder builder)
     {
