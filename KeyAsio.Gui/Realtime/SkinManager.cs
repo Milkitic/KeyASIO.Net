@@ -6,11 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using OsuRTDataProvider.Listen;
 

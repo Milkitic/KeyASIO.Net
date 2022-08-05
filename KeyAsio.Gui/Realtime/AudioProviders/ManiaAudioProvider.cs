@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
+using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Gui.Realtime.AudioProviders;
 
@@ -179,7 +179,7 @@ public class ManiaAudioProvider : IAudioProvider
                 break;
             }
 
-            if (playTime < firstNode.Offset + 200 && 
+            if (playTime < firstNode.Offset + 200 &&
                 _realtimeModeManager.TryGetAudioByNode(firstNode, out var cachedSound))
             {
                 yield return new PlaybackInfo(cachedSound, firstNode);

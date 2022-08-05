@@ -29,7 +29,7 @@ public static class ConsoleManager
         COMMON_LVB_REVERSE_VIDEO = 0x4000,
         COMMON_LVB_UNDERSCORE = 0x8000
     }
-    
+
     private static ConsoleEventDelegate? _handler;
     private delegate bool ConsoleEventDelegate(int eventType);
     public static bool HasConsole => GetConsoleWindow() != IntPtr.Zero;

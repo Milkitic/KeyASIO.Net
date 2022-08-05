@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using KeyAsio.Gui.Configuration;
 using Microsoft.Extensions.Logging;
 using Semver;
 

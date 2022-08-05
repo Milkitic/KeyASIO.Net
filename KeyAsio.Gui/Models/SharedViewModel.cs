@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
 using KeyAsio.Gui.Waves;
+using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.Devices;
 
 namespace KeyAsio.Gui.Models;

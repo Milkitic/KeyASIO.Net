@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
 using Microsoft.Extensions.Logging;
+using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Gui.Realtime.AudioProviders;
 

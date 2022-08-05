@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
+using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Gui;
 
-public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
+public sealed class AppSettings : ViewModelBase
 {
     private List<HookKeys> _keys = new()
     {
@@ -86,4 +86,9 @@ public sealed class AppSettings : ConfigurationBase, INotifyPropertyChanged
     }
 
     public string PlayerBase64 { get; set; } = "";
+
+    public void Save()
+    {
+        ConfigurationFactory.Save(this);
+    }
 }

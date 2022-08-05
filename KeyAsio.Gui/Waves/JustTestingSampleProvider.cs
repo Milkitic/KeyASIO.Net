@@ -10,7 +10,7 @@ internal class JustTestingSampleProvider : ISampleProvider
 
     private float[] _buffer = new float[40960];
     private float[] _bufferCopy = new float[40960];
-    
+
     private int _currentIndex;
     private int _currentCount;
 

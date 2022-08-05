@@ -16,6 +16,7 @@ using KeyAsio.Gui.Realtime;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using Microsoft.Extensions.Logging;
+using Milki.Extensions.Configuration;
 using OsuRTDataProvider.Listen;
 using OrtdpLogger = OsuRTDataProvider.Logger;
 using OrtdpSetting = OsuRTDataProvider.Setting;
@@ -142,7 +143,8 @@ public partial class App : Application
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
         Dispatcher.UnhandledException += Dispatcher_UnhandledException;
-        var settings = ConfigurationFactory.GetConfiguration<AppSettings>();
+        var settings = ConfigurationFactory.GetConfiguration<AppSettings>(
+            converter: MyYamlConfigurationConverter.Instance);
 
         if (settings.Debugging)
         {

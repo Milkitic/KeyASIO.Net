@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text;
-using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
 using Microsoft.Extensions.Logging;
+using Milki.Extensions.Configuration;
 using NLog.Extensions.Logging;
 using Sentry;
 

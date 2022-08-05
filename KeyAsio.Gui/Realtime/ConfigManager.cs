@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using Coosu.Shared.IO;
-using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using Microsoft.Extensions.Logging;
+using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Gui.Realtime;
