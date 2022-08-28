@@ -59,7 +59,13 @@ The KeyASIO.Net supports `FullMode` (`EnableMusicFunctions` in configuration), w
 
 ### With standalone soundcard 
 #### FullMode ENABLED
-Same as [Without standalone soundcard](#without-standalone-soundcard)
+> **Prerequisites**
+> * (Optional) Install [VB-CABLE](https://vb-audio.com/Cable/) if you need livestream
+
+1. Change the device in the software GUI, select your standalone soundcard, and confirm.
+2. Check your osu game to test whether the game has lags or problems to play.
+3. (Optional) If osu game is OK, select the game's output to `VB-CABLE Input`, and add the `VB-CABLE Output` as second Microphone device in your livestream software.
+4. Enjoy
 
 #### FullMode DISABLED
 > **Prerequisites**
