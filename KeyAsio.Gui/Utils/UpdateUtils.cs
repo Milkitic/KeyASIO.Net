@@ -49,6 +49,4 @@ public class UpdateUtils
     }
 
 #nullable restore
-
-
 }
