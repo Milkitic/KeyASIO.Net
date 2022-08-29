@@ -39,8 +39,10 @@ The KeyASIO.Net supports `FullMode` (`EnableMusicFunctions` in configuration), w
 
 1. Change the device in the software GUI, select ASIO4ALL or your default WASAPI device with exclusive, and confirm.
 2. If the ASIO4ALL is selected, open ASIO control panel and select your output device with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
-3. Check your osu game to test whether the game has lags or problems to play. If yes, select the game's output to `VB-CABLE Input`
-4. Enjoy
+3. Check your osu game to test whether the game has lags or problems to play. **If yes**, select the game's output to `VB-CABLE Input` 
+> This is because of whether the same audio device in game settings is used exclusively in other applications. In case of exclusive using, the osu game's time synchronization may stuck while game playing, so the hitbox check will always fail.
+4. (Optional for livestream) Select the game's output to `VB-CABLE Input`, and add the `VB-CABLE Output` as second audio output device in your livestream software.
+5. Enjoy
 
 #### FullMode DISABLED
 > **Prerequisites**
@@ -59,7 +61,14 @@ The KeyASIO.Net supports `FullMode` (`EnableMusicFunctions` in configuration), w
 
 ### With standalone soundcard 
 #### FullMode ENABLED
-Same as [Without standalone soundcard](#without-standalone-soundcard)
+> **Prerequisites**
+> * Install [VB-CABLE](https://vb-audio.com/Cable/) 
+
+1. Change the device in the software GUI, select your standalone soundcard, and confirm.
+2. Check your osu game to test whether the game has lags or problems to play. **If yes**, select the game's output to `VB-CABLE Input` 
+> This is because of whether the same audio device in game settings is used exclusively in other applications. In case of exclusive using, the osu game's time synchronization may stuck while game playing, so the hitbox check will always fail.
+3. (Optional for livestream) Select the game's output to `VB-CABLE Input`, and add the `VB-CABLE Output` as second audio output device in your livestream software.
+4. Enjoy
 
 #### FullMode DISABLED
 > **Prerequisites**
@@ -96,13 +105,15 @@ Same as [Without standalone soundcard](#without-standalone-soundcard)
 | Volume                                  | Configured device volume.                                                                                                                                                    |
 ## FAQs
 
-#### How to change skins?
-Please change it in configuration file.
+#### Why my auto behaves like a fool?
+This is because of whether the same audio device in game settings is used exclusively in other applications (like KeyASIO). In case of exclusive using, the osu game's time synchronization may stuck while game playing, so the hitbox checking will always fail.
+
+#### Why only sliderend sounds for auto mod?
+Currently it's a software limit, please open offset guide by clicking `Offset...` button first before playing with auto.
 
 #### How to report bugs?
 If you're sure it's a bug and have steps to reproduce, please open Github issue. For any other problems please reply in the forum page or Github's discussion page.
 
 ## Todo
 - [ ] Sometimes the hit is muted. (headache thing)
-- [ ] Nightcore beats
-- [ ] Try to sync with the music, and be able to mute completely in osu.
+- [ ] The music time synchronization is different from osu.
