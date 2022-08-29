@@ -39,8 +39,10 @@ The KeyASIO.Net supports `FullMode` (`EnableMusicFunctions` in configuration), w
 
 1. Change the device in the software GUI, select ASIO4ALL or your default WASAPI device with exclusive, and confirm.
 2. If the ASIO4ALL is selected, open ASIO control panel and select your output device with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
-3. Check your osu game to test whether the game has lags or problems to play. If yes, select the game's output to `VB-CABLE Input`
-4. Enjoy
+3. Check your osu game to test whether the game has lags or problems to play. **If yes**, select the game's output to `VB-CABLE Input` 
+> It's because of if the same audio device in game settings is used exclusively, the osu game may stuck
+4. (Optional for livestream) Select the game's output to `VB-CABLE Input`, and add the `VB-CABLE Input` as second audio output device in your livestream software.
+5. Enjoy
 
 #### FullMode DISABLED
 > **Prerequisites**
@@ -60,11 +62,12 @@ The KeyASIO.Net supports `FullMode` (`EnableMusicFunctions` in configuration), w
 ### With standalone soundcard 
 #### FullMode ENABLED
 > **Prerequisites**
-> * (Optional for livestream) Install [VB-CABLE](https://vb-audio.com/Cable/) 
+> * Install [VB-CABLE](https://vb-audio.com/Cable/) 
 
 1. Change the device in the software GUI, select your standalone soundcard, and confirm.
-2. Check your osu game to test whether the game has lags or problems to play, and mute the osu game master volume in game settings. 
-3. (Optional for livestream) Select the game's output to `VB-CABLE Input`, unmute the osu game, and add the `VB-CABLE Output` as second Microphone device in your livestream software.
+2. Check your osu game to test whether the game has lags or problems to play, **If yes**, select the game's output to VB-CABLE Input
+> It's because of if the same audio device in game settings is used exclusively, the osu game may stuck
+3. (Optional for livestream) Select the game's output to `VB-CABLE Input`, and add the `VB-CABLE Input` as second audio output device in your livestream software.
 4. Enjoy
 
 #### FullMode DISABLED
@@ -111,4 +114,4 @@ If you're sure it's a bug and have steps to reproduce, please open Github issue.
 ## Todo
 - [ ] Sometimes the hit is muted. (headache thing)
 - [ ] Nightcore beats
-- [ ] Try to sync with the music, and be able to mute completely in osu.
+- [x] Try to sync with the music, and be able to mute completely in osu.
