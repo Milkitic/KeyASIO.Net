@@ -6,11 +6,11 @@ using Coosu.Beatmap;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
-using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using OsuRTDataProvider;
 using FadeInOutSampleProvider = KeyAsio.Gui.Waves.FadeInOutSampleProvider;
 
 namespace KeyAsio.Gui.Realtime.Tracks;

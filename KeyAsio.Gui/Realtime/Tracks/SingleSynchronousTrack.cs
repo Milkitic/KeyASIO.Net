@@ -2,10 +2,10 @@
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
-using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
+using OsuRTDataProvider;
 using OsuRTDataProvider.Mods;
 
 namespace KeyAsio.Gui.Realtime.Tracks;

@@ -3,19 +3,15 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using KeyAsio.Gui.Configuration;
 using KeyAsio.Gui.Realtime;
-using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
-using NLog.Extensions.Logging;
+using OsuRTDataProvider;
 using Sentry;
 
 namespace KeyAsio.Gui.Utils;
 
 internal static class LogUtils
 {
-    public static readonly ILoggerFactory LoggerFactory =
-        Microsoft.Extensions.Logging.LoggerFactory.Create(k => k
-            .AddNLog()
-            .SetMinimumLevel(LogLevel.Trace));
+    public static readonly ILoggerFactory LoggerFactory = WrapperLoggerFactory.CreateFromExtensions();
 
     public static ILogger GetLogger(string name)
     {

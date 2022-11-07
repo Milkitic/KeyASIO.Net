@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sentry" Version="3.20.1" />
+    <PackageReference Include="Sentry" Version="3.23.1" />
   </ItemGroup>
 
   <Target Condition="$(Configuration) != 'Release'" Name="PreBuild" BeforeTargets="PreBuildEvent">

@@ -12,12 +12,12 @@ using KeyAsio.Gui.Models;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
-using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
+using OsuRTDataProvider;
 
 namespace KeyAsio.Gui.Windows;
 

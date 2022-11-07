@@ -5,8 +5,8 @@ using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Gui.Models;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Waves;
-using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
+using OsuRTDataProvider;
 
 namespace KeyAsio.Gui.Realtime.AudioProviders;
 
