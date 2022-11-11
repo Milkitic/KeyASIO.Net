@@ -21,89 +21,89 @@ public class RealtimeOptions : ViewModelBase
     public bool RealtimeMode
     {
         get => _realtimeMode;
-        set => this.RaiseAndSetIfChanged(ref _realtimeMode, value);
+        set => SetField(ref _realtimeMode, value);
     }
 
     [Description("[EXPERIMENTAL] If true, the software will enable music related functions.")]
     public bool EnableMusicFunctions
     {
         get => _enableMusicFunctions;
-        set => this.RaiseAndSetIfChanged(ref _enableMusicFunctions, value);
+        set => SetField(ref _enableMusicFunctions, value);
     }
 
     [Description("The offset when `RealtimeMode` is true (allow adjusting in GUI).")]
     public int RealtimeModeAudioOffset
     {
         get => _realtimeModeAudioOffset;
-        set => this.RaiseAndSetIfChanged(ref _realtimeModeAudioOffset, value);
+        set => SetField(ref _realtimeModeAudioOffset, value);
     }
 
     [Description("Ignore beatmap's hitsound and force using user skin instead.")]
     public bool IgnoreBeatmapHitsound
     {
         get => _ignoreBeatmapHitsound;
-        set => this.RaiseAndSetIfChanged(ref _ignoreBeatmapHitsound, value);
+        set => SetField(ref _ignoreBeatmapHitsound, value);
     }
 
-    public BindKeys IgnoreBeatmapHitsoundBindKey { get; set; } = BindKeys.Parse("Ctrl+Q");
+    public BindKeys? IgnoreBeatmapHitsoundBindKey { get; set; }
 
     [Description("Ignore beatmap's storyboard samples.")]
     public bool IgnoreStoryboardSamples
     {
         get => _ignoreStoryboardSamples;
-        set => this.RaiseAndSetIfChanged(ref _ignoreStoryboardSamples, value);
+        set => SetField(ref _ignoreStoryboardSamples, value);
     }
 
-    public BindKeys IgnoreStoryboardSamplesBindKey { get; set; } = BindKeys.Parse("Ctrl+W");
+    public BindKeys? IgnoreStoryboardSamplesBindKey { get; set; }
 
     [Description("Ignore slider's ticks and slides.")]
     public bool IgnoreSliderTicksAndSlides
     {
         get => _ignoreSliderTicksAndSlides;
-        set => this.RaiseAndSetIfChanged(ref _ignoreSliderTicksAndSlides, value);
+        set => SetField(ref _ignoreSliderTicksAndSlides, value);
     }
 
-    public BindKeys IgnoreSliderTicksAndSlidesBindKey { get; set; } = BindKeys.Parse("Ctrl+E");
+    public BindKeys? IgnoreSliderTicksAndSlidesBindKey { get; set; }
 
     [Description("Slider tail's playback behavior. Normal: Force to play slider tail's sounds; KeepReverse: Play only if a slider with multiple reverses; Ignore: Ignore slider tail's sounds.")]
     public SliderTailPlaybackBehavior SliderTailPlaybackBehavior
     {
         get => _sliderTailPlaybackBehavior;
-        set => this.RaiseAndSetIfChanged(ref _sliderTailPlaybackBehavior, value);
+        set => SetField(ref _sliderTailPlaybackBehavior, value);
     }
 
     [Description("Balance factor.")]
     public float BalanceFactor
     {
         get => _balanceFactor;
-        set => this.RaiseAndSetIfChanged(ref _balanceFactor, value);
+        set => SetField(ref _balanceFactor, value);
     }
 
     [Description("Ignore combo break sound.")]
     public bool IgnoreComboBreak
     {
         get => _ignoreComboBreak;
-        set => this.RaiseAndSetIfChanged(ref _ignoreComboBreak, value);
+        set => SetField(ref _ignoreComboBreak, value);
     }
 
     [Description("Ignore combo break sound.")]
     public bool IgnoreLineVolumes
     {
         get => _ignoreLineVolumes;
-        set => this.RaiseAndSetIfChanged(ref _ignoreLineVolumes, value);
+        set => SetField(ref _ignoreLineVolumes, value);
     }
 
     [Description("Music track volume.")]
     public int MusicTrackVolume
     {
         get => _musicTrackVolume;
-        set => this.RaiseAndSetIfChanged(ref _musicTrackVolume, value);
+        set => SetField(ref _musicTrackVolume, value);
     }
 
     [Description("Effect track volume.")]
     public int EffectTrackVolume
     {
         get => _effectTrackVolume;
-        set => this.RaiseAndSetIfChanged(ref _effectTrackVolume, value);
+        set => SetField(ref _effectTrackVolume, value);
     }
 }

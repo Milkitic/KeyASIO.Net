@@ -185,7 +185,7 @@ public class RealtimeModeManager : ViewModelBase
     public bool IsStarted
     {
         get { lock (_isStartedLock) { return _isStarted; } }
-        set { lock (_isStartedLock) { this.RaiseAndSetIfChanged(ref _isStarted, value); } }
+        set { lock (_isStartedLock) { SetField(ref _isStarted, value); } }
     }
 
     public OsuListenerManager? OsuListenerManager { get; set; }

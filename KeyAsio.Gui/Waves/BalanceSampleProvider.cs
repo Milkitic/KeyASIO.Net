@@ -18,7 +18,7 @@ public class BalanceSampleProvider : ISampleProvider
             throw new NotSupportedException("channels: " + _channels);
         Balance = 0f;
     }
-    
+
     public float Balance
     {
         get => (_rightVolume - _leftVolume) * 2;

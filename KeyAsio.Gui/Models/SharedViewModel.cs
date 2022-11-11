@@ -30,19 +30,19 @@ public class SharedViewModel : ViewModelBase
     public SkinDescription? SelectedSkin
     {
         get => _selectedSkin;
-        set => this.RaiseAndSetIfChanged(ref _selectedSkin, value);
+        set => SetField(ref _selectedSkin, value);
     }
 
     public AudioEngine? AudioEngine
     {
         get => _audioEngine;
-        set => this.RaiseAndSetIfChanged(ref _audioEngine, value);
+        set => SetField(ref _audioEngine, value);
     }
 
     public DeviceDescription? DeviceDescription
     {
         get => _deviceDescription;
-        set => this.RaiseAndSetIfChanged(ref _deviceDescription, value);
+        set => SetField(ref _deviceDescription, value);
     }
 
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
@@ -50,13 +50,13 @@ public class SharedViewModel : ViewModelBase
     public int FramesPerBuffer
     {
         get => _framesPerBuffer;
-        set => this.RaiseAndSetIfChanged(ref _framesPerBuffer, value);
+        set => SetField(ref _framesPerBuffer, value);
     }
 
     public int PlaybackLatency
     {
         get => _playbackLatency;
-        set => this.RaiseAndSetIfChanged(ref _playbackLatency, value);
+        set => SetField(ref _playbackLatency, value);
     }
 
     public RealtimeModeManager RealtimeModeManager { get; } = RealtimeModeManager.Instance;

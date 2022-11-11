@@ -4,13 +4,12 @@ using System;
 using OsuRTDataProvider;
 using OsuRTDataProvider.BeatmapInfo;
 using OsuRTDataProvider.Listen;
-using OsuRTDataProvider.Mods;
 
 Console.WriteLine("Hello, World!");
 Setting.ListenInterval = 5;
 var manager = new OsuListenerManager()
 {
-    
+
 };
 manager.OnBeatmapChanged += Manager_OnBeatmapChanged;
 

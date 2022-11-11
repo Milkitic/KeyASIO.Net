@@ -8,7 +8,7 @@ internal class IntMillisecond2TimeSpanConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
     {
-        var i = System.Convert.ToInt32(value);
+        var i = (int)value!;
         var fromMilliseconds = TimeSpan.FromMilliseconds(i).ToString(@"mm\:ss\.fff");
         return fromMilliseconds;
     }

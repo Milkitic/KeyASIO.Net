@@ -21,37 +21,37 @@ public class DeviceWindowViewModel : ViewModelBase
     public List<DeviceDescription>? Devices
     {
         get => _devices;
-        set => this.RaiseAndSetIfChanged(ref _devices, value);
+        set => SetField(ref _devices, value);
     }
 
     public DeviceDescription? SelectedDevice
     {
         get => _selectedDevice;
-        set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
+        set => SetField(ref _selectedDevice, value);
     }
 
     public int Latency
     {
         get => _latency;
-        set => this.RaiseAndSetIfChanged(ref _latency, value);
+        set => SetField(ref _latency, value);
     }
 
     public int SampleRate
     {
         get => _sampleRate;
-        set => this.RaiseAndSetIfChanged(ref _sampleRate, value);
+        set => SetField(ref _sampleRate, value);
     }
 
     public bool IsExclusive
     {
         get => _isExclusive;
-        set => this.RaiseAndSetIfChanged(ref _isExclusive, value);
+        set => SetField(ref _isExclusive, value);
     }
 
     public ushort ForceAsioBufferSize
     {
         get => _forceAsioBufferSize;
-        set => this.RaiseAndSetIfChanged(ref _forceAsioBufferSize, value);
+        set => SetField(ref _forceAsioBufferSize, value);
     }
 }
 

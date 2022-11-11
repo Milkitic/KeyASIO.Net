@@ -15,7 +15,7 @@ public class KeyBindWindowViewModel : ViewModelBase
     public ObservableCollection<HookKeys> Keys
     {
         get => _keys;
-        set => this.RaiseAndSetIfChanged(ref _keys, value);
+        set => SetField(ref _keys, value);
     }
 }
 

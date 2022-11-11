@@ -26,7 +26,7 @@ public sealed class AppSettings : ViewModelBase
     public List<HookKeys> Keys
     {
         get => _keys;
-        set => this.RaiseAndSetIfChanged(ref _keys, value);
+        set => SetField(ref _keys, value);
     }
 
     [Description("Default hitsound path (relative or absolute) for playing.")]
@@ -36,7 +36,7 @@ public sealed class AppSettings : ViewModelBase
     public string? OsuFolder
     {
         get => _osuFolder;
-        set => this.RaiseAndSetIfChanged(ref _osuFolder, value);
+        set => SetField(ref _osuFolder, value);
     }
 
     [Description("The skin when `RealtimeMode` is true.")]
@@ -46,7 +46,7 @@ public sealed class AppSettings : ViewModelBase
     public bool Debugging
     {
         get => _debugging;
-        set => this.RaiseAndSetIfChanged(ref _debugging, value);
+        set => SetField(ref _debugging, value);
     }
 
     [Description("Device's sample rate (allow adjusting in GUI).")]
@@ -74,7 +74,7 @@ public sealed class AppSettings : ViewModelBase
     public bool SendLogsToDeveloper
     {
         get => _sendLogsToDeveloper;
-        set => this.RaiseAndSetIfChanged(ref _sendLogsToDeveloper, value);
+        set => SetField(ref _sendLogsToDeveloper, value);
     }
 
     public bool SendLogsToDeveloperConfirmed { get; set; }
