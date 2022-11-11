@@ -107,11 +107,11 @@ public class RealtimeModeManager : ViewModelBase
         get => _playMods;
         set
         {
-            if (value == _playMods) return;
             var val = _playMods;
-            _playMods = value;
-            OnPlayModsChanged(val, value);
-            OnPropertyChanged();
+            if (SetField(ref _playMods, value))
+            {
+                OnPlayModsChanged(val, value);
+            }
         }
     }
 
@@ -121,11 +121,11 @@ public class RealtimeModeManager : ViewModelBase
         set
         {
             value += AppSettings.RealtimeOptions.RealtimeModeAudioOffset;
-            if (value == _playTime) return;
             var val = _playTime;
-            _playTime = value;
-            OnPlayTimeChanged(val, value);
-            OnPropertyChanged();
+            if (SetField(ref _playTime, value))
+            {
+                OnPlayTimeChanged(val, value);
+            }
         }
     }
 
@@ -134,23 +134,18 @@ public class RealtimeModeManager : ViewModelBase
         get => _combo;
         set
         {
-            if (value == _combo) return;
             var val = _combo;
-            _combo = value;
-            OnComboChanged(val, value);
-            OnPropertyChanged();
+            if (SetField(ref _combo, value))
+            {
+                OnComboChanged(val, value);
+            }
         }
     }
 
     public int Score
     {
         get => _score;
-        set
-        {
-            if (value == _score) return;
-            _score = value;
-            OnPropertyChanged();
-        }
+        set => SetField(ref _score, value);
     }
 
     public OsuListenerManager.OsuStatus OsuStatus
@@ -158,11 +153,11 @@ public class RealtimeModeManager : ViewModelBase
         get => _osuStatus;
         set
         {
-            if (value == _osuStatus) return;
             var val = _osuStatus;
-            _osuStatus = value;
-            OnStatusChanged(val, value);
-            OnPropertyChanged();
+            if (SetField(ref _osuStatus, value))
+            {
+                OnStatusChanged(val, value);
+            }
         }
     }
 
@@ -175,10 +170,10 @@ public class RealtimeModeManager : ViewModelBase
         get => _beatmap;
         set
         {
-            if (Equals(value, _beatmap)) return;
-            _beatmap = value;
-            OnBeatmapChanged(value);
-            OnPropertyChanged();
+            if (SetField(ref _beatmap, value))
+            {
+                OnBeatmapChanged(value);
+            }
         }
     }
 
