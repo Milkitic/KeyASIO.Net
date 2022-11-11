@@ -94,7 +94,7 @@ jobs:
           1. Place holder
           
           ### Installation
-          .NET 6.0 Desktop Runtime is required for the smallest asset.
+          .NET 7.0 Desktop Runtime is required for the smallest asset.
           For the other two assets with "-win32" and "-win64" postfix, you don't need to install anything more.
         name: ${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}
         prerelease: true
