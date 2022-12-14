@@ -68,6 +68,11 @@ public class ManiaAudioProvider : IAudioProvider
 
         if (audioEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
         if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
+        if (_hitQueue.Count - 1 < keyIndex || _hitQueueCache.Length - 1 < keyIndex)
+        {
+            Logger.Warn($"Key index was out of range ({keyIndex}). Please check your key configuration to match mania columns.");
+            return Enumerable.Empty<PlaybackInfo>();
+        }
 
         var queue = _hitQueue[keyIndex];
         while (true)
