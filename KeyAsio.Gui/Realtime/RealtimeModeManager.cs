@@ -24,6 +24,7 @@ using OsuRTDataProvider;
 using OsuRTDataProvider.BeatmapInfo;
 using OsuRTDataProvider.Listen;
 using OsuRTDataProvider.Mods;
+using BalanceSampleProvider = KeyAsio.Gui.Waves.BalanceSampleProvider;
 
 namespace KeyAsio.Gui.Realtime;
 
@@ -240,13 +241,21 @@ public class RealtimeModeManager : ViewModelBase
         }
 
         balance *= AppSettings.RealtimeOptions.BalanceFactor;
-        SharedViewModel.Instance.AudioEngine?.EffectMixer.AddMixerInput(
-            new Waves.BalanceSampleProvider(
-                    new EnhancedVolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
-                    { Volume = volume }
-                )
-            { Balance = balance }
-        );
+        try
+        {
+            SharedViewModel.Instance.AudioEngine?.EffectMixer.AddMixerInput(
+                new BalanceSampleProvider(
+                        new EnhancedVolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
+                        { Volume = volume }
+                    )
+                { Balance = balance }
+            );
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error occurs while playing audio.", true);
+        }
+
         Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourcePath)}; " +
                      $"Vol. {volume}; " +
                      $"Bal. {balance}");
@@ -270,7 +279,14 @@ public class RealtimeModeManager : ViewModelBase
                 _loopProviders.RemoveAll(rootMixer);
             }
 
-            _loopProviders.Create(controlNode, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
+            try
+            {
+                _loopProviders.Create(controlNode, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error occurs while playing looped audio.", true);
+            }
         }
         else if (controlNode.ControlType == ControlType.StopSliding)
         {
