@@ -37,7 +37,6 @@ public class RealtimeModeManager : ViewModelBase
 
     private OsuListenerManager.OsuStatus _osuStatus;
     private int _playTime;
-    private Stopwatch _playTimeStopwatch = new Stopwatch();
     private int _combo;
     private int _score;
     private Beatmap _beatmap;
@@ -54,6 +53,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private readonly StandardAudioProvider _standardAudioProvider;
     private readonly ManiaAudioProvider _maniaAudioProvider;
+    private readonly Stopwatch _playTimeStopwatch = new();
 
     private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
 
