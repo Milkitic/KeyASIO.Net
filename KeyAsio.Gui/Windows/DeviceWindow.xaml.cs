@@ -53,6 +53,11 @@ public class DeviceWindowViewModel : ViewModelBase
         get => _forceAsioBufferSize;
         set => SetField(ref _forceAsioBufferSize, value);
     }
+
+    public int[] SupportedSampleRates { get; } =
+    {
+        22050, 44100, 48000, 96000, 192000, 384000
+    };
 }
 
 /// <summary>

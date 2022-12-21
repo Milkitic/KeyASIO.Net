@@ -29,13 +29,16 @@
                 FontWeight="Bold"
                 Text="Config Device" />
             <TextBlock Margin="0,0,0,10" Text="Sample rate" />
-            <TextBox
+            <ComboBox
+                Width="100"
                 Height="26"
+                MinHeight="0"
                 Margin="0,0,0,10"
+                Padding="6,0"
+                HorizontalAlignment="Left"
                 FontSize="12"
-                Style="{StaticResource TextBox.Small}"
-                Text="{Binding SampleRate, Mode=TwoWay}"
-                TextBlock.FontFamily="Consolas" />
+                ItemsSource="{Binding SupportedSampleRates}"
+                SelectedItem="{Binding SampleRate, Mode=TwoWay}" />
 
             <TextBlock Margin="0,0,0,10" Text="Device list" />
             <ComboBox
