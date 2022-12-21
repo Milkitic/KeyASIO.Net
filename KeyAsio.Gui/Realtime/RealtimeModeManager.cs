@@ -37,6 +37,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private OsuListenerManager.OsuStatus _osuStatus;
     private int _playTime;
+    private Stopwatch _playTimeStopwatch = new Stopwatch();
     private int _combo;
     private int _score;
     private Beatmap _beatmap;
@@ -69,6 +70,7 @@ public class RealtimeModeManager : ViewModelBase
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
     private string _username = "";
+    private int _lastFetchedPlayTime;
 
     public RealtimeModeManager()
     {
@@ -121,12 +123,34 @@ public class RealtimeModeManager : ViewModelBase
         get => _playTime;
         set
         {
-            value += AppSettings.RealtimeOptions.RealtimeModeAudioOffset;
+            value += AppSettings.RealtimeOptions.RealtimeModeAudioOffset + (int)_playTimeStopwatch.ElapsedMilliseconds;
             var val = _playTime;
             if (SetField(ref _playTime, value))
             {
-                OnPlayTimeChanged(val, value);
+                OnFetchedPlayTimeChanged(val, value);
             }
+            else
+            {
+                OnFetchedPlayTimeChanged(val, value, true);
+            }
+        }
+    }
+
+    public int LastFetchedPlayTime
+    {
+        get => _lastFetchedPlayTime;
+        set
+        {
+            if (SetField(ref _lastFetchedPlayTime, value))
+            {
+                _playTimeStopwatch.Restart();
+            }
+            else
+            {
+                _playTimeStopwatch.Reset();
+            }
+
+            PlayTime = value;
         }
     }
 
