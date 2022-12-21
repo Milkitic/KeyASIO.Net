@@ -178,7 +178,7 @@ public partial class App : Application
             manager.OnModsChanged += modsInfo => RealtimeModeManager.Instance.PlayMods = modsInfo.Mod;
             manager.OnComboChanged += combo => RealtimeModeManager.Instance.Combo = combo;
             manager.OnScoreChanged += score => RealtimeModeManager.Instance.Score = score;
-            manager.OnPlayingTimeChanged += playTime => RealtimeModeManager.Instance.PlayTime = playTime;
+            manager.OnPlayingTimeUpdated += playTime => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime;
             manager.OnBeatmapChanged += beatmap => RealtimeModeManager.Instance.Beatmap = beatmap ?? Beatmap.Empty;
             manager.OnStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
             manager.Start();

@@ -18,7 +18,7 @@ void Manager_OnBeatmapChanged(Beatmap map)
     Logger.Info(map.Filename);
 }
 
-manager.OnPlayingTimeChanged += Manager_OnPlayingTimeChanged;
+manager.OnPlayingTimeUpdated += Manager_OnPlayingTimeChanged;
 manager.OnStatusChanged += OnStatusChanged;
 manager.OnComboChanged += Manager_OnComboChanged;
 manager.OnAccuracyChanged += Manager_OnAccuracyChanged;
