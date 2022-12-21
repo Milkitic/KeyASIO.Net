@@ -35,13 +35,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Coosu.Beatmap" Version="2.3.29" />
+    <PackageReference Include="Coosu.Beatmap" Version="2.3.30" />
     <PackageReference Include="HandyControl" Version="3.4.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-    <PackageReference Include="Milki.Extensions.Configuration" Version="0.0.33" />
-    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.33" />
-    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.33" />
+    <PackageReference Include="Milki.Extensions.Configuration" Version="0.0.34" />
+    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.34" />
+    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.34" />
     <PackageReference Include="MinVer" Version="4.2.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
