@@ -41,6 +41,8 @@ public class RealtimeModeManager : ViewModelBase
     private int _score;
     private Beatmap _beatmap;
     private bool _isStarted;
+    private bool _previousSelectSongStatus = true;
+    private int _pauseCount = 0;
 
     private readonly object _isStartedLock = new();
     private readonly HitsoundFileCache _hitsoundFileCache = new();
@@ -645,6 +647,13 @@ public class RealtimeModeManager : ViewModelBase
             _result = true;
             _singleSynchronousTrack.PlayMods = ModsInfo.Mods.None;
         }
+        else if (pre != OsuListenerManager.OsuStatus.NoFoundProcess && cur == OsuListenerManager.OsuStatus.NoFoundProcess)
+        {
+            if (AppSettings.RealtimeOptions.EnableMusicFunctions)
+            {
+                _selectSongTrack.StopCurrentMusic(2000);
+            }
+        }
         else
         {
             _selectSongTrack.StartLowPass(200, 16000);
@@ -655,7 +664,8 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnBeatmapChanged(Beatmap? beatmap)
     {
-        if (OsuStatus == OsuListenerManager.OsuStatus.SelectSong && beatmap != null)
+        if (OsuStatus is OsuListenerManager.OsuStatus.SelectSong or
+                OsuListenerManager.OsuStatus.Idle && beatmap != null)
         {
             var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
             {
@@ -674,6 +684,8 @@ public class RealtimeModeManager : ViewModelBase
             _audioFilePath = audioFilePath;
             _selectSongTrack.StopCurrentMusic(200);
             _selectSongTrack.PlaySingleAudio(coosu, audioFilePath, coosu.General.PreviewTime);
+            _previousSelectSongStatus = true;
+            _pauseCount = 0;
         }
     }
 
@@ -681,10 +693,38 @@ public class RealtimeModeManager : ViewModelBase
     {
     }
 
-    private void OnPlayTimeChanged(int oldMs, int newMs)
+    private void OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
     {
+        const int selectSongPauseThreshold = 20;
+        const int playingPauseThreshold = 5;
+        if (paused && _previousSelectSongStatus)
+        {
+            _pauseCount++;
+        }
+        else if (!paused)
+        {
+            _pauseCount = 0;
+        }
+
+        var enableMusicFunctions = AppSettings.RealtimeOptions.EnableMusicFunctions;
+        if (enableMusicFunctions && OsuStatus is OsuListenerManager.OsuStatus.SelectSong or
+                OsuListenerManager.OsuStatus.Idle)
+        {
+            if (_pauseCount >= selectSongPauseThreshold && _previousSelectSongStatus)
+            {
+                _selectSongTrack.PauseCurrentMusic();
+                _previousSelectSongStatus = false;
+            }
+            else if (_pauseCount < selectSongPauseThreshold && !_previousSelectSongStatus)
+            {
+                _selectSongTrack.RecoverCurrentMusic();
+                _previousSelectSongStatus = true;
+            }
+        }
+
         if (IsStarted && oldMs > newMs) // Retry
         {
+            _pauseCount = 0;
             _selectSongTrack.StopCurrentMusic();
             _selectSongTrack.StartLowPass(200, 16000);
             _firstStartInitialized = true;
@@ -697,25 +737,32 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (IsStarted && AppSettings.RealtimeOptions.EnableMusicFunctions)
+        if (enableMusicFunctions && IsStarted)
         {
             if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioEngine != null)
             {
-                var musicPath = Path.Combine(_folder, AudioFilename);
-                if (CachedSoundFactory.ContainsCache(musicPath))
+                if (_pauseCount >= playingPauseThreshold)
                 {
-                    //todo: online offset && local offset
-                    const int codeLatency = -1;
-                    const int osuForceLatency = 15;
-                    var oldMapForceOffset = OsuFile.Version < 5 ? 24 : 0;
-                    _singleSynchronousTrack.Offset = osuForceLatency + codeLatency + oldMapForceOffset;
-                    _singleSynchronousTrack.LeadInMilliseconds = OsuFile.General.AudioLeadIn;
-                    if (!_result)
+                    _singleSynchronousTrack.ClearAudio();
+                }
+                else
+                {
+                    var musicPath = Path.Combine(_folder, AudioFilename);
+                    if (CachedSoundFactory.ContainsCache(musicPath))
                     {
-                        _singleSynchronousTrack.PlayMods = PlayMods;
-                    }
+                        //todo: online offset && local offset
+                        const int codeLatency = -1;
+                        const int osuForceLatency = 15;
+                        var oldMapForceOffset = OsuFile.Version < 5 ? 24 : 0;
+                        _singleSynchronousTrack.Offset = osuForceLatency + codeLatency + oldMapForceOffset;
+                        _singleSynchronousTrack.LeadInMilliseconds = OsuFile.General.AudioLeadIn;
+                        if (!_result)
+                        {
+                            _singleSynchronousTrack.PlayMods = PlayMods;
+                        }
 
-                    _singleSynchronousTrack.SyncAudio(CachedSoundFactory.GetCacheSound(musicPath), newMs);
+                        _singleSynchronousTrack.SyncAudio(CachedSoundFactory.GetCacheSound(musicPath), newMs);
+                    }
                 }
             }
         }

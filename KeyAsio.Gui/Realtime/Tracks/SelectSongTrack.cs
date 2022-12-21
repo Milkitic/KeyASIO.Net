@@ -126,6 +126,36 @@ public class SelectSongTrack
         });
     }
 
+    public async void PauseCurrentMusic()
+    {
+        SmartWaveReader? smartWaveReader;
+        FadeInOutSampleProvider? fadeInOutSampleProvider;
+        lock (_instanceLock)
+        {
+            smartWaveReader = _smartWaveReader;
+            fadeInOutSampleProvider = _fadeInOutSampleProvider;
+            if (smartWaveReader is null || fadeInOutSampleProvider is null)
+                return;
+        }
+        
+        Mixer?.RemoveMixerInput(fadeInOutSampleProvider);
+    }
+
+    public async void RecoverCurrentMusic()
+    {
+        SmartWaveReader? smartWaveReader;
+        FadeInOutSampleProvider? fadeInOutSampleProvider;
+        lock (_instanceLock)
+        {
+            smartWaveReader = _smartWaveReader;
+            fadeInOutSampleProvider = _fadeInOutSampleProvider;
+            if (smartWaveReader is null || fadeInOutSampleProvider is null)
+                return;
+        }
+        
+        Mixer?.AddMixerInput(fadeInOutSampleProvider);
+    }
+
     private static async ValueTask RepositionAndFadeIn(WaveStream waveStream, int playTime,
         FadeInOutSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds)
     {
