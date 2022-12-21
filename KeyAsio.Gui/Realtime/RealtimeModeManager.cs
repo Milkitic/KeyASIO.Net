@@ -39,7 +39,7 @@ public class RealtimeModeManager : ViewModelBase
     private int _playTime;
     private int _combo;
     private int _score;
-    private Beatmap? _beatmap;
+    private Beatmap _beatmap;
     private bool _isStarted;
 
     private readonly object _isStartedLock = new();
@@ -166,7 +166,7 @@ public class RealtimeModeManager : ViewModelBase
 
     public string? AudioFilename { get; set; }
 
-    public Beatmap? Beatmap
+    public Beatmap Beatmap
     {
         get => _beatmap;
         set
@@ -638,7 +638,7 @@ public class RealtimeModeManager : ViewModelBase
                 k.IncludeSection("General");
                 k.IncludeSection("Metadata");
             });
-            var audioFilePath = coosu.General.AudioFilename == null
+            var audioFilePath = coosu.General?.AudioFilename == null
                 ? null
                 : Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
             if (audioFilePath == _audioFilePath)

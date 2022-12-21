@@ -17,6 +17,7 @@ using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using Milki.Extensions.Configuration;
 using OsuRTDataProvider;
+using OsuRTDataProvider.BeatmapInfo;
 using OsuRTDataProvider.Listen;
 using OrtdpLogger = OsuRTDataProvider.Logger;
 using OrtdpSetting = OsuRTDataProvider.Setting;
@@ -178,7 +179,7 @@ public partial class App : Application
             manager.OnComboChanged += combo => RealtimeModeManager.Instance.Combo = combo;
             manager.OnScoreChanged += score => RealtimeModeManager.Instance.Score = score;
             manager.OnPlayingTimeChanged += playTime => RealtimeModeManager.Instance.PlayTime = playTime;
-            manager.OnBeatmapChanged += beatmap => RealtimeModeManager.Instance.Beatmap = beatmap;
+            manager.OnBeatmapChanged += beatmap => RealtimeModeManager.Instance.Beatmap = beatmap ?? Beatmap.Empty;
             manager.OnStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
             manager.Start();
             RealtimeModeManager.Instance.OsuListenerManager = manager;
