@@ -271,6 +271,22 @@ internal ref partial struct ValueStringBuilder
         return _chars.Slice(origPos, length);
     }
 
+    // 对于需要格式化的对象特殊处理
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AppendSpanFormattable<T>(T value, string? format = null, IFormatProvider? provider = null)
+        where T : ISpanFormattable
+    {
+        // ISpanFormattable非常高效
+        if (value.TryFormat(_chars.Slice(_pos), out int charsWritten, format, provider))
+        {
+            _pos += charsWritten;
+        }
+        else
+        {
+            Append(value.ToString(format, provider));
+        }
+    }
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void GrowAndAppend(char c)
     {
