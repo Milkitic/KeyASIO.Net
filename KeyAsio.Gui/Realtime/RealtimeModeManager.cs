@@ -327,6 +327,7 @@ public class RealtimeModeManager : ViewModelBase
         try
         {
             Logger.Info("Start playing.");
+            IsStarted = true;
             OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
@@ -345,7 +346,6 @@ public class RealtimeModeManager : ViewModelBase
             await InitializeNodeListsAsync(folder, beatmapFilename);
             AddSkinCacheInBackground();
             ResetNodes();
-            IsStarted = true;
         }
         catch (Exception ex)
         {
