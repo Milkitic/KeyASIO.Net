@@ -419,9 +419,14 @@ public class RealtimeModeManager : ViewModelBase
         using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
         var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
         await Task.Delay(100);
-        if (PlayMods != ModsInfo.Mods.Unknown && (PlayMods & ModsInfo.Mods.Nightcore) != 0)
+        var isNightcore = PlayMods != ModsInfo.Mods.Unknown && (PlayMods & ModsInfo.Mods.Nightcore) != 0;
+        if (isNightcore || AppSettings.RealtimeOptions.ForceNightcoreBeats)
         {
-            Logger.Info("Current Mods:" + PlayMods);
+            if (isNightcore)
+            {
+                Logger.Info("Current Mods:" + PlayMods);
+            }
+
             var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);
             hitsoundList.AddRange(list);
             hitsoundList = hitsoundList.OrderBy(k => k.Offset).ToList();

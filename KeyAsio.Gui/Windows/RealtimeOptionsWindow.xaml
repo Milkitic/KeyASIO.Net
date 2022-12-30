@@ -104,6 +104,21 @@
                             Text="{Binding AppSettings.RealtimeOptions.IgnoreLineVolumes, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
                     </StackPanel>
                 </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,10" Text="Force nightcore beats" />
+                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                        <ToggleButton
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            IsChecked="{Binding AppSettings.RealtimeOptions.ForceNightcoreBeats}"
+                            Style="{StaticResource ToggleButtonSwitch}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Text="{Binding AppSettings.RealtimeOptions.ForceNightcoreBeats, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+                    </StackPanel>
+                </StackPanel>
             </UniformGrid>
             <TextBlock Margin="0,0,0,10" Text="Playback behavior for slider tail" />
             <ComboBox

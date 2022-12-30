@@ -16,6 +16,7 @@ public class RealtimeOptions : ViewModelBase
     private bool _enableMusicFunctions;
     private int _musicTrackVolume = 100;
     private int _effectTrackVolume = 100;
+    private bool _forceNightcoreBeats;
 
     [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
     public bool RealtimeMode
@@ -105,5 +106,12 @@ public class RealtimeOptions : ViewModelBase
     {
         get => _effectTrackVolume;
         set => SetField(ref _effectTrackVolume, value);
+    }
+    
+    [Description("Force to use nightcore beats.")]
+    public bool ForceNightcoreBeats
+    {
+        get => _forceNightcoreBeats;
+        set => SetField(ref _forceNightcoreBeats, value);
     }
 }
