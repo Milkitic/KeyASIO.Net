@@ -98,7 +98,7 @@ public class SkinManager
             if (AppSettings.OsuFolder == null) return;
             var skinsDir = Path.Combine(AppSettings.OsuFolder, "Skins");
             if (!Directory.Exists(skinsDir)) return;
-            SharedViewModel.Skins.Clear();
+            Application.Current.Dispatcher.Invoke(() => SharedViewModel.Skins.Clear());
             var list = new List<SkinDescription> { SkinDescription.Default };
             foreach (var directory in Directory.EnumerateDirectories(skinsDir, "*", SearchOption.TopDirectoryOnly))
             {
