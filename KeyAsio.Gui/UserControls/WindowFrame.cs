@@ -1,8 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using JetBrains.Annotations;
 
 namespace KeyAsio.Gui.UserControls;
 
@@ -79,19 +79,21 @@ public class WindowFrame : UserControl, INotifyPropertyChanged
     public Window? Owner
     {
         get => _owner;
-        internal set
-        {
-            if (Equals(value, _owner)) return;
-            _owner = value;
-            OnPropertyChanged();
-        }
+        internal set => SetField(ref _owner, value);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    [NotifyPropertyChangedInvocator]
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }

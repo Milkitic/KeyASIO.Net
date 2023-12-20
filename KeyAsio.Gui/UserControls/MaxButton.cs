@@ -1,7 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using JetBrains.Annotations;
 
 namespace KeyAsio.Gui.UserControls;
 
@@ -18,12 +18,7 @@ public class MaxButton : SystemButton, INotifyPropertyChanged
     public bool IsWindowMax
     {
         get => _isWindowMax;
-        private set
-        {
-            if (value == _isWindowMax) return;
-            _isWindowMax = value;
-            OnPropertyChanged();
-        }
+        private set => SetField(ref _isWindowMax, value);
     }
 
     private void OnClick(object sender, RoutedEventArgs args)
@@ -64,9 +59,16 @@ public class MaxButton : SystemButton, INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    [NotifyPropertyChangedInvocator]
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }
