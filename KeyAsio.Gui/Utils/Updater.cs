@@ -8,7 +8,8 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using OsuRTDataProvider;
+using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Shared;
 using Semver;
 
 namespace KeyAsio.Gui.Utils;

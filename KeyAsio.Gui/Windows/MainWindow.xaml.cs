@@ -8,16 +8,17 @@ using System.Windows;
 using System.Windows.Controls;
 using HandyControl.Controls;
 using HandyControl.Data;
-using KeyAsio.Gui.Models;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Gui.Utils;
-using KeyAsio.Gui.Waves;
+using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Shared;
+using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Waves;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
-using OsuRTDataProvider;
 
 namespace KeyAsio.Gui.Windows;
 
