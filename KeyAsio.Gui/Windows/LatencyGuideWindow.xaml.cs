@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
-using KeyAsio.Gui.Models;
 using KeyAsio.Gui.UserControls;
+using KeyAsio.Shared.Models;
 
 namespace KeyAsio.Gui.Windows;
 

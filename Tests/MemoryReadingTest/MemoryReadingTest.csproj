@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
+    <OutputType>Exe</OutputType>
+    <!--<DisableWinExeOutputInference>true</DisableWinExeOutputInference>-->
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="LiveChartsCore" Version="2.0.0-rc2" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\KeyAsio.MemoryReading\KeyAsio.MemoryReading.csproj" />
+    <ProjectReference Include="..\..\KeyAsio.Shared\KeyAsio.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="nlog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -11,16 +11,16 @@ using System.Threading;
 using System.Windows;
 using System.Xml;
 using System.Xml.Linq;
-using KeyAsio.Gui.Configuration;
-using KeyAsio.Gui.Realtime;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
+using KeyAsio.MemoryReading;
+using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Shared;
+using KeyAsio.Shared.Configuration;
+using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Utils;
 using Milki.Extensions.Configuration;
-using OsuRTDataProvider;
-using OsuRTDataProvider.BeatmapInfo;
-using OsuRTDataProvider.Listen;
-using OrtdpLogger = OsuRTDataProvider.Logger;
-using OrtdpSetting = OsuRTDataProvider.Setting;
+using OrtdpLogger = KeyAsio.MemoryReading.Logger;
 
 namespace KeyAsio.Gui;
 
@@ -171,18 +171,14 @@ public partial class App : Application
             }
 
             OrtdpLogger.SetLoggerFactory(LogUtils.LoggerFactory);
-            OrtdpSetting.DisableProcessNotFoundInformation = true;
-            OrtdpSetting.ListenInterval = 3;
-            var manager = new OsuListenerManager();
-            manager.OnPlayerChanged += player => RealtimeModeManager.Instance.Username = player;
-            manager.OnModsChanged += modsInfo => RealtimeModeManager.Instance.PlayMods = modsInfo.Mod;
-            manager.OnComboChanged += combo => RealtimeModeManager.Instance.Combo = combo;
-            manager.OnScoreChanged += score => RealtimeModeManager.Instance.Score = score;
-            manager.OnPlayingTimeUpdated += playTime => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime;
-            manager.OnBeatmapChanged += beatmap => RealtimeModeManager.Instance.Beatmap = beatmap ?? Beatmap.Empty;
-            manager.OnStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
-            manager.Start();
-            RealtimeModeManager.Instance.OsuListenerManager = manager;
+            MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) => RealtimeModeManager.Instance.Username = player;
+            MemoryScan.MemoryReadObject.ModsChanged += (_, mods) => RealtimeModeManager.Instance.PlayMods = mods;
+            MemoryScan.MemoryReadObject.ComboChanged += (_, combo) => RealtimeModeManager.Instance.Combo = combo;
+            MemoryScan.MemoryReadObject.ScoreChanged += (_, score) => RealtimeModeManager.Instance.Score = score;
+            MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime;
+            MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) => RealtimeModeManager.Instance.Beatmap = beatmap;
+            MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
+            MemoryScan.Start(settings.RealtimeOptions.ScanInterval);
             SkinManager.Instance.ListenToProcess();
         }
 

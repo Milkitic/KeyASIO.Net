@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Coosu.Beatmap" Version="2.3.36" />
+    <PackageReference Include="Milki.Extensions.Configuration" Version="0.0.36" />
+    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.36" />
+    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.36" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.7" />
+    <PackageReference Include="YamlDotNet" Version="13.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KeyAsio.MemoryReading\KeyAsio.MemoryReading.csproj" />
+    <ProjectReference Include="..\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
+  </ItemGroup>
+
+</Project>

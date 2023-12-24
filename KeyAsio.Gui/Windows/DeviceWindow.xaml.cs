@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using KeyAsio.Gui.Models;
 using KeyAsio.Gui.UserControls;
+using KeyAsio.Shared.Models;
 using Milki.Extensions.MixPlayer.Devices;
 
 namespace KeyAsio.Gui.Windows;

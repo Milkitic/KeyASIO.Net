@@ -5,17 +5,16 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using KeyAsio.Gui;
-using KeyAsio.Gui.Models;
-using KeyAsio.Gui.Realtime;
-using KeyAsio.Gui.Waves;
+using KeyAsio.MemoryReading;
+using KeyAsio.Shared;
+using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Waves;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.Threading;
 using Milki.Extensions.MixPlayer.Utilities;
-using OsuRTDataProvider.BeatmapInfo;
-using OsuRTDataProvider.Listen;
-using OsuRTDataProvider.Mods;
+using OsuMemoryDataProvider;
 
 namespace PlayingTests;
 
@@ -49,9 +48,9 @@ static class Program
         var realtimeModeManager = new RealtimeModeManager()
         {
             PlayTime = -1,
-            PlayMods = ModsInfo.Mods.None
+            PlayMods = Mods.None
         };
-        realtimeModeManager.OsuStatus = OsuListenerManager.OsuStatus.SelectSong;
+        realtimeModeManager.OsuStatus = OsuMemoryStatus.SongSelect;
         var files = Directory.EnumerateFiles(@"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\", "*.osu",
             SearchOption.AllDirectories).ToArray();
         int i = 0;
@@ -72,13 +71,13 @@ static class Program
             Console.WriteLine(file);
             //var k = Console.ReadKey();
             //await realtimeModeManager.StartAsync(filenameFull, filename);
-            realtimeModeManager.Beatmap = new Beatmap(0, 0, 0, file);
+            realtimeModeManager.Beatmap = new BeatmapIdentifier(file);
             if (Console.ReadKey().KeyChar == 'q') break;
             i++;
         }
 
         Console.WriteLine("Playing");
-        realtimeModeManager.OsuStatus = OsuListenerManager.OsuStatus.Playing;
+        realtimeModeManager.OsuStatus = OsuMemoryStatus.Playing;
 
         var sw = new VariableStopwatch()
         {
