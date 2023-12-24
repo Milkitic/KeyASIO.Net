@@ -11,7 +11,6 @@ public static class MemoryScan
     private const string FieldMemoryReader1 = "_memoryReader";
     private const string FieldMemoryReader2 = "_memoryReader";
 
-    //private static readonly ILogger Logger = LogUtils.GetLogger(nameof(RealtimeModeManager));
     private static int _readerInterval;
     private static StructuredOsuMemoryReader? _reader;
     private static Task? _readTask;
@@ -103,20 +102,12 @@ public static class MemoryScan
                 sw.Restart();
                 if (!_reader!.CanRead)
                     MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
-                if (!_reader.TryRead(OsuBaseAddresses.BanchoUser))
-                {
-                    //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.BanchoUser)} read failed!");
-                }
-                else
+                if (_reader.TryRead(OsuBaseAddresses.BanchoUser))
                 {
                     MemoryReadObject.PlayerName = OsuBaseAddresses.BanchoUser.Username;
                 }
 
-                if (!_reader.TryRead(OsuBaseAddresses.GeneralData))
-                {
-                    //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.GeneralData)} read failed!");
-                }
-                else
+                if (_reader.TryRead(OsuBaseAddresses.GeneralData))
                 {
                     MemoryReadObject.PlayingTime = OsuBaseAddresses.GeneralData.AudioTime;
                     MemoryReadObject.Mods = (Mods)OsuBaseAddresses.GeneralData.Mods;
@@ -126,11 +117,7 @@ public static class MemoryScan
 
                 if (MemoryReadObject.OsuStatus is OsuMemoryStatus.Playing)
                 {
-                    if (!_reader.TryRead(OsuBaseAddresses.Player))
-                    {
-                        //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.Player)} read failed!");
-                    }
-                    else
+                    if (_reader.TryRead(OsuBaseAddresses.Player))
                     {
                         MemoryReadObject.Combo = OsuBaseAddresses.Player.Combo;
                         MemoryReadObject.Score = OsuBaseAddresses.Player.Score;
@@ -147,15 +134,9 @@ public static class MemoryScan
                     var process = _innerMemoryReader!.CurrentProcess;
                     _baseDirectory = Path.GetDirectoryName(process.MainModule!.FileName);
                     _songsDirectory = Path.Combine(_baseDirectory!, "Songs");
-                    //var sb3 = f.GetType().GetField("_currentProcess", BindingFlags.Instance | BindingFlags.NonPublic);
-                    //var f3 = (Process)sb3.GetValue(f2);
                 }
 
-                if (!_reader.TryRead(OsuBaseAddresses.Beatmap))
-                {
-                    //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.Beatmap)} read failed!");
-                }
-                else
+                if (_reader.TryRead(OsuBaseAddresses.Beatmap))
                 {
                     var beatmapFolderName = OsuBaseAddresses.Beatmap.FolderName;
                     var beatmapOsuFileName = OsuBaseAddresses.Beatmap.OsuFileName;
