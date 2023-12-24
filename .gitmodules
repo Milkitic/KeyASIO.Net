@@ -1,3 +1,6 @@
 [submodule "dependencies/OsuRTDataProviderCore"]
 	path = dependencies/OsuRTDataProviderCore
 	url = https://github.com/Milkitic/OsuRTDataProviderCore.git
+[submodule "dependencies/ProcessMemoryDataFinder"]
+	path = dependencies/ProcessMemoryDataFinder
+	url = https://github.com/Piotrekol/ProcessMemoryDataFinder.git
