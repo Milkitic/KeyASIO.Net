@@ -22,7 +22,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Restore dependencies
       run: |
@@ -38,9 +38,9 @@ jobs:
       if: ${{ success() }}
       run: |
         echo ${{ github.ref }}      
-        dotnet publish KeyAsio.Gui --no-restore --framework net7.0-windows --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64
-        dotnet publish KeyAsio.Gui --no-restore --framework net7.0-windows --runtime win-x86 --self-contained --configuration Release --output ci-publish-win32
-        dotnet publish KeyAsio.Gui --no-restore --framework net7.0-windows --configuration Release --output ci-publish
+        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64
+        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x86 --self-contained --configuration Release --output ci-publish-win32
+        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --configuration Release --output ci-publish
    
     - name: Confuser
       if: ${{ success() }}
