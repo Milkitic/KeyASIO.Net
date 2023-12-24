@@ -664,8 +664,8 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnBeatmapChanged(BeatmapIdentifier beatmap)
     {
-        if (OsuStatus is OsuMemoryStatus.SongSelect or
-                OsuMemoryStatus.MainMenu && beatmap != null)
+        if (OsuStatus is OsuMemoryStatus.SongSelect or OsuMemoryStatus.SongSelectEdit or
+                OsuMemoryStatus.MainMenu && beatmap != default)
         {
             var coosu = OsuFile.ReadFromFile(Beatmap.FilenameFull, k =>
             {
@@ -707,7 +707,7 @@ public class RealtimeModeManager : ViewModelBase
         }
 
         var enableMusicFunctions = AppSettings.RealtimeOptions.EnableMusicFunctions;
-        if (enableMusicFunctions && OsuStatus is OsuMemoryStatus.SongSelect or
+        if (enableMusicFunctions && OsuStatus is OsuMemoryStatus.SongSelect or OsuMemoryStatus.SongSelectEdit or
                 OsuMemoryStatus.MainMenu)
         {
             if (_pauseCount >= selectSongPauseThreshold && _previousSelectSongStatus)
