@@ -3,4 +3,4 @@
 	url = https://github.com/Milkitic/OsuRTDataProviderCore.git
 [submodule "dependencies/ProcessMemoryDataFinder"]
 	path = dependencies/ProcessMemoryDataFinder
-	url = https://github.com/Piotrekol/ProcessMemoryDataFinder.git
+	url = https://github.com/Milkitic/ProcessMemoryDataFinder.git
