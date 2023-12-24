@@ -25,4 +25,6 @@ public readonly record struct BeatmapIdentifier
     public string? FilenameFull { get; }
     public string? Folder { get; }
     public string? Filename { get; }
+
+    public static BeatmapIdentifier Default = new();
 }

@@ -1,5 +1,5 @@
 ﻿namespace KeyAsio.MemoryReading;
-
+[Flags]
 public enum Mods : uint
 {
     NoMod = 0u,

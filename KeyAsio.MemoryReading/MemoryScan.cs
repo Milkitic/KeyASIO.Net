@@ -8,12 +8,20 @@ namespace KeyAsio.MemoryReading;
 
 public static class MemoryScan
 {
+    private const string FieldMemoryReader1 = "_memoryReader";
+    private const string FieldMemoryReader2 = "_memoryReader";
+
     //private static readonly ILogger Logger = LogUtils.GetLogger(nameof(RealtimeModeManager));
     private static int _readerInterval;
-    private static StructuredOsuMemoryReader _reader;
-    private static Task _readTask;
-    private static CancellationTokenSource _cts;
+    private static StructuredOsuMemoryReader? _reader;
+    private static Task? _readTask;
+    private static CancellationTokenSource? _cts;
     private static bool _isStarted;
+
+    private static bool _canRead = false;
+    private static string? _baseDirectory;
+    private static string? _songsDirectory;
+    private static MemoryReader? _innerMemoryReader;
 
     private static readonly OsuBaseAddresses OsuBaseAddresses = new();
 
@@ -28,6 +36,33 @@ public static class MemoryScan
         {
             ProcessWatcherDelayMs = processInterval
         };
+
+        var type1 = _reader.GetType();
+        var fieldMemoryReader1 = type1.GetField(FieldMemoryReader1, BindingFlags.Instance | BindingFlags.NonPublic);
+        if (fieldMemoryReader1 == null)
+        {
+            throw new ArgumentNullException(FieldMemoryReader1, $"Could not find internal field of {type1.Name}");
+        }
+
+        var memoryReader = fieldMemoryReader1.GetValue(_reader);
+        if (memoryReader == null)
+        {
+            throw new ArgumentNullException(FieldMemoryReader1, $"Internal field of {type1.Name} is null.");
+        }
+
+        var type2 = memoryReader.GetType();
+        var fieldMemoryReader2 = type2.GetField(FieldMemoryReader2, BindingFlags.Instance | BindingFlags.NonPublic);
+        if (fieldMemoryReader2 == null)
+        {
+            throw new ArgumentNullException(FieldMemoryReader2, $"Could not find internal field of {type2.FullName}");
+        }
+
+        _innerMemoryReader = (MemoryReader?)fieldMemoryReader2.GetValue(memoryReader);
+        if (_innerMemoryReader == null)
+        {
+            throw new ArgumentNullException(FieldMemoryReader1, $"Internal field of {type2.Name} is null.");
+        }
+
         _reader.InvalidRead += Reader_InvalidRead;
         _cts = new CancellationTokenSource();
         _readTask = Task.Factory.StartNew(ReadImpl,
@@ -37,10 +72,10 @@ public static class MemoryScan
     public static async Task StopAsync()
     {
         if (!_isStarted) return;
-        await _cts.CancelAsync();
-        await _readTask;
+        await _cts!.CancelAsync();
+        await _readTask!;
 
-        _reader.InvalidRead -= Reader_InvalidRead;
+        _reader!.InvalidRead -= Reader_InvalidRead;
         await CastAndDispose(_reader);
         await CastAndDispose(_readTask);
         await CastAndDispose(_cts);
@@ -58,89 +93,88 @@ public static class MemoryScan
         }
     }
 
-    private static bool _canRead = false;
-    private static string _baseDirectory;
-    private static string? _songsDirectory;
-
     private static void ReadImpl()
     {
-        while (!_cts.IsCancellationRequested)
+        var sw = Stopwatch.StartNew();
+        while (!_cts!.IsCancellationRequested)
         {
-            if (!_reader.CanRead)
-                MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
-            if (!_reader.TryRead(OsuBaseAddresses.BanchoUser))
+            if (sw.Elapsed.TotalMilliseconds > _readerInterval)
             {
-                //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.BanchoUser)} read failed!");
-            }
-            else
-            {
-                MemoryReadObject.PlayerName = OsuBaseAddresses.BanchoUser.Username;
-            }
-
-            if (!_reader.TryRead(OsuBaseAddresses.GeneralData))
-            {
-                //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.GeneralData)} read failed!");
-            }
-            else
-            {
-                MemoryReadObject.PlayingTime = OsuBaseAddresses.GeneralData.AudioTime;
-                MemoryReadObject.Mods = (Mods)OsuBaseAddresses.GeneralData.Mods;
-                if (_reader.CanRead)
-                    MemoryReadObject.OsuStatus = OsuBaseAddresses.GeneralData.OsuStatus;
-            }
-
-            if (MemoryReadObject.OsuStatus is OsuMemoryStatus.Playing)
-            {
-                if (!_reader.TryRead(OsuBaseAddresses.Player))
+                sw.Restart();
+                if (!_reader!.CanRead)
+                    MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
+                if (!_reader.TryRead(OsuBaseAddresses.BanchoUser))
                 {
-                    //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.Player)} read failed!");
+                    //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.BanchoUser)} read failed!");
                 }
                 else
                 {
-                    MemoryReadObject.Combo = OsuBaseAddresses.Player.Combo;
-                    MemoryReadObject.Score = OsuBaseAddresses.Player.Score;
+                    MemoryReadObject.PlayerName = OsuBaseAddresses.BanchoUser.Username;
                 }
-            }
-            else
-            {
-                MemoryReadObject.Combo = 0;
-                MemoryReadObject.Score = 0;
+
+                if (!_reader.TryRead(OsuBaseAddresses.GeneralData))
+                {
+                    //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.GeneralData)} read failed!");
+                }
+                else
+                {
+                    MemoryReadObject.PlayingTime = OsuBaseAddresses.GeneralData.AudioTime;
+                    MemoryReadObject.Mods = (Mods)OsuBaseAddresses.GeneralData.Mods;
+                    if (_reader.CanRead)
+                        MemoryReadObject.OsuStatus = OsuBaseAddresses.GeneralData.OsuStatus;
+                }
+
+                if (MemoryReadObject.OsuStatus is OsuMemoryStatus.Playing)
+                {
+                    if (!_reader.TryRead(OsuBaseAddresses.Player))
+                    {
+                        //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.Player)} read failed!");
+                    }
+                    else
+                    {
+                        MemoryReadObject.Combo = OsuBaseAddresses.Player.Combo;
+                        MemoryReadObject.Score = OsuBaseAddresses.Player.Score;
+                    }
+                }
+                else
+                {
+                    MemoryReadObject.Combo = 0;
+                    MemoryReadObject.Score = 0;
+                }
+
+                if (_canRead != _reader.CanRead && _reader.CanRead)
+                {
+                    var process = _innerMemoryReader!.CurrentProcess;
+                    _baseDirectory = Path.GetDirectoryName(process.MainModule!.FileName);
+                    _songsDirectory = Path.Combine(_baseDirectory!, "Songs");
+                    //var sb3 = f.GetType().GetField("_currentProcess", BindingFlags.Instance | BindingFlags.NonPublic);
+                    //var f3 = (Process)sb3.GetValue(f2);
+                }
+
+                if (!_reader.TryRead(OsuBaseAddresses.Beatmap))
+                {
+                    //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.Beatmap)} read failed!");
+                }
+                else
+                {
+                    var beatmapFolderName = OsuBaseAddresses.Beatmap.FolderName;
+                    var beatmapOsuFileName = OsuBaseAddresses.Beatmap.OsuFileName;
+                    if (beatmapFolderName != null && beatmapOsuFileName != null)
+                    {
+                        var directory = Path.Combine(_songsDirectory!, beatmapFolderName);
+                        MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, beatmapOsuFileName);
+                    }
+                }
+
+                _canRead = _reader.CanRead;
             }
 
-            if (_canRead != _reader.CanRead && _reader.CanRead)
-            {
-                var sb = _reader.GetType().GetField("_memoryReader", BindingFlags.Instance | BindingFlags.NonPublic);
-                var f = sb.GetValue(_reader);
-                var sb2 = f.GetType().GetField("_memoryReader", BindingFlags.Instance | BindingFlags.NonPublic);
-                var f2 = (MemoryReader)sb2.GetValue(f);
-                var process = f2.CurrentProcess;
-                _baseDirectory = Path.GetDirectoryName(process.MainModule.FileName);
-                _songsDirectory = Path.Combine(_baseDirectory, "Songs");
-                //var sb3 = f.GetType().GetField("_currentProcess", BindingFlags.Instance | BindingFlags.NonPublic);
-                //var f3 = (Process)sb3.GetValue(f2);
-            }
-
-            if (!_reader.TryRead(OsuBaseAddresses.Beatmap))
-            {
-                //if (_reader.CanRead) Logger.Error($"{nameof(OsuBaseAddresses.Beatmap)} read failed!");
-            }
-            else
-            {
-                var beatmapFolderName = OsuBaseAddresses.Beatmap.FolderName;
-                var beatmapOsuFileName = OsuBaseAddresses.Beatmap.OsuFileName;
-                if (beatmapFolderName != null && beatmapOsuFileName != null)
-                    MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(
-                        Path.Combine(_songsDirectory, beatmapFolderName),
-                        beatmapOsuFileName);
-            }
-
-            _canRead = _reader.CanRead;
-            Thread.Sleep(_readerInterval);
+            Thread.Sleep(1);
         }
     }
 
     private static void Reader_InvalidRead(object? sender, (object readObject, string propPath) e)
     {
-        if (_reader.CanRead) Logger.Error($"Invalid reading {e.readObject?.GetType()}: {e.propPath}");
+        if (_reader is { CanRead: true }) Logger.Error($"Invalid reading {e.readObject?.GetType()}: {e.propPath}");
     }
 }

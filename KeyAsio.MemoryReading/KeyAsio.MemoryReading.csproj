@@ -11,11 +11,15 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OsuMemoryDataProvider" Version="0.10.3" />
-    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" >
+    <!--<PackageReference Include="OsuMemoryDataProvider" Version="0.10.3" />-->
+    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dependencies\ProcessMemoryDataFinder\OsuMemoryDataProvider\OsuMemoryDataProvider.csproj" />
   </ItemGroup>
 
 </Project>
