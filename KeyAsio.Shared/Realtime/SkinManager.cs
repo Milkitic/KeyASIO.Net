@@ -24,7 +24,6 @@ public class SkinManager
 
     public SharedViewModel SharedViewModel => SharedViewModel.Instance;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
-    //public OsuListenerManager? OsuListenerManager => RealtimeModeManager.Instance.OsuListenerManager;
 
     public void ListenPropertyChanging()
     {
@@ -48,9 +47,8 @@ public class SkinManager
 
     public void ListenToProcess()
     {
-        var manager = MemoryScan.MemoryReadObject;
-        if (manager == null) return;
-        manager.OsuStatusChanged += (pre, current) =>
+        var memoryReadObject = MemoryScan.MemoryReadObject;
+        memoryReadObject.OsuStatusChanged += (pre, current) =>
         {
             if (current is OsuMemoryStatus.NotRunning or OsuMemoryStatus.Unknown)
             {

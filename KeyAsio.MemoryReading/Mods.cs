@@ -1,4 +1,5 @@
 ﻿namespace KeyAsio.MemoryReading;
+
 [Flags]
 public enum Mods : uint
 {

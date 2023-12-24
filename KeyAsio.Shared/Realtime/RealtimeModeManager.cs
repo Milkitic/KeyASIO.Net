@@ -25,7 +25,7 @@ namespace KeyAsio.Shared.Realtime;
 
 public class RealtimeModeManager : ViewModelBase
 {
-    private static readonly string[] SkinAudioFiles = { "combobreak" };
+    private static readonly string[] SkinAudioFiles = ["combobreak"];
 
     public static RealtimeModeManager Instance { get; } = new();
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(RealtimeModeManager));
@@ -183,7 +183,7 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    public OsuFile? OsuFile { get; /*private*/ set; }
+    public OsuFile? OsuFile { get; internal set; }
 
     public string? AudioFilename { get; set; }
 
@@ -204,8 +204,6 @@ public class RealtimeModeManager : ViewModelBase
         get { lock (_isStartedLock) { return _isStarted; } }
         set { lock (_isStartedLock) { SetField(ref _isStarted, value); } }
     }
-
-    //public OsuListenerManager? OsuListenerManager { get; set; }
 
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
@@ -667,7 +665,7 @@ public class RealtimeModeManager : ViewModelBase
         if (OsuStatus is OsuMemoryStatus.SongSelect or OsuMemoryStatus.SongSelectEdit or
                 OsuMemoryStatus.MainMenu && beatmap != default)
         {
-            var coosu = OsuFile.ReadFromFile(Beatmap.FilenameFull, k =>
+            var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
             {
                 k.IncludeSection("General");
                 k.IncludeSection("Metadata");
