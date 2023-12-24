@@ -774,7 +774,7 @@ public class RealtimeModeManager : ViewModelBase
             _nextCachingTime += 10000;
         }
 
-        if (IsStarted && SharedViewModel.Instance.LatencyTestMode)
+        if (IsStarted && (SharedViewModel.Instance.LatencyTestMode || (PlayMods & Mods.Autoplay) != 0))
         {
             foreach (var playbackObject in GetPlaybackAudio(false))
             {
