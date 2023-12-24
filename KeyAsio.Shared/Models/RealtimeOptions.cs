@@ -17,6 +17,14 @@ public class RealtimeOptions : ViewModelBase
     private int _musicTrackVolume = 100;
     private int _effectTrackVolume = 100;
     private bool _forceNightcoreBeats;
+    private int _scanInterval = 10;
+
+    [Description("If lower, the timing of the events will be more accurate.")]
+    public int ScanInterval
+    {
+        get => _scanInterval;
+        set => SetField(ref _scanInterval, value);
+    }
 
     [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
     public bool RealtimeMode
