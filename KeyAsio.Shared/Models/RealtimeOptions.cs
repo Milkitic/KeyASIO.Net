@@ -17,23 +17,34 @@ public class RealtimeOptions : ViewModelBase
     private int _musicTrackVolume = 100;
     private int _effectTrackVolume = 100;
     private bool _forceNightcoreBeats;
-    private int _scanInterval = 10;
+    private int _generalScanInterval = 50;
+    private int _timingScanInterval = 5;
 
-    [Description("If lower, the timing of the events will be more accurate.")]
-    public int ScanInterval
+    [Description("If the set value is lower, the generic fields will be updated more promptly.\r\n" +
+                 "This property is targeted at delay-insensitive fields and can be appropriately increased to reduce CPU usage.")]
+    public int GeneralScanInterval
     {
-        get => _scanInterval;
-        set => SetField(ref _scanInterval, value);
+        get => _generalScanInterval;
+        set => SetField(ref _generalScanInterval, value);
+    }
+    
+    [Description("If the set value is lower, the timing fields will be updated more promptly.\r\n" +
+                 "This property is targeted at delay-sensitive field and best kept as low as possible.\r\n" +
+                 "If you experience audio cutting issues, please increase the value appropriately.")]
+    public int TimingScanInterval
+    {
+        get => _timingScanInterval;
+        set => SetField(ref _timingScanInterval, value);
     }
 
-    [Description("If true, the software will enable memory scanning and play the right hitsounds of beatmaps.")]
+    [Description("If enabled, the software will perform memory scanning and play the right hitsounds of beatmaps.")]
     public bool RealtimeMode
     {
         get => _realtimeMode;
         set => SetField(ref _realtimeMode, value);
     }
 
-    [Description("[EXPERIMENTAL] If true, the software will enable music related functions.")]
+    [Description("[EXPERIMENTAL] If enabled, the software will enable music related functions.")]
     public bool EnableMusicFunctions
     {
         get => _enableMusicFunctions;
@@ -115,7 +126,7 @@ public class RealtimeOptions : ViewModelBase
         get => _effectTrackVolume;
         set => SetField(ref _effectTrackVolume, value);
     }
-    
+
     [Description("Force to use nightcore beats.")]
     public bool ForceNightcoreBeats
     {

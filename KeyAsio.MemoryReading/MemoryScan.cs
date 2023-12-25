@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using KeyAsio.MemoryReading.OsuMemoryModels;
+using KeyAsio.MemoryReading.OsuMemoryModels.Direct;
 using OsuMemoryDataProvider;
-using OsuMemoryDataProvider.OsuMemoryModels;
 using ProcessMemoryDataFinder.API;
 
 namespace KeyAsio.MemoryReading;
@@ -11,7 +12,8 @@ public static class MemoryScan
     private const string FieldMemoryReader1 = "_memoryReader";
     private const string FieldMemoryReader2 = "_memoryReader";
 
-    private static int _readerInterval;
+    private static int _timingScanInterval;
+    private static int _generalScanInterval;
     private static StructuredOsuMemoryReader? _reader;
     private static Task? _readTask;
     private static CancellationTokenSource? _cts;
@@ -22,15 +24,15 @@ public static class MemoryScan
     private static string? _songsDirectory;
     private static MemoryReader? _innerMemoryReader;
 
-    private static readonly OsuBaseAddresses OsuBaseAddresses = new();
 
     public static MemoryReadObject MemoryReadObject { get; } = new();
 
-    public static void Start(int readerInterval, int processInterval = 500)
+    public static void Start(int generalScanInterval, int timingScanInterval, int processInterval = 500)
     {
         if (_isStarted) return;
         _isStarted = true;
-        _readerInterval = readerInterval;
+        _generalScanInterval = generalScanInterval;
+        _timingScanInterval = timingScanInterval;
         _reader = new StructuredOsuMemoryReader
         {
             ProcessWatcherDelayMs = processInterval
@@ -94,33 +96,47 @@ public static class MemoryScan
 
     private static void ReadImpl()
     {
-        var sw = Stopwatch.StartNew();
+        var generalSw = Stopwatch.StartNew();
+        var timingSw = Stopwatch.StartNew();
+        var general = new OsuBaseAddresses();
+        var slim = new GeneralDataSlim();
+
         while (!_cts!.IsCancellationRequested)
         {
-            if (sw.Elapsed.TotalMilliseconds > _readerInterval)
+            if (timingSw.Elapsed.TotalMilliseconds > _timingScanInterval)
             {
-                sw.Restart();
+                timingSw.Restart();
+
+                if (_reader!.TryRead(slim))
+                {
+                    MemoryReadObject.PlayingTime = slim.AudioTime;
+                }
+            }
+
+            if (generalSw.Elapsed.TotalMilliseconds > _generalScanInterval)
+            {
+                generalSw.Restart();
                 if (!_reader!.CanRead)
                     MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
-                if (_reader.TryRead(OsuBaseAddresses.BanchoUser))
+                if (_reader.TryRead(general.BanchoUser))
                 {
-                    MemoryReadObject.PlayerName = OsuBaseAddresses.BanchoUser.Username;
+                    MemoryReadObject.PlayerName = general.BanchoUser.Username;
                 }
 
-                if (_reader.TryRead(OsuBaseAddresses.GeneralData))
+                if (_reader.TryRead(general.GeneralData))
                 {
-                    MemoryReadObject.PlayingTime = OsuBaseAddresses.GeneralData.AudioTime;
-                    MemoryReadObject.Mods = (Mods)OsuBaseAddresses.GeneralData.Mods;
+                    //MemoryReadObject.PlayingTime = OsuBaseAddresses.GeneralData.AudioTime;
+                    MemoryReadObject.Mods = (Mods)general.GeneralData.Mods;
                     if (_reader.CanRead)
-                        MemoryReadObject.OsuStatus = OsuBaseAddresses.GeneralData.OsuStatus;
+                        MemoryReadObject.OsuStatus = general.GeneralData.OsuStatus;
                 }
 
                 if (MemoryReadObject.OsuStatus is OsuMemoryStatus.Playing)
                 {
-                    if (_reader.TryRead(OsuBaseAddresses.Player))
+                    if (_reader.TryRead(general.Player))
                     {
-                        MemoryReadObject.Combo = OsuBaseAddresses.Player.Combo;
-                        MemoryReadObject.Score = OsuBaseAddresses.Player.Score;
+                        MemoryReadObject.Combo = general.Player.Combo;
+                        MemoryReadObject.Score = general.Player.Score;
                     }
                 }
                 else
@@ -128,26 +144,29 @@ public static class MemoryScan
                     MemoryReadObject.Combo = 0;
                     MemoryReadObject.Score = 0;
                 }
-
-                if (_canRead != _reader.CanRead && _reader.CanRead)
+                
+                if (_canRead != _reader!.CanRead)
                 {
-                    var process = _innerMemoryReader!.CurrentProcess;
-                    _baseDirectory = Path.GetDirectoryName(process.MainModule!.FileName);
-                    _songsDirectory = Path.Combine(_baseDirectory!, "Songs");
+                    if (_reader.CanRead)
+                    {
+                        var process = _innerMemoryReader!.CurrentProcess;
+                        _baseDirectory = Path.GetDirectoryName(process.MainModule!.FileName);
+                        _songsDirectory = Path.Combine(_baseDirectory!, "Songs");
+                    }
+
+                    _canRead = _reader.CanRead;
                 }
 
-                if (_reader.TryRead(OsuBaseAddresses.Beatmap))
+                if (_reader.TryRead(general.Beatmap))
                 {
-                    var beatmapFolderName = OsuBaseAddresses.Beatmap.FolderName;
-                    var beatmapOsuFileName = OsuBaseAddresses.Beatmap.OsuFileName;
+                    var beatmapFolderName = general.Beatmap.FolderName;
+                    var beatmapOsuFileName = general.Beatmap.OsuFileName;
                     if (beatmapFolderName != null && beatmapOsuFileName != null)
                     {
                         var directory = Path.Combine(_songsDirectory!, beatmapFolderName);
                         MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, beatmapOsuFileName);
                     }
                 }
-
-                _canRead = _reader.CanRead;
             }
 
             Thread.Sleep(1);

@@ -178,7 +178,7 @@ public partial class App : Application
             MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime;
             MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) => RealtimeModeManager.Instance.Beatmap = beatmap;
             MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
-            MemoryScan.Start(settings.RealtimeOptions.ScanInterval);
+            MemoryScan.Start(settings.RealtimeOptions.GeneralScanInterval, settings.RealtimeOptions.TimingScanInterval);
             SkinManager.Instance.ListenToProcess();
         }
 

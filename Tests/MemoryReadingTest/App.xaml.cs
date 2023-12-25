@@ -23,7 +23,7 @@ namespace MemoryReadingTest
             MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime;
             MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) => RealtimeModeManager.Instance.Beatmap = beatmap;
             MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
-            MemoryScan.Start(100);
+            MemoryScan.Start(100, 10);
         }
     }
 }
