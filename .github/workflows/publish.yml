@@ -38,8 +38,8 @@ jobs:
       if: ${{ success() }}
       run: |
         echo ${{ github.ref }}      
-        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64
-        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x86 --self-contained --configuration Release --output ci-publish-win32
+        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x64 --self-contained --configuration Release -p:PublishReadyToRun=true --output ci-publish-win64
+        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x86 --self-contained --configuration Release -p:PublishReadyToRun=true --output ci-publish-win32
         dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --configuration Release --output ci-publish
    
     - name: Confuser
@@ -94,7 +94,7 @@ jobs:
           1. Place holder
           
           ### Installation
-          .NET 7.0 Desktop Runtime is required for the smallest asset.
+          .NET 8.0 Desktop Runtime is required for the smallest asset.
           For the other two assets with "-win32" and "-win64" postfix, you don't need to install anything more.
         name: ${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}
         prerelease: true

@@ -29,7 +29,7 @@ namespace KeyAsio.MemoryReading.OsuMemoryModels.Abstract
         //public ushort HitKatu { get; set; }
         //[MemoryAddress("[+0x38]+0x92")]
         //public ushort HitMiss { get; set; }
-        //[MemoryAddress("[+0x38]+0x94")]
+        [MemoryAddress("[+0x38]+0x94")]
         public ushort Combo { get; set; }
 
     }
