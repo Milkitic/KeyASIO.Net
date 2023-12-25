@@ -165,15 +165,15 @@ public static class MemoryScan
                 {
                     if (_reader.TryRead(general.Player))
                     {
-                        MemoryReadObject.Combo = general.Player.Combo;
-                        MemoryReadObject.Score = general.Player.Score;
                         MemoryReadObject.IsReplay = general.Player.IsReplay;
+                        MemoryReadObject.Score = general.Player.Score;
+                        MemoryReadObject.Combo = general.Player.Combo;
                     }
                 }
                 else
                 {
-                    MemoryReadObject.Combo = 0;
                     MemoryReadObject.Score = 0;
+                    MemoryReadObject.Combo = 0;
                 }
 
                 if (canRead != _reader.CanRead)
