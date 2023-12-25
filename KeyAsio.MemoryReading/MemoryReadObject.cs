@@ -11,6 +11,7 @@ public partial class MemoryReadObject : INotifyPropertyChanged
     public event NotifyPropertyChangedEventHandler<string?>? PlayerNameChanged;
     public event NotifyPropertyChangedEventHandler<int>? ComboChanged;
     public event NotifyPropertyChangedEventHandler<int>? ScoreChanged;
+    public event NotifyPropertyChangedEventHandler<bool>? IsReplayChanged;
     public event NotifyPropertyChangedEventHandler<OsuMemoryStatus>? OsuStatusChanged;
     public event NotifyPropertyChangedEventHandler<int>? PlayingTimeChanged;
     public event NotifyPropertyChangedEventHandler<Mods>? ModsChanged;
@@ -24,6 +25,9 @@ public partial class MemoryReadObject : INotifyPropertyChanged
 
     [OnChangedMethod(nameof(OnScoreChanged))]
     public int Score { get; set; } // Player.(RulesetPlayData.Score)
+
+    [OnChangedMethod(nameof(OnIsReplayChanged))]
+    public bool IsReplay { get; set; } // Player.IsReplay
 
     [OnChangedMethod(nameof(OnOsuStatusChanged))]
     public OsuMemoryStatus OsuStatus { get; set; } // GeneralData.OsuStatus
@@ -53,6 +57,11 @@ public partial class MemoryReadObject : INotifyPropertyChanged
     private void OnScoreChanged(int oldValue, int newValue)
     {
         ScoreChanged?.Invoke(oldValue, newValue);
+    }
+
+    private void OnIsReplayChanged(bool oldValue, bool newValue)
+    {
+        IsReplayChanged?.Invoke(oldValue, newValue);
     }
 
     private void OnOsuStatusChanged(OsuMemoryStatus oldValue, OsuMemoryStatus newValue)

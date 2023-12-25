@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics;
 using Coosu.Beatmap;
 using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Waves;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using FadeInOutSampleProvider = KeyAsio.Shared.Waves.FadeInOutSampleProvider;
+using FadeInOutSampleProvider = KeyAsio.Shared.Audio.FadeInOutSampleProvider;
 
 namespace KeyAsio.Shared.Realtime.Tracks;
 

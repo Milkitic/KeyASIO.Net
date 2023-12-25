@@ -140,6 +140,7 @@ public static class MemoryScan
                     {
                         MemoryReadObject.Combo = general.Player.Combo;
                         MemoryReadObject.Score = general.Player.Score;
+                        MemoryReadObject.IsReplay = general.Player.IsReplay;
                     }
                 }
                 else

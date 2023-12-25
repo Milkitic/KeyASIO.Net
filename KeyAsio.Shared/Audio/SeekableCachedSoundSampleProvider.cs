@@ -1,7 +1,7 @@
 ﻿using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 
-namespace KeyAsio.Shared.Waves;
+namespace KeyAsio.Shared.Audio;
 
 public class SeekableCachedSoundSampleProvider : ISampleProvider
 {

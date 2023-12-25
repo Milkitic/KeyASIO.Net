@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
-using KeyAsio.Shared.Waves;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.Threading;
@@ -39,7 +39,7 @@ static class Program
         {
             Volume = appSettings.Volume / 100
         };
-        SharedViewModel.Instance.LatencyTestMode = true;
+        SharedViewModel.Instance.AutoMode = true;
         appSettings.RealtimeOptions.BalanceFactor = 0.5f;
 
         var filenameFull = @"C:\Users\milkitic\Downloads\1680421 EBIMAYO - GOODTEK [no video]\EBIMAYO - GOODTEK (yf_bmp) [Maboyu's Another].osu";

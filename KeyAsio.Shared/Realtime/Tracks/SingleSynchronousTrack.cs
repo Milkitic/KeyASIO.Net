@@ -1,7 +1,7 @@
 ﻿using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Waves;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;

@@ -10,16 +10,16 @@ using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.AudioProviders;
 using KeyAsio.Shared.Realtime.Tracks;
 using KeyAsio.Shared.Utils;
-using KeyAsio.Shared.Waves;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using OsuMemoryDataProvider;
-using BalanceSampleProvider = KeyAsio.Shared.Waves.BalanceSampleProvider;
+using BalanceSampleProvider = KeyAsio.Shared.Audio.BalanceSampleProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
@@ -169,6 +169,8 @@ public class RealtimeModeManager : ViewModelBase
         get => _score;
         set => SetField(ref _score, value);
     }
+
+    public bool IsReplay { get; set; }
 
     public OsuMemoryStatus OsuStatus
     {
@@ -772,7 +774,7 @@ public class RealtimeModeManager : ViewModelBase
             _nextCachingTime += 10000;
         }
 
-        if (IsStarted && (SharedViewModel.Instance.LatencyTestMode || (PlayMods & Mods.Autoplay) != 0))
+        if (IsStarted && (SharedViewModel.Instance.AutoMode || (PlayMods & Mods.Autoplay) != 0 || IsReplay))
         {
             foreach (var playbackObject in GetPlaybackAudio(false))
             {

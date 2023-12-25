@@ -18,12 +18,12 @@ public partial class LatencyGuideWindow : DialogWindow
         InitializeComponent();
         DataContext = _viewModel = SharedViewModel.Instance;
         _offset = _viewModel.AppSettings?.RealtimeOptions.RealtimeModeAudioOffset ?? 0;
-        SharedViewModel.Instance.LatencyTestMode = true;
+        SharedViewModel.Instance.AutoMode = true;
     }
 
     private void LatencyGuideWindow_OnClosed(object? sender, EventArgs e)
     {
-        SharedViewModel.Instance.LatencyTestMode = false;
+        SharedViewModel.Instance.AutoMode = false;
         if (DialogResult != true && _viewModel.AppSettings != null)
         {
             _viewModel.AppSettings.RealtimeOptions.RealtimeModeAudioOffset = _offset;

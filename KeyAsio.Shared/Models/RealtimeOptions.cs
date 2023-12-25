@@ -18,7 +18,7 @@ public class RealtimeOptions : ViewModelBase
     private int _effectTrackVolume = 100;
     private bool _forceNightcoreBeats;
     private int _generalScanInterval = 50;
-    private int _timingScanInterval = 5;
+    private int _timingScanInterval = 1;
 
     [Description("If the set value is lower, the generic fields will be updated more promptly.\r\n" +
                  "This property is targeted at delay-insensitive fields and can be appropriately increased to reduce CPU usage.")]

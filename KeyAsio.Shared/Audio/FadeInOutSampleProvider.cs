@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Shared.Waves;
+namespace KeyAsio.Shared.Audio;
 
 /// <summary>
 /// Sample Provider to allow fading in and out.

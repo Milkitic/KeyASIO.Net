@@ -4,7 +4,7 @@ using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace KeyAsio.Shared.Waves;
+namespace KeyAsio.Shared.Audio;
 
 internal sealed class LoopProvider : IDisposable
 {

@@ -1,8 +1,8 @@
 ﻿using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
-using KeyAsio.Shared.Waves;
 using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Shared.Realtime.AudioProviders;
