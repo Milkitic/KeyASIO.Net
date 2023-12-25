@@ -24,9 +24,9 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    # - name: Restore dependencies
-    #   run: |
-    #     dotnet restore KeyAsio.Gui
+    - name: Restore dependencies
+      run: |
+        dotnet restore KeyAsio.Gui
 
     - name: Secrets
       if: ${{ success() }}
@@ -39,8 +39,8 @@ jobs:
       if: ${{ success() }}
       run: |
         echo ${{ github.ref }}      
-        dotnet publish KeyAsio.Gui --framework net8.0-windows --runtime win-x64 --self-contained --configuration Release -p:PublishReadyToRun=true --output ci-publish-win64
-        dotnet publish KeyAsio.Gui --framework net8.0-windows --runtime win-x86 --self-contained --configuration Release -p:PublishReadyToRun=true --output ci-publish-win32
+        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64
+        dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x86 --self-contained --configuration Release --output ci-publish-win32
    
     # echo '<project outputDir="." baseDir=".\ci-publish" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse.crproj
     # .\ConfuserEx\Confuser.CLI.exe confuse.crproj -n
@@ -93,13 +93,13 @@ jobs:
 
           ## Release notes
           1. Place holder
-          
-          ### Installation
-          .NET 8.0 Desktop Runtime is required for the smallest asset.
-          For the other two assets with "-win32" and "-win64" postfix, you don't need to install anything more.
         name: ${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}
         prerelease: true
         draft: false
         files: |
           ./ci-pack/${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}-win64.7z
           ./ci-pack/${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}-win32.7z
+          
+    #      ### Installation
+    #      .NET 8.0 Desktop Runtime is required for the smallest asset.
+    #      For the other two assets with "-win32" and "-win64" postfix, you don't need to install anything more.
