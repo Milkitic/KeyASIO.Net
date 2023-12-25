@@ -94,22 +94,46 @@ public static class MemoryScan
         var generalSw = Stopwatch.StartNew();
         var timingSw = Stopwatch.StartNew();
 
+        var internalTimer = new Stopwatch();
+
         var general = new OsuBaseAddresses();
         var slim = new GeneralDataSlim();
 
         var canRead = false;
         string? songsDirectory = null;
+        int lastFetchPlayingTime = 0;
 
         while (!_cts!.IsCancellationRequested)
         {
+            var ratio = GetRatio(general.GeneralData.OsuStatus, general.GeneralData.Mods);
+            var playingTime = lastFetchPlayingTime + internalTimer.ElapsedMilliseconds * ratio;
             if (timingSw.Elapsed.TotalMilliseconds > _timingScanInterval)
             {
                 timingSw.Restart();
 
                 if (_reader!.TryRead(slim))
                 {
-                    MemoryReadObject.PlayingTime = slim.AudioTime;
+                    if (slim.AudioTime == lastFetchPlayingTime)
+                    {
+                        MemoryReadObject.PlayingTime = slim.AudioTime;
+                        internalTimer.Reset();
+                    }
+                    else
+                    {
+                        MemoryReadObject.PlayingTime = slim.AudioTime;
+                        lastFetchPlayingTime = slim.AudioTime;
+                        internalTimer.Restart();
+                    }
                 }
+                else if (_timingScanInterval >= 16 &&internalTimer.IsRunning)
+                {
+                    MemoryReadObject.PlayingTime = lastFetchPlayingTime;
+                    internalTimer.Reset();
+                }
+            }
+            else if (_timingScanInterval >= 16 && internalTimer.IsRunning)
+            {
+                MemoryReadObject.PlayingTime = (int)playingTime;
             }
 
             if (generalSw.Elapsed.TotalMilliseconds > _generalScanInterval)
@@ -149,7 +173,7 @@ public static class MemoryScan
                     MemoryReadObject.Score = 0;
                 }
 
-                if (canRead != _reader!.CanRead)
+                if (canRead != _reader.CanRead)
                 {
                     if (_reader.CanRead)
                     {
@@ -174,6 +198,16 @@ public static class MemoryScan
 
             Thread.Sleep(1);
         }
+    }
+
+    private static double GetRatio(OsuMemoryStatus osuStatus, int rawMods)
+    {
+        if (osuStatus != OsuMemoryStatus.Playing) return 1;
+        var mods = (Mods)rawMods;
+
+        if ((mods & Mods.DoubleTime) != 0) return 1.5;
+        if ((mods & Mods.HalfTime) != 0) return 0.75;
+        return 1;
     }
 
     private static void Reader_InvalidRead(object? sender, (object readObject, string propPath) e)
