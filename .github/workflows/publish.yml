@@ -42,22 +42,22 @@ jobs:
         dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --runtime win-x86 --self-contained --configuration Release -p:PublishReadyToRun=true --output ci-publish-win32
         dotnet publish KeyAsio.Gui --no-restore --framework net8.0-windows --configuration Release --output ci-publish
    
-    - name: Confuser
-      if: ${{ success() }}
-      shell: pwsh
-      run: |
-        echo '<project outputDir="." baseDir=".\ci-publish" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse.crproj
-        echo '<project outputDir="." baseDir=".\ci-publish-win64" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse64.crproj
-        echo '<project outputDir="." baseDir=".\ci-publish-win32" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse32.crproj
-        mkdir ConfuserEx -Force
-        Invoke-WebRequest https://github.com/mkaring/ConfuserEx/releases/download/v1.6.0/ConfuserEx-CLI.zip -OutFile "ConfuserEx/cli.zip"
-        7z x "ConfuserEx/cli.zip" -oConfuserEx/
-        .\ConfuserEx\Confuser.CLI.exe confuse.crproj -n
-        .\ConfuserEx\Confuser.CLI.exe confuse64.crproj -n
-        .\ConfuserEx\Confuser.CLI.exe confuse32.crproj -n
-        del .\ci-publish\KeyAsio.Sentry.pdb -Force
-        del .\ci-publish-win64\KeyAsio.Sentry.pdb -Force
-        del .\ci-publish-win32\KeyAsio.Sentry.pdb -Force
+    # - name: Confuser
+    #   if: ${{ success() }}
+    #   shell: pwsh
+    #   run: |
+    #     echo '<project outputDir="." baseDir=".\ci-publish" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse.crproj
+    #     echo '<project outputDir="." baseDir=".\ci-publish-win64" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse64.crproj
+    #     echo '<project outputDir="." baseDir=".\ci-publish-win32" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse32.crproj
+    #     mkdir ConfuserEx -Force
+    #     Invoke-WebRequest https://github.com/mkaring/ConfuserEx/releases/download/v1.6.0/ConfuserEx-CLI.zip -OutFile "ConfuserEx/cli.zip"
+    #     7z x "ConfuserEx/cli.zip" -oConfuserEx/
+    #     .\ConfuserEx\Confuser.CLI.exe confuse.crproj -n
+    #     .\ConfuserEx\Confuser.CLI.exe confuse64.crproj -n
+    #     .\ConfuserEx\Confuser.CLI.exe confuse32.crproj -n
+    #     del .\ci-publish\KeyAsio.Sentry.pdb -Force
+    #     del .\ci-publish-win64\KeyAsio.Sentry.pdb -Force
+    #     del .\ci-publish-win32\KeyAsio.Sentry.pdb -Force
 
     - name: Set dll path
       if: ${{ success() }}
