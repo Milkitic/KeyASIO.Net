@@ -93,6 +93,7 @@ public static class MemoryScan
     {
         var generalSw = Stopwatch.StartNew();
         var timingSw = Stopwatch.StartNew();
+        var timingSw2 = Stopwatch.StartNew();
 
         var internalTimer = new Stopwatch();
 
@@ -125,14 +126,16 @@ public static class MemoryScan
                         internalTimer.Restart();
                     }
                 }
-                else if (_timingScanInterval >= 16 &&internalTimer.IsRunning)
+                else if (_timingScanInterval >= 16 && internalTimer.IsRunning && timingSw2.ElapsedMilliseconds > 16)
                 {
+                    timingSw2.Restart();
                     MemoryReadObject.PlayingTime = lastFetchPlayingTime;
                     internalTimer.Reset();
                 }
             }
-            else if (_timingScanInterval >= 16 && internalTimer.IsRunning)
+            else if (_timingScanInterval >= 16 && internalTimer.IsRunning && timingSw2.ElapsedMilliseconds > 16)
             {
+                timingSw2.Restart();
                 MemoryReadObject.PlayingTime = (int)playingTime;
             }
 
