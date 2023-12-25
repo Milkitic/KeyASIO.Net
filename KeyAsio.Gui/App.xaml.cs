@@ -9,6 +9,7 @@ using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using KeyAsio.Gui.Utils;
@@ -143,6 +144,7 @@ public partial class App : Application
 
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
+        UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());
         Dispatcher.UnhandledException += Dispatcher_UnhandledException;
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".");
 
