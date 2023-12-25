@@ -8,11 +8,7 @@ namespace KeyAsio.Shared;
 
 public sealed class AppSettings : ViewModelBase
 {
-    private List<HookKeys> _keys = new()
-    {
-        HookKeys.Z,
-        HookKeys.X
-    };
+    private List<HookKeys> _keys = [HookKeys.Z, HookKeys.X];
 
     private RealtimeOptions? _realtimeOptions;
     private int _volume = 100;

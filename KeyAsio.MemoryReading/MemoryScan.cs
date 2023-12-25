@@ -19,11 +19,7 @@ public static class MemoryScan
     private static CancellationTokenSource? _cts;
     private static bool _isStarted;
 
-    private static bool _canRead = false;
-    private static string? _baseDirectory;
-    private static string? _songsDirectory;
     private static MemoryReader? _innerMemoryReader;
-
 
     public static MemoryReadObject MemoryReadObject { get; } = new();
 
@@ -82,7 +78,6 @@ public static class MemoryScan
         await CastAndDispose(_cts);
 
         _isStarted = false;
-        _canRead = false;
         return;
 
         static ValueTask CastAndDispose(IDisposable resource)
@@ -98,8 +93,12 @@ public static class MemoryScan
     {
         var generalSw = Stopwatch.StartNew();
         var timingSw = Stopwatch.StartNew();
+
         var general = new OsuBaseAddresses();
         var slim = new GeneralDataSlim();
+
+        var canRead = false;
+        string? songsDirectory = null;
 
         while (!_cts!.IsCancellationRequested)
         {
@@ -117,7 +116,10 @@ public static class MemoryScan
             {
                 generalSw.Restart();
                 if (!_reader!.CanRead)
+                {
                     MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
+                }
+
                 if (_reader.TryRead(general.BanchoUser))
                 {
                     MemoryReadObject.PlayerName = general.BanchoUser.Username;
@@ -125,10 +127,11 @@ public static class MemoryScan
 
                 if (_reader.TryRead(general.GeneralData))
                 {
-                    //MemoryReadObject.PlayingTime = OsuBaseAddresses.GeneralData.AudioTime;
                     MemoryReadObject.Mods = (Mods)general.GeneralData.Mods;
                     if (_reader.CanRead)
+                    {
                         MemoryReadObject.OsuStatus = general.GeneralData.OsuStatus;
+                    }
                 }
 
                 if (MemoryReadObject.OsuStatus is OsuMemoryStatus.Playing)
@@ -144,17 +147,16 @@ public static class MemoryScan
                     MemoryReadObject.Combo = 0;
                     MemoryReadObject.Score = 0;
                 }
-                
-                if (_canRead != _reader!.CanRead)
+
+                if (canRead != _reader!.CanRead)
                 {
                     if (_reader.CanRead)
                     {
-                        var process = _innerMemoryReader!.CurrentProcess;
-                        _baseDirectory = Path.GetDirectoryName(process.MainModule!.FileName);
-                        _songsDirectory = Path.Combine(_baseDirectory!, "Songs");
+                        var baseDirectory = Path.GetDirectoryName(_innerMemoryReader!.CurrentProcess.MainModule!.FileName);
+                        songsDirectory = Path.Combine(baseDirectory!, "Songs");
                     }
 
-                    _canRead = _reader.CanRead;
+                    canRead = _reader.CanRead;
                 }
 
                 if (_reader.TryRead(general.Beatmap))
@@ -163,7 +165,7 @@ public static class MemoryScan
                     var beatmapOsuFileName = general.Beatmap.OsuFileName;
                     if (beatmapFolderName != null && beatmapOsuFileName != null)
                     {
-                        var directory = Path.Combine(_songsDirectory!, beatmapFolderName);
+                        var directory = Path.Combine(songsDirectory!, beatmapFolderName);
                         MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, beatmapOsuFileName);
                     }
                 }
