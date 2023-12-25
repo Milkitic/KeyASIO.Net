@@ -171,14 +171,22 @@ public partial class App : Application
             }
 
             OrtdpLogger.SetLoggerFactory(LogUtils.LoggerFactory);
-            MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) => RealtimeModeManager.Instance.Username = player;
-            MemoryScan.MemoryReadObject.ModsChanged += (_, mods) => RealtimeModeManager.Instance.PlayMods = mods;
-            MemoryScan.MemoryReadObject.ComboChanged += (_, combo) => RealtimeModeManager.Instance.Combo = combo;
-            MemoryScan.MemoryReadObject.ScoreChanged += (_, score) => RealtimeModeManager.Instance.Score = score;
-            MemoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) => RealtimeModeManager.Instance.IsReplay = isReplay;
-            MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime;
-            MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) => RealtimeModeManager.Instance.Beatmap = beatmap;
-            MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) => RealtimeModeManager.Instance.OsuStatus = current;
+            MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
+                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Username = player);
+            MemoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
+                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.PlayMods = mods);
+            MemoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
+                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Combo = combo);
+            MemoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
+                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Score = score);
+            MemoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
+                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.IsReplay = isReplay);
+            MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
+                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime);
+            MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
+                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Beatmap = beatmap);
+            MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
+                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.OsuStatus = current);
             MemoryScan.Start(settings.RealtimeOptions.GeneralScanInterval, settings.RealtimeOptions.TimingScanInterval);
             SkinManager.Instance.ListenToProcess();
         }
