@@ -51,7 +51,7 @@ public static class Updater
             if (json == null) return null;
             if (json.Contains("API rate limit"))
             {
-                Logger.Error("Error while checking for updates: Github API rate limit exceeded.");
+                Logger.Error("Error while checking for updates: Github API rate limit exceeded. Please retry later.");
                 return null;
             }
 
@@ -102,7 +102,7 @@ public static class Updater
                 Timeout = TimeSpan.FromMilliseconds(Timeout)
             };
         HttpClient.DefaultRequestHeaders.Add("User-Agent",
-            "ozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
     }
 
     private static async Task<string?> HttpGetAsync(string url)
