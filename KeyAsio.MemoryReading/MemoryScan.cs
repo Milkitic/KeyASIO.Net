@@ -91,14 +91,14 @@ public static class MemoryScan
 
     private static void ReadImpl()
     {
-        var generalSw = Stopwatch.StartNew();
-        var timingSw = Stopwatch.StartNew();
-        var timingSw2 = Stopwatch.StartNew();
+        var generalScanLimiter = Stopwatch.StartNew();
+        var timingScanLimiter = Stopwatch.StartNew();
 
+        var internalTimerScanLimiter = Stopwatch.StartNew();
         var internalTimer = new Stopwatch();
 
-        var general = new OsuBaseAddresses();
-        var slim = new GeneralDataSlim();
+        var allData = new OsuBaseAddresses();
+        var audioTimeData = new GeneralDataSlim();
 
         var canRead = false;
         string? songsDirectory = null;
@@ -106,68 +106,70 @@ public static class MemoryScan
 
         while (!_cts!.IsCancellationRequested)
         {
-            var ratio = GetRatio(general.GeneralData.OsuStatus, general.GeneralData.Mods);
+            var ratio = GetRatio(allData.GeneralData.OsuStatus, allData.GeneralData.Mods);
             var playingTime = lastFetchPlayingTime + internalTimer.ElapsedMilliseconds * ratio;
-            if (timingSw.Elapsed.TotalMilliseconds > _timingScanInterval)
+            if (timingScanLimiter.Elapsed.TotalMilliseconds > _timingScanInterval)
             {
-                timingSw.Restart();
+                timingScanLimiter.Restart();
 
-                if (_reader!.TryRead(slim))
+                if (_reader!.TryRead(audioTimeData))
                 {
-                    if (slim.AudioTime == lastFetchPlayingTime)
+                    if (audioTimeData.AudioTime == lastFetchPlayingTime)
                     {
-                        MemoryReadObject.PlayingTime = slim.AudioTime;
+                        MemoryReadObject.PlayingTime = audioTimeData.AudioTime;
                         internalTimer.Reset();
                     }
                     else
                     {
-                        MemoryReadObject.PlayingTime = slim.AudioTime;
-                        lastFetchPlayingTime = slim.AudioTime;
+                        MemoryReadObject.PlayingTime = audioTimeData.AudioTime;
+                        lastFetchPlayingTime = audioTimeData.AudioTime;
                         internalTimer.Restart();
                     }
                 }
-                else if (_timingScanInterval >= 16 && internalTimer.IsRunning && timingSw2.ElapsedMilliseconds > 16)
+                else if (_timingScanInterval >= 16 && internalTimer.IsRunning &&
+                         internalTimerScanLimiter.ElapsedMilliseconds > 16)
                 {
-                    timingSw2.Restart();
+                    internalTimerScanLimiter.Restart();
                     MemoryReadObject.PlayingTime = lastFetchPlayingTime;
                     internalTimer.Reset();
                 }
             }
-            else if (_timingScanInterval >= 16 && internalTimer.IsRunning && timingSw2.ElapsedMilliseconds > 16)
+            else if (_timingScanInterval >= 16 && internalTimer.IsRunning &&
+                     internalTimerScanLimiter.ElapsedMilliseconds > 16)
             {
-                timingSw2.Restart();
+                internalTimerScanLimiter.Restart();
                 MemoryReadObject.PlayingTime = (int)playingTime;
             }
 
-            if (generalSw.Elapsed.TotalMilliseconds > _generalScanInterval)
+            if (generalScanLimiter.Elapsed.TotalMilliseconds > _generalScanInterval)
             {
-                generalSw.Restart();
+                generalScanLimiter.Restart();
                 if (!_reader!.CanRead)
                 {
                     MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
                 }
 
-                if (_reader.TryRead(general.BanchoUser))
+                if (_reader.TryRead(allData.BanchoUser))
                 {
-                    MemoryReadObject.PlayerName = general.BanchoUser.Username;
+                    MemoryReadObject.PlayerName = allData.BanchoUser.Username;
                 }
 
-                if (_reader.TryRead(general.GeneralData))
+                if (_reader.TryRead(allData.GeneralData))
                 {
-                    MemoryReadObject.Mods = (Mods)general.GeneralData.Mods;
+                    MemoryReadObject.Mods = (Mods)allData.GeneralData.Mods;
                     if (_reader.CanRead)
                     {
-                        MemoryReadObject.OsuStatus = general.GeneralData.OsuStatus;
+                        MemoryReadObject.OsuStatus = allData.GeneralData.OsuStatus;
                     }
                 }
 
                 if (MemoryReadObject.OsuStatus is OsuMemoryStatus.Playing)
                 {
-                    if (_reader.TryRead(general.Player))
+                    if (_reader.TryRead(allData.Player))
                     {
-                        MemoryReadObject.IsReplay = general.Player.IsReplay;
-                        MemoryReadObject.Score = general.Player.Score;
-                        MemoryReadObject.Combo = general.Player.Combo;
+                        MemoryReadObject.IsReplay = allData.Player.IsReplay;
+                        MemoryReadObject.Score = allData.Player.Score;
+                        MemoryReadObject.Combo = allData.Player.Combo;
                     }
                 }
                 else
@@ -180,17 +182,18 @@ public static class MemoryScan
                 {
                     if (_reader.CanRead)
                     {
-                        var baseDirectory = Path.GetDirectoryName(_innerMemoryReader!.CurrentProcess.MainModule!.FileName);
+                        var baseDirectory =
+                            Path.GetDirectoryName(_innerMemoryReader!.CurrentProcess.MainModule!.FileName);
                         songsDirectory = Path.Combine(baseDirectory!, "Songs");
                     }
 
                     canRead = _reader.CanRead;
                 }
 
-                if (_reader.TryRead(general.Beatmap))
+                if (_reader.TryRead(allData.Beatmap))
                 {
-                    var beatmapFolderName = general.Beatmap.FolderName;
-                    var beatmapOsuFileName = general.Beatmap.OsuFileName;
+                    var beatmapFolderName = allData.Beatmap.FolderName;
+                    var beatmapOsuFileName = allData.Beatmap.OsuFileName;
                     if (beatmapFolderName != null && beatmapOsuFileName != null)
                     {
                         var directory = Path.Combine(songsDirectory!, beatmapFolderName);
