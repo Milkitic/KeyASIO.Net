@@ -130,17 +130,24 @@ public partial class MainWindow : DialogWindow
                 _viewModel.FramesPerBuffer = asioOut.FramesPerBuffer;
                 _timer = new Timer(_ =>
                 {
-                    Dispatcher.Invoke(() =>
+                    try
                     {
-                        try
+                        Dispatcher?.Invoke(() =>
                         {
-                            _viewModel.PlaybackLatency = asioOut.PlaybackLatency;
-                        }
-                        catch
-                        {
-                            // ignored
-                        }
-                    });
+                            try
+                            {
+                                _viewModel.PlaybackLatency = asioOut.PlaybackLatency;
+                            }
+                            catch
+                            {
+                                // ignored
+                            }
+                        });
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
                 }, null, 0, 100);
             }
 
