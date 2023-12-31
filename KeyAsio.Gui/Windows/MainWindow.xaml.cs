@@ -313,7 +313,9 @@ public partial class MainWindow : DialogWindow
 
     private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
-        Title += $" {Updater.GetVersion()}";
+        var version = Updater.GetVersion();
+        FixCommit(ref version);
+        Title += $" {version}";
 
         if (_appSettings.Device == null)
         {
@@ -480,5 +482,17 @@ public partial class MainWindow : DialogWindow
             WindowStartupLocation = WindowStartupLocation.CenterOwner
         };
         latencyGuideWindow.ShowDialog();
+    }
+
+    private static void FixCommit(ref string version)
+    {
+        var lastIndexOf = version.LastIndexOf('+');
+        if (lastIndexOf >= 0)
+        {
+            if (version.Length > lastIndexOf + 8)
+            {
+                version = version.Substring(0, lastIndexOf + 8);
+            }
+        }
     }
 }
