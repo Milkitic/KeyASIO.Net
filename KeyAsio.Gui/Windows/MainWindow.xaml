@@ -366,7 +366,7 @@
                         Style="{StaticResource ButtonDefault.Small}"
                         TextBlock.FontFamily="Consolas"
                         UseLayoutRounding="True" />
-                    <Button
+                    <!--<Button
                         Height="auto"
                         Padding="8,3"
                         VerticalAlignment="Center"
@@ -375,7 +375,7 @@
                         FontSize="12"
                         Style="{StaticResource ButtonDefault.Small}"
                         TextBlock.FontFamily="Consolas"
-                        UseLayoutRounding="True" />
+                        UseLayoutRounding="True" />-->
                 </StackPanel>
                 <Grid TextBlock.FontFamily="Consolas" TextBlock.FontSize="13">
                     <Grid.ColumnDefinitions>

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using YamlDotNet.Serialization;
 
 namespace KeyAsio.Shared.Models;
 
@@ -27,7 +28,7 @@ public class RealtimeOptions : ViewModelBase
         get => _generalScanInterval;
         set => SetField(ref _generalScanInterval, value);
     }
-    
+
     [Description("If the set value is lower, the timing fields will be updated more promptly.\r\n" +
                  "This property is targeted at delay-sensitive field and best kept as low as possible.\r\n" +
                  "If you experience audio cutting issues, please increase the value appropriately.")]
@@ -51,6 +52,7 @@ public class RealtimeOptions : ViewModelBase
         set => SetField(ref _enableMusicFunctions, value);
     }
 
+    [YamlIgnore]
     [Description("The offset when `RealtimeMode` is true (allow adjusting in GUI).")]
     public int RealtimeModeAudioOffset
     {
