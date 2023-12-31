@@ -5,7 +5,7 @@ namespace KeyAsio.Gui.UserControls;
 
 public class FrameWindow : Window
 {
-    public static readonly DependencyProperty CanCloseProperty = DependencyProperty.Register("CanClose",
+    public static readonly DependencyProperty CanCloseProperty = DependencyProperty.Register(nameof(CanClose),
         typeof(bool),
         typeof(FrameWindow),
         new PropertyMetadata(true, (d, e) =>

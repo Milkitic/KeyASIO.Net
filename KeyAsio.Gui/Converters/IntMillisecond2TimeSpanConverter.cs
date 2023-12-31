@@ -7,7 +7,7 @@ namespace KeyAsio.Gui.Converters;
 
 internal class IntMillisecond2TimeSpanConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var i = (int)value!;
         Span<char> c = stackalloc char[10];
@@ -21,7 +21,7 @@ internal class IntMillisecond2TimeSpanConverter : IValueConverter
         return vsb.ToString();
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }

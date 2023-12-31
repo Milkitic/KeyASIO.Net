@@ -8,7 +8,7 @@ internal class Multi_LatencySampleRate2LatencyConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-        if (values.Length == 2 && values[0] is int playbackLatency && values[1] is int sampleRate)
+        if (values is [int playbackLatency, int sampleRate])
         {
             var latency = 1000d / sampleRate * playbackLatency;
             return latency;

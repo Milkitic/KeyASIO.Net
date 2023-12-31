@@ -32,7 +32,7 @@ public class CustomizableButton : Button
 
     public static readonly DependencyProperty IconTemplateProperty =
         DependencyProperty.Register(
-            "IconTemplate",
+            nameof(IconTemplate),
             typeof(ControlTemplate),
             typeof(CustomizableButton),
             null
@@ -46,7 +46,7 @@ public class CustomizableButton : Button
 
     public static readonly DependencyProperty CornerRadiusProperty =
         DependencyProperty.Register(
-            "CornerRadius",
+            nameof(CornerRadius),
             typeof(CornerRadius),
             typeof(CustomizableButton),
             new PropertyMetadata(new CornerRadius(0))
@@ -60,7 +60,7 @@ public class CustomizableButton : Button
 
     public static readonly DependencyProperty IconMarginProperty =
         DependencyProperty.Register(
-            "IconMargin",
+            nameof(IconMargin),
             typeof(Thickness),
             typeof(CustomizableButton),
             new PropertyMetadata(new Thickness(0, 0, 0, 0))
@@ -74,7 +74,7 @@ public class CustomizableButton : Button
 
     public static readonly DependencyProperty IconOrientationProperty =
         DependencyProperty.Register(
-            "IconOrientation",
+            nameof(IconOrientation),
             typeof(Orientation),
             typeof(CustomizableButton),
             new PropertyMetadata(Orientation.Horizontal)
@@ -88,7 +88,7 @@ public class CustomizableButton : Button
 
     public static readonly DependencyProperty IconSizeProperty =
         DependencyProperty.Register(
-            "IconSize",
+            nameof(IconSize),
             typeof(double),
             typeof(CustomizableButton),
             new PropertyMetadata(24d)
@@ -153,12 +153,12 @@ public class CustomizableButton : Button
         return null;
     }
 
-    public static readonly DependencyProperty MouseOverBackgroundProperty = DependencyProperty.Register("MouseOverBackground", typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
-    public static readonly DependencyProperty MouseOverForegroundProperty = DependencyProperty.Register("MouseOverForeground", typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
-    public static readonly DependencyProperty MouseDownBackgroundProperty = DependencyProperty.Register("MouseDownBackground", typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
-    public static readonly DependencyProperty MouseDownForegroundProperty = DependencyProperty.Register("MouseDownForeground", typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
-    public static readonly DependencyProperty CheckedBackgroundProperty = DependencyProperty.Register("CheckedBackground", typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
-    public static readonly DependencyProperty CheckedForegroundProperty = DependencyProperty.Register("CheckedForeground", typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
+    public static readonly DependencyProperty MouseOverBackgroundProperty = DependencyProperty.Register(nameof(MouseOverBackground), typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
+    public static readonly DependencyProperty MouseOverForegroundProperty = DependencyProperty.Register(nameof(MouseOverForeground), typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
+    public static readonly DependencyProperty MouseDownBackgroundProperty = DependencyProperty.Register(nameof(MouseDownBackground), typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
+    public static readonly DependencyProperty MouseDownForegroundProperty = DependencyProperty.Register(nameof(MouseDownForeground), typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
+    public static readonly DependencyProperty CheckedBackgroundProperty = DependencyProperty.Register(nameof(CheckedBackground), typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
+    public static readonly DependencyProperty CheckedForegroundProperty = DependencyProperty.Register(nameof(CheckedForeground), typeof(Brush), typeof(CustomizableButton), new PropertyMetadata(default(Brush)));
 
     static CustomizableButton()
     {

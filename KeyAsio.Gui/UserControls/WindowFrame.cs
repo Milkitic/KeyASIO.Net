@@ -8,32 +8,32 @@ namespace KeyAsio.Gui.UserControls;
 
 public class WindowFrame : UserControl, INotifyPropertyChanged
 {
-    public static readonly DependencyProperty ChildProperty = DependencyProperty.Register("Child",
+    public static readonly DependencyProperty ChildProperty = DependencyProperty.Register(nameof(Child),
         typeof(object),
         typeof(WindowFrame),
         new PropertyMetadata(default(object)));
 
-    public static readonly DependencyProperty IsMaxProperty = DependencyProperty.Register("IsMax",
+    public static readonly DependencyProperty IsMaxProperty = DependencyProperty.Register(nameof(IsMax),
         typeof(bool),
         typeof(WindowFrame),
         new PropertyMetadata(default(bool)));
 
-    public static readonly DependencyProperty HasMinProperty = DependencyProperty.Register("HasMin",
+    public static readonly DependencyProperty HasMinProperty = DependencyProperty.Register(nameof(HasMin),
         typeof(bool),
         typeof(WindowFrame),
         new PropertyMetadata(true));
 
-    public static readonly DependencyProperty HasMaxProperty = DependencyProperty.Register("HasMax",
+    public static readonly DependencyProperty HasMaxProperty = DependencyProperty.Register(nameof(HasMax),
         typeof(bool),
         typeof(WindowFrame),
         new PropertyMetadata(true));
 
-    public static readonly DependencyProperty CanCloseProperty = DependencyProperty.Register("CanClose",
+    public static readonly DependencyProperty CanCloseProperty = DependencyProperty.Register(nameof(CanClose),
         typeof(bool),
         typeof(WindowFrame),
         new PropertyMetadata(true));
 
-    public static readonly DependencyProperty HasIconProperty = DependencyProperty.Register("HasIcon",
+    public static readonly DependencyProperty HasIconProperty = DependencyProperty.Register(nameof(HasIcon),
         typeof(bool),
         typeof(WindowFrame),
         new PropertyMetadata(true));
