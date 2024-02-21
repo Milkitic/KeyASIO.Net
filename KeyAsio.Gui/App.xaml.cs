@@ -21,6 +21,9 @@ using KeyAsio.Shared.Configuration;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Utils;
 using Milki.Extensions.Configuration;
+using Milki.Extensions.MixPlayer;
+using NLog.Extensions.Logging;
+
 using OrtdpLogger = KeyAsio.MemoryReading.Logger;
 
 namespace KeyAsio.Gui;
@@ -144,6 +147,10 @@ public partial class App : Application
 
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
+        Configuration.Instance.SetLogger(
+            Microsoft.Extensions.Logging.LoggerFactory.Create(k => k.AddNLog("nlog.config")));
+        NLogDevice.RegisterDefault();
+
         UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());
         Dispatcher.UnhandledException += Dispatcher_UnhandledException;
         var settings = ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".");
