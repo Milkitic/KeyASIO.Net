@@ -10,10 +10,10 @@
   <ItemGroup>
     <PackageReference Include="Coosu.Beatmap" Version="2.3.36" />
     <PackageReference Include="Milki.Extensions.Configuration" Version="0.0.36" />
-    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.0.36" />
     <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.36" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.7" />
     <PackageReference Include="YamlDotNet" Version="13.7.1" />
+    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup>
