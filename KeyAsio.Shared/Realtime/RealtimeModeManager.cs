@@ -664,7 +664,7 @@ public class RealtimeModeManager : ViewModelBase
     private void OnBeatmapChanged(BeatmapIdentifier beatmap)
     {
         if (OsuStatus is OsuMemoryStatus.SongSelect or OsuMemoryStatus.SongSelectEdit or
-                OsuMemoryStatus.MainMenu && beatmap != default)
+                OsuMemoryStatus.MainMenu or OsuMemoryStatus.MultiplayerSongSelect && beatmap != default)
         {
             var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
             {
