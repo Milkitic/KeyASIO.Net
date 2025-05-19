@@ -12,7 +12,7 @@
     <PackageReference Include="Milki.Extensions.Configuration" Version="0.1.0" />
     <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.1.0" />
     <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.1.0" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.4.0" />
     <PackageReference Include="YamlDotNet" Version="15.1.1" />
   </ItemGroup>
 
