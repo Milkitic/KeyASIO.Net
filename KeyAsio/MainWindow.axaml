@@ -1,0 +1,230 @@
+<sukiUi:SukiWindow
+  x:Class="KeyAsio.MainWindow"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:audio="clr-namespace:KeyAsio.Shared.Audio;assembly=KeyAsio.Shared"
+  xmlns:converters="clr-namespace:KeyAsio.Converters"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:devices="clr-namespace:Milki.Extensions.MixPlayer.Devices;assembly=Milki.Extensions.MixPlayer"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:models="clr-namespace:KeyAsio.Shared.Models;assembly=KeyAsio.Shared"
+  xmlns:sukiUi="https://github.com/kikipoulet/SukiUI"
+  Title="KeyAsio"
+  d:DesignHeight="450"
+  d:DesignWidth="800"
+  x:DataType="models:SharedViewModel"
+  mc:Ignorable="d">
+  <Design.DataContext>
+    <models:SharedViewModel>
+      <models:SharedViewModel.DeviceDescription>
+        <devices:DeviceDescription>
+          <!--<devices:DeviceDescription.WavePlayerType>ASIO</devices:DeviceDescription.WavePlayerType>-->
+        </devices:DeviceDescription>
+      </models:SharedViewModel.DeviceDescription>
+    </models:SharedViewModel>
+  </Design.DataContext>
+  <Window.Resources>
+    <converters:Multi_LatencySampleRate2LatencyConverter x:Key="Multi_LatencySampleRate2LatencyConverter" />
+  </Window.Resources>
+
+  <Window.Styles>
+    <Style Selector="TextBlock.Tool">
+      <Setter Property="Margin" Value="0,0,15,0" />
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.Tool">
+      <Setter Property="Padding" Value="10,1" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="sukiUi|GlassCard.Panel">
+      <Setter Property="Margin" Value="7" />
+      <!--<Setter Property="IsAnimated" Value="False" />-->
+    </Style>
+  </Window.Styles>
+
+  <WrapPanel Margin="7">
+    <sukiUi:GlassCard Classes="Panel">
+      <sukiUi:GroupBox>
+        <sukiUi:GroupBox.Header>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="Tool" Text="Audio Device" />
+            <Button
+              Grid.Column="1"
+              Classes="Tool"
+              Content="Configure...">
+              <!--<Button.Classes>Flat</Button.Classes>-->
+            </Button>
+          </Grid>
+        </sukiUi:GroupBox.Header>
+        <StackPanel>
+          <Grid
+            MaxWidth="740"
+            Margin="0,0,0,25"
+            HorizontalAlignment="Left">
+            <StackPanel IsVisible="{Binding DeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}" Orientation="Horizontal">
+              <TextBlock
+                Margin="0,0,5,0"
+                VerticalAlignment="Center"
+                FontWeight="Bold"
+                TextTrimming="CharacterEllipsis">
+                <TextBlock.Foreground>
+                  <SolidColorBrush Color="{DynamicResource SukiAccentColor}" />
+                </TextBlock.Foreground>
+                <Run Text="{Binding DeviceDescription.WavePlayerType}" />
+                <Run Text=": " />
+                <Run Text="{Binding DeviceDescription.FriendlyName}" />
+              </TextBlock>
+              <Button
+                Margin="0,0,5,0"
+                Padding="4,1"
+                VerticalAlignment="Center"
+                Click="btnAsioControlPanel_OnClick"
+                Content="Control Panel..."
+                FontSize="12"
+                IsVisible="{Binding IsAsio}"
+                UseLayoutRounding="True" />
+              <Button
+                Padding="4,1"
+                VerticalAlignment="Center"
+                Click="btnDisposeDevice_OnClick"
+                Content="Disconnect"
+                FontSize="12"
+                UseLayoutRounding="True" />
+            </StackPanel>
+            <TextBlock
+              FontWeight="SemiBold"
+              Foreground="{DynamicResource SukiDangerColor}"
+              IsVisible="{Binding DeviceDescription, Converter={x:Static ObjectConverters.IsNull}}"
+              Text="No audio device selected." />
+          </Grid>
+
+          <TextBlock
+            FontSize="16"
+            FontWeight="SemiBold"
+            Text="Detailed information" />
+          <Grid
+            Margin="0,7,0,0"
+            ColumnDefinitions="Auto,*"
+            RowDefinitions="*,*,*,*,*,*,*,*,*">
+            <TextBlock
+              Grid.Row="0"
+              Grid.Column="0"
+              Text="Audio Backend: " />
+            <TextBlock
+              Grid.Row="0"
+              Grid.Column="1"
+              Text="{Binding DeviceDescription.WavePlayerType}"
+              TextWrapping="Wrap" />
+            <TextBlock
+              Grid.Row="1"
+              Grid.Column="0"
+              Text="Device ID: " />
+            <TextBlock
+              Grid.Row="1"
+              Grid.Column="1"
+              Text="{Binding DeviceDescription.DeviceId}"
+              TextWrapping="Wrap" />
+            <TextBlock
+              Grid.Row="2"
+              Grid.Column="0"
+              Text="Device Name: " />
+            <TextBlock
+              Grid.Row="2"
+              Grid.Column="1"
+              Text="{Binding DeviceDescription.FriendlyName}"
+              TextWrapping="Wrap" />
+            <TextBlock
+              Grid.Row="3"
+              Grid.Column="0"
+              Text="Sample Rate: " />
+            <TextBlock
+              Grid.Row="3"
+              Grid.Column="1"
+              Text="{Binding AudioEngine.WaveFormat.SampleRate}"
+              TextWrapping="Wrap" />
+            <TextBlock
+              Grid.Row="4"
+              Grid.Column="0"
+              IsVisible="{Binding IsWasapi}"
+              Text="Exclusive Mode: " />
+            <TextBlock
+              Grid.Row="4"
+              Grid.Column="1"
+              IsVisible="{Binding IsWasapi}"
+              Text="{Binding DeviceDescription.IsExclusive}"
+              TextWrapping="Wrap" />
+            <TextBlock
+              Grid.Row="5"
+              Grid.Column="0"
+              IsVisible="{Binding IsAsio}"
+              Text="Buffer Size (Frames): " />
+            <TextBlock
+              Grid.Row="5"
+              Grid.Column="1"
+              IsVisible="{Binding IsAsio}"
+              Text="{Binding FramesPerBuffer}"
+              TextWrapping="Wrap" />
+            <TextBlock
+              Grid.Row="6"
+              Grid.Column="0"
+              IsVisible="{Binding IsNotAsio}"
+              Text="Audio Latency: " />
+            <TextBlock
+              Grid.Row="6"
+              Grid.Column="1"
+              IsVisible="{Binding IsNotAsio}"
+              Text="{Binding DeviceDescription.Latency}"
+              TextWrapping="Wrap" />
+            <TextBlock
+              Grid.Row="6"
+              Grid.Column="0"
+              IsVisible="{Binding IsAsio}"
+              Text="ASIO Latency: " />
+            <StackPanel
+              Grid.Row="6"
+              Grid.Column="1"
+              IsVisible="{Binding IsAsio}"
+              Orientation="Horizontal">
+              <TextBlock Text="{Binding PlaybackLatency}" />
+              <TextBlock Text=" (" />
+              <TextBlock>
+                <TextBlock.Text>
+                  <MultiBinding
+                    Converter="{StaticResource Multi_LatencySampleRate2LatencyConverter}"
+                    Mode="OneWay"
+                    StringFormat="0.000">
+                    <Binding Mode="OneWay" Path="PlaybackLatency" />
+                    <Binding Mode="OneWay" Path="AudioEngine.WaveFormat.SampleRate" />
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+              <TextBlock Text="ms)" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </sukiUi:GroupBox>
+    </sukiUi:GlassCard>
+
+    <sukiUi:GlassCard Classes="Panel">
+      <StackPanel>
+        <sukiUi:GroupBox>
+          <sukiUi:GroupBox.Header>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="Tool" Text="Key Binding" />
+              <Button
+                Grid.Column="1"
+                Classes="Tool"
+                Content="Configure...">
+                <!--<Button.Classes>Flat</Button.Classes>-->
+              </Button>
+            </Grid>
+          </sukiUi:GroupBox.Header>
+        </sukiUi:GroupBox>
+
+      </StackPanel>
+    </sukiUi:GlassCard>
+
+  </WrapPanel>
+</sukiUi:SukiWindow>
