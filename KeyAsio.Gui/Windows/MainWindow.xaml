@@ -9,7 +9,7 @@
     xmlns:models="clr-namespace:KeyAsio.Shared.Models;assembly=KeyAsio.Shared"
     xmlns:mouseKeyHook="clr-namespace:Milki.Extensions.MouseKeyHook;assembly=Milki.Extensions.MouseKeyHook"
     xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
-    Title="KeyASIO Control Panel"
+    Title="KeyASIO Audio Control Panel"
     Width="630"
     Height="550"
     MinWidth="550"
@@ -38,13 +38,13 @@
                     Margin="0,0,10,0"
                     FontSize="21"
                     FontWeight="Bold"
-                    Text="Current Device" />
+                    Text="Audio Device" />
                 <Button
                     Height="auto"
                     Padding="8,3"
                     VerticalAlignment="Center"
                     Click="btnChangeDevice_OnClick"
-                    Content="Options.."
+                    Content="Configure..."
                     FontSize="12"
                     Style="{StaticResource ButtonDefault.Small}"
                     TextBlock.FontFamily="Consolas"
@@ -71,7 +71,7 @@
                         Padding="4,1"
                         VerticalAlignment="Center"
                         Click="btnAsioControlPanel_OnClick"
-                        Content="Config.."
+                        Content="Control Panel..."
                         FontSize="12"
                         TextBlock.FontFamily="Consolas"
                         UseLayoutRounding="True">
@@ -91,7 +91,7 @@
                         Padding="4,1"
                         VerticalAlignment="Center"
                         Click="btnDisposeDevice_OnClick"
-                        Content="Dispose"
+                        Content="Disconnect"
                         FontSize="12"
                         Style="{StaticResource ButtonDanger.Small}"
                         TextBlock.FontFamily="Consolas"
@@ -99,7 +99,7 @@
                 </StackPanel>
                 <TextBlock
                     Foreground="{StaticResource DangerBrush}"
-                    Text="No device selected."
+                    Text="No audio device selected."
                     TextBlock.FontFamily="Consolas"
                     Visibility="{Binding DeviceDescription, Converter={StaticResource IsNullToVisibilityReConverter}}" />
             </Grid>
@@ -109,13 +109,13 @@
                     Margin="0,0,27,0"
                     FontSize="21"
                     FontWeight="Bold"
-                    Text="Key Mapping" />
+                    Text="Key Bindings" />
                 <Button
                     Height="Auto"
                     Padding="8,3"
                     VerticalAlignment="Center"
                     Click="btnChangeKey_OnClick"
-                    Content="Options.."
+                    Content="Configure..."
                     FontSize="12"
                     Style="{StaticResource ButtonDefault.Small}"
                     TextBlock.FontFamily="Consolas"
@@ -148,7 +148,7 @@
                     Margin="0,0,0,10"
                     FontSize="21"
                     FontWeight="Bold"
-                    Text="Information" />
+                    Text="Device Information" />
                 <Grid TextBlock.FontFamily="Consolas" TextBlock.FontSize="13">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -168,7 +168,7 @@
                     <TextBlock
                         Grid.Row="0"
                         Grid.Column="0"
-                        Text="Backend: " />
+                        Text="Audio Backend: " />
                     <TextBlock
                         Grid.Row="0"
                         Grid.Column="1"
@@ -177,7 +177,7 @@
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
-                        Text="ID: " />
+                        Text="Device ID: " />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="1"
@@ -186,7 +186,7 @@
                     <TextBlock
                         Grid.Row="2"
                         Grid.Column="0"
-                        Text="Name: " />
+                        Text="Device Name: " />
                     <TextBlock
                         Grid.Row="2"
                         Grid.Column="1"
@@ -195,7 +195,7 @@
                     <TextBlock
                         Grid.Row="3"
                         Grid.Column="0"
-                        Text="Sample rate: " />
+                        Text="Sample Rate: " />
                     <TextBlock
                         Grid.Row="3"
                         Grid.Column="1"
@@ -204,7 +204,7 @@
                     <TextBlock
                         Grid.Row="4"
                         Grid.Column="0"
-                        Text="Exclusive: ">
+                        Text="Exclusive Mode: ">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -235,7 +235,7 @@
                     <TextBlock
                         Grid.Row="5"
                         Grid.Column="0"
-                        Text="ASIO FramesPerBuffer: ">
+                        Text="Buffer Size (Frames): ">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -266,7 +266,7 @@
                     <TextBlock
                         Grid.Row="6"
                         Grid.Column="0"
-                        Text="Latency (?): ">
+                        Text="Audio Latency: ">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Visible" />
@@ -354,28 +354,18 @@
                         Margin="0,0,10,0"
                         FontSize="21"
                         FontWeight="Bold"
-                        Text="osu! Realtime" />
+                        Text="osu! Real-time Integration" />
                     <Button
                         Height="auto"
                         Margin="0,0,5,0"
                         Padding="8,3"
                         VerticalAlignment="Center"
                         Click="btnRealtimeOptions_OnClick"
-                        Content="Options.."
+                        Content="Settings..."
                         FontSize="12"
                         Style="{StaticResource ButtonDefault.Small}"
                         TextBlock.FontFamily="Consolas"
                         UseLayoutRounding="True" />
-                    <!--<Button
-                        Height="auto"
-                        Padding="8,3"
-                        VerticalAlignment="Center"
-                        Click="btnLatencyCheck_OnClick"
-                        Content="Offset.."
-                        FontSize="12"
-                        Style="{StaticResource ButtonDefault.Small}"
-                        TextBlock.FontFamily="Consolas"
-                        UseLayoutRounding="True" />-->
                 </StackPanel>
                 <Grid TextBlock.FontFamily="Consolas" TextBlock.FontSize="13">
                     <Grid.ColumnDefinitions>
@@ -392,7 +382,7 @@
                         Grid.Row="0"
                         Grid.Column="0"
                         Margin="0,0,0,0"
-                        Text="Skin: " />
+                        Text="Active Skin: " />
                     <ComboBox
                         Grid.Row="0"
                         Grid.Column="1"

@@ -7,7 +7,7 @@
     xmlns:local="clr-namespace:KeyAsio.Gui.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
-    Title="Keys Binding Guide"
+    Title="Key Binding Configuration"
     Width="500"
     MinHeight="350"
     d:DataContext="{d:DesignInstance local:KeyBindWindowViewModel,
@@ -27,7 +27,7 @@
                 Margin="0,0,0,25"
                 FontSize="21"
                 FontWeight="Bold"
-                Text="Bind Keys" />
+                Text="Configure Key Bindings" />
             <hc:TagContainer
                 Margin="0,0,0,25"
                 HorizontalAlignment="Left"
@@ -52,14 +52,14 @@
             <TextBlock
                 FontSize="12"
                 Foreground="{StaticResource PrimaryTextBrush}"
-                Text="Please press keys to add to list." />
+                Text="Press keys on your keyboard to add them to the binding list." />
         </StackPanel>
 
         <Button
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             Click="btnConfirm_OnClick"
-            Content="Confirm"
+            Content="Apply Settings"
             FontWeight="Bold"
             Style="{StaticResource ButtonPrimary}"
             TextBlock.FontFamily="Consolas" />

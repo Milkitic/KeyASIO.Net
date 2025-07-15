@@ -3,5 +3,5 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:converters="clr-namespace:KeyAsio.Converters">
 
-  <converters:Multi_LatencySampleRate2LatencyConverter x:Key="Multi_LatencySampleRate2LatencyConverter" />
+  <converters:MultiLatencyMillisecondsConverter x:Key="MultiLatencyMillisecondsConverter" />
 </ResourceDictionary>

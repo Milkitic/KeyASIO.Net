@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="clr-namespace:KeyAsio.Shared.Models;assembly=KeyAsio.Shared"
     xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
-    Title="Realtime Options"
+    Title="Real-time Audio Settings"
     Width="500"
     MinHeight="325"
     d:DataContext="{d:DesignInstance models:SharedViewModel,
@@ -26,10 +26,10 @@
                 Margin="0,0,0,25"
                 FontSize="21"
                 FontWeight="Bold"
-                Text="Realtime Options" />
+                Text="Real-time Audio Settings" />
             <UniformGrid Columns="2">
                 <StackPanel>
-                    <TextBlock Margin="0,0,0,10" Text="Ignore beatmap hitsounds" />
+                    <TextBlock Margin="0,0,0,10" Text="Override beatmap audio samples" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <ToggleButton
                             Margin="0,0,8,0"
@@ -44,7 +44,7 @@
                 </StackPanel>
 
                 <StackPanel>
-                    <TextBlock Margin="0,0,0,10" Text="Ignore storyboard samples" />
+                    <TextBlock Margin="0,0,0,10" Text="Disable storyboard audio samples" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <ToggleButton
                             Margin="0,0,8,0"
@@ -59,7 +59,7 @@
                 </StackPanel>
 
                 <StackPanel>
-                    <TextBlock Margin="0,0,0,10" Text="Ignore slider ticks and slides" />
+                    <TextBlock Margin="0,0,0,10" Text="Disable slider audio effects" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <ToggleButton
                             Margin="0,0,8,0"
@@ -74,7 +74,7 @@
                 </StackPanel>
 
                 <StackPanel>
-                    <TextBlock Margin="0,0,0,10" Text="Ignore combo break sound" />
+                    <TextBlock Margin="0,0,0,10" Text="Disable combo break audio" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <ToggleButton
                             Margin="0,0,8,0"
@@ -89,7 +89,7 @@
                 </StackPanel>
 
                 <StackPanel>
-                    <TextBlock Margin="0,0,0,10" Text="Ignore beatmap volume" />
+                    <TextBlock Margin="0,0,0,10" Text="Override beatmap volume settings" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <ToggleButton
                             Margin="0,0,8,0"
@@ -104,7 +104,7 @@
                 </StackPanel>
 
                 <StackPanel>
-                    <TextBlock Margin="0,0,0,10" Text="Force nightcore beats" />
+                    <TextBlock Margin="0,0,0,10" Text="Enable nightcore rhythm beats" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <ToggleButton
                             Margin="0,0,8,0"
@@ -118,7 +118,7 @@
                     </StackPanel>
                 </StackPanel>
             </UniformGrid>
-            <TextBlock Margin="0,0,0,10" Text="Playback behavior for slider tail" />
+            <TextBlock Margin="0,0,0,10" Text="Slider tail audio playback behavior" />
             <ComboBox
                 Width="370"
                 Height="26"
@@ -136,20 +136,20 @@
                         </TextBlock>
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding}" Value="{x:Static models:SliderTailPlaybackBehavior.Normal}">
-                                <Setter TargetName="Description" Property="Text" Value=": Play all slider tail sounds." />
+                                <Setter TargetName="Description" Property="Text" Value=": Play all slider tail audio." />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding}" Value="{x:Static models:SliderTailPlaybackBehavior.KeepReverse}">
-                                <Setter TargetName="Description" Property="Text" Value=": Play only if a slider with reverses." />
+                                <Setter TargetName="Description" Property="Text" Value=": Play only for sliders with reverses." />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding}" Value="{x:Static models:SliderTailPlaybackBehavior.Ignore}">
-                                <Setter TargetName="Description" Property="Text" Value=": Ignore slider tail sounds." />
+                                <Setter TargetName="Description" Property="Text" Value=": Disable slider tail audio." />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <TextBlock Margin="0,0,0,10" Text="Balance Factor" />
+            <TextBlock Margin="0,0,0,10" Text="Audio Balance Factor" />
 
             <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                 <Slider
@@ -172,7 +172,7 @@
             <TextBlock
                 FontSize="12"
                 Foreground="{StaticResource WarningBrush}"
-                Text="Note: some options will be applied after new playing session."
+                Text="Note: Some settings require starting a new play session to take effect."
                 TextWrapping="Wrap" />
         </StackPanel>
     </Grid>

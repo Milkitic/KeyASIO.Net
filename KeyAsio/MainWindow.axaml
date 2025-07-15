@@ -1,4 +1,4 @@
-<sukiUi:SukiWindow
+﻿<sukiUi:SukiWindow
   x:Class="KeyAsio.MainWindow"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,8 +6,11 @@
   xmlns:converters="clr-namespace:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:devices="clr-namespace:Milki.Extensions.MixPlayer.Devices;assembly=Milki.Extensions.MixPlayer"
+  xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:models="clr-namespace:KeyAsio.Shared.Models;assembly=KeyAsio.Shared"
+  xmlns:mouseKeyHook="clr-namespace:Milki.Extensions.MouseKeyHook;assembly=Milki.Extensions.MouseKeyHook"
+  xmlns:shared="clr-namespace:KeyAsio.Shared;assembly=KeyAsio.Shared"
   xmlns:sukiUi="https://github.com/kikipoulet/SukiUI"
   Title="KeyAsio"
   d:DesignHeight="450"
@@ -16,6 +19,17 @@
   mc:Ignorable="d">
   <Design.DataContext>
     <models:SharedViewModel>
+      <models:SharedViewModel.AppSettings>
+        <shared:AppSettings>
+          <shared:AppSettings.Keys>
+            <generic:List x:TypeArguments="mouseKeyHook:HookKeys">
+              <mouseKeyHook:HookKeys>Z</mouseKeyHook:HookKeys>
+              <mouseKeyHook:HookKeys>X</mouseKeyHook:HookKeys>
+              <mouseKeyHook:HookKeys>Space</mouseKeyHook:HookKeys>
+            </generic:List>
+          </shared:AppSettings.Keys>
+        </shared:AppSettings>
+      </models:SharedViewModel.AppSettings>
       <models:SharedViewModel.DeviceDescription>
         <devices:DeviceDescription>
           <!--<devices:DeviceDescription.WavePlayerType>ASIO</devices:DeviceDescription.WavePlayerType>-->
@@ -24,7 +38,10 @@
     </models:SharedViewModel>
   </Design.DataContext>
   <Window.Resources>
-    <converters:Multi_LatencySampleRate2LatencyConverter x:Key="Multi_LatencySampleRate2LatencyConverter" />
+    <converters:MultiLatencyMillisecondsConverter x:Key="MultiLatencyMillisecondsConverter" />
+    <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
+    <converters:EnumNotEqualityConverter x:Key="EnumNotEqualityConverter" />
+    <converters:UpperCaseConverter x:Key="UpperCaseConverter" />
   </Window.Resources>
 
   <Window.Styles>
@@ -63,7 +80,7 @@
             MaxWidth="740"
             Margin="0,0,0,25"
             HorizontalAlignment="Left">
-            <StackPanel IsVisible="{Binding DeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}" Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding DeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" Orientation="Horizontal">
               <TextBlock
                 Margin="0,0,5,0"
                 VerticalAlignment="Center"
@@ -83,11 +100,12 @@
                 Click="btnAsioControlPanel_OnClick"
                 Content="Control Panel..."
                 FontSize="12"
-                IsVisible="{Binding IsAsio}"
+                IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.ASIO}, FallbackValue=False}"
                 UseLayoutRounding="True" />
               <Button
                 Padding="4,1"
                 VerticalAlignment="Center"
+                Classes="Danger Small"
                 Click="btnDisposeDevice_OnClick"
                 Content="Disconnect"
                 FontSize="12"
@@ -147,52 +165,52 @@
             <TextBlock
               Grid.Row="4"
               Grid.Column="0"
-              IsVisible="{Binding IsWasapi}"
+              IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.WASAPI}}"
               Text="Exclusive Mode: " />
             <TextBlock
               Grid.Row="4"
               Grid.Column="1"
-              IsVisible="{Binding IsWasapi}"
+              IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.WASAPI}}"
               Text="{Binding DeviceDescription.IsExclusive}"
               TextWrapping="Wrap" />
             <TextBlock
               Grid.Row="5"
               Grid.Column="0"
-              IsVisible="{Binding IsAsio}"
+              IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.ASIO}}"
               Text="Buffer Size (Frames): " />
             <TextBlock
               Grid.Row="5"
               Grid.Column="1"
-              IsVisible="{Binding IsAsio}"
+              IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.ASIO}}"
               Text="{Binding FramesPerBuffer}"
               TextWrapping="Wrap" />
             <TextBlock
               Grid.Row="6"
               Grid.Column="0"
-              IsVisible="{Binding IsNotAsio}"
+              IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumNotEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.ASIO}}"
               Text="Audio Latency: " />
             <TextBlock
               Grid.Row="6"
               Grid.Column="1"
-              IsVisible="{Binding IsNotAsio}"
+              IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumNotEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.ASIO}}"
               Text="{Binding DeviceDescription.Latency}"
               TextWrapping="Wrap" />
             <TextBlock
               Grid.Row="6"
               Grid.Column="0"
-              IsVisible="{Binding IsAsio}"
+              IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.ASIO}}"
               Text="ASIO Latency: " />
             <StackPanel
               Grid.Row="6"
               Grid.Column="1"
-              IsVisible="{Binding IsAsio}"
+              IsVisible="{Binding DeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static devices:WavePlayerType.ASIO}}"
               Orientation="Horizontal">
               <TextBlock Text="{Binding PlaybackLatency}" />
               <TextBlock Text=" (" />
               <TextBlock>
                 <TextBlock.Text>
                   <MultiBinding
-                    Converter="{StaticResource Multi_LatencySampleRate2LatencyConverter}"
+                    Converter="{StaticResource MultiLatencyMillisecondsConverter}"
                     Mode="OneWay"
                     StringFormat="0.000">
                     <Binding Mode="OneWay" Path="PlaybackLatency" />
@@ -222,6 +240,69 @@
             </Grid>
           </sukiUi:GroupBox.Header>
         </sukiUi:GroupBox>
+
+        <ItemsControl Margin="-5,-5,-5,25" ItemsSource="{Binding AppSettings.Keys}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="mouseKeyHook:HookKeys">
+              <Button
+                Height="24"
+                MinWidth="24"
+                Margin="5"
+                Padding="7,0"
+                Content="{Binding Converter={StaticResource UpperCaseConverter}}"
+                Focusable="False"
+                FontSize="12"
+                FontWeight="SemiBold"
+                IsHitTestVisible="False" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+        </ItemsControl>
+      </StackPanel>
+    </sukiUi:GlassCard>
+
+    <sukiUi:GlassCard Classes="Panel">
+      <StackPanel>
+        <sukiUi:GroupBox>
+          <sukiUi:GroupBox.Header>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="Tool" Text="osu! Realtime" />
+              <Button
+                Grid.Column="1"
+                Classes="Tool"
+                Content="Configure...">
+                <!--<Button.Classes>Flat</Button.Classes>-->
+              </Button>
+            </Grid>
+          </sukiUi:GroupBox.Header>
+        </sukiUi:GroupBox>
+
+        <ItemsControl Margin="-5,-5,-5,25" ItemsSource="{Binding AppSettings.Keys}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="mouseKeyHook:HookKeys">
+              <Button
+                Height="24"
+                MinWidth="24"
+                Margin="5"
+                Padding="7,0"
+                Content="{Binding Converter={StaticResource UpperCaseConverter}}"
+                Focusable="False"
+                FontSize="12"
+                FontWeight="SemiBold"
+                IsHitTestVisible="False" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+        </ItemsControl>
+
 
       </StackPanel>
     </sukiUi:GlassCard>

@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="clr-namespace:KeyAsio.Shared.Models;assembly=KeyAsio.Shared"
     xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
-    Title="Offset Configuration Guide"
+    Title="Audio Offset Configuration"
     Width="450"
     Height="320"
     d:DataContext="{d:DesignInstance models:SharedViewModel,
@@ -25,8 +25,8 @@
                 Margin="0,0,0,25"
                 FontSize="21"
                 FontWeight="Bold"
-                Text="Offset" />
-            <TextBlock Margin="0,0,0,10" Text="General Latency Offset" />
+                Text="Audio Offset Calibration" />
+            <TextBlock Margin="0,0,0,10" Text="Global Audio Latency Offset (ms)" />
             <StackPanel
                 Margin="0,0,8,10"
                 HorizontalAlignment="Left"
@@ -49,12 +49,12 @@
             <TextBlock
                 FontSize="12"
                 Foreground="{StaticResource PrimaryTextBrush}"
-                Text="Please play with &quot;Auto&quot; or &quot;No Fail&quot;, and hear the hitsounds to adjust the offset."
+                Text="Play a beatmap with &quot;Auto&quot; or &quot;No Fail&quot; mod enabled, then adjust the offset based on audio timing."
                 TextWrapping="Wrap" />
             <TextBlock
                 FontSize="12"
                 Foreground="{StaticResource WarningBrush}"
-                Text="Note: this may be affected by system's background usage, but won't be too much."
+                Text="Note: System background processes may slightly affect timing accuracy."
                 TextWrapping="Wrap" />
         </StackPanel>
 
@@ -62,7 +62,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             Click="btnConfirm_OnClick"
-            Content="Confirm"
+            Content="Apply Offset"
             FontWeight="Bold"
             Style="{StaticResource ButtonPrimary}"
             TextBlock.FontFamily="Consolas" />

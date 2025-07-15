@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
     xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
-    Title="Device Configuration Guide"
+    Title="Audio Device Configuration"
     Width="600"
     Height="450"
     d:DataContext="{d:DesignInstance windows:DeviceWindowViewModel,
@@ -27,8 +27,8 @@
                 Margin="0,0,0,25"
                 FontSize="21"
                 FontWeight="Bold"
-                Text="Config Device" />
-            <TextBlock Margin="0,0,0,10" Text="Sample rate" />
+                Text="Configure Audio Device" />
+            <TextBlock Margin="0,0,0,10" Text="Sample Rate (Hz)" />
             <ComboBox
                 Width="100"
                 Height="26"
@@ -40,7 +40,7 @@
                 ItemsSource="{Binding SupportedSampleRates}"
                 SelectedItem="{Binding SampleRate, Mode=TwoWay}" />
 
-            <TextBlock Margin="0,0,0,10" Text="Device list" />
+            <TextBlock Margin="0,0,0,10" Text="Available Audio Devices" />
             <ComboBox
                 Width="400"
                 Height="26"
@@ -60,7 +60,7 @@
             </ComboBox>
 
             <StackPanel>
-                <TextBlock Margin="0,0,0,10" Text="Detail Configuration" />
+                <TextBlock Margin="0,0,0,10" Text="Advanced Configuration" />
 
                 <StackPanel HorizontalAlignment="Left">
                     <StackPanel.Style>
@@ -78,7 +78,7 @@
                         Margin="0,0,0,10"
                         FontSize="12"
                         Foreground="{StaticResource SecondaryTextBrush}"
-                        Text="Force buffer size (0 as default size)" />
+                        Text="Buffer Size Override (0 = use default)" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <Slider
                             Width="345"
@@ -116,7 +116,7 @@
                         Margin="0,0,0,10"
                         FontSize="12"
                         Foreground="{StaticResource SecondaryTextBrush}"
-                        Text="Latency" />
+                        Text="Audio Latency (ms)" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <Slider
                             Width="300"
@@ -149,7 +149,7 @@
                         Margin="0,0,0,10"
                         FontSize="12"
                         Foreground="{StaticResource SecondaryTextBrush}"
-                        Text="WASAPI Exclusive" />
+                        Text="WASAPI Exclusive Mode" />
                     <StackPanel Orientation="Horizontal">
                         <ToggleButton
                             Margin="0,0,8,0"
@@ -170,7 +170,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             Click="btnConfirm_OnClick"
-            Content="Confirm"
+            Content="Apply Configuration"
             FontWeight="Bold"
             Style="{StaticResource ButtonPrimary}"
             TextBlock.FontFamily="Consolas" />

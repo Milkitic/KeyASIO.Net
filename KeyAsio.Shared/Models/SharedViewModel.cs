@@ -15,7 +15,7 @@ public class SharedViewModel : ViewModelBase
     private int _playbackLatency;
     private SkinDescription? _selectedSkin;
 
-    private SharedViewModel()
+    public SharedViewModel()
     {
     }
 
@@ -57,5 +57,5 @@ public class SharedViewModel : ViewModelBase
     public bool AutoMode { get; set; }
 
     public RealtimeModeManager RealtimeModeManager => RealtimeModeManager.Instance;
-    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
+    public AppSettings AppSettings { get; set; } = ConfigurationFactory.GetConfiguration<AppSettings>();
 }
