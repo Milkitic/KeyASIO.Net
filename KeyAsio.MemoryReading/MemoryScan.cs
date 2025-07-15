@@ -3,6 +3,7 @@ using System.Reflection;
 using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.MemoryReading.OsuMemoryModels.Direct;
 using OsuMemoryDataProvider;
+using ProcessMemoryDataFinder;
 using ProcessMemoryDataFinder.API;
 
 namespace KeyAsio.MemoryReading;
@@ -29,7 +30,7 @@ public static class MemoryScan
         _isStarted = true;
         _generalScanInterval = generalScanInterval;
         _timingScanInterval = timingScanInterval;
-        _reader = new StructuredOsuMemoryReader
+        _reader = new StructuredOsuMemoryReader(new ProcessTargetOptions("osu!"))
         {
             ProcessWatcherDelayMs = processInterval
         };
