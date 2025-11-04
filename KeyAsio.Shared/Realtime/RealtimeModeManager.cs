@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -12,6 +12,7 @@ using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.AudioProviders;
+using KeyAsio.Shared.Realtime.States;
 using KeyAsio.Shared.Realtime.Tracks;
 using KeyAsio.Shared.Utils;
 using Milki.Extensions.Configuration;
@@ -58,6 +59,8 @@ public class RealtimeModeManager : ViewModelBase
 
     private readonly LoopProviders _loopProviders = new();
 
+    private readonly RealtimeStateMachine _stateMachine;
+
     private string? _folder;
     private string? _audioFilePath;
 
@@ -82,6 +85,18 @@ public class RealtimeModeManager : ViewModelBase
             [GameMode.Catch] = _standardAudioProvider,
             [GameMode.Mania] = _maniaAudioProvider,
         };
+
+        // Initialize realtime state machine with scene mappings
+        _stateMachine = new RealtimeStateMachine(new Dictionary<OsuMemoryStatus, IRealtimeState>
+        {
+            [OsuMemoryStatus.Playing] = new PlayingState(),
+            [OsuMemoryStatus.ResultsScreen] = new ResultsState(),
+            [OsuMemoryStatus.NotRunning] = new NotRunningState(),
+            [OsuMemoryStatus.SongSelect] = new BrowsingState(),
+            [OsuMemoryStatus.SongSelectEdit] = new BrowsingState(),
+            [OsuMemoryStatus.MainMenu] = new BrowsingState(),
+            [OsuMemoryStatus.MultiplayerSongSelect] = new BrowsingState(),
+        });
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
     }
 
@@ -176,10 +191,9 @@ public class RealtimeModeManager : ViewModelBase
         get => _osuStatus;
         set
         {
-            var val = _osuStatus;
             if (SetField(ref _osuStatus, value))
             {
-                OnStatusChanged(val, value);
+                _ = OnStatusChanged(value);
             }
         }
     }
@@ -625,40 +639,9 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    private async void OnStatusChanged(OsuMemoryStatus pre, OsuMemoryStatus cur)
+    private async Task OnStatusChanged(OsuMemoryStatus cur)
     {
-        if (pre != OsuMemoryStatus.Playing &&
-            cur == OsuMemoryStatus.Playing)
-        {
-            _selectSongTrack.StartLowPass(200, 800);
-            _result = false;
-            if (Beatmap == null)
-            {
-                Logger.Warn("Failed to start: the beatmap is null");
-            }
-            else
-            {
-                await StartAsync(Beatmap.FilenameFull, Beatmap.Filename);
-            }
-        }
-        else if (pre == OsuMemoryStatus.Playing && cur == OsuMemoryStatus.ResultsScreen)
-        {
-            _result = true;
-            _singleSynchronousTrack.PlayMods = Mods.None;
-        }
-        else if (pre != OsuMemoryStatus.NotRunning && cur == OsuMemoryStatus.NotRunning)
-        {
-            if (AppSettings.RealtimeOptions.EnableMusicFunctions)
-            {
-                _selectSongTrack.StopCurrentMusic(2000);
-            }
-        }
-        else
-        {
-            _selectSongTrack.StartLowPass(200, 16000);
-            _result = false;
-            Stop();
-        }
+        await _stateMachine.TransitionToAsync(this, cur);
     }
 
     private void OnBeatmapChanged(BeatmapIdentifier beatmap)
@@ -788,5 +771,26 @@ public class RealtimeModeManager : ViewModelBase
                 PlayAudio(playbackObject);
             }
         }
+    }
+
+    // Internal helpers for state classes
+    internal void StartLowPass(int lower, int upper)
+    {
+        _selectSongTrack.StartLowPass(lower, upper);
+    }
+
+    internal void StopCurrentMusic(int fadeMs = 0)
+    {
+        _selectSongTrack.StopCurrentMusic(fadeMs);
+    }
+
+    internal void SetResultFlag(bool value)
+    {
+        _result = value;
+    }
+
+    internal void SetSingleTrackPlayMods(Mods mods)
+    {
+        _singleSynchronousTrack.PlayMods = mods;
     }
 }
