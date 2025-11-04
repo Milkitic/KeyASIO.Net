@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.IO;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
@@ -12,8 +11,10 @@ namespace KeyAsio.Shared.Realtime;
 
 public class SkinManager
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger("SkinManager");
     public static readonly SkinManager Instance = new();
+    private static readonly Lock InstanceLock = new();
+    private static readonly ILogger Logger = LogUtils.GetLogger("SkinManager");
+
     private CancellationTokenSource? _cts;
     private Task? _refreshTask;
     private bool _waiting;
@@ -40,7 +41,7 @@ public class SkinManager
         {
             if (e.PropertyName == nameof(AppSettings.OsuFolder))
             {
-                RefreshSkinInBackground();
+                _ = RefreshSkinInBackground();
             }
         };
     }
@@ -73,9 +74,9 @@ public class SkinManager
         };
     }
 
-    public async void RefreshSkinInBackground()
+    public async Task RefreshSkinInBackground()
     {
-        lock (Instance)
+        lock (InstanceLock)
         {
             if (_waiting) return;
             _waiting = true;
@@ -120,7 +121,7 @@ public class SkinManager
             });
         });
 
-        lock (Instance)
+        lock (InstanceLock)
         {
             _waiting = false;
         }

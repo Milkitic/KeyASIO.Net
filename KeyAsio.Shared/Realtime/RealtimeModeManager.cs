@@ -29,16 +29,11 @@ public class RealtimeModeManager : ViewModelBase
     public static RealtimeModeManager Instance { get; } = new();
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(RealtimeModeManager));
 
-    private OsuMemoryStatus _osuStatus;
     private int _playTime;
-    private int _combo;
-    private int _score;
-    private BeatmapIdentifier _beatmap;
-    private bool _isStarted;
     private bool _previousSelectSongStatus = true;
     private int _pauseCount = 0;
 
-    private readonly object _isStartedLock = new();
+    private readonly Lock _isStartedLock = new();
     private readonly HitsoundFileCache _hitsoundFileCache = new();
 
     private readonly ConcurrentDictionary<HitsoundNode, CachedSound?> _playNodeToCachedSoundMapping = new();
@@ -62,11 +57,8 @@ public class RealtimeModeManager : ViewModelBase
     private string? _audioFilePath;
 
     private int _nextCachingTime;
-    private Mods _playMods;
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
-    private string _username = "";
-    private int _lastFetchedPlayTime;
 
     public RealtimeModeManager()
     {
@@ -85,13 +77,13 @@ public class RealtimeModeManager : ViewModelBase
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
     }
 
-    public string Username
+    public string? Username
     {
-        get => _username;
+        get;
         set
         {
-            if (value == _username) return;
-            _username = value;
+            if (value == field) return;
+            field = value;
             if (!string.IsNullOrEmpty(value))
             {
                 AppSettings.PlayerBase64 = EncodeUtils.GetBase64String(value, Encoding.ASCII);
@@ -103,11 +95,11 @@ public class RealtimeModeManager : ViewModelBase
 
     public Mods PlayMods
     {
-        get => _playMods;
+        get;
         set
         {
-            var val = _playMods;
-            if (SetField(ref _playMods, value))
+            var val = field;
+            if (SetField(ref field, value))
             {
                 OnPlayModsChanged(val, value);
             }
@@ -134,10 +126,10 @@ public class RealtimeModeManager : ViewModelBase
 
     public int LastFetchedPlayTime
     {
-        get => _lastFetchedPlayTime;
+        get;
         set
         {
-            if (SetField(ref _lastFetchedPlayTime, value))
+            if (SetField(ref field, value))
             {
                 _playTimeStopwatch.Restart();
             }
@@ -152,11 +144,11 @@ public class RealtimeModeManager : ViewModelBase
 
     public int Combo
     {
-        get => _combo;
+        get;
         set
         {
-            var val = _combo;
-            if (SetField(ref _combo, value))
+            var val = field;
+            if (SetField(ref field, value))
             {
                 OnComboChanged(val, value);
             }
@@ -165,21 +157,21 @@ public class RealtimeModeManager : ViewModelBase
 
     public int Score
     {
-        get => _score;
-        set => SetField(ref _score, value);
+        get;
+        set => SetField(ref field, value);
     }
 
     public bool IsReplay { get; set; }
 
     public OsuMemoryStatus OsuStatus
     {
-        get => _osuStatus;
+        get;
         set
         {
-            var val = _osuStatus;
-            if (SetField(ref _osuStatus, value))
+            var val = field;
+            if (SetField(ref field, value))
             {
-                OnStatusChanged(val, value);
+                _ = OnStatusChanged(val, value);
             }
         }
     }
@@ -190,10 +182,10 @@ public class RealtimeModeManager : ViewModelBase
 
     public BeatmapIdentifier Beatmap
     {
-        get => _beatmap;
+        get;
         set
         {
-            if (SetField(ref _beatmap, value))
+            if (SetField(ref field, value))
             {
                 OnBeatmapChanged(value);
             }
@@ -202,8 +194,8 @@ public class RealtimeModeManager : ViewModelBase
 
     public bool IsStarted
     {
-        get { lock (_isStartedLock) { return _isStarted; } }
-        set { lock (_isStartedLock) { SetField(ref _isStarted, value); } }
+        get { lock (_isStartedLock) { return field; } }
+        set { lock (_isStartedLock) { SetField(ref field, value); } }
     }
 
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
@@ -369,7 +361,7 @@ public class RealtimeModeManager : ViewModelBase
 
         if (_folder != null && OsuFile != null)
         {
-            _selectSongTrack.PlaySingleAudio(OsuFile, Path.Combine(_folder, OsuFile.General.AudioFilename ?? ""),
+            _ = _selectSongTrack.PlaySingleAudio(OsuFile, Path.Combine(_folder, OsuFile.General.AudioFilename ?? ""),
                 OsuFile.General.PreviewTime);
         }
     }
@@ -625,7 +617,7 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    private async void OnStatusChanged(OsuMemoryStatus pre, OsuMemoryStatus cur)
+    private async Task OnStatusChanged(OsuMemoryStatus pre, OsuMemoryStatus cur)
     {
         if (pre != OsuMemoryStatus.Playing &&
             cur == OsuMemoryStatus.Playing)
@@ -650,7 +642,7 @@ public class RealtimeModeManager : ViewModelBase
         {
             if (AppSettings.RealtimeOptions.EnableMusicFunctions)
             {
-                _selectSongTrack.StopCurrentMusic(2000);
+                _ = _selectSongTrack.StopCurrentMusic(2000);
             }
         }
         else
@@ -681,8 +673,8 @@ public class RealtimeModeManager : ViewModelBase
 
             _folder = beatmap.Folder;
             _audioFilePath = audioFilePath;
-            _selectSongTrack.StopCurrentMusic(200);
-            _selectSongTrack.PlaySingleAudio(coosu, audioFilePath, coosu.General.PreviewTime);
+            _ = _selectSongTrack.StopCurrentMusic(200);
+            _ = _selectSongTrack.PlaySingleAudio(coosu, audioFilePath, coosu.General.PreviewTime);
             _previousSelectSongStatus = true;
             _pauseCount = 0;
         }
@@ -711,12 +703,12 @@ public class RealtimeModeManager : ViewModelBase
         {
             if (_pauseCount >= selectSongPauseThreshold && _previousSelectSongStatus)
             {
-                _selectSongTrack.PauseCurrentMusic();
+                _ = _selectSongTrack.PauseCurrentMusic();
                 _previousSelectSongStatus = false;
             }
             else if (_pauseCount < selectSongPauseThreshold && !_previousSelectSongStatus)
             {
-                _selectSongTrack.RecoverCurrentMusic();
+                _ = _selectSongTrack.RecoverCurrentMusic();
                 _previousSelectSongStatus = true;
             }
         }
@@ -724,7 +716,7 @@ public class RealtimeModeManager : ViewModelBase
         if (IsStarted && oldMs > newMs) // Retry
         {
             _pauseCount = 0;
-            _selectSongTrack.StopCurrentMusic();
+            _ = _selectSongTrack.StopCurrentMusic();
             _selectSongTrack.StartLowPass(200, 16000);
             _firstStartInitialized = true;
             var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;

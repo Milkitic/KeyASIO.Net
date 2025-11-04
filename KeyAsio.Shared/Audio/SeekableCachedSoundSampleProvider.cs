@@ -6,6 +6,7 @@ namespace KeyAsio.Shared.Audio;
 public class SeekableCachedSoundSampleProvider : ISampleProvider
 {
     private readonly CachedSound _sourceSound;
+    private readonly Lock _sourceSoundLock = new();
     private readonly float[] _audioData;
     private readonly int _preSamples;
     private int _position;
@@ -28,14 +29,14 @@ public class SeekableCachedSoundSampleProvider : ISampleProvider
     {
         get
         {
-            lock (_sourceSound)
+            lock (_sourceSoundLock)
             {
                 return SamplesToTimeSpan(_position - _preSamples);
             }
         }
         set
         {
-            lock (_sourceSound)
+            lock (_sourceSoundLock)
             {
                 _position = TimeSpanToSamples(value) + _preSamples;
             }
@@ -44,7 +45,7 @@ public class SeekableCachedSoundSampleProvider : ISampleProvider
 
     public int Read(float[] buffer, int offset, int count)
     {
-        lock (_sourceSound)
+        lock (_sourceSoundLock)
         {
             var availableSamples = (_audioData.Length + _preSamples) - _position;
             if (availableSamples <= 0) return 0;
