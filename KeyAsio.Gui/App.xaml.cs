@@ -166,7 +166,7 @@ public partial class App : Application
         }
 
         SkinManager.Instance.ListenPropertyChanging();
-        SkinManager.Instance.RefreshSkinInBackground();
+        _ = SkinManager.Instance.RefreshSkinInBackground();
         if (settings.RealtimeOptions.RealtimeMode)
         {
             try

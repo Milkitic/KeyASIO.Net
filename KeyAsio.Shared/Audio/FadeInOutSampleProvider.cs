@@ -16,7 +16,7 @@ public class FadeInOutSampleProvider : ISampleProvider
         FadingOut,
     }
 
-    private readonly object _lockObject = new();
+    private readonly Lock _lockObject = new();
     private readonly ISampleProvider _source;
     private int _fadeSamplePosition;
     private int _fadeSampleCount;

@@ -14,7 +14,7 @@ namespace KeyAsio.Shared.Realtime.Tracks;
 public class SelectSongTrack
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SelectSongTrack));
-    private readonly object _instanceLock = new();
+    private readonly Lock _instanceLock = new();
 
     private SmartWaveReader? _smartWaveReader;
     private FadeInOutSampleProvider? _fadeInOutSampleProvider;
@@ -23,7 +23,7 @@ public class SelectSongTrack
     private MixingSampleProvider? Mixer => SharedViewModel.Instance.AudioEngine?.MusicMixer;
     private WaveFormat? WaveFormat => SharedViewModel.Instance.AudioEngine?.WaveFormat;
 
-    public async void PlaySingleAudio(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
+    public async Task PlaySingleAudio(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
     {
         if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
         if (Mixer is null || WaveFormat is null) return;
@@ -83,7 +83,7 @@ public class SelectSongTrack
         await RepositionAndFadeIn(smartWaveReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
     }
 
-    public async void StopCurrentMusic(int fadeOutMilliseconds = 500)
+    public async Task StopCurrentMusic(int fadeOutMilliseconds = 500)
     {
         SmartWaveReader? smartWaveReader;
         FadeInOutSampleProvider? fadeInOutSampleProvider;
@@ -122,7 +122,7 @@ public class SelectSongTrack
         });
     }
 
-    public async void PauseCurrentMusic()
+    public async Task PauseCurrentMusic()
     {
         SmartWaveReader? smartWaveReader;
         FadeInOutSampleProvider? fadeInOutSampleProvider;
@@ -137,7 +137,7 @@ public class SelectSongTrack
         Mixer?.RemoveMixerInput(fadeInOutSampleProvider);
     }
 
-    public async void RecoverCurrentMusic()
+    public async Task RecoverCurrentMusic()
     {
         SmartWaveReader? smartWaveReader;
         FadeInOutSampleProvider? fadeInOutSampleProvider;

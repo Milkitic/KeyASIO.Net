@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <!--<UseWPF>true</UseWPF>-->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -12,7 +12,7 @@
     <PackageReference Include="Milki.Extensions.Configuration" Version="0.1.2" />
     <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.1.2" />
     <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.1.2" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.1" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.5" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
