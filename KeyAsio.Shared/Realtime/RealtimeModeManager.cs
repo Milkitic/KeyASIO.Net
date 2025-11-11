@@ -55,7 +55,7 @@ public class RealtimeModeManager : ViewModelBase
     private readonly SingleSynchronousTrack _singleSynchronousTrack;
     private readonly SelectSongTrack _selectSongTrack;
 
-    private readonly LoopProviders _loopProviders = new();
+    private readonly AudioPlaybackService _audioPlaybackService = new();
 
     private readonly RealtimeStateMachine _stateMachine;
 
@@ -257,87 +257,22 @@ public class RealtimeModeManager : ViewModelBase
                 var volume = playableNode.PlayablePriority == PlayablePriority.Effects
                     ? playableNode.Volume * 1.25f
                     : playableNode.Volume;
-
-                PlayAudio(playbackObject.CachedSound, volume, playableNode.Balance);
+                _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedSound, volume, playableNode.Balance, AppSettings);
             }
         }
         else
         {
             var controlNode = (ControlNode)playbackObject.HitsoundNode;
-            PlayLoopAudio(playbackObject.CachedSound, controlNode);
+            _audioPlaybackService.PlayLoopAudio(playbackObject.CachedSound, controlNode, AppSettings);
         }
     }
 
     public void PlayAudio(CachedSound? cachedSound, float volume, float balance)
     {
-        if (cachedSound is null)
-        {
-            Logger.Warn("Fail to play: CachedSound not found");
-            return;
-        }
-
-        if (AppSettings.RealtimeOptions.IgnoreLineVolumes)
-        {
-            volume = 1;
-        }
-
-        balance *= AppSettings.RealtimeOptions.BalanceFactor;
-        try
-        {
-            SharedViewModel.Instance.AudioEngine?.EffectMixer.AddMixerInput(
-                new BalanceSampleProvider(
-                        new EnhancedVolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
-                        { Volume = volume }
-                    )
-                { Balance = balance }
-            );
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Error occurs while playing audio.", true);
-        }
-
-        Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourcePath)}; " +
-                     $"Vol. {volume}; " +
-                     $"Bal. {balance}");
+        _audioPlaybackService.PlayEffectsAudio(cachedSound, volume, balance, AppSettings);
     }
 
-    private void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode)
-    {
-        var rootMixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
-        if (rootMixer == null)
-        {
-            Logger.Warn($"RootMixer is null, stop adding cache.");
-            return;
-        }
-
-        var volume = AppSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
-
-        if (controlNode.ControlType == ControlType.StartSliding)
-        {
-            if (_loopProviders.ShouldRemoveAll(controlNode.SlideChannel))
-            {
-                _loopProviders.RemoveAll(rootMixer);
-            }
-
-            try
-            {
-                _loopProviders.Create(controlNode, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Error occurs while playing looped audio.", true);
-            }
-        }
-        else if (controlNode.ControlType == ControlType.StopSliding)
-        {
-            _loopProviders.Remove(controlNode.SlideChannel, rootMixer);
-        }
-        else if (controlNode.ControlType == ControlType.ChangeVolume)
-        {
-            _loopProviders.ChangeAllVolumes(volume);
-        }
-    }
+    
 
     public async Task StartAsync(string beatmapFilenameFull, string beatmapFilename)
     {
@@ -382,7 +317,7 @@ public class RealtimeModeManager : ViewModelBase
         IsStarted = false;
         _firstStartInitialized = false;
         var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
-        _loopProviders.RemoveAll(mixer);
+        _audioPlaybackService.ClearAllLoops(mixer);
         _singleSynchronousTrack.ClearAudio();
         mixer?.RemoveAllMixerInputs();
         _playTime = 0;
@@ -583,7 +518,7 @@ public class RealtimeModeManager : ViewModelBase
     internal void ClearMixerLoopsAndMainTrackAudio()
     {
         var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
-        _loopProviders.RemoveAll(mixer);
+        _audioPlaybackService.ClearAllLoops(mixer);
         _singleSynchronousTrack.ClearAudio();
         mixer?.RemoveAllMixerInputs();
     }
