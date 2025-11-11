@@ -647,6 +647,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnPlayModsChanged(Mods oldMods, Mods newMods)
     {
+        _stateMachine.Current?.OnModsChanged(this, oldMods, newMods);
     }
 
     private void OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
@@ -666,7 +667,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void StopCurrentMusic(int fadeMs = 0)
     {
-        _selectSongTrack.StopCurrentMusic(fadeMs);
+        _ = _selectSongTrack.StopCurrentMusic(fadeMs);
     }
 
     internal void SetResultFlag(bool value)
