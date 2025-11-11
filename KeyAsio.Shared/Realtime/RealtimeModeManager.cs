@@ -225,7 +225,6 @@ public class RealtimeModeManager : ViewModelBase
     }
 
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
-
     public IReadOnlyList<HitsoundNode> PlaybackList => _playbackList;
     public List<PlayableNode> KeyList => _keyList;
 
@@ -660,101 +659,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
     {
-        const int selectSongPauseThreshold = 20;
-        const int playingPauseThreshold = 5;
-        if (paused && _previousSelectSongStatus)
-        {
-            _pauseCount++;
-        }
-        else if (!paused)
-        {
-            _pauseCount = 0;
-        }
-
-        var enableMusicFunctions = AppSettings.RealtimeOptions.EnableMusicFunctions;
-        if (enableMusicFunctions && OsuStatus is OsuMemoryStatus.SongSelect or OsuMemoryStatus.SongSelectEdit or
-                OsuMemoryStatus.MainMenu)
-        {
-            if (_pauseCount >= selectSongPauseThreshold && _previousSelectSongStatus)
-            {
-                _ = _selectSongTrack.PauseCurrentMusic();
-                _previousSelectSongStatus = false;
-            }
-            else if (_pauseCount < selectSongPauseThreshold && !_previousSelectSongStatus)
-            {
-                _ = _selectSongTrack.RecoverCurrentMusic();
-                _previousSelectSongStatus = true;
-            }
-        }
-
-        if (IsStarted && oldMs > newMs) // Retry
-        {
-            _pauseCount = 0;
-            _ = _selectSongTrack.StopCurrentMusic();
-            _selectSongTrack.StartLowPass(200, 16000);
-            _firstStartInitialized = true;
-            var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
-            _loopProviders.RemoveAll(mixer);
-            mixer?.RemoveAllMixerInputs();
-            _singleSynchronousTrack.ClearAudio();
-
-            ResetNodes();
-            return;
-        }
-
-        if (enableMusicFunctions && IsStarted)
-        {
-            if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null &&
-                SharedViewModel.Instance.AudioEngine != null)
-            {
-                if (_pauseCount >= playingPauseThreshold)
-                {
-                    _singleSynchronousTrack.ClearAudio();
-                }
-                else
-                {
-                    var musicPath = Path.Combine(_folder, AudioFilename);
-                    if (CachedSoundFactory.ContainsCache(musicPath))
-                    {
-                        //todo: online offset && local offset
-                        const int codeLatency = -1;
-                        const int osuForceLatency = 15;
-                        var oldMapForceOffset = OsuFile.Version < 5 ? 24 : 0;
-                        _singleSynchronousTrack.Offset = osuForceLatency + codeLatency + oldMapForceOffset;
-                        _singleSynchronousTrack.LeadInMilliseconds = OsuFile.General.AudioLeadIn;
-                        if (!_result)
-                        {
-                            _singleSynchronousTrack.PlayMods = PlayMods;
-                        }
-
-                        _singleSynchronousTrack.SyncAudio(CachedSoundFactory.GetCacheSound(musicPath), newMs);
-                    }
-                }
-            }
-        }
-
-        if (IsStarted && newMs > _nextCachingTime)
-        {
-            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _keyList);
-            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _playbackList);
-            _nextCachingTime += 10000;
-        }
-
-        if (IsStarted && (SharedViewModel.Instance.AutoMode || (PlayMods & Mods.Autoplay) != 0 || IsReplay))
-        {
-            foreach (var playbackObject in GetPlaybackAudio(false))
-            {
-                PlayAudio(playbackObject);
-            }
-        }
-
-        if (IsStarted)
-        {
-            foreach (var playbackObject in GetPlaybackAudio(true))
-            {
-                PlayAudio(playbackObject);
-            }
-        }
+        _stateMachine.Current?.OnPlayTimeChanged(this, oldMs, newMs, paused);
     }
 
     // Internal helpers for state classes
@@ -795,5 +700,100 @@ public class RealtimeModeManager : ViewModelBase
     internal void PlaySingleAudioPreview(OsuFile osuFile, string? path, int playTime)
     {
         _ = _selectSongTrack.PlaySingleAudio(osuFile, path!, playTime);
+    }
+
+    // New helpers for playtime migration
+    internal void UpdatePauseCount(bool paused)
+    {
+        if (paused && _previousSelectSongStatus)
+        {
+            _pauseCount++;
+        }
+        else if (!paused)
+        {
+            _pauseCount = 0;
+        }
+    }
+
+    internal bool GetPreviousSelectSongStatus() => _previousSelectSongStatus;
+    internal void SetPreviousSelectSongStatus(bool value) => _previousSelectSongStatus = value;
+    internal int GetPauseCount() => _pauseCount;
+    internal void SetPauseCount(int value) => _pauseCount = value;
+    internal bool GetEnableMusicFunctions() => AppSettings.RealtimeOptions.EnableMusicFunctions;
+
+    internal void PauseCurrentMusic()
+    {
+        _ = _selectSongTrack.PauseCurrentMusic();
+    }
+
+    internal void RecoverCurrentMusic()
+    {
+        _ = _selectSongTrack.RecoverCurrentMusic();
+    }
+
+    internal bool GetFirstStartInitialized() => _firstStartInitialized;
+    internal void SetFirstStartInitialized(bool value) => _firstStartInitialized = value;
+
+    internal void ClearMixerLoopsAndMainTrackAudio()
+    {
+        var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
+        _loopProviders.RemoveAll(mixer);
+        _singleSynchronousTrack.ClearAudio();
+        mixer?.RemoveAllMixerInputs();
+    }
+
+    internal void ResetNodesExternal() => ResetNodes();
+
+    internal string? GetMusicPath()
+    {
+        if (_folder == null || AudioFilename == null) return null;
+        return Path.Combine(_folder, AudioFilename);
+    }
+
+    internal void SetMainTrackOffsetAndLeadIn(int offset, int leadInMs)
+    {
+        _singleSynchronousTrack.Offset = offset;
+        _singleSynchronousTrack.LeadInMilliseconds = leadInMs;
+    }
+
+    internal bool IsResultFlag() => _result;
+
+    internal void SyncMainTrackAudio(CachedSound sound, int positionMs)
+    {
+        _singleSynchronousTrack.SyncAudio(sound, positionMs);
+    }
+
+    internal void ClearMainTrackAudio()
+    {
+        _singleSynchronousTrack.ClearAudio();
+    }
+
+    internal void AdvanceCachingWindow(int newMs)
+    {
+        if (newMs > _nextCachingTime)
+        {
+            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _keyList);
+            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _playbackList);
+            _nextCachingTime += 10000;
+        }
+    }
+
+    internal void PlayAutoPlaybackIfNeeded()
+    {
+        if (SharedViewModel.Instance.AutoMode || (PlayMods & Mods.Autoplay) != 0 || IsReplay)
+        {
+            foreach (var playbackObject in GetPlaybackAudio(false))
+            {
+                PlayAudio(playbackObject);
+            }
+        }
+    }
+
+    internal void PlayManualPlaybackIfNeeded()
+    {
+        foreach (var playbackObject in GetPlaybackAudio(true))
+        {
+            PlayAudio(playbackObject);
+        }
     }
 }

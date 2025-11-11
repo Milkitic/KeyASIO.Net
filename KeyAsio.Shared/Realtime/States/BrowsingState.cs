@@ -20,6 +20,22 @@ public class BrowsingState : IRealtimeState
 
     public void OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
     {
+        const int selectSongPauseThreshold = 20;
+        if (!ctx.GetEnableMusicFunctions()) return;
+
+        // Maintain pause state lifecycle for song-select preview
+        ctx.UpdatePauseCount(paused);
+
+        if (ctx.GetPauseCount() >= selectSongPauseThreshold && ctx.GetPreviousSelectSongStatus())
+        {
+            ctx.PauseCurrentMusic();
+            ctx.SetPreviousSelectSongStatus(false);
+        }
+        else if (ctx.GetPauseCount() < selectSongPauseThreshold && !ctx.GetPreviousSelectSongStatus())
+        {
+            ctx.RecoverCurrentMusic();
+            ctx.SetPreviousSelectSongStatus(true);
+        }
     }
 
     public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
