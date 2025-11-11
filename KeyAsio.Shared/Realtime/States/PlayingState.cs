@@ -80,6 +80,19 @@ public class PlayingState : IRealtimeState
         ctx.PlayManualPlaybackIfNeeded();
     }
 
+    public void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo)
+    {
+        if (ctx.AppSettings.RealtimeOptions.IgnoreComboBreak) return;
+        if (!ctx.IsStarted) return;
+        if (ctx.Score == 0) return;
+        if (newCombo >= oldCombo || oldCombo < 20) return;
+
+        if (ctx.TryGetCachedSound("combobreak", out var cachedSound))
+        {
+            ctx.PlayAudio(cachedSound, 1, 0);
+        }
+    }
+
     public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
     {
     }

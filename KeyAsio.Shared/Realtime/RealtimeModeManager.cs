@@ -632,15 +632,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnComboChanged(int oldCombo, int newCombo)
     {
-        if (IsStarted && !AppSettings.RealtimeOptions.IgnoreComboBreak &&
-            newCombo < oldCombo && oldCombo >= 20 &&
-            Score != 0)
-        {
-            if (_filenameToCachedSoundMapping.TryGetValue("combobreak", out var cachedSound))
-            {
-                PlayAudio(cachedSound, 1, 0);
-            }
-        }
+        _stateMachine.Current?.OnComboChanged(this, oldCombo, newCombo);
     }
 
     private async Task OnStatusChanged(OsuMemoryStatus cur)
@@ -662,10 +654,14 @@ public class RealtimeModeManager : ViewModelBase
         _stateMachine.Current?.OnPlayTimeChanged(this, oldMs, newMs, paused);
     }
 
-    // Internal helpers for state classes
     internal void StartLowPass(int lower, int upper)
     {
         _selectSongTrack.StartLowPass(lower, upper);
+    }
+
+    internal bool TryGetCachedSound(string filenameWithoutExt, out CachedSound? cachedSound)
+    {
+        return _filenameToCachedSoundMapping.TryGetValue(filenameWithoutExt, out cachedSound);
     }
 
     internal void StopCurrentMusic(int fadeMs = 0)
@@ -702,7 +698,6 @@ public class RealtimeModeManager : ViewModelBase
         _ = _selectSongTrack.PlaySingleAudio(osuFile, path!, playTime);
     }
 
-    // New helpers for playtime migration
     internal void UpdatePauseCount(bool paused)
     {
         if (paused && _previousSelectSongStatus)

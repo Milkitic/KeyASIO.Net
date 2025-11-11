@@ -20,6 +20,10 @@ public class ResultsState : IRealtimeState
     {
     }
 
+    public void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo)
+    {
+    }
+
     public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
     {
     }
