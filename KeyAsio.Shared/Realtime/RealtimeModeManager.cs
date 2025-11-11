@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
@@ -19,8 +18,6 @@ namespace KeyAsio.Shared.Realtime;
 
 public class RealtimeModeManager : ViewModelBase
 {
-    private static readonly string[] SkinAudioFiles = ["combobreak"];
-
     public static RealtimeModeManager Instance { get; } = new();
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(RealtimeModeManager));
 
@@ -40,8 +37,7 @@ public class RealtimeModeManager : ViewModelBase
     private BeatmapIdentifier _beatmap;
     private bool _isStarted;
 
-    private readonly List<PlayableNode> _keyList = new();
-    private readonly List<HitsoundNode> _playbackList = new();
+    private readonly HitsoundNodeService _hitsoundNodeService;
 
     private readonly StandardAudioProvider _standardAudioProvider;
     private readonly ManiaAudioProvider _maniaAudioProvider;
@@ -58,7 +54,6 @@ public class RealtimeModeManager : ViewModelBase
     private string? _folder;
     private string? _audioFilePath;
 
-    private int _nextCachingTime;
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
 
@@ -89,6 +84,7 @@ public class RealtimeModeManager : ViewModelBase
         });
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
         _audioCacheService = new AudioCacheService(() => IsStarted);
+        _hitsoundNodeService = new HitsoundNodeService(this, _audioCacheService);
     }
 
     public string? Username
@@ -224,8 +220,8 @@ public class RealtimeModeManager : ViewModelBase
     }
 
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
-    public IReadOnlyList<HitsoundNode> PlaybackList => _playbackList;
-    public List<PlayableNode> KeyList => _keyList;
+    public IReadOnlyList<HitsoundNode> PlaybackList => _hitsoundNodeService.PlaybackList;
+    public List<PlayableNode> KeyList => _hitsoundNodeService.KeyList;
 
     public bool TryGetAudioByNode(HitsoundNode playableNode, out CachedSound? cachedSound)
     {
@@ -289,7 +285,7 @@ public class RealtimeModeManager : ViewModelBase
                 throw new Exception("The beatmap folder is null!");
             }
 
-            await InitializeNodeListsAsync(folder, beatmapFilename);
+            await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename, GetCurrentAudioProvider());
             AddSkinCacheInBackground();
             ResetNodes();
         }
@@ -331,51 +327,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void ResetNodes()
     {
-        GetCurrentAudioProvider().ResetNodes(PlayTime);
-        _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _keyList);
-        _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _playbackList);
-        _nextCachingTime = 10000;
-    }
-
-    private async Task InitializeNodeListsAsync(string folder, string diffFilename)
-    {
-        _keyList.Clear();
-        _playbackList.Clear();
-
-        var osuDir = new OsuDirectory(folder);
-        using (DebugUtils.CreateTimer("InitFolder", Logger))
-        {
-            await osuDir.InitializeAsync(diffFilename,
-                ignoreWaveFiles: AppSettings.RealtimeOptions.IgnoreBeatmapHitsound);
-        }
-
-        if (osuDir.OsuFiles.Count <= 0)
-        {
-            Logger.Warn($"There is no available beatmaps after scanning. " +
-                        $"Directory: {folder}; File: {diffFilename}");
-            return;
-        }
-
-        var osuFile = osuDir.OsuFiles[0];
-        OsuFile = osuFile;
-        AudioFilename = osuFile.General?.AudioFilename;
-        using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
-        var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
-        await Task.Delay(100);
-        var isNightcore = PlayMods != Mods.Unknown && (PlayMods & Mods.Nightcore) != 0;
-        if (isNightcore || AppSettings.RealtimeOptions.ForceNightcoreBeats)
-        {
-            if (isNightcore)
-            {
-                Logger.Info("Current Mods:" + PlayMods);
-            }
-
-            var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);
-            hitsoundList.AddRange(list);
-            hitsoundList = hitsoundList.OrderBy(k => k.Offset).ToList();
-        }
-
-        GetCurrentAudioProvider().FillAudioList(hitsoundList, _keyList, _playbackList);
+        _hitsoundNodeService.ResetNodes(GetCurrentAudioProvider(), PlayTime);
     }
 
     private void AddSkinCacheInBackground()
@@ -394,14 +346,6 @@ public class RealtimeModeManager : ViewModelBase
 
         _audioCacheService.SetContext(_folder, AudioFilename);
         _audioCacheService.PrecacheMusicAndSkinInBackground();
-    }
-
-    private void AddAudioCacheInBackground(int startTime, int endTime,
-        IEnumerable<HitsoundNode> playableNodes,
-        [CallerArgumentExpression("playableNodes")]
-        string? expression = null)
-    {
-        _audioCacheService.PrecacheHitsoundsRangeInBackground(startTime, endTime, playableNodes, expression);
     }
 
     private IAudioProvider GetCurrentAudioProvider()
@@ -519,7 +463,7 @@ public class RealtimeModeManager : ViewModelBase
         mixer?.RemoveAllMixerInputs();
     }
 
-    internal void ResetNodesExternal() => ResetNodes();
+    internal void ResetNodesExternal() => _hitsoundNodeService.ResetNodes(GetCurrentAudioProvider(), PlayTime);
 
     internal string? GetMusicPath()
     {
@@ -546,12 +490,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void AdvanceCachingWindow(int newMs)
     {
-        if (newMs > _nextCachingTime)
-        {
-            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _keyList);
-            AddAudioCacheInBackground(_nextCachingTime, _nextCachingTime + 13000, _playbackList);
-            _nextCachingTime += 10000;
-        }
+        _hitsoundNodeService.AdvanceCachingWindow(newMs);
     }
 
     internal void PlayAutoPlaybackIfNeeded()
