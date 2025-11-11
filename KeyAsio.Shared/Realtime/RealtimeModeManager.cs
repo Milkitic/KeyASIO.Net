@@ -6,17 +6,14 @@ using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.AudioProviders;
 using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Realtime.States;
-using KeyAsio.Shared.Realtime.Tracks;
 using KeyAsio.Shared.Utils;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using OsuMemoryDataProvider;
-using BalanceSampleProvider = KeyAsio.Shared.Audio.BalanceSampleProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
@@ -52,8 +49,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
 
-    private readonly SingleSynchronousTrack _singleSynchronousTrack;
-    private readonly SelectSongTrack _selectSongTrack;
+    private readonly MusicTrackService _musicTrackService = new();
 
     private readonly AudioPlaybackService _audioPlaybackService = new();
 
@@ -70,8 +66,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         _standardAudioProvider = new StandardAudioProvider(this);
         _maniaAudioProvider = new ManiaAudioProvider(this);
-        _singleSynchronousTrack = new SingleSynchronousTrack();
-        _selectSongTrack = new SelectSongTrack();
+        // Track services initialized via field initializer
 
         _audioProviderDictionary = new Dictionary<GameMode, IAudioProvider>()
         {
@@ -257,7 +252,8 @@ public class RealtimeModeManager : ViewModelBase
                 var volume = playableNode.PlayablePriority == PlayablePriority.Effects
                     ? playableNode.Volume * 1.25f
                     : playableNode.Volume;
-                _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedSound, volume, playableNode.Balance, AppSettings);
+                _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedSound, volume, playableNode.Balance,
+                    AppSettings);
             }
         }
         else
@@ -271,8 +267,6 @@ public class RealtimeModeManager : ViewModelBase
     {
         _audioPlaybackService.PlayEffectsAudio(cachedSound, volume, balance, AppSettings);
     }
-
-    
 
     public async Task StartAsync(string beatmapFilenameFull, string beatmapFilename)
     {
@@ -318,15 +312,15 @@ public class RealtimeModeManager : ViewModelBase
         _firstStartInitialized = false;
         var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
         _audioPlaybackService.ClearAllLoops(mixer);
-        _singleSynchronousTrack.ClearAudio();
+        _musicTrackService.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();
         _playTime = 0;
         Combo = 0;
 
         if (_folder != null && OsuFile != null)
         {
-            _ = _selectSongTrack.PlaySingleAudio(OsuFile, Path.Combine(_folder, OsuFile.General.AudioFilename ?? ""),
-                OsuFile.General.PreviewTime);
+            var path = Path.Combine(_folder, OsuFile.General.AudioFilename ?? "");
+            _musicTrackService.PlaySingleAudioPreview(OsuFile, path, OsuFile.General.PreviewTime);
         }
     }
 
@@ -404,7 +398,8 @@ public class RealtimeModeManager : ViewModelBase
 
     private void AddAudioCacheInBackground(int startTime, int endTime,
         IEnumerable<HitsoundNode> playableNodes,
-        [CallerArgumentExpression("playableNodes")] string? expression = null)
+        [CallerArgumentExpression("playableNodes")]
+        string? expression = null)
     {
         _audioCacheService.PrecacheHitsoundsRangeInBackground(startTime, endTime, playableNodes, expression);
     }
@@ -442,7 +437,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void StartLowPass(int lower, int upper)
     {
-        _selectSongTrack.StartLowPass(lower, upper);
+        _musicTrackService.StartLowPass(lower, upper);
     }
 
     internal bool TryGetCachedSound(string filenameWithoutExt, out CachedSound? cachedSound)
@@ -452,7 +447,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void StopCurrentMusic(int fadeMs = 0)
     {
-        _ = _selectSongTrack.StopCurrentMusic(fadeMs);
+        _musicTrackService.StopCurrentMusic(fadeMs);
     }
 
     internal void SetResultFlag(bool value)
@@ -462,7 +457,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void SetSingleTrackPlayMods(Mods mods)
     {
-        _singleSynchronousTrack.PlayMods = mods;
+        _musicTrackService.SetSingleTrackPlayMods(mods);
     }
 
     internal string? GetAudioFilePath() => _audioFilePath;
@@ -481,7 +476,8 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void PlaySingleAudioPreview(OsuFile osuFile, string? path, int playTime)
     {
-        _ = _selectSongTrack.PlaySingleAudio(osuFile, path!, playTime);
+        if (path is null) return;
+        _musicTrackService.PlaySingleAudioPreview(osuFile, path, playTime);
     }
 
     internal void UpdatePauseCount(bool paused)
@@ -504,12 +500,12 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void PauseCurrentMusic()
     {
-        _ = _selectSongTrack.PauseCurrentMusic();
+        _musicTrackService.PauseCurrentMusic();
     }
 
     internal void RecoverCurrentMusic()
     {
-        _ = _selectSongTrack.RecoverCurrentMusic();
+        _musicTrackService.RecoverCurrentMusic();
     }
 
     internal bool GetFirstStartInitialized() => _firstStartInitialized;
@@ -519,7 +515,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
         _audioPlaybackService.ClearAllLoops(mixer);
-        _singleSynchronousTrack.ClearAudio();
+        _musicTrackService.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();
     }
 
@@ -533,20 +529,19 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void SetMainTrackOffsetAndLeadIn(int offset, int leadInMs)
     {
-        _singleSynchronousTrack.Offset = offset;
-        _singleSynchronousTrack.LeadInMilliseconds = leadInMs;
+        _musicTrackService.SetMainTrackOffsetAndLeadIn(offset, leadInMs);
     }
 
     internal bool IsResultFlag() => _result;
 
     internal void SyncMainTrackAudio(CachedSound sound, int positionMs)
     {
-        _singleSynchronousTrack.SyncAudio(sound, positionMs);
+        _musicTrackService.SyncMainTrackAudio(sound, positionMs);
     }
 
     internal void ClearMainTrackAudio()
     {
-        _singleSynchronousTrack.ClearAudio();
+        _musicTrackService.ClearMainTrackAudio();
     }
 
     internal void AdvanceCachingWindow(int newMs)
