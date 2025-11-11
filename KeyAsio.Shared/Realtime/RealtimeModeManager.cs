@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Coosu.Beatmap;
-using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.MemoryReading;
@@ -12,12 +9,12 @@ using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.AudioProviders;
+using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Realtime.States;
 using KeyAsio.Shared.Realtime.Tracks;
 using KeyAsio.Shared.Utils;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
-using NAudio.Wave;
 using OsuMemoryDataProvider;
 using BalanceSampleProvider = KeyAsio.Shared.Audio.BalanceSampleProvider;
 
@@ -35,10 +32,16 @@ public class RealtimeModeManager : ViewModelBase
     private int _pauseCount = 0;
 
     private readonly Lock _isStartedLock = new();
-    private readonly HitsoundFileCache _hitsoundFileCache = new();
+    private readonly AudioCacheService _audioCacheService;
 
-    private readonly ConcurrentDictionary<HitsoundNode, CachedSound?> _playNodeToCachedSoundMapping = new();
-    private readonly ConcurrentDictionary<string, CachedSound?> _filenameToCachedSoundMapping = new();
+    private string? _username;
+    private Mods _playMods;
+    private int _lastFetchedPlayTime;
+    private int _combo;
+    private int _score;
+    private OsuMemoryStatus _osuStatus;
+    private BeatmapIdentifier _beatmap;
+    private bool _isStarted;
 
     private readonly List<PlayableNode> _keyList = new();
     private readonly List<HitsoundNode> _playbackList = new();
@@ -90,15 +93,16 @@ public class RealtimeModeManager : ViewModelBase
             [OsuMemoryStatus.MultiplayerSongSelect] = new BrowsingState(),
         });
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
+        _audioCacheService = new AudioCacheService(() => IsStarted);
     }
 
     public string? Username
     {
-        get;
+        get => _username;
         set
         {
-            if (value == field) return;
-            field = value;
+            if (_username == value) return;
+            _username = value;
             if (!string.IsNullOrEmpty(value))
             {
                 AppSettings.PlayerBase64 = EncodeUtils.GetBase64String(value, Encoding.ASCII);
@@ -110,11 +114,11 @@ public class RealtimeModeManager : ViewModelBase
 
     public Mods PlayMods
     {
-        get;
+        get => _playMods;
         set
         {
-            var val = field;
-            if (SetField(ref field, value))
+            var val = _playMods;
+            if (SetField(ref _playMods, value))
             {
                 OnPlayModsChanged(val, value);
             }
@@ -141,10 +145,10 @@ public class RealtimeModeManager : ViewModelBase
 
     public int LastFetchedPlayTime
     {
-        get;
+        get => _lastFetchedPlayTime;
         set
         {
-            if (SetField(ref field, value))
+            if (SetField(ref _lastFetchedPlayTime, value))
             {
                 _playTimeStopwatch.Restart();
             }
@@ -159,11 +163,11 @@ public class RealtimeModeManager : ViewModelBase
 
     public int Combo
     {
-        get;
+        get => _combo;
         set
         {
-            var val = field;
-            if (SetField(ref field, value))
+            var val = _combo;
+            if (SetField(ref _combo, value))
             {
                 OnComboChanged(val, value);
             }
@@ -172,20 +176,20 @@ public class RealtimeModeManager : ViewModelBase
 
     public int Score
     {
-        get;
-        set => SetField(ref field, value);
+        get => _score;
+        set => SetField(ref _score, value);
     }
 
     public bool IsReplay { get; set; }
 
     public OsuMemoryStatus OsuStatus
     {
-        get;
+        get => _osuStatus;
         set
         {
-            if (SetField(ref field, value))
+            if (SetField(ref _osuStatus, value))
             {
-                _ = OnStatusChanged(field);
+                _ = OnStatusChanged(_osuStatus);
             }
         }
     }
@@ -196,10 +200,10 @@ public class RealtimeModeManager : ViewModelBase
 
     public BeatmapIdentifier Beatmap
     {
-        get;
+        get => _beatmap;
         set
         {
-            if (SetField(ref field, value))
+            if (SetField(ref _beatmap, value))
             {
                 OnBeatmapChanged(value);
             }
@@ -212,14 +216,14 @@ public class RealtimeModeManager : ViewModelBase
         {
             lock (_isStartedLock)
             {
-                return field;
+                return _isStarted;
             }
         }
         set
         {
             lock (_isStartedLock)
             {
-                SetField(ref field, value);
+                SetField(ref _isStarted, value);
             }
         }
     }
@@ -230,7 +234,7 @@ public class RealtimeModeManager : ViewModelBase
 
     public bool TryGetAudioByNode(HitsoundNode playableNode, out CachedSound? cachedSound)
     {
-        if (!_playNodeToCachedSoundMapping.TryGetValue(playableNode, out cachedSound)) return false;
+        if (!_audioCacheService.TryGetAudioByNode(playableNode, out cachedSound)) return false;
         return playableNode is not PlayableNode || cachedSound != null;
     }
 
@@ -393,16 +397,14 @@ public class RealtimeModeManager : ViewModelBase
 
     private void CleanAudioCaches()
     {
-        CachedSoundFactory.ClearCacheSounds();
-        _playNodeToCachedSoundMapping.Clear();
-        _filenameToCachedSoundMapping.Clear();
+        _audioCacheService.ClearCaches();
     }
 
     private void ResetNodes()
     {
         GetCurrentAudioProvider().ResetNodes(PlayTime);
-        AddAudioCacheInBackground(0, 13000, _keyList);
-        AddAudioCacheInBackground(0, 13000, _playbackList);
+        _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _keyList);
+        _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _playbackList);
         _nextCachingTime = 10000;
     }
 
@@ -461,167 +463,15 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        var folder = _folder;
-        var waveFormat = SharedViewModel.Instance.AudioEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.SelectedSkin?.Folder ?? "";
-        Task.Run(() =>
-        {
-            if (folder != null && AudioFilename != null)
-            {
-                var musicPath = Path.Combine(folder, AudioFilename);
-                var (result, status) = CachedSoundFactory.GetOrCreateCacheSoundStatus(waveFormat, musicPath).Result;
-
-                if (result == null)
-                {
-                    Logger.Warn("Caching sound failed: " + (File.Exists(musicPath) ? musicPath : "FileNotFound"));
-                }
-                else if (status == true)
-                {
-                    Logger.Info("Cached music: " + musicPath);
-                }
-            }
-
-            SkinAudioFiles.AsParallel()
-                .WithDegreeOfParallelism(1)
-                //.WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
-                .ForAll(skinSound =>
-                {
-                    AddSkinCache(skinSound, folder, skinFolder, waveFormat).Wait();
-                });
-        });
+        _audioCacheService.SetContext(_folder, AudioFilename);
+        _audioCacheService.PrecacheMusicAndSkinInBackground();
     }
 
     private void AddAudioCacheInBackground(int startTime, int endTime,
         IEnumerable<HitsoundNode> playableNodes,
-        [CallerArgumentExpression("playableNodes")]
-        string? expression = null)
+        [CallerArgumentExpression("playableNodes")] string? expression = null)
     {
-        if (_folder == null)
-        {
-            Logger.Warn($"{nameof(_folder)} is null, stop adding cache.");
-            return;
-        }
-
-        if (SharedViewModel.Instance.AudioEngine == null)
-        {
-            Logger.Warn($"{nameof(SharedViewModel.Instance.AudioEngine)} is null, stop adding cache.");
-            return;
-        }
-
-        if (playableNodes is IList { Count: 0 })
-        {
-            Logger.Warn($"{expression} has no hitsounds, stop adding cache.");
-            return;
-        }
-
-        var hitsoundList = playableNodes;
-        var folder = _folder;
-        var waveFormat = SharedViewModel.Instance.AudioEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.SelectedSkin?.Folder ?? "";
-        Task.Run(() =>
-        {
-            using var _ = DebugUtils.CreateTimer($"CacheAudio {startTime}~{endTime}", Logger);
-            hitsoundList
-                .Where(k => k.Offset >= startTime && k.Offset < endTime)
-                .AsParallel()
-                .WithDegreeOfParallelism(1)
-                //.WithDegreeOfParallelism(Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount / 2)
-                .ForAll(playableNode =>
-                {
-                    AddHitsoundCache(playableNode, folder, skinFolder, waveFormat).Wait();
-                });
-        });
-    }
-
-    private async Task<CachedSound?> AddSkinCache(string filenameWithoutExt,
-        string beatmapFolder,
-        string skinFolder,
-        WaveFormat waveFormat)
-    {
-        if (_filenameToCachedSoundMapping.TryGetValue(filenameWithoutExt, out var value)) return value;
-
-        string? identifier = null;
-        var filename = _hitsoundFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var useUserSkin);
-        string path;
-        if (useUserSkin)
-        {
-            identifier = "internal";
-            filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, filenameWithoutExt,
-                out useUserSkin);
-            path = useUserSkin
-                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{filenameWithoutExt}.ogg")
-                : Path.Combine(skinFolder, filename);
-        }
-        else
-        {
-            path = Path.Combine(beatmapFolder, filename);
-        }
-
-        var (result, status) = await CachedSoundFactory
-            .GetOrCreateCacheSoundStatus(waveFormat, path, identifier, checkFileExist: false);
-
-        if (result == null)
-        {
-            Logger.Warn("Caching sound failed: " + (File.Exists(path) ? path : "FileNotFound"));
-        }
-        else if (status == true)
-        {
-            Logger.Info("Cached skin audio: " + path);
-        }
-
-        _filenameToCachedSoundMapping.TryAdd(filenameWithoutExt, result);
-
-        return result;
-    }
-
-    private async Task AddHitsoundCache(HitsoundNode hitsoundNode,
-        string beatmapFolder,
-        string skinFolder,
-        WaveFormat waveFormat)
-    {
-        if (!IsStarted)
-        {
-            Logger.Warn($"Isn't started, stop adding cache.");
-            return;
-        }
-
-        if (hitsoundNode.Filename == null)
-        {
-            if (hitsoundNode is PlayableNode)
-            {
-                Logger.Warn($"Filename is null, add null cache.");
-            }
-
-            _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, null);
-            return;
-        }
-
-        var path = Path.Combine(beatmapFolder, hitsoundNode.Filename);
-        string? identifier = null;
-        if (hitsoundNode.UseUserSkin)
-        {
-            identifier = "internal";
-            var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, hitsoundNode.Filename,
-                out var useUserSkin);
-            path = useUserSkin
-                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{hitsoundNode.Filename}.ogg")
-                : Path.Combine(skinFolder, filename);
-        }
-
-        var (result, status) = await CachedSoundFactory
-            .GetOrCreateCacheSoundStatus(waveFormat, path, identifier, checkFileExist: false);
-
-        if (result == null)
-        {
-            Logger.Warn("Caching sound failed: " + (File.Exists(path) ? path : "FileNotFound"));
-        }
-        else if (status == true)
-        {
-            Logger.Info("Cached sound: " + path);
-        }
-
-        _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, result);
-        _filenameToCachedSoundMapping.TryAdd(Path.GetFileNameWithoutExtension(path), result);
+        _audioCacheService.PrecacheHitsoundsRangeInBackground(startTime, endTime, playableNodes, expression);
     }
 
     private IAudioProvider GetCurrentAudioProvider()
@@ -662,7 +512,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal bool TryGetCachedSound(string filenameWithoutExt, out CachedSound? cachedSound)
     {
-        return _filenameToCachedSoundMapping.TryGetValue(filenameWithoutExt, out cachedSound);
+        return _audioCacheService.TryGetCachedSound(filenameWithoutExt, out cachedSound);
     }
 
     internal void StopCurrentMusic(int fadeMs = 0)
