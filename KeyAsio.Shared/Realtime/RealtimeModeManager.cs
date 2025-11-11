@@ -208,8 +208,20 @@ public class RealtimeModeManager : ViewModelBase
 
     public bool IsStarted
     {
-        get { lock (_isStartedLock) { return field; } }
-        set { lock (_isStartedLock) { SetField(ref field, value); } }
+        get
+        {
+            lock (_isStartedLock)
+            {
+                return field;
+            }
+        }
+        set
+        {
+            lock (_isStartedLock)
+            {
+                SetField(ref field, value);
+            }
+        }
     }
 
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
@@ -403,13 +415,14 @@ public class RealtimeModeManager : ViewModelBase
         var osuDir = new OsuDirectory(folder);
         using (DebugUtils.CreateTimer("InitFolder", Logger))
         {
-            await osuDir.InitializeAsync(diffFilename, ignoreWaveFiles: AppSettings.RealtimeOptions.IgnoreBeatmapHitsound);
+            await osuDir.InitializeAsync(diffFilename,
+                ignoreWaveFiles: AppSettings.RealtimeOptions.IgnoreBeatmapHitsound);
         }
 
         if (osuDir.OsuFiles.Count <= 0)
         {
             Logger.Warn($"There is no available beatmaps after scanning. " +
-                              $"Directory: {folder}; File: {diffFilename}");
+                        $"Directory: {folder}; File: {diffFilename}");
             return;
         }
 
@@ -638,29 +651,7 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnBeatmapChanged(BeatmapIdentifier beatmap)
     {
-        if (OsuStatus is OsuMemoryStatus.SongSelect or OsuMemoryStatus.SongSelectEdit or
-                OsuMemoryStatus.MainMenu or OsuMemoryStatus.MultiplayerSongSelect && beatmap != default)
-        {
-            var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
-            {
-                k.IncludeSection("General");
-                k.IncludeSection("Metadata");
-            });
-            var audioFilePath = coosu.General?.AudioFilename == null
-                ? null
-                : Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
-            if (audioFilePath == _audioFilePath)
-            {
-                return;
-            }
-
-            _folder = beatmap.Folder;
-            _audioFilePath = audioFilePath;
-            _ = _selectSongTrack.StopCurrentMusic(200);
-            _ = _selectSongTrack.PlaySingleAudio(coosu, audioFilePath, coosu.General.PreviewTime);
-            _previousSelectSongStatus = true;
-            _pauseCount = 0;
-        }
+        _stateMachine.Current?.OnBeatmapChanged(this, beatmap);
     }
 
     private void OnPlayModsChanged(Mods oldMods, Mods newMods)
@@ -713,7 +704,8 @@ public class RealtimeModeManager : ViewModelBase
 
         if (enableMusicFunctions && IsStarted)
         {
-            if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null && SharedViewModel.Instance.AudioEngine != null)
+            if (_firstStartInitialized && OsuFile != null && AudioFilename != null && _folder != null &&
+                SharedViewModel.Instance.AudioEngine != null)
             {
                 if (_pauseCount >= playingPauseThreshold)
                 {
@@ -784,5 +776,24 @@ public class RealtimeModeManager : ViewModelBase
     internal void SetSingleTrackPlayMods(Mods mods)
     {
         _singleSynchronousTrack.PlayMods = mods;
+    }
+
+    internal string? GetAudioFilePath() => _audioFilePath;
+
+    internal void UpdateAudioPreviewContext(string folder, string? audioFilePath)
+    {
+        _folder = folder;
+        _audioFilePath = audioFilePath;
+    }
+
+    internal void ResetBrowsingPauseState()
+    {
+        _previousSelectSongStatus = true;
+        _pauseCount = 0;
+    }
+
+    internal void PlaySingleAudioPreview(OsuFile osuFile, string? path, int playTime)
+    {
+        _ = _selectSongTrack.PlaySingleAudio(osuFile, path!, playTime);
     }
 }

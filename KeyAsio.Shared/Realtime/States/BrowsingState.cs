@@ -1,3 +1,4 @@
+using Coosu.Beatmap;
 using KeyAsio.MemoryReading;
 using OsuMemoryDataProvider;
 
@@ -23,6 +24,37 @@ public class BrowsingState : IRealtimeState
 
     public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
     {
+        if (beatmap == default)
+        {
+            return;
+        }
+
+        if (ctx.OsuStatus is not (
+            OsuMemoryStatus.SongSelect or
+            OsuMemoryStatus.SongSelectEdit or
+            OsuMemoryStatus.MainMenu or
+            OsuMemoryStatus.MultiplayerSongSelect)
+           ) return;
+
+        var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
+        {
+            k.IncludeSection("General");
+            k.IncludeSection("Metadata");
+        });
+
+        var audioFilePath = coosu.General?.AudioFilename == null
+            ? null
+            : Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
+
+        if (audioFilePath == ctx.GetAudioFilePath())
+        {
+            return;
+        }
+
+        ctx.UpdateAudioPreviewContext(beatmap.Folder, audioFilePath);
+        ctx.StopCurrentMusic(200);
+        ctx.PlaySingleAudioPreview(coosu, audioFilePath, coosu.General.PreviewTime);
+        ctx.ResetBrowsingPauseState();
     }
 
     public void OnModsChanged(RealtimeModeManager ctx, Mods oldMods, Mods newMods)
