@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Shared.Models;
 
@@ -11,10 +11,10 @@ public partial class RealtimeOptionsWindow : DialogWindow
 {
     private readonly SharedViewModel _viewModel;
 
-    public RealtimeOptionsWindow()
+    public RealtimeOptionsWindow(SharedViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = _viewModel = SharedViewModel.Instance;
+        DataContext = _viewModel = viewModel;
     }
 
     private void RealtimeOptionsWindow_OnClosed(object? sender, EventArgs e)

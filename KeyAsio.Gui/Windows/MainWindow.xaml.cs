@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -14,7 +14,7 @@ using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
-using Milki.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
@@ -37,11 +37,11 @@ public partial class MainWindow : DialogWindow
     private readonly List<Guid> _registerList = new();
     private Timer? _timer;
 
-    public MainWindow()
+    public MainWindow(AppSettings appSettings, SharedViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = _viewModel = SharedViewModel.Instance;
-        _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
+        DataContext = _viewModel = viewModel;
+        _appSettings = appSettings;
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
@@ -89,11 +89,9 @@ public partial class MainWindow : DialogWindow
 
     private async Task SelectDevice()
     {
-        var window = new DeviceWindow
-        {
-            Owner = this,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        };
+        var window = ((App)Application.Current).Services.GetRequiredService<DeviceWindow>();
+        window.Owner = this;
+        window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         if (window.ShowDialog() != true) return;
 
         var deviceDescription = window.ViewModel.SelectedDevice;
@@ -460,12 +458,9 @@ public partial class MainWindow : DialogWindow
         }
 
         _registerList.Clear();
-
-        var latencyGuideWindow = new LatencyGuideWindow
-        {
-            Owner = this,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        };
+        var latencyGuideWindow = ((App)Application.Current).Services.GetRequiredService<LatencyGuideWindow>();
+        latencyGuideWindow.Owner = this;
+        latencyGuideWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         latencyGuideWindow.ShowDialog();
 
         foreach (var key in _appSettings.Keys)
@@ -476,12 +471,10 @@ public partial class MainWindow : DialogWindow
 
     private void btnRealtimeOptions_OnClick(object sender, RoutedEventArgs e)
     {
-        var latencyGuideWindow = new RealtimeOptionsWindow
-        {
-            Owner = this,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        };
-        latencyGuideWindow.ShowDialog();
+        var optionsWindow = ((App)Application.Current).Services.GetRequiredService<RealtimeOptionsWindow>();
+        optionsWindow.Owner = this;
+        optionsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        optionsWindow.ShowDialog();
     }
 
     private static void FixCommit(ref string version)

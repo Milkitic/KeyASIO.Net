@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Shared.Models;
@@ -13,17 +13,17 @@ public partial class LatencyGuideWindow : DialogWindow
     private readonly SharedViewModel _viewModel;
     private readonly int _offset;
 
-    public LatencyGuideWindow()
+    public LatencyGuideWindow(SharedViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = _viewModel = SharedViewModel.Instance;
+        DataContext = _viewModel = viewModel;
         _offset = _viewModel.AppSettings?.RealtimeOptions.RealtimeModeAudioOffset ?? 0;
-        SharedViewModel.Instance.AutoMode = true;
+        _viewModel.AutoMode = true;
     }
 
     private void LatencyGuideWindow_OnClosed(object? sender, EventArgs e)
     {
-        SharedViewModel.Instance.AutoMode = false;
+        _viewModel.AutoMode = false;
         if (DialogResult != true && _viewModel.AppSettings != null)
         {
             _viewModel.AppSettings.RealtimeOptions.RealtimeModeAudioOffset = _offset;

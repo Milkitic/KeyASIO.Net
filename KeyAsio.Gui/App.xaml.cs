@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -15,15 +15,17 @@ using System.Xml.Linq;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
+using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer;
 using NLog.Extensions.Logging;
-
 using OrtdpLogger = KeyAsio.MemoryReading.Logger;
 
 namespace KeyAsio.Gui;
@@ -33,7 +35,10 @@ namespace KeyAsio.Gui;
 /// </summary>
 public partial class App : Application
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger("Application");
+    private static readonly KeyAsio.MemoryReading.Logging.ILogger Logger = LogUtils.GetLogger("Application");
+    private IHost? _host;
+
+    public IServiceProvider Services => _host?.Services ?? throw new InvalidOperationException("Host not initialized.");
 
     [STAThread]
     internal static void Main()
@@ -107,6 +112,7 @@ public partial class App : Application
                 }
             }
         }
+
         if (!changed) return;
         xDocument.DescendantNodes().OfType<XComment>().Remove();
         using var fsw = new StreamWriter(configFile, Encoding.UTF8, new FileStreamOptions
@@ -147,13 +153,33 @@ public partial class App : Application
 
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
-        Configuration.Instance.SetLogger(
-            Microsoft.Extensions.Logging.LoggerFactory.Create(k => k.AddNLog("nlog.config")));
+        _host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddNLog("nlog.config");
+            })
+            .ConfigureServices(services =>
+            {
+                services.AddSingleton(provider =>
+                    ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, "."));
+                services.AddSingleton(SharedViewModel.Instance);
+                services.AddSingleton(SkinManager.Instance);
+                services.AddSingleton(RealtimeModeManager.Instance);
+                services.AddTransient<DeviceWindowViewModel>();
+                services.AddTransient<MainWindow>();
+                services.AddTransient<DeviceWindow>();
+                services.AddTransient<LatencyGuideWindow>();
+                services.AddTransient<RealtimeOptionsWindow>();
+            })
+            .Build();
+
+        Configuration.Instance.SetLogger(_host.Services.GetRequiredService<ILoggerFactory>());
         NLogDevice.RegisterDefault();
 
         UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());
         Dispatcher.UnhandledException += Dispatcher_UnhandledException;
-        var settings = ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".");
+        var settings = _host.Services.GetRequiredService<AppSettings>();
 
         if (settings.Debugging)
         {
@@ -200,14 +226,33 @@ public partial class App : Application
             SkinManager.Instance.ListenToProcess();
         }
 
-        MainWindow = new MainWindow();
+        MainWindow = _host.Services.GetRequiredService<MainWindow>();
         MainWindow.Show();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+    private void Dispatcher_UnhandledException(object sender,
+        System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
         Logger.Error(e.Exception, "Unhandled Exception (Dispatcher): " + e.Exception.Message, true);
         e.Handled = true;
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        try
+        {
+            _host?.StopAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // ignored
+        }
+        finally
+        {
+            _host?.Dispose();
+        }
+
+        base.OnExit(e);
     }
 }
