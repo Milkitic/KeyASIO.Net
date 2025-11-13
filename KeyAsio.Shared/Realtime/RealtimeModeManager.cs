@@ -54,7 +54,11 @@ public class RealtimeModeManager : ViewModelBase
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
 
-    public RealtimeModeManager(SharedViewModel sharedViewModel)
+    public RealtimeModeManager(SharedViewModel sharedViewModel,
+        AudioCacheService audioCacheService,
+        HitsoundNodeService hitsoundNodeService,
+        MusicTrackService musicTrackService,
+        AudioPlaybackService audioPlaybackService)
     {
         _sharedViewModel = sharedViewModel;
         _standardAudioProvider = new StandardAudioProvider(this, sharedViewModel);
@@ -81,10 +85,10 @@ public class RealtimeModeManager : ViewModelBase
             [OsuMemoryStatus.MultiplayerSongSelect] = new BrowsingState(),
         });
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
-        _audioCacheService = new AudioCacheService(() => IsStarted, _sharedViewModel);
-        _hitsoundNodeService = new HitsoundNodeService(this, _audioCacheService);
-        _musicTrackService = new MusicTrackService(_sharedViewModel);
-        _audioPlaybackService = new AudioPlaybackService(_sharedViewModel);
+        _audioCacheService = audioCacheService;
+        _hitsoundNodeService = hitsoundNodeService;
+        _musicTrackService = musicTrackService;
+        _audioPlaybackService = audioPlaybackService;
     }
 
     public string? Username
@@ -285,7 +289,9 @@ public class RealtimeModeManager : ViewModelBase
                 throw new Exception("The beatmap folder is null!");
             }
 
-            await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename, GetCurrentAudioProvider());
+            var osuFile = await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename, GetCurrentAudioProvider(), PlayMods);
+            OsuFile = osuFile;
+            AudioFilename = osuFile?.General?.AudioFilename;
             AddSkinCacheInBackground();
             ResetNodes();
         }

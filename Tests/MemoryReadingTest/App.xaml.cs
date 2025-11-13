@@ -3,6 +3,8 @@ using KeyAsio.MemoryReading;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Realtime.Services;
+using Microsoft.Extensions.DependencyInjection;
 using OrtdpLogger = KeyAsio.MemoryReading.Logger;
 
 namespace MemoryReadingTest
@@ -12,7 +14,22 @@ namespace MemoryReadingTest
     /// </summary>
     public partial class App : Application
     {
-        private readonly RealtimeModeManager _realtime = new(new SharedViewModel());
+        private readonly RealtimeModeManager _realtime;
+
+        public App()
+        {
+            var services = new ServiceCollection();
+            services.AddSingleton(LogUtils.GetLogger("MemoryReadingTest"));
+            services.AddSingleton(new AppSettings());
+            services.AddSingleton<SharedViewModel>();
+            services.AddSingleton<AudioCacheService>();
+            services.AddSingleton<HitsoundNodeService>();
+            services.AddSingleton<MusicTrackService>();
+            services.AddSingleton<AudioPlaybackService>();
+            services.AddSingleton<RealtimeModeManager>();
+            var provider = services.BuildServiceProvider();
+            _realtime = provider.GetRequiredService<RealtimeModeManager>();
+        }
 
         private void App_OnStartup(object sender, StartupEventArgs e)
         {

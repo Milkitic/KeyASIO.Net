@@ -18,6 +18,7 @@ using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -164,10 +165,16 @@ public partial class App : Application
 
                 services.AddSingleton(provider =>
                     ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, "."));
-                services.AddSingleton<SharedViewModel>();
                 services.AddSingleton<SkinManager>();
+                services.AddSingleton<AudioCacheService>();
+                services.AddSingleton<HitsoundNodeService>();
+                services.AddSingleton<MusicTrackService>();
+                services.AddSingleton<AudioPlaybackService>();
                 services.AddSingleton<RealtimeModeManager>();
+
+                services.AddSingleton<SharedViewModel>();
                 services.AddTransient<DeviceWindowViewModel>();
+
                 services.AddTransient<MainWindow>();
                 services.AddTransient<DeviceWindow>();
                 services.AddTransient<LatencyGuideWindow>();

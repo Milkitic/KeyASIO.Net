@@ -2,6 +2,8 @@ using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Shared;
+using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
 
 namespace KeyAsio.Shared.Realtime.Services;
@@ -10,23 +12,23 @@ public class HitsoundNodeService
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(HitsoundNodeService));
 
-    private readonly RealtimeModeManager _ctx;
+    private readonly AppSettings _appSettings;
     private readonly AudioCacheService _audioCacheService;
 
     private readonly List<PlayableNode> _keyList = new();
     private readonly List<HitsoundNode> _playbackList = new();
     private int _nextCachingTime;
 
-    public HitsoundNodeService(RealtimeModeManager ctx, AudioCacheService audioCacheService)
+    public HitsoundNodeService(AppSettings appSettings, AudioCacheService audioCacheService)
     {
-        _ctx = ctx;
+        _appSettings = appSettings;
         _audioCacheService = audioCacheService;
     }
 
     public IReadOnlyList<HitsoundNode> PlaybackList => _playbackList;
     public List<PlayableNode> KeyList => _keyList;
 
-    public async Task InitializeNodeListsAsync(string folder, string diffFilename, IAudioProvider audioProvider)
+    public async Task<OsuFile?> InitializeNodeListsAsync(string folder, string diffFilename, IAudioProvider audioProvider, Mods playMods)
     {
         _keyList.Clear();
         _playbackList.Clear();
@@ -35,30 +37,28 @@ public class HitsoundNodeService
         using (DebugUtils.CreateTimer("InitFolder", Logger))
         {
             await osuDir.InitializeAsync(diffFilename,
-                ignoreWaveFiles: _ctx.AppSettings.RealtimeOptions.IgnoreBeatmapHitsound);
+                ignoreWaveFiles: _appSettings.RealtimeOptions.IgnoreBeatmapHitsound);
         }
 
         if (osuDir.OsuFiles.Count <= 0)
         {
             Logger.Warn($"There is no available beatmaps after scanning. " +
                         $"Directory: {folder}; File: {diffFilename}");
-            return;
+            return null;
         }
 
         var osuFile = osuDir.OsuFiles[0];
-        _ctx.OsuFile = osuFile;
-        _ctx.AudioFilename = osuFile.General?.AudioFilename;
 
         using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
         var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
         await Task.Delay(100);
 
-        var isNightcore = _ctx.PlayMods != Mods.Unknown && (_ctx.PlayMods & Mods.Nightcore) != 0;
-        if (isNightcore || _ctx.AppSettings.RealtimeOptions.ForceNightcoreBeats)
+        var isNightcore = playMods != Mods.Unknown && (playMods & Mods.Nightcore) != 0;
+        if (isNightcore || _appSettings.RealtimeOptions.ForceNightcoreBeats)
         {
             if (isNightcore)
             {
-                Logger.Info("Current Mods:" + _ctx.PlayMods);
+                Logger.Info("Current Mods:" + playMods);
             }
 
             var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);
@@ -67,6 +67,7 @@ public class HitsoundNodeService
         }
 
         audioProvider.FillAudioList(hitsoundList, _keyList, _playbackList);
+        return osuFile;
     }
 
     public void ResetNodes(IAudioProvider audioProvider, int playTime)

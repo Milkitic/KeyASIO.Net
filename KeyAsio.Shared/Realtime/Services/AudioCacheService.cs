@@ -13,26 +13,24 @@ namespace KeyAsio.Shared.Realtime.Services;
 public class AudioCacheService
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(AudioCacheService));
-
-    private readonly HitsoundFileCache _hitsoundFileCache = new();
-    private readonly ConcurrentDictionary<HitsoundNode, CachedSound?> _playNodeToCachedSoundMapping = new();
-    private readonly ConcurrentDictionary<string, CachedSound?> _filenameToCachedSoundMapping = new();
-
+    private static readonly string[] SkinAudioFiles = ["combobreak"];
     private static readonly ParallelOptions ParallelOptions = new()
     {
         MaxDegreeOfParallelism = 1, // Preserve use
     };
 
-    private readonly Func<bool> _isStartedProvider;
+    private readonly HitsoundFileCache _hitsoundFileCache = new();
+    private readonly ConcurrentDictionary<HitsoundNode, CachedSound?> _playNodeToCachedSoundMapping = new();
+    private readonly ConcurrentDictionary<string, CachedSound?> _filenameToCachedSoundMapping = new();
+
+    private readonly IServiceProvider _serviceProvider;
     private readonly SharedViewModel _sharedViewModel;
     private string? _beatmapFolder;
     private string? _audioFilename;
 
-    private static readonly string[] SkinAudioFiles = ["combobreak"];
-
-    public AudioCacheService(Func<bool> isStartedProvider, SharedViewModel sharedViewModel)
+    public AudioCacheService(IServiceProvider serviceProvider, SharedViewModel sharedViewModel)
     {
-        _isStartedProvider = isStartedProvider;
+        _serviceProvider = serviceProvider;
         _sharedViewModel = sharedViewModel;
     }
 
@@ -213,7 +211,8 @@ public class AudioCacheService
         string skinFolder,
         WaveFormat waveFormat)
     {
-        if (!_isStartedProvider())
+        var manager = (RealtimeModeManager)_serviceProvider.GetService(typeof(RealtimeModeManager))!;
+        if (!manager.IsStarted)
         {
             Logger.Warn("Isn't started, stop adding cache.");
             return;
