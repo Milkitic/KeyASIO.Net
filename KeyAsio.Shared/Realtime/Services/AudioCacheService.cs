@@ -24,14 +24,16 @@ public class AudioCacheService
     };
 
     private readonly Func<bool> _isStartedProvider;
+    private readonly SharedViewModel _sharedViewModel;
     private string? _beatmapFolder;
     private string? _audioFilename;
 
     private static readonly string[] SkinAudioFiles = ["combobreak"];
 
-    public AudioCacheService(Func<bool> isStartedProvider)
+    public AudioCacheService(Func<bool> isStartedProvider, SharedViewModel sharedViewModel)
     {
         _isStartedProvider = isStartedProvider;
+        _sharedViewModel = sharedViewModel;
     }
 
     public void SetContext(string? beatmapFolder, string? audioFilename)
@@ -66,7 +68,7 @@ public class AudioCacheService
             return;
         }
 
-        var audioEngine = SharedViewModel.Instance.AudioEngine;
+        var audioEngine = _sharedViewModel.AudioEngine;
         if (audioEngine == null)
         {
             Logger.Warn("AudioEngine is null, stop adding cache.");
@@ -75,7 +77,7 @@ public class AudioCacheService
 
         var folder = _beatmapFolder;
         var waveFormat = audioEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.SelectedSkin?.Folder ?? "";
+        var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
         {
@@ -124,7 +126,7 @@ public class AudioCacheService
             return;
         }
 
-        var audioEngine = SharedViewModel.Instance.AudioEngine;
+        var audioEngine = _sharedViewModel.AudioEngine;
         if (audioEngine == null)
         {
             Logger.Warn("AudioEngine is null, stop adding cache.");
@@ -139,7 +141,7 @@ public class AudioCacheService
 
         var folder = _beatmapFolder;
         var waveFormat = audioEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.SelectedSkin?.Folder ?? "";
+        var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
         {
@@ -180,7 +182,7 @@ public class AudioCacheService
             identifier = "internal";
             filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, filenameWithoutExt, out useUserSkin);
             path = useUserSkin
-                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{filenameWithoutExt}.ogg")
+                ? Path.Combine(_sharedViewModel.DefaultFolder, $"{filenameWithoutExt}.ogg")
                 : Path.Combine(skinFolder, filename);
         }
         else
@@ -235,7 +237,7 @@ public class AudioCacheService
             identifier = "internal";
             var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, hitsoundNode.Filename, out var useUserSkin);
             path = useUserSkin
-                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{hitsoundNode.Filename}.ogg")
+                ? Path.Combine(_sharedViewModel.DefaultFolder, $"{hitsoundNode.Filename}.ogg")
                 : Path.Combine(skinFolder, filename);
         }
 

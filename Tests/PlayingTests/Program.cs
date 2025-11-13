@@ -1,4 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 
 using System;
 using System.IO;
@@ -35,17 +35,19 @@ static class Program
             WavePlayerType = WavePlayerType.ASIO,
             Latency = 1
         }, context);
-        SharedViewModel.Instance.AudioEngine = new AudioEngine(device)
+        var sharedViewModel = new SharedViewModel();
+        sharedViewModel.AudioEngine = new AudioEngine(device)
         {
             Volume = appSettings.Volume / 100
         };
-        SharedViewModel.Instance.AutoMode = true;
+        sharedViewModel.AutoMode = true;
         appSettings.RealtimeOptions.BalanceFactor = 0.5f;
 
-        var filenameFull = @"C:\Users\milkitic\Downloads\1680421 EBIMAYO - GOODTEK [no video]\EBIMAYO - GOODTEK (yf_bmp) [Maboyu's Another].osu";
+        var filenameFull =
+            @"C:\Users\milkitic\Downloads\1680421 EBIMAYO - GOODTEK [no video]\EBIMAYO - GOODTEK (yf_bmp) [Maboyu's Another].osu";
         var filename = Path.GetFileName(filenameFull);
 
-        var realtimeModeManager = new RealtimeModeManager()
+        var realtimeModeManager = new RealtimeModeManager(sharedViewModel)
         {
             PlayTime = -1,
             PlayMods = Mods.None

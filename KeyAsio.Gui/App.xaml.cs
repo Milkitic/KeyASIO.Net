@@ -14,7 +14,6 @@ using System.Xml;
 using System.Xml.Linq;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
-using KeyAsio.MemoryReading;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
 using KeyAsio.Shared.Models;
@@ -26,7 +25,6 @@ using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer;
 using NLog.Extensions.Logging;
-using OrtdpLogger = KeyAsio.MemoryReading.Logger;
 
 namespace KeyAsio.Gui;
 
@@ -151,7 +149,7 @@ public partial class App : Application
         }
     }
 
-    private void App_OnStartup(object sender, StartupEventArgs e)
+    private async void App_OnStartup(object sender, StartupEventArgs e)
     {
         _host = Host.CreateDefaultBuilder()
             .ConfigureLogging(logging =>
@@ -161,11 +159,14 @@ public partial class App : Application
             })
             .ConfigureServices(services =>
             {
+                services.AddHostedService<SkinManager>();
+                services.AddHostedService<StartupService>();
+
                 services.AddSingleton(provider =>
                     ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, "."));
-                services.AddSingleton(SharedViewModel.Instance);
-                services.AddSingleton(SkinManager.Instance);
-                services.AddSingleton(RealtimeModeManager.Instance);
+                services.AddSingleton<SharedViewModel>();
+                services.AddSingleton<SkinManager>();
+                services.AddSingleton<RealtimeModeManager>();
                 services.AddTransient<DeviceWindowViewModel>();
                 services.AddTransient<MainWindow>();
                 services.AddTransient<DeviceWindow>();
@@ -173,58 +174,13 @@ public partial class App : Application
                 services.AddTransient<RealtimeOptionsWindow>();
             })
             .Build();
+        await _host.StartAsync();
 
         Configuration.Instance.SetLogger(_host.Services.GetRequiredService<ILoggerFactory>());
         NLogDevice.RegisterDefault();
 
         UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());
         Dispatcher.UnhandledException += Dispatcher_UnhandledException;
-        var settings = _host.Services.GetRequiredService<AppSettings>();
-
-        if (settings.Debugging)
-        {
-            ConsoleManager.Show();
-        }
-
-        if (string.IsNullOrWhiteSpace(settings.OsuFolder))
-        {
-            SkinManager.Instance.CheckOsuRegistry();
-        }
-
-        SkinManager.Instance.ListenPropertyChanging();
-        _ = SkinManager.Instance.RefreshSkinInBackground();
-        if (settings.RealtimeOptions.RealtimeMode)
-        {
-            try
-            {
-                var player = EncodeUtils.FromBase64String(settings.PlayerBase64, Encoding.ASCII);
-                RealtimeModeManager.Instance.Username = player;
-            }
-            catch
-            {
-                // ignored
-            }
-
-            OrtdpLogger.SetLoggerFactory(LogUtils.LoggerFactory);
-            MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Username = player);
-            MemoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.PlayMods = mods);
-            MemoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Combo = combo);
-            MemoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Score = score);
-            MemoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.IsReplay = isReplay);
-            MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime);
-            MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Beatmap = beatmap);
-            MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.OsuStatus = current);
-            MemoryScan.Start(settings.RealtimeOptions.GeneralScanInterval, settings.RealtimeOptions.TimingScanInterval);
-            SkinManager.Instance.ListenToProcess();
-        }
 
         MainWindow = _host.Services.GetRequiredService<MainWindow>();
         MainWindow.Show();

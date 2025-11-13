@@ -1,7 +1,5 @@
-﻿using System.Collections.ObjectModel;
-using System.IO;
+using System.Collections.ObjectModel;
 using KeyAsio.Shared.Audio;
-using KeyAsio.Shared.Realtime;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.Devices;
 
@@ -14,12 +12,6 @@ public class SharedViewModel : ViewModelBase
     private int _framesPerBuffer;
     private int _playbackLatency;
     private SkinDescription? _selectedSkin;
-
-    private SharedViewModel()
-    {
-    }
-
-    public static SharedViewModel Instance { get; } = new();
 
     public ObservableCollection<SkinDescription> Skins { get; } = [SkinDescription.Default];
 
@@ -55,7 +47,5 @@ public class SharedViewModel : ViewModelBase
 
     public string DefaultFolder { get; } = Path.Combine(Environment.CurrentDirectory, "resources", "default");
     public bool AutoMode { get; set; }
-
-    public RealtimeModeManager RealtimeModeManager => RealtimeModeManager.Instance;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 }

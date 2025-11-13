@@ -1,4 +1,4 @@
-﻿using KeyAsio.MemoryReading;
+using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
@@ -20,10 +20,17 @@ public class SingleSynchronousTrack
 
     private CachedSound? _cachedSound;
 
+    private readonly SharedViewModel _sharedViewModel;
+
+    public SingleSynchronousTrack(SharedViewModel sharedViewModel)
+    {
+        _sharedViewModel = sharedViewModel;
+    }
+
     public int LeadInMilliseconds { get; set; }
     public int Offset { get; set; }
     public Mods PlayMods { get; set; }
-    private AudioEngine? AudioEngine => SharedViewModel.Instance.AudioEngine;
+    private AudioEngine? AudioEngine => _sharedViewModel.AudioEngine;
 
     public void SyncAudio(CachedSound? cachedSound, int playTime)
     {

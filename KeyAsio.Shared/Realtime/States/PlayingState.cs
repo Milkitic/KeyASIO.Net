@@ -7,6 +7,13 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class PlayingState : IRealtimeState
 {
+    private readonly SharedViewModel _sharedViewModel;
+
+    public PlayingState(SharedViewModel sharedViewModel)
+    {
+        _sharedViewModel = sharedViewModel;
+    }
+
     public async Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
     {
         ctx.StartLowPass(200, 800);
@@ -48,7 +55,7 @@ public class PlayingState : IRealtimeState
         if (ctx.GetEnableMusicFunctions())
         {
             if (ctx.GetFirstStartInitialized() && ctx.OsuFile != null && ctx.GetMusicPath() != null &&
-                SharedViewModel.Instance.AudioEngine != null)
+                _sharedViewModel.AudioEngine != null)
             {
                 if (ctx.GetPauseCount() >= playingPauseThreshold)
                 {

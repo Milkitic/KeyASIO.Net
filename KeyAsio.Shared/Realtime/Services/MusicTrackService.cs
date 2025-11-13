@@ -1,5 +1,6 @@
 using Coosu.Beatmap;
 using KeyAsio.MemoryReading;
+using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.Tracks;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 
@@ -7,8 +8,14 @@ namespace KeyAsio.Shared.Realtime.Services;
 
 public class MusicTrackService
 {
-    private readonly SingleSynchronousTrack _singleSynchronousTrack = new();
-    private readonly SelectSongTrack _selectSongTrack = new();
+    private readonly SingleSynchronousTrack _singleSynchronousTrack;
+    private readonly SelectSongTrack _selectSongTrack;
+
+    public MusicTrackService(SharedViewModel sharedViewModel)
+    {
+        _singleSynchronousTrack = new SingleSynchronousTrack(sharedViewModel);
+        _selectSongTrack = new SelectSongTrack(sharedViewModel);
+    }
 
     public void StartLowPass(int lower, int upper)
     {

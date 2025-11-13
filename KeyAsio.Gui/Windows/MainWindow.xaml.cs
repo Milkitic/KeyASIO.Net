@@ -14,6 +14,7 @@ using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Realtime;
 using Microsoft.Extensions.DependencyInjection;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
@@ -31,17 +32,19 @@ public partial class MainWindow : DialogWindow
 
     private bool _forceClose;
     private readonly AppSettings _appSettings;
+    private readonly RealtimeModeManager _realtimeModeManager;
     private readonly SharedViewModel _viewModel;
     private CachedSound? _cacheSound;
     private readonly IKeyboardHook _keyboardHook;
     private readonly List<Guid> _registerList = new();
     private Timer? _timer;
 
-    public MainWindow(AppSettings appSettings, SharedViewModel viewModel)
+    public MainWindow(AppSettings appSettings, RealtimeModeManager realtimeModeManager, SharedViewModel viewModel)
     {
         InitializeComponent();
         DataContext = _viewModel = viewModel;
         _appSettings = appSettings;
+        _realtimeModeManager = realtimeModeManager;
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
@@ -197,6 +200,7 @@ public partial class MainWindow : DialogWindow
                 Thread.Sleep(100);
             }
         }
+
         _viewModel.AudioEngine = null;
         _viewModel.DeviceDescription = null;
         CachedSoundFactory.ClearCacheSounds();
@@ -236,10 +240,11 @@ public partial class MainWindow : DialogWindow
                 return;
             }
 
-            var playbackInfos = _viewModel.RealtimeModeManager.GetKeyAudio(_appSettings.Keys.IndexOf(hookKey), _appSettings.Keys.Count);
+            var playbackInfos =
+                _realtimeModeManager.GetKeyAudio(_appSettings.Keys.IndexOf(hookKey), _appSettings.Keys.Count);
             foreach (var playbackInfo in playbackInfos)
             {
-                _viewModel.RealtimeModeManager.PlayAudio(playbackInfo);
+                _realtimeModeManager.PlayAudio(playbackInfo);
             }
         };
 
@@ -334,19 +339,19 @@ public partial class MainWindow : DialogWindow
         {
             Growl.Ask($"Send logs and errors to developer?\r\n" +
                       $"You can change option later in configuration file.",
-            dialogResult =>
-            {
-                _appSettings.SendLogsToDeveloper = dialogResult;
-                _appSettings.SendLogsToDeveloperConfirmed = true;
-                return true;
-            });
+                dialogResult =>
+                {
+                    _appSettings.SendLogsToDeveloper = dialogResult;
+                    _appSettings.SendLogsToDeveloperConfirmed = true;
+                    return true;
+                });
         }
 
         var result = await Updater.CheckUpdateAsync();
         if (result == true)
         {
             Growl.Ask($"Found new version: {Updater.NewRelease!.NewVerString}. " +
-                   $"Click yes to open the release page.",
+                      $"Click yes to open the release page.",
                 dialogResult =>
                 {
                     if (dialogResult)

@@ -1,11 +1,7 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
+using System.Runtime.CompilerServices;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Configuration;
-using KeyAsio.Shared.Realtime;
-using KeyAsio.Shared.Utils;
 using Milki.Extensions.Configuration;
-using Sentry;
 
 namespace KeyAsio.Shared;
 
@@ -61,12 +57,14 @@ public static class LogUtils
 
         void ConfigureScope(Scope scope)
         {
-            scope.SetTag("osu.filename_real", RealtimeModeManager.Instance.OsuFile?.ToString() ?? "");
-            scope.SetTag("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
-            var username = RealtimeModeManager.Instance.Username;
-            scope.SetTag("osu.username", string.IsNullOrEmpty(username)
-                ? EncodeUtils.FromBase64StringEmptyIfError(settings.PlayerBase64, Encoding.ASCII)
-                : username);
+            //scope.SetTag("osu.filename_real", RealtimeModeManager.Instance.OsuFile?.ToString() ?? "");
+            //scope.SetTag("osu.status", RealtimeModeManager.Instance.OsuStatus.ToString());
+            //var username = RealtimeModeManager.Instance.Username;
+            //scope.SetTag("osu.username", string.IsNullOrEmpty(username)
+            //    ? EncodeUtils.FromBase64StringEmptyIfError(settings.PlayerBase64, Encoding.ASCII)
+            //    : username);
+
+            // todo: BREAK: realtime dep
             configureScope?.Invoke(scope);
         }
     }

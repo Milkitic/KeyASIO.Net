@@ -1,4 +1,4 @@
-﻿using Coosu.Beatmap.Extensions.Playback;
+using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
@@ -11,6 +11,7 @@ public class StandardAudioProvider : IAudioProvider
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(StandardAudioProvider));
     private readonly RealtimeModeManager _realtimeModeManager;
+    private readonly SharedViewModel _sharedViewModel;
 
     private Queue<PlayableNode> _hitQueue = new();
     private Queue<HitsoundNode> _playQueue = new();
@@ -18,15 +19,16 @@ public class StandardAudioProvider : IAudioProvider
     private PlayableNode? _firstNode;
     private HitsoundNode? _firstPlayNode;
 
-    public StandardAudioProvider(RealtimeModeManager realtimeModeManager)
+    public StandardAudioProvider(RealtimeModeManager realtimeModeManager, SharedViewModel sharedViewModel)
     {
         _realtimeModeManager = realtimeModeManager;
+        _sharedViewModel = sharedViewModel;
     }
 
     public int KeyThresholdMilliseconds { get; set; } = 100;
     public bool IsStarted => _realtimeModeManager.IsStarted;
     public int PlayTime => _realtimeModeManager.PlayTime;
-    public AudioEngine? AudioEngine => SharedViewModel.Instance.AudioEngine;
+    public AudioEngine? AudioEngine => _sharedViewModel.AudioEngine;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)
