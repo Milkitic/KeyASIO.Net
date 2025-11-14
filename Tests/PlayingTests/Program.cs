@@ -52,13 +52,11 @@ static class Program
         services.AddSingleton<RealtimeModeManager>();
         var provider = services.BuildServiceProvider();
         var sharedViewModel = provider.GetRequiredService<SharedViewModel>();
-        sharedViewModel.AudioEngine = new AudioEngine(deviceCreationHelper, cachedAudioFactory)
-        {
-            EffectVolume = appSettings.Volume / 100
-        };
-
-        sharedViewModel.AudioEngine.StartDevice(device);
         sharedViewModel.AutoMode = true;
+
+        var audioEngine = provider.GetRequiredService<AudioEngine>();
+        audioEngine.EffectVolume = appSettings.Volume / 100;
+        audioEngine.StartDevice(device);
         appSettings.RealtimeOptions.BalanceFactor = 0.5f;
 
         var filenameFull =

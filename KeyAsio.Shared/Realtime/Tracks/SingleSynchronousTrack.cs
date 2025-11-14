@@ -3,7 +3,6 @@ using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
 using NAudio.Wave;
 
@@ -21,17 +20,16 @@ public class SingleSynchronousTrack
 
     private CachedAudio? _cachedSound;
 
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly AudioEngine _audioEngine;
 
-    public SingleSynchronousTrack(SharedViewModel sharedViewModel)
+    public SingleSynchronousTrack(AudioEngine audioEngine)
     {
-        _sharedViewModel = sharedViewModel;
+        _audioEngine = audioEngine;
     }
 
     public int LeadInMilliseconds { get; set; }
     public int Offset { get; set; }
     public Mods PlayMods { get; set; }
-    private AudioEngine? AudioEngine => _sharedViewModel.AudioEngine;
 
     public void SyncAudio(CachedAudio? cachedSound, int playTime)
     {
@@ -60,7 +58,7 @@ public class SingleSynchronousTrack
 
     public void ClearAudio()
     {
-        AudioEngine?.MusicMixer.RemoveMixerInput(_baseSampleProvider);
+        _audioEngine.MusicMixer.RemoveMixerInput(_baseSampleProvider);
         if (_variableSampleProvider != null)
         {
             _variableSampleProvider.Dispose();
@@ -94,7 +92,7 @@ public class SingleSynchronousTrack
         }
 
         _baseSampleProvider = builder.CurrentSampleProvider;
-        AudioEngine?.MusicMixer.AddMixerInput(_baseSampleProvider);
+        _audioEngine.MusicMixer.AddMixerInput(_baseSampleProvider);
     }
 
     private void UpdateCurrentMixerInput(SeekableCachedAudioSampleProvider sampleProvider, int playTime)

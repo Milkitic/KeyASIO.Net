@@ -2,8 +2,9 @@
 
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Shared.Models;
+using KeyAsio.Audio;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Realtime.AudioProviders;
 using KeyAsio.Shared.Realtime.Services;
@@ -19,7 +20,7 @@ services.AddSingleton<AudioPlaybackService>();
 services.AddSingleton<RealtimeModeManager>();
 var provider = services.BuildServiceProvider();
 
-var sharedViewModel = provider.GetRequiredService<SharedViewModel>();
+var audioEngine = provider.GetRequiredService<AudioEngine>();
 var realtimeModeManager = provider.GetRequiredService<RealtimeModeManager>();
 var osuDir = new OsuDirectory(@"E:\Games\osu!\Songs\807527 IOSYS - Miracle Hinacle");
 await osuDir.InitializeAsync("IOSYS - Miracle Hinacle (FAMoss) [Lunatic].osu", ignoreWaveFiles: false);
@@ -27,7 +28,7 @@ var osuFile = osuDir.OsuFiles[0];
 realtimeModeManager.OsuFile = osuFile;
 
 var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
-var maniaAudioProvider = new ManiaAudioProvider(realtimeModeManager, sharedViewModel);
+var maniaAudioProvider = new ManiaAudioProvider(audioEngine, realtimeModeManager);
 
 List<PlayableNode> keyList = new();
 List<HitsoundNode> playbackList = new();

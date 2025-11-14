@@ -12,6 +12,8 @@ using System.Windows;
 using System.Windows.Threading;
 using System.Xml;
 using System.Xml.Linq;
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using KeyAsio.Shared;
@@ -170,6 +172,10 @@ public partial class App : Application
                 services.AddSingleton<MusicTrackService>();
                 services.AddSingleton<AudioPlaybackService>();
                 services.AddSingleton<RealtimeModeManager>();
+
+                services.AddSingleton<AudioEngine>();
+                services.AddSingleton<CachedAudioFactory>();
+                services.AddSingleton<DeviceCreationHelper>();
 
                 services.AddSingleton<SharedViewModel>();
                 services.AddTransient<DeviceWindowViewModel>();

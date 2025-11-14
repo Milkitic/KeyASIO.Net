@@ -6,7 +6,7 @@ namespace KeyAsio.Shared.Models;
 
 public class SharedViewModel : ViewModelBase
 {
-    private AudioEngine? _audioEngine;
+    //private AudioEngine? _audioEngine;
     private DeviceDescription? _deviceDescription;
     private int _framesPerBuffer;
     private int _playbackLatency;
@@ -20,11 +20,11 @@ public class SharedViewModel : ViewModelBase
         set => SetField(ref _selectedSkin, value);
     }
 
-    public AudioEngine? AudioEngine
-    {
-        get => _audioEngine;
-        set => SetField(ref _audioEngine, value);
-    }
+    //public AudioEngine? AudioEngine
+    //{
+    //    get => _audioEngine;
+    //    set => SetField(ref _audioEngine, value);
+    //}
 
     public DeviceDescription? DeviceDescription
     {

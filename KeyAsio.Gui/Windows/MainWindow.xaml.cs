@@ -164,7 +164,7 @@ public partial class MainWindow : DialogWindow
                 }, null, 0, 100);
             }
 
-            var waveFormat = _viewModel.AudioEngine.WaveFormat;
+            var waveFormat = _audioEngine.WaveFormat;
             await using (var fs = File.OpenRead(_appSettings.HitsoundPath))
             {
                 var (cachedAudio, result) = await _cachedAudioFactory.GetOrCreateOrEmpty(_appSettings.HitsoundPath, fs, waveFormat);
@@ -195,9 +195,7 @@ public partial class MainWindow : DialogWindow
 
     private void DisposeDevice(bool saveToSettings)
     {
-        if (_viewModel.AudioEngine == null) return;
-
-        if (_viewModel.AudioEngine.CurrentDevice is AsioOut asioOut)
+        if (_audioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
             _timer?.Dispose();
@@ -207,7 +205,7 @@ public partial class MainWindow : DialogWindow
         {
             try
             {
-                _viewModel.AudioEngine.CurrentDevice?.Dispose();
+                _audioEngine.CurrentDevice?.Dispose();
                 break;
             }
             catch (Exception ex)
@@ -217,7 +215,7 @@ public partial class MainWindow : DialogWindow
             }
         }
 
-        _viewModel.AudioEngine = null;
+        _audioEngine.StopDevice();
         _viewModel.DeviceDescription = null;
         _cachedAudioFactory.Clear();
         _cachedAudioFactory.Clear("internal");
@@ -239,9 +237,9 @@ public partial class MainWindow : DialogWindow
             {
                 if (_cacheSound != null)
                 {
-                    if (_viewModel.AudioEngine != null)
+                    if (_audioEngine != null)
                     {
-                        _viewModel.AudioEngine.PlayAudio(_cacheSound);
+                        _audioEngine.PlayAudio(_cacheSound);
                     }
                     else
                     {
@@ -449,7 +447,7 @@ public partial class MainWindow : DialogWindow
 
     private void btnAsioControlPanel_OnClick(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.AudioEngine?.CurrentDevice is AsioOut asioOut)
+        if (_audioEngine?.CurrentDevice is AsioOut asioOut)
         {
             asioOut.ShowControlPanel();
         }
@@ -457,7 +455,7 @@ public partial class MainWindow : DialogWindow
 
     private void RangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_viewModel.AudioEngine is null) return;
+        if (_audioEngine is null) return;
 
         var slider = (Slider)sender;
         _appSettings.Volume = (int)Math.Round(slider.Value * 100);
@@ -465,7 +463,7 @@ public partial class MainWindow : DialogWindow
 
     private void MusicRangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_viewModel.AudioEngine is null) return;
+        if (_audioEngine is null) return;
 
         var slider = (Slider)sender;
         _appSettings.RealtimeOptions.MusicTrackVolume = (int)Math.Round(slider.Value * 100);

@@ -3,7 +3,6 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Models;
 using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Shared.Realtime.Services;
@@ -12,11 +11,11 @@ public class AudioPlaybackService
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(AudioPlaybackService));
     private readonly LoopProviders _loopProviders = new();
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly AudioEngine _audioEngine;
 
-    public AudioPlaybackService(SharedViewModel sharedViewModel)
+    public AudioPlaybackService(AudioEngine audioEngine)
     {
-        _sharedViewModel = sharedViewModel;
+        _audioEngine = audioEngine;
     }
 
     public void PlayEffectsAudio(CachedAudio? cachedSound, float volume, float balance, AppSettings appSettings)
@@ -36,7 +35,7 @@ public class AudioPlaybackService
 
         try
         {
-            _sharedViewModel.AudioEngine.EffectMixer.AddMixerInput(
+            _audioEngine.EffectMixer.AddMixerInput(
                 new BalanceSampleProvider(
                         new EnhancedVolumeSampleProvider(new SeekableCachedAudioSampleProvider(cachedSound))
                         { Volume = volume }
@@ -56,12 +55,12 @@ public class AudioPlaybackService
 
     public void PlayLoopAudio(CachedAudio? cachedSound, ControlNode controlNode, AppSettings appSettings)
     {
-        var rootMixer = _sharedViewModel.AudioEngine?.EffectMixer;
-        if (rootMixer == null)
-        {
-            Logger.Warn("RootMixer is null, stop adding cache.");
-            return;
-        }
+        var rootMixer = _audioEngine.EffectMixer;
+        //if (rootMixer == null)
+        //{
+        //    Logger.Warn("RootMixer is null, stop adding cache.");
+        //    return;
+        //}
 
         var volume = appSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
 
@@ -93,7 +92,7 @@ public class AudioPlaybackService
 
     public void ClearAllLoops(MixingSampleProvider? mixer = null)
     {
-        var m = mixer ?? _sharedViewModel.AudioEngine?.EffectMixer;
+        var m = mixer ?? _audioEngine.EffectMixer;
         _loopProviders.RemoveAll(m);
     }
 }

@@ -1,18 +1,18 @@
+using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
-using KeyAsio.Shared.Models;
 using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
 public class PlayingState : IRealtimeState
 {
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly AudioEngine _audioEngine;
     private readonly CachedAudioFactory _cachedAudioFactory;
 
-    public PlayingState(SharedViewModel sharedViewModel, CachedAudioFactory cachedAudioFactory)
+    public PlayingState(AudioEngine audioEngine, CachedAudioFactory cachedAudioFactory)
     {
-        _sharedViewModel = sharedViewModel;
+        _audioEngine = audioEngine;
         _cachedAudioFactory = cachedAudioFactory;
     }
 
@@ -57,7 +57,7 @@ public class PlayingState : IRealtimeState
         if (ctx.GetEnableMusicFunctions())
         {
             if (ctx.GetFirstStartInitialized() && ctx.OsuFile != null && ctx.GetMusicPath() != null &&
-                _sharedViewModel.AudioEngine != null)
+                _audioEngine.CurrentDevice != null)
             {
                 if (ctx.GetPauseCount() >= playingPauseThreshold)
                 {

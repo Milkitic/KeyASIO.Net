@@ -61,6 +61,20 @@ public class AudioEngine
         {
             ReadFully = true
         };
+        EffectMixer = new MixingSampleProvider(WaveFormat)
+        {
+            ReadFully = true
+        };
+        _effectVolumeSampleProvider.Source = EffectMixer;
+
+        MusicMixer = new MixingSampleProvider(WaveFormat)
+        {
+            ReadFully = true
+        };
+        _musicVolumeSampleProvider.Source = MusicMixer;
+        RootMixer.AddMixerInput(_effectVolumeSampleProvider);
+        RootMixer.AddMixerInput(_musicVolumeSampleProvider);
+
         ISampleProvider root = RootMixer;
 
         if (outputDevice != null)
@@ -84,7 +98,6 @@ public class AudioEngine
 
         CurrentDevice = outputDevice;
         RootSampleProvider = root;
-        InitializeTracks(waveFormat);
     }
 
     public void StopDevice()
@@ -135,23 +148,5 @@ public class AudioEngine
     {
         var rootSample = await RootMixer.PlayAudio(_cachedAudioFactory, path, balance, volume).ConfigureAwait(false);
         return rootSample;
-    }
-
-    private void InitializeTracks(WaveFormat waveFormat)
-    {
-        EffectMixer = new MixingSampleProvider(waveFormat)
-        {
-            ReadFully = true
-        };
-        _effectVolumeSampleProvider.Source = EffectMixer;
-
-        MusicMixer = new MixingSampleProvider(waveFormat)
-        {
-            ReadFully = true
-        };
-        _musicVolumeSampleProvider.Source = MusicMixer;
-
-        RootMixer.AddMixerInput(_effectVolumeSampleProvider);
-        RootMixer.AddMixerInput(_musicVolumeSampleProvider);
     }
 }

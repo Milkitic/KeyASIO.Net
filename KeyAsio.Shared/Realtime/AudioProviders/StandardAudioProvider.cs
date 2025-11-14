@@ -10,8 +10,8 @@ namespace KeyAsio.Shared.Realtime.AudioProviders;
 public class StandardAudioProvider : IAudioProvider
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(StandardAudioProvider));
+    private readonly AudioEngine _audioEngine;
     private readonly RealtimeModeManager _realtimeModeManager;
-    private readonly SharedViewModel _sharedViewModel;
 
     private Queue<PlayableNode> _hitQueue = new();
     private Queue<HitsoundNode> _playQueue = new();
@@ -19,25 +19,23 @@ public class StandardAudioProvider : IAudioProvider
     private PlayableNode? _firstNode;
     private HitsoundNode? _firstPlayNode;
 
-    public StandardAudioProvider(RealtimeModeManager realtimeModeManager, SharedViewModel sharedViewModel)
+    public StandardAudioProvider(AudioEngine audioEngine, RealtimeModeManager realtimeModeManager)
     {
+        _audioEngine = audioEngine;
         _realtimeModeManager = realtimeModeManager;
-        _sharedViewModel = sharedViewModel;
     }
 
     public int KeyThresholdMilliseconds { get; set; } = 100;
     public bool IsStarted => _realtimeModeManager.IsStarted;
     public int PlayTime => _realtimeModeManager.PlayTime;
-    public AudioEngine? AudioEngine => _sharedViewModel.AudioEngine;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)
     {
         var playTime = PlayTime;
-        var audioEngine = AudioEngine;
         var isStarted = IsStarted;
 
-        if (audioEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
+        if (_audioEngine.CurrentDevice == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
         if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var first = includeKey ? _firstPlayNode : _firstNode;
@@ -61,10 +59,9 @@ public class StandardAudioProvider : IAudioProvider
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", Logger);
 
         var playTime = PlayTime;
-        var audioEngine = AudioEngine;
         var isStarted = IsStarted;
 
-        if (audioEngine == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
+        if (_audioEngine.CurrentDevice == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
         if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
 
         var first = _firstNode;

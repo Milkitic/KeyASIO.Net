@@ -16,10 +16,10 @@ public class CachedAudioFactory
         0x04, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
     ];
 
-    private readonly ILogger _logger;
+    private readonly ILogger<CachedAudioFactory> _logger;
     private readonly ConcurrentDictionary<string, CategoryCache> _categoryDictionary = new();
 
-    public CachedAudioFactory(ILogger logger)
+    public CachedAudioFactory(ILogger<CachedAudioFactory> logger)
     {
         _logger = logger;
     }

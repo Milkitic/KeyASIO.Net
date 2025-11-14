@@ -3,6 +3,7 @@ using System.Text;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
+using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
@@ -35,6 +36,7 @@ public class RealtimeModeManager : ViewModelBase
     private BeatmapIdentifier _beatmap;
     private bool _isStarted;
 
+    private readonly AudioEngine _audioEngine;
     private readonly SharedViewModel _sharedViewModel;
     private readonly StandardAudioProvider _standardAudioProvider;
     private readonly ManiaAudioProvider _maniaAudioProvider;
@@ -55,16 +57,18 @@ public class RealtimeModeManager : ViewModelBase
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
 
-    public RealtimeModeManager(SharedViewModel sharedViewModel,
+    public RealtimeModeManager(AudioEngine audioEngine,
+        SharedViewModel sharedViewModel,
         AudioCacheService audioCacheService,
         HitsoundNodeService hitsoundNodeService,
         MusicTrackService musicTrackService,
         AudioPlaybackService audioPlaybackService,
         CachedAudioFactory cachedAudioFactory)
     {
+        _audioEngine = audioEngine;
         _sharedViewModel = sharedViewModel;
-        _standardAudioProvider = new StandardAudioProvider(this, sharedViewModel);
-        _maniaAudioProvider = new ManiaAudioProvider(this, sharedViewModel);
+        _standardAudioProvider = new StandardAudioProvider(_audioEngine, this);
+        _maniaAudioProvider = new ManiaAudioProvider(_audioEngine, this);
         // Track services initialized via field initializer
 
         _audioProviderDictionary = new Dictionary<GameMode, IAudioProvider>()
@@ -78,7 +82,7 @@ public class RealtimeModeManager : ViewModelBase
         // Initialize realtime state machine with scene mappings
         _stateMachine = new RealtimeStateMachine(new Dictionary<OsuMemoryStatus, IRealtimeState>
         {
-            [OsuMemoryStatus.Playing] = new PlayingState(sharedViewModel, cachedAudioFactory),
+            [OsuMemoryStatus.Playing] = new PlayingState(audioEngine, cachedAudioFactory),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(),
             [OsuMemoryStatus.SongSelect] = new BrowsingState(),
@@ -315,7 +319,7 @@ public class RealtimeModeManager : ViewModelBase
         Logger.Info("Stop playing.");
         IsStarted = false;
         _firstStartInitialized = false;
-        var mixer = _sharedViewModel.AudioEngine?.EffectMixer;
+        var mixer = _audioEngine.EffectMixer;
         _audioPlaybackService.ClearAllLoops(mixer);
         _musicTrackService.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();
@@ -347,7 +351,7 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (_sharedViewModel.AudioEngine == null)
+        if (_audioEngine.CurrentDevice == null)
         {
             Logger.Warn($"AudioEngine is null, stop adding cache.");
             return;
@@ -466,7 +470,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void ClearMixerLoopsAndMainTrackAudio()
     {
-        var mixer = _sharedViewModel.AudioEngine?.EffectMixer;
+        var mixer = _audioEngine.EffectMixer;
         _audioPlaybackService.ClearAllLoops(mixer);
         _musicTrackService.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();

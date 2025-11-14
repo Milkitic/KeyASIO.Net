@@ -3,7 +3,6 @@ using Coosu.Beatmap;
 using KeyAsio.Audio;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -19,15 +18,15 @@ public class SelectSongTrack
     private EnhancedFadeInOutSampleProvider? _fadeInOutSampleProvider;
     private LowPassSampleProvider? _lowPassSampleProvider;
 
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly AudioEngine _audioEngine;
 
-    public SelectSongTrack(SharedViewModel sharedViewModel)
+    public SelectSongTrack(AudioEngine audioEngine)
     {
-        _sharedViewModel = sharedViewModel;
+        _audioEngine = audioEngine;
     }
 
-    private MixingSampleProvider? Mixer => _sharedViewModel.AudioEngine?.MusicMixer;
-    private WaveFormat? WaveFormat => _sharedViewModel.AudioEngine?.WaveFormat;
+    private MixingSampleProvider? Mixer => _audioEngine.MusicMixer;
+    private WaveFormat? WaveFormat => _audioEngine.WaveFormat;
 
     public async Task PlaySingleAudio(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
     {

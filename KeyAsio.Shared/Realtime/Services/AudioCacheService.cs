@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
+using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
@@ -24,14 +25,16 @@ public class AudioCacheService
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedSoundMapping = new();
 
     private readonly IServiceProvider _serviceProvider;
+    private readonly AudioEngine _audioEngine;
     private readonly CachedAudioFactory _cachedAudioFactory;
     private readonly SharedViewModel _sharedViewModel;
     private string? _beatmapFolder;
     private string? _audioFilename;
 
-    public AudioCacheService(IServiceProvider serviceProvider, CachedAudioFactory cachedAudioFactory, SharedViewModel sharedViewModel)
+    public AudioCacheService(IServiceProvider serviceProvider, AudioEngine audioEngine, CachedAudioFactory cachedAudioFactory, SharedViewModel sharedViewModel)
     {
         _serviceProvider = serviceProvider;
+        _audioEngine = audioEngine;
         _cachedAudioFactory = cachedAudioFactory;
         _sharedViewModel = sharedViewModel;
     }
@@ -68,15 +71,14 @@ public class AudioCacheService
             return;
         }
 
-        var audioEngine = _sharedViewModel.AudioEngine;
-        if (audioEngine == null)
+        if (_audioEngine.CurrentDevice == null)
         {
             Logger.Warn("AudioEngine is null, stop adding cache.");
             return;
         }
 
         var folder = _beatmapFolder;
-        var waveFormat = audioEngine.WaveFormat;
+        var waveFormat = _audioEngine.WaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
@@ -135,8 +137,7 @@ public class AudioCacheService
             return;
         }
 
-        var audioEngine = _sharedViewModel.AudioEngine;
-        if (audioEngine == null)
+        if (_audioEngine.CurrentDevice == null)
         {
             Logger.Warn("AudioEngine is null, stop adding cache.");
             return;
@@ -149,7 +150,7 @@ public class AudioCacheService
         }
 
         var folder = _beatmapFolder;
-        var waveFormat = audioEngine.WaveFormat;
+        var waveFormat = _audioEngine.WaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
