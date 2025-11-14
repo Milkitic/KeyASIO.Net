@@ -35,7 +35,7 @@ public class PlayingState : IRealtimeState
         // Exit behavior will be handled by the next state's Enter.
     }
 
-    public void OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
         ctx.UpdatePauseCount(paused);
@@ -66,19 +66,23 @@ public class PlayingState : IRealtimeState
                 else
                 {
                     var musicPath = ctx.GetMusicPath();
-                    if (musicPath != null && _cachedAudioFactory.ContainsCache(musicPath))
+                    if (musicPath != null)
                     {
-                        const int codeLatency = -1;
-                        const int osuForceLatency = 15;
-                        var oldMapForceOffset = ctx.OsuFile.Version < 5 ? 24 : 0;
-                        ctx.SetMainTrackOffsetAndLeadIn(osuForceLatency + codeLatency + oldMapForceOffset,
-                            ctx.OsuFile.General.AudioLeadIn);
-                        if (!ctx.IsResultFlag())
+                        var cachedAudio = await _cachedAudioFactory.TryGetAsync(musicPath);
+                        if (cachedAudio != null)
                         {
-                            ctx.SetSingleTrackPlayMods(ctx.PlayMods);
-                        }
+                            const int codeLatency = -1;
+                            const int osuForceLatency = 15;
+                            var oldMapForceOffset = ctx.OsuFile.Version < 5 ? 24 : 0;
+                            ctx.SetMainTrackOffsetAndLeadIn(osuForceLatency + codeLatency + oldMapForceOffset,
+                                ctx.OsuFile.General.AudioLeadIn);
+                            if (!ctx.IsResultFlag())
+                            {
+                                ctx.SetSingleTrackPlayMods(ctx.PlayMods);
+                            }
 
-                        ctx.SyncMainTrackAudio(_cachedAudioFactory.GetCacheSound(musicPath), newMs);
+                            ctx.SyncMainTrackAudio(cachedAudio, newMs);
+                        }
                     }
                 }
             }

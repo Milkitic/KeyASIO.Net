@@ -5,17 +5,18 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
+using KeyAsio.Audio.Utils;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared;
-using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Realtime.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.Devices;
-using Milki.Extensions.MixPlayer.Threading;
-using Milki.Extensions.MixPlayer.Utilities;
+using Milki.Extensions.Threading;
 using OsuMemoryDataProvider;
 
 namespace PlayingTests;
@@ -29,8 +30,12 @@ static class Program
         appSettings.Debugging = true;
         appSettings.RealtimeOptions.EnableMusicFunctions = true;
         appSettings.Volume = 5;
-        var context = (SynchronizationContext)new StaSynchronizationContext("AudioPlaybackEngine_STA");
-        var device = DeviceCreationHelper.CreateDevice(out _, new DeviceDescription()
+        var context = new SingleSynchronizationContext("AudioPlaybackEngine_STA", true,
+            ThreadPriority.AboveNormal);
+        var logFactory = LoggerFactory.Create(k => k.AddSimpleConsole());
+        var deviceCreationHelper = new DeviceCreationHelper(logFactory.CreateLogger<DeviceCreationHelper>());
+        var cachedAudioFactory = new CachedAudioFactory(logFactory.CreateLogger<CachedAudioFactory>());
+        var (device, actualDescription) = deviceCreationHelper.CreateDevice(new DeviceDescription()
         {
             DeviceId = "ASIO4ALL V2",
             FriendlyName = "ASIO4ALL V2",
@@ -47,10 +52,12 @@ static class Program
         services.AddSingleton<RealtimeModeManager>();
         var provider = services.BuildServiceProvider();
         var sharedViewModel = provider.GetRequiredService<SharedViewModel>();
-        sharedViewModel.AudioEngine = new AudioEngine(device)
+        sharedViewModel.AudioEngine = new AudioEngine(deviceCreationHelper, cachedAudioFactory)
         {
-            Volume = appSettings.Volume / 100
+            EffectVolume = appSettings.Volume / 100
         };
+
+        sharedViewModel.AudioEngine.StartDevice(device);
         sharedViewModel.AutoMode = true;
         appSettings.RealtimeOptions.BalanceFactor = 0.5f;
 

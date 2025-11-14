@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,16 +10,14 @@ using System.Windows.Controls;
 using HandyControl.Controls;
 using HandyControl.Data;
 using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Gui.Utils;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared;
-using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
 using Microsoft.Extensions.DependencyInjection;
-using Milki.Extensions.MixPlayer.Devices;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
 
@@ -33,19 +32,30 @@ public partial class MainWindow : DialogWindow
 
     private bool _forceClose;
     private readonly AppSettings _appSettings;
+    private readonly AudioEngine _audioEngine;
+    private readonly CachedAudioFactory _cachedAudioFactory;
     private readonly RealtimeModeManager _realtimeModeManager;
+    private readonly DeviceCreationHelper _deviceCreationHelper;
     private readonly SharedViewModel _viewModel;
-    private CachedSound? _cacheSound;
+    private CachedAudio? _cacheSound;
     private readonly IKeyboardHook _keyboardHook;
     private readonly List<Guid> _registerList = new();
     private Timer? _timer;
 
-    public MainWindow(AppSettings appSettings, RealtimeModeManager realtimeModeManager, SharedViewModel viewModel)
+    public MainWindow(AppSettings appSettings,
+        AudioEngine audioEngine,
+        CachedAudioFactory cachedAudioFactory,
+        RealtimeModeManager realtimeModeManager,
+        DeviceCreationHelper deviceCreationHelper,
+        SharedViewModel viewModel)
     {
         InitializeComponent();
         DataContext = _viewModel = viewModel;
         _appSettings = appSettings;
+        _audioEngine = audioEngine;
+        _cachedAudioFactory = cachedAudioFactory;
         _realtimeModeManager = realtimeModeManager;
+        _deviceCreationHelper = deviceCreationHelper;
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
@@ -106,25 +116,26 @@ public partial class MainWindow : DialogWindow
         var latency = window.ViewModel.Latency;
         var isExclusive = window.ViewModel.IsExclusive;
         var forceBufferSize = window.ViewModel.ForceAsioBufferSize;
-        deviceDescription.Latency = latency;
-        deviceDescription.IsExclusive = isExclusive;
-        deviceDescription.ForceASIOBufferSize = forceBufferSize;
+        var configuredDeviceDescription = deviceDescription with
+        {
+            Latency = latency,
+            IsExclusive = isExclusive,
+            ForceASIOBufferSize = forceBufferSize
+        };
+
         _appSettings.SampleRate = window.ViewModel.SampleRate;
 
-        await LoadDevice(deviceDescription, true);
+        await LoadDevice(configuredDeviceDescription, true);
     }
 
     private async Task LoadDevice(DeviceDescription deviceDescription, bool saveToSettings)
     {
         try
         {
-            var device = DeviceCreationHelper.CreateDevice(out var actualDescription, deviceDescription);
-            _viewModel.AudioEngine = new AudioEngine(device, _appSettings.SampleRate)
-            {
-                Volume = _appSettings.Volume / 100f,
-                MusicVolume = _appSettings.RealtimeOptions.MusicTrackVolume / 100f,
-                EffectVolume = _appSettings.RealtimeOptions.EffectTrackVolume / 100f
-            };
+            var (device, actualDescription) = _deviceCreationHelper.CreateDevice(deviceDescription);
+            _audioEngine.MusicVolume = _appSettings.RealtimeOptions.MusicTrackVolume / 100f;
+            _audioEngine.EffectVolume = _appSettings.RealtimeOptions.EffectTrackVolume / 100f;
+            _audioEngine.StartDevice(device);
 
             if (device is AsioOut asioOut)
             {
@@ -154,7 +165,11 @@ public partial class MainWindow : DialogWindow
             }
 
             var waveFormat = _viewModel.AudioEngine.WaveFormat;
-            _cacheSound = await CachedSoundFactory.GetOrCreateCacheSound(waveFormat, _appSettings.HitsoundPath);
+            await using (var fs = File.OpenRead(_appSettings.HitsoundPath))
+            {
+                var (cachedAudio, result) = await _cachedAudioFactory.GetOrCreateOrEmpty(_appSettings.HitsoundPath, fs, waveFormat);
+                _cacheSound = cachedAudio;
+            }
 
             _viewModel.DeviceDescription = actualDescription;
             if (saveToSettings)
@@ -182,7 +197,7 @@ public partial class MainWindow : DialogWindow
     {
         if (_viewModel.AudioEngine == null) return;
 
-        if (_viewModel.AudioEngine.OutputDevice is AsioOut asioOut)
+        if (_viewModel.AudioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
             _timer?.Dispose();
@@ -192,7 +207,7 @@ public partial class MainWindow : DialogWindow
         {
             try
             {
-                _viewModel.AudioEngine.OutputDevice?.Dispose();
+                _viewModel.AudioEngine.CurrentDevice?.Dispose();
                 break;
             }
             catch (Exception ex)
@@ -204,8 +219,8 @@ public partial class MainWindow : DialogWindow
 
         _viewModel.AudioEngine = null;
         _viewModel.DeviceDescription = null;
-        CachedSoundFactory.ClearCacheSounds();
-        CachedSoundFactory.ClearCacheSounds("internal");
+        _cachedAudioFactory.Clear();
+        _cachedAudioFactory.Clear("internal");
 
         if (!saveToSettings) return;
         _appSettings.Device = null;
@@ -226,7 +241,7 @@ public partial class MainWindow : DialogWindow
                 {
                     if (_viewModel.AudioEngine != null)
                     {
-                        _viewModel.AudioEngine.PlaySound(_cacheSound);
+                        _viewModel.AudioEngine.PlayAudio(_cacheSound);
                     }
                     else
                     {
@@ -434,7 +449,7 @@ public partial class MainWindow : DialogWindow
 
     private void btnAsioControlPanel_OnClick(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.AudioEngine?.OutputDevice is AsioOut asioOut)
+        if (_viewModel.AudioEngine?.CurrentDevice is AsioOut asioOut)
         {
             asioOut.ShowControlPanel();
         }

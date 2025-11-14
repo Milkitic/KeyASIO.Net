@@ -24,8 +24,21 @@ public class CachedAudioFactory
         _logger = logger;
     }
 
+    public async ValueTask<CachedAudio?> TryGetAsync(string fileIdentifier, string? category = null)
+    {
+        var categoryCache = _categoryDictionary.GetOrAdd(category ?? DefaultCategory, _ => new CategoryCache());
+        var pathCache = categoryCache.PathHashCaches;
+        var soundCache = categoryCache.AudioCachesByHash;
+        if (pathCache.TryGetValue(fileIdentifier, out var hash) && soundCache.TryGetValue(hash, out var lazyTask))
+        {
+            return await lazyTask.Value;
+        }
+
+        return null;
+    }
+
     public async Task<CacheResult> GetOrCreateOrEmpty(string fileIdentifier, Stream fileStream, WaveFormat waveFormat,
-        string category = "default")
+        string? category = null)
     {
         var cacheResult = await TryGetOrCreate(fileIdentifier, fileStream, waveFormat, category);
         if (cacheResult.Status != CacheGetStatus.Failed) return cacheResult;
@@ -37,7 +50,7 @@ public class CachedAudioFactory
     }
 
     public async Task<CacheResult> GetOrCreateEmpty(string fileIdentifier, WaveFormat waveFormat,
-        string category = "default")
+        string? category = null)
     {
         using var fs = new MemoryStream(EmptyWaveFile);
         var cacheResult = await TryGetOrCreate(fileIdentifier, fs, waveFormat, category);
@@ -46,11 +59,12 @@ public class CachedAudioFactory
             : throw new InvalidOperationException("Failed to create empty cached audio.");
     }
 
-    public async Task<CacheResult> TryGetOrCreate(string fileIdentifier, Stream fileStream, WaveFormat waveFormat, string category = "default")
+    public const string DefaultCategory = "default";
+    public async Task<CacheResult> TryGetOrCreate(string fileIdentifier, Stream fileStream, WaveFormat waveFormat, string? category = null)
     {
         ArgumentNullException.ThrowIfNull(fileIdentifier, nameof(fileIdentifier));
 
-        var categoryCache = _categoryDictionary.GetOrAdd(category, _ => new CategoryCache());
+        var categoryCache = _categoryDictionary.GetOrAdd(category ?? DefaultCategory, _ => new CategoryCache());
         var pathCache = categoryCache.PathHashCaches;
         var soundCache = categoryCache.AudioCachesByHash;
 
@@ -111,6 +125,13 @@ public class CachedAudioFactory
             soundCache.TryRemove(hash, out _);
             return CacheResult.Failed;
         }
+    }
+
+    public void Clear(string? category = null)
+    {
+        if (!_categoryDictionary.TryGetValue(category ?? DefaultCategory, out var categoryCache)) return;
+        categoryCache.PathHashCaches.Clear();
+        categoryCache.AudioCachesByHash.Clear();
     }
 
     private async Task<CachedAudio> CreateAudioAsync(string fileIdentifier, string hash, byte[] rentBuffer, int bytesRead, WaveFormat waveFormat)

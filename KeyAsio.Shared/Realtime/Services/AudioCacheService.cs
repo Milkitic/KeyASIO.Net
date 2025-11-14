@@ -44,7 +44,7 @@ public class AudioCacheService
 
     public void ClearCaches()
     {
-        _cachedAudioFactory.ClearCacheSounds();
+        _cachedAudioFactory.Clear();
         _playNodeToCachedSoundMapping.Clear();
         _filenameToCachedSoundMapping.Clear();
     }

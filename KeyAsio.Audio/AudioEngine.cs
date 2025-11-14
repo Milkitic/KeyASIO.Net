@@ -14,8 +14,8 @@ public class AudioEngine
     private readonly CachedAudioFactory _cachedAudioFactory;
     private readonly SynchronizationContext _context;
 
-    private EnhancedVolumeSampleProvider _effectVolumeSampleProvider = null!;
-    private EnhancedVolumeSampleProvider _musicVolumeSampleProvider = null!;
+    private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null);
+    private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null);
 
     public AudioEngine(DeviceCreationHelper deviceCreationHelper, CachedAudioFactory cachedAudioFactory)
     {
@@ -90,8 +90,11 @@ public class AudioEngine
     public void StopDevice()
     {
         if (CurrentDevice == null) return;
+        _effectVolumeSampleProvider.Source = null;
+        _musicVolumeSampleProvider.Source = null;
         CurrentDevice.Stop();
         CurrentDevice.Dispose();
+        CurrentDevice = null;
     }
 
     public void AddMixerInput(ISampleProvider input)
@@ -140,19 +143,13 @@ public class AudioEngine
         {
             ReadFully = true
         };
-        _effectVolumeSampleProvider = new EnhancedVolumeSampleProvider(EffectMixer)
-        {
-            Volume = 1f
-        };
+        _effectVolumeSampleProvider.Source = EffectMixer;
 
         MusicMixer = new MixingSampleProvider(waveFormat)
         {
             ReadFully = true
         };
-        _musicVolumeSampleProvider = new EnhancedVolumeSampleProvider(MusicMixer)
-        {
-            Volume = 1f
-        };
+        _musicVolumeSampleProvider.Source = MusicMixer;
 
         RootMixer.AddMixerInput(_effectVolumeSampleProvider);
         RootMixer.AddMixerInput(_musicVolumeSampleProvider);

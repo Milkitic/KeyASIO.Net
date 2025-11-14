@@ -37,7 +37,7 @@ public class SkinManager : IHostedService
             if (e.PropertyName == nameof(_sharedViewModel.SelectedSkin))
             {
                 AppSettings.SelectedSkin = _sharedViewModel.SelectedSkin?.FolderName ?? "";
-                _cachedAudioFactory.ClearCacheSounds("internal");
+                _cachedAudioFactory.Clear("internal");
             }
         };
 

@@ -19,7 +19,7 @@ public class NotRunningState : IRealtimeState
     {
     }
 
-    public void OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
     {
     }
 

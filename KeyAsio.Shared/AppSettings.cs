@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel;
+using System.Runtime.Serialization;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;
+using YamlDotNet.Serialization;
 
 namespace KeyAsio.Shared;
 
@@ -52,6 +54,8 @@ public sealed class AppSettings : ViewModelBase
     public DeviceDescription? Device { get; set; }
 
     [Description("Configured device volume, range: 0~150")]
+    [IgnoreDataMember]
+    [YamlIgnore]
     public float Volume
     {
         get => _volume;
