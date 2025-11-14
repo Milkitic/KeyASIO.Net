@@ -1,11 +1,11 @@
 ﻿using Coosu.Beatmap.Extensions.Playback;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+using KeyAsio.Audio.Caching;
 
 namespace KeyAsio.Shared.Models;
 
 public class PlaybackInfo
 {
-    public PlaybackInfo(CachedSound? cachedSound, HitsoundNode hitsoundNode)
+    public PlaybackInfo(CachedAudio cachedSound, HitsoundNode hitsoundNode)
     {
         CachedSound = cachedSound;
         HitsoundNode = hitsoundNode;
@@ -13,5 +13,5 @@ public class PlaybackInfo
 
     public HitsoundNode HitsoundNode { get; }
 
-    public CachedSound? CachedSound { get; }
+    public CachedAudio CachedSound { get; }
 }

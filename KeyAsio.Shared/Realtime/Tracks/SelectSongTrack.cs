@@ -1,13 +1,12 @@
 using System.Diagnostics;
 using Coosu.Beatmap;
+using KeyAsio.Audio;
+using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using FadeInOutSampleProvider = KeyAsio.Shared.Audio.FadeInOutSampleProvider;
 
 namespace KeyAsio.Shared.Realtime.Tracks;
 
@@ -17,7 +16,7 @@ public class SelectSongTrack
     private readonly Lock _instanceLock = new();
 
     private SmartWaveReader? _smartWaveReader;
-    private FadeInOutSampleProvider? _fadeInOutSampleProvider;
+    private EnhancedFadeInOutSampleProvider? _fadeInOutSampleProvider;
     private LowPassSampleProvider? _lowPassSampleProvider;
 
     private readonly SharedViewModel _sharedViewModel;
@@ -36,7 +35,7 @@ public class SelectSongTrack
         if (Mixer is null || WaveFormat is null) return;
 
         SmartWaveReader? smartWaveReader;
-        FadeInOutSampleProvider? fadeInOutSampleProvider = null;
+        EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider = null;
         lock (_instanceLock)
         {
             if (_smartWaveReader is not null) return;
@@ -60,7 +59,7 @@ public class SelectSongTrack
                 _lowPassSampleProvider =
                     builder.AddSampleProvider(k => new LowPassSampleProvider(k, WaveFormat.SampleRate, 16000));
                 fadeInOutSampleProvider = _fadeInOutSampleProvider =
-                    builder.AddSampleProvider(k => new FadeInOutSampleProvider(k));
+                    builder.AddSampleProvider(k => new EnhancedFadeInOutSampleProvider(k));
 
                 notifyingSampleProvider.Sample += async (_, _) =>
                 {
@@ -93,7 +92,7 @@ public class SelectSongTrack
     public async Task StopCurrentMusic(int fadeOutMilliseconds = 500)
     {
         SmartWaveReader? smartWaveReader;
-        FadeInOutSampleProvider? fadeInOutSampleProvider;
+        EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
             smartWaveReader = _smartWaveReader;
@@ -132,7 +131,7 @@ public class SelectSongTrack
     public async Task PauseCurrentMusic()
     {
         SmartWaveReader? smartWaveReader;
-        FadeInOutSampleProvider? fadeInOutSampleProvider;
+        EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
             smartWaveReader = _smartWaveReader;
@@ -147,7 +146,7 @@ public class SelectSongTrack
     public async Task RecoverCurrentMusic()
     {
         SmartWaveReader? smartWaveReader;
-        FadeInOutSampleProvider? fadeInOutSampleProvider;
+        EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
             smartWaveReader = _smartWaveReader;
@@ -160,7 +159,7 @@ public class SelectSongTrack
     }
 
     private static async ValueTask RepositionAndFadeIn(WaveStream waveStream, int playTime,
-        FadeInOutSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds)
+        EnhancedFadeInOutSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds)
     {
         if (playTime < 0)
         {
@@ -174,7 +173,7 @@ public class SelectSongTrack
         await FadeAsync(fadeInOutSampleProvider, fadeInMilliseconds, true);
     }
 
-    private static async ValueTask FadeAsync(FadeInOutSampleProvider fadeInOutSampleProvider, int fadeMilliseconds, bool isFadeIn)
+    private static async ValueTask FadeAsync(EnhancedFadeInOutSampleProvider fadeInOutSampleProvider, int fadeMilliseconds, bool isFadeIn)
     {
         if (isFadeIn)
         {

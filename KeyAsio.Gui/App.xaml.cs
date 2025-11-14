@@ -24,7 +24,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer;
 using NLog.Extensions.Logging;
 
 namespace KeyAsio.Gui;
@@ -183,7 +182,6 @@ public partial class App : Application
             .Build();
         await _host.StartAsync();
 
-        Configuration.Instance.SetLogger(_host.Services.GetRequiredService<ILoggerFactory>());
         NLogDevice.RegisterDefault();
 
         UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());

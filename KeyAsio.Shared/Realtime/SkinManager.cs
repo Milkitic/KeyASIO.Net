@@ -1,11 +1,11 @@
 using System.Diagnostics;
+using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Win32;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
@@ -15,14 +15,16 @@ public class SkinManager : IHostedService
     private static readonly Lock InstanceLock = new();
     private static readonly ILogger Logger = LogUtils.GetLogger("SkinManager");
     private readonly AppSettings _appSettings;
+    private readonly CachedAudioFactory _cachedAudioFactory;
     private readonly SharedViewModel _sharedViewModel;
     private CancellationTokenSource? _cts;
     private Task? _refreshTask;
     private bool _waiting;
 
-    public SkinManager(AppSettings appSettings, SharedViewModel sharedViewModel)
+    public SkinManager(AppSettings appSettings, CachedAudioFactory cachedAudioFactory, SharedViewModel sharedViewModel)
     {
         _appSettings = appSettings;
+        _cachedAudioFactory = cachedAudioFactory;
         _sharedViewModel = sharedViewModel;
     }
 
@@ -35,7 +37,7 @@ public class SkinManager : IHostedService
             if (e.PropertyName == nameof(_sharedViewModel.SelectedSkin))
             {
                 AppSettings.SelectedSkin = _sharedViewModel.SelectedSkin?.FolderName ?? "";
-                CachedSoundFactory.ClearCacheSounds("internal");
+                _cachedAudioFactory.ClearCacheSounds("internal");
             }
         };
 

@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
-using KeyAsio.Shared.Audio;
+using KeyAsio.Audio;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.Devices;
 
 namespace KeyAsio.Shared.Models;
 

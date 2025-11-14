@@ -1,7 +1,7 @@
 ﻿#if DEBUG
 using NAudio.Wave;
 
-namespace KeyAsio.Shared.Audio;
+namespace KeyAsio.Audio.SampleProviders;
 
 internal class JustTestingSampleProvider : ISampleProvider
 {

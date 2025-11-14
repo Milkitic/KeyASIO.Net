@@ -1,29 +1,29 @@
-﻿using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+﻿using KeyAsio.Audio.Caching;
 using NAudio.Wave;
 
-namespace KeyAsio.Shared.Audio;
+namespace KeyAsio.Audio.SampleProviders;
 
-public class SeekableCachedSoundSampleProvider : ISampleProvider
+public class SeekableCachedAudioSampleProvider : ISampleProvider
 {
-    private readonly CachedSound _sourceSound;
+    private readonly CachedAudio _cachedAudio;
     private readonly Lock _sourceSoundLock = new();
     private readonly float[] _audioData;
     private readonly int _preSamples;
     private int _position;
 
-    public SeekableCachedSoundSampleProvider(in CachedSound cachedSound, int leadInMilliseconds = 0)
+    public SeekableCachedAudioSampleProvider(CachedAudio cachedAudio, int leadInMilliseconds = 0)
     {
-        _sourceSound = cachedSound;
+        _cachedAudio = cachedAudio;
         if (leadInMilliseconds != 0)
         {
             _preSamples = TimeSpanToSamples(TimeSpan.FromMilliseconds(leadInMilliseconds));
             _position = _preSamples;
         }
 
-        _audioData = cachedSound.AudioData;
+        _audioData = cachedAudio.AudioData;
     }
 
-    public WaveFormat WaveFormat => _sourceSound.WaveFormat;
+    public WaveFormat WaveFormat => _cachedAudio.WaveFormat;
 
     public TimeSpan PlayTime
     {
@@ -61,7 +61,7 @@ public class SeekableCachedSoundSampleProvider : ISampleProvider
                 return samplesToCopy;
             }
 
-            var preLeft = _preSamples - _position;//1200-1000
+            var preLeft = _preSamples - _position; //1200-1000
             if (preLeft <= 0)
             {
                 try

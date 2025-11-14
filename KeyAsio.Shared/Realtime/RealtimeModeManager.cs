@@ -3,6 +3,7 @@ using System.Text;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
+using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
@@ -11,7 +12,6 @@ using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Realtime.States;
 using KeyAsio.Shared.Utils;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
@@ -47,6 +47,7 @@ public class RealtimeModeManager : ViewModelBase
     private readonly HitsoundNodeService _hitsoundNodeService;
     private readonly MusicTrackService _musicTrackService;
     private readonly AudioPlaybackService _audioPlaybackService;
+    private readonly CachedAudioFactory _cachedAudioFactory;
 
     private string? _folder;
     private string? _audioFilePath;
@@ -58,7 +59,8 @@ public class RealtimeModeManager : ViewModelBase
         AudioCacheService audioCacheService,
         HitsoundNodeService hitsoundNodeService,
         MusicTrackService musicTrackService,
-        AudioPlaybackService audioPlaybackService)
+        AudioPlaybackService audioPlaybackService,
+        CachedAudioFactory cachedAudioFactory)
     {
         _sharedViewModel = sharedViewModel;
         _standardAudioProvider = new StandardAudioProvider(this, sharedViewModel);
@@ -76,7 +78,7 @@ public class RealtimeModeManager : ViewModelBase
         // Initialize realtime state machine with scene mappings
         _stateMachine = new RealtimeStateMachine(new Dictionary<OsuMemoryStatus, IRealtimeState>
         {
-            [OsuMemoryStatus.Playing] = new PlayingState(sharedViewModel),
+            [OsuMemoryStatus.Playing] = new PlayingState(sharedViewModel, cachedAudioFactory),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(),
             [OsuMemoryStatus.SongSelect] = new BrowsingState(),
@@ -89,6 +91,7 @@ public class RealtimeModeManager : ViewModelBase
         _hitsoundNodeService = hitsoundNodeService;
         _musicTrackService = musicTrackService;
         _audioPlaybackService = audioPlaybackService;
+        _cachedAudioFactory = cachedAudioFactory;
     }
 
     public string? Username
@@ -227,7 +230,7 @@ public class RealtimeModeManager : ViewModelBase
     public IReadOnlyList<HitsoundNode> PlaybackList => _hitsoundNodeService.PlaybackList;
     public List<PlayableNode> KeyList => _hitsoundNodeService.KeyList;
 
-    public bool TryGetAudioByNode(HitsoundNode playableNode, out CachedSound? cachedSound)
+    public bool TryGetAudioByNode(HitsoundNode playableNode, out CachedAudio cachedSound)
     {
         if (!_audioCacheService.TryGetAudioByNode(playableNode, out cachedSound)) return false;
         return playableNode is not PlayableNode || cachedSound != null;
@@ -263,7 +266,7 @@ public class RealtimeModeManager : ViewModelBase
         }
     }
 
-    public void PlayAudio(CachedSound? cachedSound, float volume, float balance)
+    public void PlayAudio(CachedAudio? cachedSound, float volume, float balance)
     {
         _audioPlaybackService.PlayEffectsAudio(cachedSound, volume, balance, AppSettings);
     }
@@ -390,7 +393,7 @@ public class RealtimeModeManager : ViewModelBase
         _musicTrackService.StartLowPass(lower, upper);
     }
 
-    internal bool TryGetCachedSound(string filenameWithoutExt, out CachedSound? cachedSound)
+    internal bool TryGetCachedSound(string filenameWithoutExt, out CachedAudio? cachedSound)
     {
         return _audioCacheService.TryGetCachedSound(filenameWithoutExt, out cachedSound);
     }
@@ -484,7 +487,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal bool IsResultFlag() => _result;
 
-    internal void SyncMainTrackAudio(CachedSound sound, int positionMs)
+    internal void SyncMainTrackAudio(CachedAudio sound, int positionMs)
     {
         _musicTrackService.SyncMainTrackAudio(sound, positionMs);
     }

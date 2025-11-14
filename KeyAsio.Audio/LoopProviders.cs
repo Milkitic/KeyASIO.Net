@@ -1,17 +1,16 @@
 ﻿using System.Buffers;
-using System.IO;
-using Coosu.Beatmap.Extensions.Playback;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+using KeyAsio.Audio.Caching;
+using KeyAsio.Audio.SampleProviders;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace KeyAsio.Shared.Audio;
+namespace KeyAsio.Audio;
 
-internal class LoopProviders
+public class LoopProviders
 {
-    private readonly Dictionary<SlideChannel, LoopProvider> _dictionary = new();
+    private readonly Dictionary<int, LoopProvider> _dictionary = new();
 
-    public bool ShouldRemoveAll(SlideChannel channel)
+    public bool ShouldRemoveAll(int channel)
     {
         return _dictionary.ContainsKey(channel);
     }
@@ -39,21 +38,21 @@ internal class LoopProviders
         return true;
     }
 
-    public bool ChangeVolume(SlideChannel slideChannel, float volume, float volumeFactor = 1.25f)
+    public bool ChangeVolume(int slideChannel, float volume, float volumeFactor = 1.25f)
     {
         if (!_dictionary.TryGetValue(slideChannel, out var loopProvider)) return false;
         loopProvider.SetVolume(volume * volumeFactor);
         return true;
     }
 
-    public bool ChangeBalance(SlideChannel slideChannel, float balance, float balanceFactor = 1)
+    public bool ChangeBalance(int slideChannel, float balance, float balanceFactor = 1)
     {
         if (!_dictionary.TryGetValue(slideChannel, out var loopProvider)) return false;
         loopProvider.SetBalance(balance * balanceFactor);
         return true;
     }
 
-    public bool Remove(SlideChannel slideChannel, MixingSampleProvider? mixer)
+    public bool Remove(int slideChannel, MixingSampleProvider? mixer)
     {
         if (_dictionary.TryGetValue(slideChannel, out var loopProvider))
         {
@@ -100,8 +99,8 @@ internal class LoopProviders
         }
     }
 
-    public void Create(ControlNode controlNode,
-        CachedSound? cachedSound,
+    public void Create(int slideChannel,
+        CachedAudio? cachedSound,
         MixingSampleProvider mixer,
         float volume,
         float balance,
@@ -110,7 +109,6 @@ internal class LoopProviders
     {
         if (cachedSound is null) return;
 
-        var slideChannel = controlNode.SlideChannel;
         Remove(slideChannel, mixer);
 
         var audioDataLength = cachedSound.AudioData.Length * sizeof(float);

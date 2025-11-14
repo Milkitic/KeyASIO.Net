@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using HandyControl.Controls;
 using HandyControl.Data;
+using KeyAsio.Audio;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Gui.Utils;
 using KeyAsio.MemoryReading.Logging;

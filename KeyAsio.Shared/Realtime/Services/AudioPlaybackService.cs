@@ -1,10 +1,10 @@
 using Coosu.Beatmap.Extensions.Playback;
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
+using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave.SampleProviders;
-using BalanceSampleProvider = KeyAsio.Shared.Audio.BalanceSampleProvider;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
@@ -19,7 +19,7 @@ public class AudioPlaybackService
         _sharedViewModel = sharedViewModel;
     }
 
-    public void PlayEffectsAudio(CachedSound? cachedSound, float volume, float balance, AppSettings appSettings)
+    public void PlayEffectsAudio(CachedAudio? cachedSound, float volume, float balance, AppSettings appSettings)
     {
         if (cachedSound is null)
         {
@@ -36,9 +36,9 @@ public class AudioPlaybackService
 
         try
         {
-            _sharedViewModel.AudioEngine?.EffectMixer.AddMixerInput(
+            _sharedViewModel.AudioEngine.EffectMixer.AddMixerInput(
                 new BalanceSampleProvider(
-                        new EnhancedVolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
+                        new EnhancedVolumeSampleProvider(new SeekableCachedAudioSampleProvider(cachedSound))
                         { Volume = volume }
                     )
                 { Balance = balance }
@@ -49,12 +49,12 @@ public class AudioPlaybackService
             Logger.Error(ex, "Error occurs while playing audio.", true);
         }
 
-        Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourcePath)}; " +
+        Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourceHash)}; " +
                      $"Vol. {volume}; " +
                      $"Bal. {balance}");
     }
 
-    public void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode, AppSettings appSettings)
+    public void PlayLoopAudio(CachedAudio? cachedSound, ControlNode controlNode, AppSettings appSettings)
     {
         var rootMixer = _sharedViewModel.AudioEngine?.EffectMixer;
         if (rootMixer == null)
@@ -67,14 +67,14 @@ public class AudioPlaybackService
 
         if (controlNode.ControlType == ControlType.StartSliding)
         {
-            if (_loopProviders.ShouldRemoveAll(controlNode.SlideChannel))
+            if (_loopProviders.ShouldRemoveAll((int)controlNode.SlideChannel))
             {
                 _loopProviders.RemoveAll(rootMixer);
             }
 
             try
             {
-                _loopProviders.Create(controlNode, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
+                _loopProviders.Create((int)controlNode.SlideChannel, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
             }
             catch (Exception ex)
             {
@@ -83,7 +83,7 @@ public class AudioPlaybackService
         }
         else if (controlNode.ControlType == ControlType.StopSliding)
         {
-            _loopProviders.Remove(controlNode.SlideChannel, rootMixer);
+            _loopProviders.Remove((int)controlNode.SlideChannel, rootMixer);
         }
         else if (controlNode.ControlType == ControlType.ChangeVolume)
         {

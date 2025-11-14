@@ -1,6 +1,6 @@
+using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared.Models;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
@@ -8,10 +8,12 @@ namespace KeyAsio.Shared.Realtime.States;
 public class PlayingState : IRealtimeState
 {
     private readonly SharedViewModel _sharedViewModel;
+    private readonly CachedAudioFactory _cachedAudioFactory;
 
-    public PlayingState(SharedViewModel sharedViewModel)
+    public PlayingState(SharedViewModel sharedViewModel, CachedAudioFactory cachedAudioFactory)
     {
         _sharedViewModel = sharedViewModel;
+        _cachedAudioFactory = cachedAudioFactory;
     }
 
     public async Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
@@ -64,7 +66,7 @@ public class PlayingState : IRealtimeState
                 else
                 {
                     var musicPath = ctx.GetMusicPath();
-                    if (musicPath != null && CachedSoundFactory.ContainsCache(musicPath))
+                    if (musicPath != null && _cachedAudioFactory.ContainsCache(musicPath))
                     {
                         const int codeLatency = -1;
                         const int osuForceLatency = 15;
@@ -76,7 +78,7 @@ public class PlayingState : IRealtimeState
                             ctx.SetSingleTrackPlayMods(ctx.PlayMods);
                         }
 
-                        ctx.SyncMainTrackAudio(CachedSoundFactory.GetCacheSound(musicPath), newMs);
+                        ctx.SyncMainTrackAudio(_cachedAudioFactory.GetCacheSound(musicPath), newMs);
                     }
                 }
             }

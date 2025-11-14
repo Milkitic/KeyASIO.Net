@@ -1,9 +1,10 @@
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
+using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 
 namespace KeyAsio.Shared.Realtime.Tracks;
@@ -14,11 +15,11 @@ public class SingleSynchronousTrack
 
     private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
 
-    private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
+    private SeekableCachedAudioSampleProvider? _bgmCachedSoundSampleProvider;
     private VariableSpeedSampleProvider? _variableSampleProvider;
     private ISampleProvider? _baseSampleProvider;
 
-    private CachedSound? _cachedSound;
+    private CachedAudio? _cachedSound;
 
     private readonly SharedViewModel _sharedViewModel;
 
@@ -32,10 +33,10 @@ public class SingleSynchronousTrack
     public Mods PlayMods { get; set; }
     private AudioEngine? AudioEngine => _sharedViewModel.AudioEngine;
 
-    public void SyncAudio(CachedSound? cachedSound, int playTime)
+    public void SyncAudio(CachedAudio? cachedSound, int playTime)
     {
         if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
-        if (_cachedSound?.SourcePath != cachedSound?.SourcePath)
+        if (_cachedSound?.SourceHash != cachedSound?.SourceHash)
         {
             ClearAudio();
             _cachedSound = cachedSound;
@@ -69,13 +70,13 @@ public class SingleSynchronousTrack
         _bgmCachedSoundSampleProvider = null;
     }
 
-    private void SetNewMixerInput(CachedSound cachedSound, int playTime)
+    private void SetNewMixerInput(CachedAudio cachedSound, int playTime)
     {
         GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
             out var diffTolerance);
         var timeSpan = TimeSpan.FromMilliseconds(playTime);
 
-        _bgmCachedSoundSampleProvider = new SeekableCachedSoundSampleProvider(cachedSound,
+        _bgmCachedSoundSampleProvider = new SeekableCachedAudioSampleProvider(cachedSound,
             (int.MaxValue / 100) + LeadInMilliseconds)
         {
             PlayTime = timeSpan
@@ -96,7 +97,7 @@ public class SingleSynchronousTrack
         AudioEngine?.MusicMixer.AddMixerInput(_baseSampleProvider);
     }
 
-    private void UpdateCurrentMixerInput(SeekableCachedSoundSampleProvider sampleProvider, int playTime)
+    private void UpdateCurrentMixerInput(SeekableCachedAudioSampleProvider sampleProvider, int playTime)
     {
         GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
             out var diffTolerance);

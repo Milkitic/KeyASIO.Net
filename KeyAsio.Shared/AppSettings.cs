@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
+using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Shared;

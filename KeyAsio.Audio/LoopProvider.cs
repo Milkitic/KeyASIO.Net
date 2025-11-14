@@ -1,10 +1,9 @@
 ﻿using System.Buffers;
-using System.IO;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+using KeyAsio.Audio.SampleProviders;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace KeyAsio.Shared.Audio;
+namespace KeyAsio.Audio;
 
 internal sealed class LoopProvider : IDisposable
 {

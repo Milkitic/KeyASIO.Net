@@ -1,8 +1,8 @@
 using Coosu.Beatmap;
+using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.Tracks;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
@@ -53,7 +53,7 @@ public class MusicTrackService
         _singleSynchronousTrack.LeadInMilliseconds = leadInMs;
     }
 
-    public void SyncMainTrackAudio(CachedSound sound, int positionMs)
+    public void SyncMainTrackAudio(CachedAudio sound, int positionMs)
     {
         _singleSynchronousTrack.SyncAudio(sound, positionMs);
     }
