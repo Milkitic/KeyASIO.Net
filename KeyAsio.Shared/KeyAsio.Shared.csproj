@@ -9,10 +9,11 @@
 
   <ItemGroup>
     <PackageReference Include="Coosu.Beatmap" Version="2.3.41" />
-    <PackageReference Include="Milki.Extensions.Configuration" Version="0.1.2" />
-    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.1.2" />
-    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.1.2" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Milki.Extensions.Configuration" Version="0.1.4" />
+    <PackageReference Include="Milki.Extensions.MixPlayer" Version="0.1.4" />
+    <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.1.4" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.1.0" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 

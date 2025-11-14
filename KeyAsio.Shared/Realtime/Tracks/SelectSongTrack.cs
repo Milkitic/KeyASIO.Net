@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Coosu.Beatmap;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Audio;
@@ -20,8 +20,15 @@ public class SelectSongTrack
     private FadeInOutSampleProvider? _fadeInOutSampleProvider;
     private LowPassSampleProvider? _lowPassSampleProvider;
 
-    private MixingSampleProvider? Mixer => SharedViewModel.Instance.AudioEngine?.MusicMixer;
-    private WaveFormat? WaveFormat => SharedViewModel.Instance.AudioEngine?.WaveFormat;
+    private readonly SharedViewModel _sharedViewModel;
+
+    public SelectSongTrack(SharedViewModel sharedViewModel)
+    {
+        _sharedViewModel = sharedViewModel;
+    }
+
+    private MixingSampleProvider? Mixer => _sharedViewModel.AudioEngine?.MusicMixer;
+    private WaveFormat? WaveFormat => _sharedViewModel.AudioEngine?.WaveFormat;
 
     public async Task PlaySingleAudio(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
     {

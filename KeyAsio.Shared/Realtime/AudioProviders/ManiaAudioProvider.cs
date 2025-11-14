@@ -1,4 +1,4 @@
-﻿using Coosu.Beatmap.Extensions.Playback;
+using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
@@ -11,7 +11,7 @@ public class ManiaAudioProvider : IAudioProvider
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(ManiaAudioProvider));
     private readonly RealtimeModeManager _realtimeModeManager;
-
+    private readonly SharedViewModel _sharedViewModel;
     private List<Queue<PlayableNode>> _hitQueue = new();
     private PlayableNode?[] _hitQueueCache = Array.Empty<PlayableNode>();
 
@@ -21,14 +21,15 @@ public class ManiaAudioProvider : IAudioProvider
     private HitsoundNode? _firstAutoNode;
     private HitsoundNode? _firstPlayNode;
 
-    public ManiaAudioProvider(RealtimeModeManager realtimeModeManager)
+    public ManiaAudioProvider(RealtimeModeManager realtimeModeManager, SharedViewModel sharedViewModel)
     {
         _realtimeModeManager = realtimeModeManager;
+        _sharedViewModel = sharedViewModel;
     }
 
     public bool IsStarted => _realtimeModeManager.IsStarted;
     public int PlayTime => _realtimeModeManager.PlayTime;
-    public AudioEngine? AudioEngine => SharedViewModel.Instance.AudioEngine;
+    public AudioEngine? AudioEngine => _sharedViewModel.AudioEngine;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)

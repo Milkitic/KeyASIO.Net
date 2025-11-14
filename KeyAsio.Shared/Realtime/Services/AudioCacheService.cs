@@ -13,25 +13,25 @@ namespace KeyAsio.Shared.Realtime.Services;
 public class AudioCacheService
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(AudioCacheService));
-
-    private readonly HitsoundFileCache _hitsoundFileCache = new();
-    private readonly ConcurrentDictionary<HitsoundNode, CachedSound?> _playNodeToCachedSoundMapping = new();
-    private readonly ConcurrentDictionary<string, CachedSound?> _filenameToCachedSoundMapping = new();
-
+    private static readonly string[] SkinAudioFiles = ["combobreak"];
     private static readonly ParallelOptions ParallelOptions = new()
     {
         MaxDegreeOfParallelism = 1, // Preserve use
     };
 
-    private readonly Func<bool> _isStartedProvider;
+    private readonly HitsoundFileCache _hitsoundFileCache = new();
+    private readonly ConcurrentDictionary<HitsoundNode, CachedSound?> _playNodeToCachedSoundMapping = new();
+    private readonly ConcurrentDictionary<string, CachedSound?> _filenameToCachedSoundMapping = new();
+
+    private readonly IServiceProvider _serviceProvider;
+    private readonly SharedViewModel _sharedViewModel;
     private string? _beatmapFolder;
     private string? _audioFilename;
 
-    private static readonly string[] SkinAudioFiles = ["combobreak"];
-
-    public AudioCacheService(Func<bool> isStartedProvider)
+    public AudioCacheService(IServiceProvider serviceProvider, SharedViewModel sharedViewModel)
     {
-        _isStartedProvider = isStartedProvider;
+        _serviceProvider = serviceProvider;
+        _sharedViewModel = sharedViewModel;
     }
 
     public void SetContext(string? beatmapFolder, string? audioFilename)
@@ -66,7 +66,7 @@ public class AudioCacheService
             return;
         }
 
-        var audioEngine = SharedViewModel.Instance.AudioEngine;
+        var audioEngine = _sharedViewModel.AudioEngine;
         if (audioEngine == null)
         {
             Logger.Warn("AudioEngine is null, stop adding cache.");
@@ -75,7 +75,7 @@ public class AudioCacheService
 
         var folder = _beatmapFolder;
         var waveFormat = audioEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.SelectedSkin?.Folder ?? "";
+        var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
         {
@@ -124,7 +124,7 @@ public class AudioCacheService
             return;
         }
 
-        var audioEngine = SharedViewModel.Instance.AudioEngine;
+        var audioEngine = _sharedViewModel.AudioEngine;
         if (audioEngine == null)
         {
             Logger.Warn("AudioEngine is null, stop adding cache.");
@@ -139,7 +139,7 @@ public class AudioCacheService
 
         var folder = _beatmapFolder;
         var waveFormat = audioEngine.WaveFormat;
-        var skinFolder = SharedViewModel.Instance.SelectedSkin?.Folder ?? "";
+        var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
         {
@@ -180,7 +180,7 @@ public class AudioCacheService
             identifier = "internal";
             filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, filenameWithoutExt, out useUserSkin);
             path = useUserSkin
-                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{filenameWithoutExt}.ogg")
+                ? Path.Combine(_sharedViewModel.DefaultFolder, $"{filenameWithoutExt}.ogg")
                 : Path.Combine(skinFolder, filename);
         }
         else
@@ -211,7 +211,8 @@ public class AudioCacheService
         string skinFolder,
         WaveFormat waveFormat)
     {
-        if (!_isStartedProvider())
+        var manager = (RealtimeModeManager)_serviceProvider.GetService(typeof(RealtimeModeManager))!;
+        if (!manager.IsStarted)
         {
             Logger.Warn("Isn't started, stop adding cache.");
             return;
@@ -235,7 +236,7 @@ public class AudioCacheService
             identifier = "internal";
             var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, hitsoundNode.Filename, out var useUserSkin);
             path = useUserSkin
-                ? Path.Combine(SharedViewModel.Instance.DefaultFolder, $"{hitsoundNode.Filename}.ogg")
+                ? Path.Combine(_sharedViewModel.DefaultFolder, $"{hitsoundNode.Filename}.ogg")
                 : Path.Combine(skinFolder, filename);
         }
 

@@ -12,6 +12,12 @@ public class AudioPlaybackService
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(AudioPlaybackService));
     private readonly LoopProviders _loopProviders = new();
+    private readonly SharedViewModel _sharedViewModel;
+
+    public AudioPlaybackService(SharedViewModel sharedViewModel)
+    {
+        _sharedViewModel = sharedViewModel;
+    }
 
     public void PlayEffectsAudio(CachedSound? cachedSound, float volume, float balance, AppSettings appSettings)
     {
@@ -30,7 +36,7 @@ public class AudioPlaybackService
 
         try
         {
-            SharedViewModel.Instance.AudioEngine?.EffectMixer.AddMixerInput(
+            _sharedViewModel.AudioEngine?.EffectMixer.AddMixerInput(
                 new BalanceSampleProvider(
                         new EnhancedVolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
                         { Volume = volume }
@@ -50,7 +56,7 @@ public class AudioPlaybackService
 
     public void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode, AppSettings appSettings)
     {
-        var rootMixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
+        var rootMixer = _sharedViewModel.AudioEngine?.EffectMixer;
         if (rootMixer == null)
         {
             Logger.Warn("RootMixer is null, stop adding cache.");
@@ -87,7 +93,7 @@ public class AudioPlaybackService
 
     public void ClearAllLoops(MixingSampleProvider? mixer = null)
     {
-        var m = mixer ?? SharedViewModel.Instance.AudioEngine?.EffectMixer;
+        var m = mixer ?? _sharedViewModel.AudioEngine?.EffectMixer;
         _loopProviders.RemoveAll(m);
     }
 }

@@ -1,7 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Win32;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
@@ -9,30 +10,31 @@ using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
-public class SkinManager
+public class SkinManager : IHostedService
 {
-    public static readonly SkinManager Instance = new();
     private static readonly Lock InstanceLock = new();
     private static readonly ILogger Logger = LogUtils.GetLogger("SkinManager");
-
+    private readonly AppSettings _appSettings;
+    private readonly SharedViewModel _sharedViewModel;
     private CancellationTokenSource? _cts;
     private Task? _refreshTask;
     private bool _waiting;
 
-    private SkinManager()
+    public SkinManager(AppSettings appSettings, SharedViewModel sharedViewModel)
     {
+        _appSettings = appSettings;
+        _sharedViewModel = sharedViewModel;
     }
 
-    public SharedViewModel SharedViewModel => SharedViewModel.Instance;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public void ListenPropertyChanging()
     {
-        SharedViewModel.PropertyChanged += (s, e) =>
+        _sharedViewModel.PropertyChanged += (s, e) =>
         {
-            if (e.PropertyName == nameof(SharedViewModel.SelectedSkin))
+            if (e.PropertyName == nameof(_sharedViewModel.SelectedSkin))
             {
-                AppSettings.SelectedSkin = SharedViewModel.SelectedSkin?.FolderName ?? "";
+                AppSettings.SelectedSkin = _sharedViewModel.SelectedSkin?.FolderName ?? "";
                 CachedSoundFactory.ClearCacheSounds("internal");
             }
         };
@@ -89,7 +91,7 @@ public class SkinManager
             if (AppSettings.OsuFolder == null) return;
             var skinsDir = Path.Combine(AppSettings.OsuFolder, "Skins");
             if (!Directory.Exists(skinsDir)) return;
-            UiDispatcher.Invoke(() => SharedViewModel.Skins.Clear());
+            UiDispatcher.Invoke(() => _sharedViewModel.Skins.Clear());
             var list = new List<SkinDescription> { SkinDescription.Default };
             foreach (var directory in Directory.EnumerateDirectories(skinsDir, "*", SearchOption.TopDirectoryOnly))
             {
@@ -112,12 +114,12 @@ public class SkinManager
             {
                 foreach (var skinDescription in list)
                 {
-                    SharedViewModel.Skins.Add(skinDescription);
+                    _sharedViewModel.Skins.Add(skinDescription);
                 }
 
                 var selected = AppSettings.SelectedSkin;
-                SharedViewModel.SelectedSkin = SharedViewModel.Skins.FirstOrDefault(k => k.FolderName == selected) ??
-                                               SharedViewModel.Skins.FirstOrDefault();
+                _sharedViewModel.SelectedSkin = _sharedViewModel.Skins.FirstOrDefault(k => k.FolderName == selected) ??
+                                               _sharedViewModel.Skins.FirstOrDefault();
             });
         });
 
@@ -129,14 +131,13 @@ public class SkinManager
         _refreshTask.Start();
     }
 
-    public void CheckOsuRegistry()
+    public async Task CheckOsuRegistryAsync()
     {
         try
         {
             var settings = AppSettings;
             using var reg = Registry.ClassesRoot.OpenSubKey(@"osu!\shell\open\command");
-            if (reg == null) return;
-            var parameters = reg.GetValue(null)?.ToString();
+            var parameters = reg?.GetValue(null)?.ToString();
             if (parameters == null) return;
 
             var path = parameters.Replace(" \"%1\"", "").Trim(' ', '"');
@@ -185,5 +186,25 @@ public class SkinManager
         {
             await _refreshTask;
         }
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_appSettings.OsuFolder))
+        {
+            await CheckOsuRegistryAsync();
+        }
+
+        ListenPropertyChanging();
+        _ = RefreshSkinInBackground();
+        if (_appSettings.RealtimeOptions.RealtimeMode)
+        {
+            ListenToProcess();
+        }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
     }
 }

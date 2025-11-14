@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,17 +14,18 @@ using System.Xml;
 using System.Xml.Linq;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
-using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
+using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer;
 using NLog.Extensions.Logging;
-
-using OrtdpLogger = KeyAsio.MemoryReading.Logger;
 
 namespace KeyAsio.Gui;
 
@@ -33,7 +34,10 @@ namespace KeyAsio.Gui;
 /// </summary>
 public partial class App : Application
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger("Application");
+    private static readonly KeyAsio.MemoryReading.Logging.ILogger Logger = LogUtils.GetLogger("Application");
+    private IHost? _host;
+
+    public IServiceProvider Services => _host?.Services ?? throw new InvalidOperationException("Host not initialized.");
 
     [STAThread]
     internal static void Main()
@@ -107,6 +111,7 @@ public partial class App : Application
                 }
             }
         }
+
         if (!changed) return;
         xDocument.DescendantNodes().OfType<XComment>().Remove();
         using var fsw = new StreamWriter(configFile, Encoding.UTF8, new FileStreamOptions
@@ -145,69 +150,72 @@ public partial class App : Application
         }
     }
 
-    private void App_OnStartup(object sender, StartupEventArgs e)
+    private async void App_OnStartup(object sender, StartupEventArgs e)
     {
-        Configuration.Instance.SetLogger(
-            Microsoft.Extensions.Logging.LoggerFactory.Create(k => k.AddNLog("nlog.config")));
+        _host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddNLog("nlog.config");
+            })
+            .ConfigureServices(services =>
+            {
+                services.AddHostedService<SkinManager>();
+                services.AddHostedService<StartupService>();
+
+                services.AddSingleton(provider =>
+                    ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, "."));
+                services.AddSingleton<SkinManager>();
+                services.AddSingleton<AudioCacheService>();
+                services.AddSingleton<HitsoundNodeService>();
+                services.AddSingleton<MusicTrackService>();
+                services.AddSingleton<AudioPlaybackService>();
+                services.AddSingleton<RealtimeModeManager>();
+
+                services.AddSingleton<SharedViewModel>();
+                services.AddTransient<DeviceWindowViewModel>();
+
+                services.AddTransient<MainWindow>();
+                services.AddTransient<DeviceWindow>();
+                services.AddTransient<LatencyGuideWindow>();
+                services.AddTransient<RealtimeOptionsWindow>();
+            })
+            .Build();
+        await _host.StartAsync();
+
+        Configuration.Instance.SetLogger(_host.Services.GetRequiredService<ILoggerFactory>());
         NLogDevice.RegisterDefault();
 
         UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());
         Dispatcher.UnhandledException += Dispatcher_UnhandledException;
-        var settings = ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".");
 
-        if (settings.Debugging)
-        {
-            ConsoleManager.Show();
-        }
-
-        if (string.IsNullOrWhiteSpace(settings.OsuFolder))
-        {
-            SkinManager.Instance.CheckOsuRegistry();
-        }
-
-        SkinManager.Instance.ListenPropertyChanging();
-        _ = SkinManager.Instance.RefreshSkinInBackground();
-        if (settings.RealtimeOptions.RealtimeMode)
-        {
-            try
-            {
-                var player = EncodeUtils.FromBase64String(settings.PlayerBase64, Encoding.ASCII);
-                RealtimeModeManager.Instance.Username = player;
-            }
-            catch
-            {
-                // ignored
-            }
-
-            OrtdpLogger.SetLoggerFactory(LogUtils.LoggerFactory);
-            MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Username = player);
-            MemoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.PlayMods = mods);
-            MemoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Combo = combo);
-            MemoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Score = score);
-            MemoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.IsReplay = isReplay);
-            MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.LastFetchedPlayTime = playTime);
-            MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.Beatmap = beatmap);
-            MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-                Dispatcher.InvokeAsync(() => RealtimeModeManager.Instance.OsuStatus = current);
-            MemoryScan.Start(settings.RealtimeOptions.GeneralScanInterval, settings.RealtimeOptions.TimingScanInterval);
-            SkinManager.Instance.ListenToProcess();
-        }
-
-        MainWindow = new MainWindow();
+        MainWindow = _host.Services.GetRequiredService<MainWindow>();
         MainWindow.Show();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+    private void Dispatcher_UnhandledException(object sender,
+        System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
         Logger.Error(e.Exception, "Unhandled Exception (Dispatcher): " + e.Exception.Message, true);
         e.Handled = true;
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        try
+        {
+            _host?.StopAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // ignored
+        }
+        finally
+        {
+            _host?.Dispose();
+        }
+
+        base.OnExit(e);
     }
 }

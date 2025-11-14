@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -14,7 +14,8 @@ using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
-using Milki.Extensions.Configuration;
+using KeyAsio.Shared.Realtime;
+using Microsoft.Extensions.DependencyInjection;
 using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using Milki.Extensions.MouseKeyHook;
@@ -31,17 +32,19 @@ public partial class MainWindow : DialogWindow
 
     private bool _forceClose;
     private readonly AppSettings _appSettings;
+    private readonly RealtimeModeManager _realtimeModeManager;
     private readonly SharedViewModel _viewModel;
     private CachedSound? _cacheSound;
     private readonly IKeyboardHook _keyboardHook;
     private readonly List<Guid> _registerList = new();
     private Timer? _timer;
 
-    public MainWindow()
+    public MainWindow(AppSettings appSettings, RealtimeModeManager realtimeModeManager, SharedViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = _viewModel = SharedViewModel.Instance;
-        _appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
+        DataContext = _viewModel = viewModel;
+        _appSettings = appSettings;
+        _realtimeModeManager = realtimeModeManager;
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
@@ -89,11 +92,9 @@ public partial class MainWindow : DialogWindow
 
     private async Task SelectDevice()
     {
-        var window = new DeviceWindow
-        {
-            Owner = this,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        };
+        var window = ((App)Application.Current).Services.GetRequiredService<DeviceWindow>();
+        window.Owner = this;
+        window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         if (window.ShowDialog() != true) return;
 
         var deviceDescription = window.ViewModel.SelectedDevice;
@@ -199,6 +200,7 @@ public partial class MainWindow : DialogWindow
                 Thread.Sleep(100);
             }
         }
+
         _viewModel.AudioEngine = null;
         _viewModel.DeviceDescription = null;
         CachedSoundFactory.ClearCacheSounds();
@@ -238,10 +240,11 @@ public partial class MainWindow : DialogWindow
                 return;
             }
 
-            var playbackInfos = _viewModel.RealtimeModeManager.GetKeyAudio(_appSettings.Keys.IndexOf(hookKey), _appSettings.Keys.Count);
+            var playbackInfos =
+                _realtimeModeManager.GetKeyAudio(_appSettings.Keys.IndexOf(hookKey), _appSettings.Keys.Count);
             foreach (var playbackInfo in playbackInfos)
             {
-                _viewModel.RealtimeModeManager.PlayAudio(playbackInfo);
+                _realtimeModeManager.PlayAudio(playbackInfo);
             }
         };
 
@@ -336,19 +339,19 @@ public partial class MainWindow : DialogWindow
         {
             Growl.Ask($"Send logs and errors to developer?\r\n" +
                       $"You can change option later in configuration file.",
-            dialogResult =>
-            {
-                _appSettings.SendLogsToDeveloper = dialogResult;
-                _appSettings.SendLogsToDeveloperConfirmed = true;
-                return true;
-            });
+                dialogResult =>
+                {
+                    _appSettings.SendLogsToDeveloper = dialogResult;
+                    _appSettings.SendLogsToDeveloperConfirmed = true;
+                    return true;
+                });
         }
 
         var result = await Updater.CheckUpdateAsync();
         if (result == true)
         {
             Growl.Ask($"Found new version: {Updater.NewRelease!.NewVerString}. " +
-                   $"Click yes to open the release page.",
+                      $"Click yes to open the release page.",
                 dialogResult =>
                 {
                     if (dialogResult)
@@ -460,12 +463,9 @@ public partial class MainWindow : DialogWindow
         }
 
         _registerList.Clear();
-
-        var latencyGuideWindow = new LatencyGuideWindow
-        {
-            Owner = this,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        };
+        var latencyGuideWindow = ((App)Application.Current).Services.GetRequiredService<LatencyGuideWindow>();
+        latencyGuideWindow.Owner = this;
+        latencyGuideWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         latencyGuideWindow.ShowDialog();
 
         foreach (var key in _appSettings.Keys)
@@ -476,12 +476,10 @@ public partial class MainWindow : DialogWindow
 
     private void btnRealtimeOptions_OnClick(object sender, RoutedEventArgs e)
     {
-        var latencyGuideWindow = new RealtimeOptionsWindow
-        {
-            Owner = this,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        };
-        latencyGuideWindow.ShowDialog();
+        var optionsWindow = ((App)Application.Current).Services.GetRequiredService<RealtimeOptionsWindow>();
+        optionsWindow.Owner = this;
+        optionsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        optionsWindow.ShowDialog();
     }
 
     private static void FixCommit(ref string version)

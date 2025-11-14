@@ -18,7 +18,6 @@ namespace KeyAsio.Shared.Realtime;
 
 public class RealtimeModeManager : ViewModelBase
 {
-    public static RealtimeModeManager Instance { get; } = new();
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(RealtimeModeManager));
 
     private int _playTime;
@@ -26,7 +25,6 @@ public class RealtimeModeManager : ViewModelBase
     private int _pauseCount = 0;
 
     private readonly Lock _isStartedLock = new();
-    private readonly AudioCacheService _audioCacheService;
 
     private string? _username;
     private Mods _playMods;
@@ -37,19 +35,18 @@ public class RealtimeModeManager : ViewModelBase
     private BeatmapIdentifier _beatmap;
     private bool _isStarted;
 
-    private readonly HitsoundNodeService _hitsoundNodeService;
-
+    private readonly SharedViewModel _sharedViewModel;
     private readonly StandardAudioProvider _standardAudioProvider;
     private readonly ManiaAudioProvider _maniaAudioProvider;
     private readonly Stopwatch _playTimeStopwatch = new();
 
     private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary;
 
-    private readonly MusicTrackService _musicTrackService = new();
-
-    private readonly AudioPlaybackService _audioPlaybackService = new();
-
     private readonly RealtimeStateMachine _stateMachine;
+    private readonly AudioCacheService _audioCacheService;
+    private readonly HitsoundNodeService _hitsoundNodeService;
+    private readonly MusicTrackService _musicTrackService;
+    private readonly AudioPlaybackService _audioPlaybackService;
 
     private string? _folder;
     private string? _audioFilePath;
@@ -57,10 +54,15 @@ public class RealtimeModeManager : ViewModelBase
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
 
-    public RealtimeModeManager()
+    public RealtimeModeManager(SharedViewModel sharedViewModel,
+        AudioCacheService audioCacheService,
+        HitsoundNodeService hitsoundNodeService,
+        MusicTrackService musicTrackService,
+        AudioPlaybackService audioPlaybackService)
     {
-        _standardAudioProvider = new StandardAudioProvider(this);
-        _maniaAudioProvider = new ManiaAudioProvider(this);
+        _sharedViewModel = sharedViewModel;
+        _standardAudioProvider = new StandardAudioProvider(this, sharedViewModel);
+        _maniaAudioProvider = new ManiaAudioProvider(this, sharedViewModel);
         // Track services initialized via field initializer
 
         _audioProviderDictionary = new Dictionary<GameMode, IAudioProvider>()
@@ -74,7 +76,7 @@ public class RealtimeModeManager : ViewModelBase
         // Initialize realtime state machine with scene mappings
         _stateMachine = new RealtimeStateMachine(new Dictionary<OsuMemoryStatus, IRealtimeState>
         {
-            [OsuMemoryStatus.Playing] = new PlayingState(),
+            [OsuMemoryStatus.Playing] = new PlayingState(sharedViewModel),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(),
             [OsuMemoryStatus.SongSelect] = new BrowsingState(),
@@ -83,8 +85,10 @@ public class RealtimeModeManager : ViewModelBase
             [OsuMemoryStatus.MultiplayerSongSelect] = new BrowsingState(),
         });
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
-        _audioCacheService = new AudioCacheService(() => IsStarted);
-        _hitsoundNodeService = new HitsoundNodeService(this, _audioCacheService);
+        _audioCacheService = audioCacheService;
+        _hitsoundNodeService = hitsoundNodeService;
+        _musicTrackService = musicTrackService;
+        _audioPlaybackService = audioPlaybackService;
     }
 
     public string? Username
@@ -285,7 +289,9 @@ public class RealtimeModeManager : ViewModelBase
                 throw new Exception("The beatmap folder is null!");
             }
 
-            await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename, GetCurrentAudioProvider());
+            var osuFile = await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename, GetCurrentAudioProvider(), PlayMods);
+            OsuFile = osuFile;
+            AudioFilename = osuFile?.General?.AudioFilename;
             AddSkinCacheInBackground();
             ResetNodes();
         }
@@ -306,7 +312,7 @@ public class RealtimeModeManager : ViewModelBase
         Logger.Info("Stop playing.");
         IsStarted = false;
         _firstStartInitialized = false;
-        var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
+        var mixer = _sharedViewModel.AudioEngine?.EffectMixer;
         _audioPlaybackService.ClearAllLoops(mixer);
         _musicTrackService.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();
@@ -338,9 +344,9 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        if (SharedViewModel.Instance.AudioEngine == null)
+        if (_sharedViewModel.AudioEngine == null)
         {
-            Logger.Warn($"{nameof(SharedViewModel.Instance.AudioEngine)} is null, stop adding cache.");
+            Logger.Warn($"AudioEngine is null, stop adding cache.");
             return;
         }
 
@@ -457,7 +463,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void ClearMixerLoopsAndMainTrackAudio()
     {
-        var mixer = SharedViewModel.Instance.AudioEngine?.EffectMixer;
+        var mixer = _sharedViewModel.AudioEngine?.EffectMixer;
         _audioPlaybackService.ClearAllLoops(mixer);
         _musicTrackService.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();
@@ -495,7 +501,7 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void PlayAutoPlaybackIfNeeded()
     {
-        if (SharedViewModel.Instance.AutoMode || (PlayMods & Mods.Autoplay) != 0 || IsReplay)
+        if (_sharedViewModel.AutoMode || (PlayMods & Mods.Autoplay) != 0 || IsReplay)
         {
             foreach (var playbackObject in GetPlaybackAudio(false))
             {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -67,10 +67,10 @@ public partial class DeviceWindow : DialogWindow
 {
     public DeviceWindowViewModel ViewModel { get; }
 
-    public DeviceWindow()
+    public DeviceWindow(DeviceWindowViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = ViewModel = new DeviceWindowViewModel();
+        DataContext = ViewModel = viewModel;
     }
 
     private async void DeviceWindow_OnLoaded(object sender, RoutedEventArgs e)

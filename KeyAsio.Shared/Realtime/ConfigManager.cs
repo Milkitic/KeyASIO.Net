@@ -1,7 +1,5 @@
-﻿using System.IO;
 using Coosu.Shared.IO;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;
 
@@ -23,7 +21,6 @@ internal class ConfigManager
     public HookKeys KeyTaikoOuterLeft { get; private set; }
     public HookKeys KeyTaikoOuterRight { get; private set; }
 
-    public SharedViewModel SharedViewModel => SharedViewModel.Instance;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public void ReadConfigs()
