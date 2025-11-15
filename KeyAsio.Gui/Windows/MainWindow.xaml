@@ -199,7 +199,7 @@
           <TextBlock
             Grid.Row="3"
             Grid.Column="1"
-            Text="{Binding AudioEngine.WaveFormat.SampleRate}"
+            Text="{Binding AudioEngine.EngineWaveFormat.SampleRate}"
             TextWrapping="Wrap" />
           <TextBlock
             Grid.Row="4"
@@ -330,7 +330,7 @@
                   Mode="OneWay"
                   StringFormat="0.000">
                   <Binding Mode="OneWay" Path="PlaybackLatency" />
-                  <Binding Mode="OneWay" Path="AudioEngine.WaveFormat.SampleRate" />
+                  <Binding Mode="OneWay" Path="AudioEngine.EngineWaveFormat.SampleRate" />
                 </MultiBinding>
               </Run.Text>
             </Run><Run Text="ms)" />

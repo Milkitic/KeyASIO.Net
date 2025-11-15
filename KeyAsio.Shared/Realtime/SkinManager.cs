@@ -15,16 +15,16 @@ public class SkinManager : IHostedService
     private static readonly Lock InstanceLock = new();
     private static readonly ILogger Logger = LogUtils.GetLogger("SkinManager");
     private readonly AppSettings _appSettings;
-    private readonly CachedAudioFactory _cachedAudioFactory;
+    private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
     private CancellationTokenSource? _cts;
     private Task? _refreshTask;
     private bool _waiting;
 
-    public SkinManager(AppSettings appSettings, CachedAudioFactory cachedAudioFactory, SharedViewModel sharedViewModel)
+    public SkinManager(AppSettings appSettings, AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
     {
         _appSettings = appSettings;
-        _cachedAudioFactory = cachedAudioFactory;
+        _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
     }
 
@@ -37,7 +37,7 @@ public class SkinManager : IHostedService
             if (e.PropertyName == nameof(_sharedViewModel.SelectedSkin))
             {
                 AppSettings.SelectedSkin = _sharedViewModel.SelectedSkin?.FolderName ?? "";
-                _cachedAudioFactory.Clear("internal");
+                _audioCacheManager.Clear("internal");
             }
         };
 

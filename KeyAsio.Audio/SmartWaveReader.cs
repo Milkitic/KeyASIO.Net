@@ -10,7 +10,8 @@ public class SmartWaveReader : WaveStream, ISampleProvider
     private readonly NAudio.Wave.SampleProviders.SampleChannel _sampleChannel;
     private readonly int _destBytesPerSample;
     private readonly int _sourceBytesPerSample;
-    private readonly object _lockObject;
+    private readonly Lock _lockObject;
+    private readonly WaveBuffer _reusableWaveBuffer = new([]);
     private Stream _stream;
     private bool _isDisposed;
     private WaveStream _readerStream = null!;
@@ -29,7 +30,7 @@ public class SmartWaveReader : WaveStream, ISampleProvider
     {
         if (!stream.CanSeek) throw new ArgumentException("Stream must be seekable.", nameof(stream));
 
-        _lockObject = new object();
+        _lockObject = new Lock();
         _stream = stream;
         _stream.Seek(0, SeekOrigin.Begin);
         if (_stream is FileStream fs)
@@ -105,9 +106,9 @@ public class SmartWaveReader : WaveStream, ISampleProvider
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        var waveBuffer = new WaveBuffer(buffer);
+        _reusableWaveBuffer.BindTo(buffer);
         int samplesRequired = count >> 2;
-        return Read(waveBuffer.FloatBuffer, offset >> 2, samplesRequired) << 2;
+        return Read(_reusableWaveBuffer.FloatBuffer, offset >> 2, samplesRequired) << 2;
     }
 
     public int Read(float[] buffer, int offset, int count)

@@ -8,12 +8,12 @@ namespace KeyAsio.Shared.Realtime.States;
 public class PlayingState : IRealtimeState
 {
     private readonly AudioEngine _audioEngine;
-    private readonly CachedAudioFactory _cachedAudioFactory;
+    private readonly AudioCacheManager _audioCacheManager;
 
-    public PlayingState(AudioEngine audioEngine, CachedAudioFactory cachedAudioFactory)
+    public PlayingState(AudioEngine audioEngine, AudioCacheManager audioCacheManager)
     {
         _audioEngine = audioEngine;
-        _cachedAudioFactory = cachedAudioFactory;
+        _audioCacheManager = audioCacheManager;
     }
 
     public async Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
@@ -68,7 +68,7 @@ public class PlayingState : IRealtimeState
                     var musicPath = ctx.GetMusicPath();
                     if (musicPath != null)
                     {
-                        var cachedAudio = await _cachedAudioFactory.TryGetAsync(musicPath);
+                        var cachedAudio = await _audioCacheManager.TryGetAsync(musicPath);
                         if (cachedAudio != null)
                         {
                             const int codeLatency = -1;

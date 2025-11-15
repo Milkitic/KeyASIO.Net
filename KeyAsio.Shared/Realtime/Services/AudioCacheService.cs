@@ -26,16 +26,16 @@ public class AudioCacheService
 
     private readonly IServiceProvider _serviceProvider;
     private readonly AudioEngine _audioEngine;
-    private readonly CachedAudioFactory _cachedAudioFactory;
+    private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
     private string? _beatmapFolder;
     private string? _audioFilename;
 
-    public AudioCacheService(IServiceProvider serviceProvider, AudioEngine audioEngine, CachedAudioFactory cachedAudioFactory, SharedViewModel sharedViewModel)
+    public AudioCacheService(IServiceProvider serviceProvider, AudioEngine audioEngine, AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
     {
         _serviceProvider = serviceProvider;
         _audioEngine = audioEngine;
-        _cachedAudioFactory = cachedAudioFactory;
+        _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
     }
 
@@ -47,7 +47,7 @@ public class AudioCacheService
 
     public void ClearCaches()
     {
-        _cachedAudioFactory.Clear();
+        _audioCacheManager.Clear();
         _playNodeToCachedSoundMapping.Clear();
         _filenameToCachedSoundMapping.Clear();
     }
@@ -55,7 +55,7 @@ public class AudioCacheService
     public bool TryGetAudioByNode(HitsoundNode node, out CachedAudio cachedSound)
     {
         if (!_playNodeToCachedSoundMapping.TryGetValue(node, out cachedSound)) return false;
-        return node is not PlayableNode;
+        return node is PlayableNode;
     }
 
     public bool TryGetCachedSound(string filenameWithoutExt, out CachedAudio? cachedSound)
@@ -78,7 +78,7 @@ public class AudioCacheService
         }
 
         var folder = _beatmapFolder;
-        var waveFormat = _audioEngine.WaveFormat;
+        var waveFormat = _audioEngine.EngineWaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
@@ -90,7 +90,7 @@ public class AudioCacheService
                 CacheGetStatus status;
                 await using (var fs = File.OpenRead(musicPath))
                 {
-                    (_, status) = await _cachedAudioFactory.GetOrCreateOrEmpty(musicPath, fs, waveFormat);
+                    (_, status) = await _audioCacheManager.GetOrCreateOrEmptyAsync(musicPath, fs, waveFormat);
                 }
 
                 if (status == CacheGetStatus.Failed)
@@ -150,7 +150,7 @@ public class AudioCacheService
         }
 
         var folder = _beatmapFolder;
-        var waveFormat = _audioEngine.WaveFormat;
+        var waveFormat = _audioEngine.EngineWaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
@@ -204,7 +204,7 @@ public class AudioCacheService
         CacheGetStatus status;
         await using (var fs = File.OpenRead(path))
         {
-            (result!, status) = await _cachedAudioFactory.GetOrCreateOrEmpty(path, fs, waveFormat, category);
+            (result!, status) = await _audioCacheManager.GetOrCreateOrEmptyAsync(path, fs, waveFormat, category);
         }
 
         if (status == CacheGetStatus.Failed)
@@ -245,7 +245,7 @@ public class AudioCacheService
                 Logger.Warn("Filename is null, add null cache.");
             }
 
-            var cacheResult = await _cachedAudioFactory.GetOrCreateEmpty("null", waveFormat);
+            var cacheResult = await _audioCacheManager.GetOrCreateEmptyAsync("null", waveFormat);
             _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, cacheResult.CachedAudio!);
             return;
         }
@@ -265,7 +265,7 @@ public class AudioCacheService
         CacheGetStatus status;
         await using (var fs = File.OpenRead(path))
         {
-            (result!, status) = await _cachedAudioFactory.GetOrCreateOrEmpty(path, fs, waveFormat, category);
+            (result!, status) = await _audioCacheManager.GetOrCreateOrEmptyAsync(path, fs, waveFormat, category);
         }
 
         if (status == CacheGetStatus.Failed)

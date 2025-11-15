@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
@@ -8,20 +7,19 @@ using NAudio.Wave.Asio;
 
 namespace KeyAsio.Audio;
 
-[SupportedOSPlatform("windows6.0")]
-public class DeviceCreationHelper : IDisposable
+public class AudioDeviceManager : IDisposable
 {
     private static readonly FieldInfo? AsioExtField;
     private static readonly FieldInfo? CapabilityField;
 
-    private readonly ILogger<DeviceCreationHelper> _logger;
+    private readonly ILogger<AudioDeviceManager> _logger;
     private readonly MMDeviceEnumerator _mmDeviceEnumerator;
-    private readonly MmNotificationClient _mmNotificationClientCallBack;
+    private readonly MmNotificationClient _mmNotificationClient;
 
     private bool _disposed;
     private Lazy<Task<IReadOnlyList<DeviceDescription>>> _cachedDevices;
 
-    static DeviceCreationHelper()
+    static AudioDeviceManager()
     {
         // HACK: Accessing private NAudio fields to force ASIO buffer size.
         // This targets NAudio v2.2.1.
@@ -30,7 +28,7 @@ public class DeviceCreationHelper : IDisposable
         CapabilityField = typeof(AsioDriverExt).GetField("capability", BindingFlags.Instance | BindingFlags.NonPublic);
     }
 
-    public DeviceCreationHelper(ILogger<DeviceCreationHelper> logger)
+    public AudioDeviceManager(ILogger<AudioDeviceManager> logger)
     {
         _logger = logger;
         if (Environment.OSVersion.Version.Major < 6)
@@ -42,8 +40,8 @@ public class DeviceCreationHelper : IDisposable
 
         _cachedDevices = CreateLazyDeviceListAsync();
 
-        _mmNotificationClientCallBack = new MmNotificationClient(this);
-        _mmDeviceEnumerator.RegisterEndpointNotificationCallback(_mmNotificationClientCallBack);
+        _mmNotificationClient = new MmNotificationClient(this);
+        _mmDeviceEnumerator.RegisterEndpointNotificationCallback(_mmNotificationClient);
     }
 
     public (IWavePlayer Player, DeviceDescription ActualDescription) CreateDevice(
@@ -77,7 +75,7 @@ public class DeviceCreationHelper : IDisposable
     private Lazy<Task<IReadOnlyList<DeviceDescription>>> CreateLazyDeviceListAsync()
     {
         return new Lazy<Task<IReadOnlyList<DeviceDescription>>>(
-            () => Task.Run(IReadOnlyList<DeviceDescription> () => EnumerateConfigurations().ToArray()),
+            () => Task.Run(IReadOnlyList<DeviceDescription> () => EnumerateAllDevices().ToArray()),
             LazyThreadSafetyMode.ExecutionAndPublication
         );
     }
@@ -175,14 +173,14 @@ public class DeviceCreationHelper : IDisposable
         return device;
     }
 
-    private IEnumerable<DeviceDescription> EnumerateConfigurations()
+    private IEnumerable<DeviceDescription> EnumerateAllDevices()
     {
-        foreach (var deviceDescription in EnmumerateFromDirectSound()) yield return deviceDescription;
+        foreach (var deviceDescription in EnumerateFromDirectSound()) yield return deviceDescription;
         foreach (var deviceDescription in EnumerateFromWasapi()) yield return deviceDescription;
         foreach (var deviceDescription in EnumerateFromAsio()) yield return deviceDescription;
     }
 
-    private IEnumerable<DeviceDescription> EnmumerateFromDirectSound()
+    private IEnumerable<DeviceDescription> EnumerateFromDirectSound()
     {
         IEnumerable<DirectSoundDeviceInfo> devices;
         try
@@ -313,7 +311,7 @@ public class DeviceCreationHelper : IDisposable
         {
             try
             {
-                _mmDeviceEnumerator.UnregisterEndpointNotificationCallback(_mmNotificationClientCallBack);
+                _mmDeviceEnumerator.UnregisterEndpointNotificationCallback(_mmNotificationClient);
             }
             catch (Exception ex)
             {
@@ -326,12 +324,12 @@ public class DeviceCreationHelper : IDisposable
         _disposed = true;
     }
 
-    private class MmNotificationClient(DeviceCreationHelper deviceCreationHelper) : IMMNotificationClient
+    private class MmNotificationClient(AudioDeviceManager audioDeviceManager) : IMMNotificationClient
     {
-        public void OnDeviceStateChanged(string deviceId, DeviceState newState) => deviceCreationHelper.ClearCache();
-        public void OnDeviceAdded(string pwstrDeviceId) => deviceCreationHelper.ClearCache();
-        public void OnDeviceRemoved(string deviceId) => deviceCreationHelper.ClearCache();
-        public void OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId) => deviceCreationHelper.ClearCache();
+        public void OnDeviceStateChanged(string deviceId, DeviceState newState) => audioDeviceManager.ClearCache();
+        public void OnDeviceAdded(string pwstrDeviceId) => audioDeviceManager.ClearCache();
+        public void OnDeviceRemoved(string deviceId) => audioDeviceManager.ClearCache();
+        public void OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId) => audioDeviceManager.ClearCache();
         public void OnPropertyValueChanged(string pwstrDeviceId, PropertyKey key) { }
     }
 }

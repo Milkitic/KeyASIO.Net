@@ -33,9 +33,9 @@ public partial class MainWindow : DialogWindow
     private bool _forceClose;
     private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
-    private readonly CachedAudioFactory _cachedAudioFactory;
+    private readonly AudioCacheManager _audioCacheManager;
     private readonly RealtimeModeManager _realtimeModeManager;
-    private readonly DeviceCreationHelper _deviceCreationHelper;
+    private readonly AudioDeviceManager _audioDeviceManager;
     private readonly SharedViewModel _viewModel;
     private CachedAudio? _cacheSound;
     private readonly IKeyboardHook _keyboardHook;
@@ -44,18 +44,18 @@ public partial class MainWindow : DialogWindow
 
     public MainWindow(AppSettings appSettings,
         AudioEngine audioEngine,
-        CachedAudioFactory cachedAudioFactory,
+        AudioCacheManager audioCacheManager,
         RealtimeModeManager realtimeModeManager,
-        DeviceCreationHelper deviceCreationHelper,
+        AudioDeviceManager audioDeviceManager,
         SharedViewModel viewModel)
     {
         InitializeComponent();
         DataContext = _viewModel = viewModel;
         _appSettings = appSettings;
         _audioEngine = audioEngine;
-        _cachedAudioFactory = cachedAudioFactory;
+        _audioCacheManager = audioCacheManager;
         _realtimeModeManager = realtimeModeManager;
-        _deviceCreationHelper = deviceCreationHelper;
+        _audioDeviceManager = audioDeviceManager;
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
@@ -132,7 +132,7 @@ public partial class MainWindow : DialogWindow
     {
         try
         {
-            var (device, actualDescription) = _deviceCreationHelper.CreateDevice(deviceDescription);
+            var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
             _audioEngine.MusicVolume = _appSettings.RealtimeOptions.MusicTrackVolume / 100f;
             _audioEngine.EffectVolume = _appSettings.RealtimeOptions.EffectTrackVolume / 100f;
             _audioEngine.StartDevice(device);
@@ -164,10 +164,11 @@ public partial class MainWindow : DialogWindow
                 }, null, 0, 100);
             }
 
-            var waveFormat = _audioEngine.WaveFormat;
-            await using (var fs = File.OpenRead(_appSettings.HitsoundPath))
+            var waveFormat = _audioEngine.EngineWaveFormat;
+            if (Path.Exists(_appSettings.HitsoundPath))
             {
-                var (cachedAudio, result) = await _cachedAudioFactory.GetOrCreateOrEmpty(_appSettings.HitsoundPath, fs, waveFormat);
+                await using var fs = File.OpenRead(_appSettings.HitsoundPath);
+                var (cachedAudio, result) = await _audioCacheManager.GetOrCreateOrEmptyAsync(_appSettings.HitsoundPath, fs, waveFormat);
                 _cacheSound = cachedAudio;
             }
 
@@ -217,8 +218,8 @@ public partial class MainWindow : DialogWindow
 
         _audioEngine.StopDevice();
         _viewModel.DeviceDescription = null;
-        _cachedAudioFactory.Clear();
-        _cachedAudioFactory.Clear("internal");
+        _audioCacheManager.Clear();
+        _audioCacheManager.Clear("internal");
 
         if (!saveToSettings) return;
         _appSettings.Device = null;

@@ -49,7 +49,7 @@ public class RealtimeModeManager : ViewModelBase
     private readonly HitsoundNodeService _hitsoundNodeService;
     private readonly MusicTrackService _musicTrackService;
     private readonly AudioPlaybackService _audioPlaybackService;
-    private readonly CachedAudioFactory _cachedAudioFactory;
+    private readonly AudioCacheManager _audioCacheManager;
 
     private string? _folder;
     private string? _audioFilePath;
@@ -63,7 +63,7 @@ public class RealtimeModeManager : ViewModelBase
         HitsoundNodeService hitsoundNodeService,
         MusicTrackService musicTrackService,
         AudioPlaybackService audioPlaybackService,
-        CachedAudioFactory cachedAudioFactory)
+        AudioCacheManager audioCacheManager)
     {
         _audioEngine = audioEngine;
         _sharedViewModel = sharedViewModel;
@@ -82,7 +82,7 @@ public class RealtimeModeManager : ViewModelBase
         // Initialize realtime state machine with scene mappings
         _stateMachine = new RealtimeStateMachine(new Dictionary<OsuMemoryStatus, IRealtimeState>
         {
-            [OsuMemoryStatus.Playing] = new PlayingState(audioEngine, cachedAudioFactory),
+            [OsuMemoryStatus.Playing] = new PlayingState(audioEngine, audioCacheManager),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(),
             [OsuMemoryStatus.SongSelect] = new BrowsingState(),
@@ -95,7 +95,7 @@ public class RealtimeModeManager : ViewModelBase
         _hitsoundNodeService = hitsoundNodeService;
         _musicTrackService = musicTrackService;
         _audioPlaybackService = audioPlaybackService;
-        _cachedAudioFactory = cachedAudioFactory;
+        _audioCacheManager = audioCacheManager;
     }
 
     public string? Username

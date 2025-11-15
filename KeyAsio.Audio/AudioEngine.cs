@@ -1,5 +1,4 @@
-﻿using System.Runtime.Versioning;
-using KeyAsio.Audio.Caching;
+﻿using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using Milki.Extensions.Threading;
 using NAudio.Wave;
@@ -7,27 +6,26 @@ using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Audio;
 
-[SupportedOSPlatform("windows6.0")]
 public class AudioEngine
 {
-    private readonly DeviceCreationHelper _deviceCreationHelper;
-    private readonly CachedAudioFactory _cachedAudioFactory;
+    private readonly AudioDeviceManager _audioDeviceManager;
+    private readonly AudioCacheManager _audioCacheManager;
     private readonly SynchronizationContext _context;
 
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null);
     private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null);
 
-    public AudioEngine(DeviceCreationHelper deviceCreationHelper, CachedAudioFactory cachedAudioFactory)
+    public AudioEngine(AudioDeviceManager audioDeviceManager, AudioCacheManager audioCacheManager)
     {
-        _deviceCreationHelper = deviceCreationHelper;
-        _cachedAudioFactory = cachedAudioFactory;
+        _audioDeviceManager = audioDeviceManager;
+        _audioCacheManager = audioCacheManager;
         _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
             staThread: true, threadPriority: ThreadPriority.AboveNormal);
     }
 
     public IWavePlayer? CurrentDevice { get; private set; }
-    public WaveFormat FileWaveFormat { get; private set; } = null!;
-    public WaveFormat WaveFormat { get; private set; } = null!;
+    public WaveFormat SourceWaveFormat { get; private set; } = null!;
+    public WaveFormat EngineWaveFormat { get; private set; } = null!;
     public MixingSampleProvider EffectMixer { get; private set; } = null!;
     public MixingSampleProvider MusicMixer { get; private set; } = null!;
     public MixingSampleProvider RootMixer { get; private set; } = null!;
@@ -47,27 +45,27 @@ public class AudioEngine
 
     public void StartDevice(DeviceDescription? deviceDescription, WaveFormat? waveFormat = null)
     {
-        var (outputDevice, _) = _deviceCreationHelper.CreateDevice(deviceDescription, _context);
+        var (outputDevice, _) = _audioDeviceManager.CreateDevice(deviceDescription, _context);
         StartDevice(outputDevice, waveFormat);
     }
 
     public void StartDevice(IWavePlayer? outputDevice, WaveFormat? waveFormat = null)
     {
         waveFormat ??= new WaveFormat(44100, 2);
-        WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
-        FileWaveFormat = waveFormat;
+        EngineWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
+        SourceWaveFormat = waveFormat;
 
-        RootMixer = new MixingSampleProvider(WaveFormat)
+        RootMixer = new MixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };
-        EffectMixer = new MixingSampleProvider(WaveFormat)
+        EffectMixer = new MixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };
         _effectVolumeSampleProvider.Source = EffectMixer;
 
-        MusicMixer = new MixingSampleProvider(WaveFormat)
+        MusicMixer = new MixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };
@@ -103,10 +101,9 @@ public class AudioEngine
     public void StopDevice()
     {
         if (CurrentDevice == null) return;
+        CurrentDevice.Dispose();
         _effectVolumeSampleProvider.Source = null;
         _musicVolumeSampleProvider.Source = null;
-        CurrentDevice.Stop();
-        CurrentDevice.Dispose();
         CurrentDevice = null;
     }
 
@@ -140,13 +137,13 @@ public class AudioEngine
 
     public async Task<ISampleProvider?> PlayAudio(string path, SampleControl? sampleControl = null)
     {
-        var rootSample = await RootMixer.PlayAudio(_cachedAudioFactory, path, sampleControl).ConfigureAwait(false);
+        var rootSample = await RootMixer.PlayAudio(_audioCacheManager, path, sampleControl).ConfigureAwait(false);
         return rootSample;
     }
 
     public async Task<ISampleProvider?> PlayAudio(string path, float volume, float balance = 0)
     {
-        var rootSample = await RootMixer.PlayAudio(_cachedAudioFactory, path, balance, volume).ConfigureAwait(false);
+        var rootSample = await RootMixer.PlayAudio(_audioCacheManager, path, balance, volume).ConfigureAwait(false);
         return rootSample;
     }
 }

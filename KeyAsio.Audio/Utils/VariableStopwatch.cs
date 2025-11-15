@@ -2,8 +2,10 @@
 
 namespace KeyAsio.Audio.Utils;
 
-public class VariableStopwatch : Stopwatch
+public class VariableStopwatch
 {
+    private readonly Stopwatch _stopwatch = new Stopwatch();
+
     public TimeSpan ManualOffset { get; set; }
     public TimeSpan VariableOffset { get; set; }
     public TimeSpan CalibrationOffset { get; set; }
@@ -21,16 +23,20 @@ public class VariableStopwatch : Stopwatch
     private TimeSpan _skipOffset;
     private float _rate = 1;
 
-    public new void Restart()
+    public bool IsRunning => _stopwatch.IsRunning;
+    public void Start() => _stopwatch.Start();
+    public void Stop() => _stopwatch.Stop();
+
+    public void Restart()
     {
         _skipOffset = TimeSpan.Zero;
-        base.Restart();
+        _stopwatch.Restart();
     }
 
-    public new void Reset()
+    public void Reset()
     {
         _skipOffset = TimeSpan.Zero;
-        base.Reset();
+        _stopwatch.Reset();
     }
 
     public void SkipTo(TimeSpan startOffset)
@@ -38,32 +44,31 @@ public class VariableStopwatch : Stopwatch
         _skipOffset = startOffset;
         if (IsRunning)
         {
-            base.Restart();
+            _stopwatch.Restart();
         }
         else
         {
-            base.Reset();
+            _stopwatch.Reset();
         }
     }
 
-    public new long ElapsedMilliseconds =>
-        (long)(base.Elapsed.TotalMilliseconds * Rate +
-               _skipOffset.TotalMilliseconds +
-               ManualOffset.TotalMilliseconds +
-               VariableOffset.TotalMilliseconds +
-               CalibrationOffset.TotalMilliseconds);
+    public TimeSpan Elapsed
+    {
+        get
+        {
+            var baseTicks = _stopwatch.ElapsedTicks;
+            var scaledTicks = baseTicks * (double)Rate;
+            var scaledBaseTime = TimeSpan.FromTicks((long)scaledTicks);
 
-    public new long ElapsedTicks =>
-        (long)(base.ElapsedTicks * Rate +
-               _skipOffset.Ticks +
-               ManualOffset.Ticks +
-               VariableOffset.Ticks +
-               CalibrationOffset.Ticks);
+            return scaledBaseTime
+                .Add(_skipOffset)
+                .Add(ManualOffset)
+                .Add(VariableOffset)
+                .Add(CalibrationOffset);
+        }
+    }
 
-    public new TimeSpan Elapsed =>
-        TimeSpan.FromMilliseconds(base.Elapsed.TotalMilliseconds * Rate)
-            .Add(_skipOffset)
-            .Add(ManualOffset)
-            .Add(VariableOffset)
-            .Add(CalibrationOffset);
+    public long ElapsedMilliseconds => (long)Elapsed.TotalMilliseconds;
+
+    public long ElapsedTicks => Elapsed.Ticks;
 }

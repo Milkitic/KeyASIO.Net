@@ -174,8 +174,8 @@ public partial class App : Application
                 services.AddSingleton<RealtimeModeManager>();
 
                 services.AddSingleton<AudioEngine>();
-                services.AddSingleton<CachedAudioFactory>();
-                services.AddSingleton<DeviceCreationHelper>();
+                services.AddSingleton<AudioCacheManager>();
+                services.AddSingleton<AudioDeviceManager>();
 
                 services.AddSingleton<SharedViewModel>();
                 services.AddTransient<DeviceWindowViewModel>();

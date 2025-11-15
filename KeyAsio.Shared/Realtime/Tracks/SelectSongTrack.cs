@@ -26,7 +26,7 @@ public class SelectSongTrack
     }
 
     private MixingSampleProvider? Mixer => _audioEngine.MusicMixer;
-    private WaveFormat? WaveFormat => _audioEngine.WaveFormat;
+    private WaveFormat? WaveFormat => _audioEngine.EngineWaveFormat;
 
     public async Task PlaySingleAudio(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
     {

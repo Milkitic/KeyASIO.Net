@@ -33,8 +33,8 @@ static class Program
         var context = new SingleSynchronizationContext("AudioPlaybackEngine_STA", true,
             ThreadPriority.AboveNormal);
         var logFactory = LoggerFactory.Create(k => k.AddSimpleConsole());
-        var deviceCreationHelper = new DeviceCreationHelper(logFactory.CreateLogger<DeviceCreationHelper>());
-        var cachedAudioFactory = new CachedAudioFactory(logFactory.CreateLogger<CachedAudioFactory>());
+        var deviceCreationHelper = new AudioDeviceManager(logFactory.CreateLogger<AudioDeviceManager>());
+        var cachedAudioFactory = new AudioCacheManager(logFactory.CreateLogger<AudioCacheManager>());
         var (device, actualDescription) = deviceCreationHelper.CreateDevice(new DeviceDescription()
         {
             DeviceId = "ASIO4ALL V2",

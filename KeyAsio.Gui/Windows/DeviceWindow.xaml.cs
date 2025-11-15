@@ -64,19 +64,19 @@ public class DeviceWindowViewModel : ViewModelBase
 /// </summary>
 public partial class DeviceWindow : DialogWindow
 {
-    private readonly DeviceCreationHelper _deviceCreationHelper;
+    private readonly AudioDeviceManager _audioDeviceManager;
     public DeviceWindowViewModel ViewModel { get; }
 
-    public DeviceWindow(DeviceWindowViewModel viewModel, DeviceCreationHelper deviceCreationHelper)
+    public DeviceWindow(DeviceWindowViewModel viewModel, AudioDeviceManager audioDeviceManager)
     {
-        _deviceCreationHelper = deviceCreationHelper;
+        _audioDeviceManager = audioDeviceManager;
         InitializeComponent();
         DataContext = ViewModel = viewModel;
     }
 
     private async void DeviceWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
-        ViewModel.Devices = (await _deviceCreationHelper.GetCachedAvailableDevicesAsync())
+        ViewModel.Devices = (await _audioDeviceManager.GetCachedAvailableDevicesAsync())
             .OrderBy(k => k, DeviceDescriptionComparer.Instance)
             .ToList();
 
