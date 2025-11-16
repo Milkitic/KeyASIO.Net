@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
@@ -52,7 +53,7 @@ public class AudioCacheService
         _filenameToCachedSoundMapping.Clear();
     }
 
-    public bool TryGetAudioByNode(HitsoundNode node, out CachedAudio cachedSound)
+    public bool TryGetAudioByNode(HitsoundNode node, [NotNullWhen(true)] out CachedAudio? cachedSound)
     {
         if (!_playNodeToCachedSoundMapping.TryGetValue(node, out cachedSound)) return false;
         return node is PlayableNode;

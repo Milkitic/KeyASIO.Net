@@ -11,15 +11,17 @@ namespace KeyAsio.Shared.Realtime.Services;
 public class AudioPlaybackService
 {
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(AudioPlaybackService));
-    private readonly LoopProviders _loopProviders = new();
+    private readonly LoopProviderManager _loopProviderManager = new();
     private readonly AudioEngine _audioEngine;
+    private readonly AppSettings _appSettings;
 
-    public AudioPlaybackService(AudioEngine audioEngine)
+    public AudioPlaybackService(AudioEngine audioEngine, AppSettings appSettings)
     {
         _audioEngine = audioEngine;
+        _appSettings = appSettings;
     }
 
-    public void PlayEffectsAudio(CachedAudio? cachedSound, float volume, float balance, AppSettings appSettings)
+    public void PlayEffectsAudio(CachedAudio? cachedSound, float volume, float balance)
     {
         if (cachedSound is null)
         {
@@ -27,12 +29,12 @@ public class AudioPlaybackService
             return;
         }
 
-        if (appSettings.RealtimeOptions.IgnoreLineVolumes)
+        if (_appSettings.RealtimeOptions.IgnoreLineVolumes)
         {
             volume = 1;
         }
 
-        balance *= appSettings.RealtimeOptions.BalanceFactor;
+        balance *= _appSettings.RealtimeOptions.BalanceFactor;
 
         try
         {
@@ -57,7 +59,7 @@ public class AudioPlaybackService
                      $"Bal. {balance}");
     }
 
-    public void PlayLoopAudio(CachedAudio? cachedSound, ControlNode controlNode, AppSettings appSettings)
+    public void PlayLoopAudio(CachedAudio? cachedSound, ControlNode controlNode)
     {
         var rootMixer = _audioEngine.EffectMixer;
         //if (rootMixer == null)
@@ -66,18 +68,18 @@ public class AudioPlaybackService
         //    return;
         //}
 
-        var volume = appSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
+        var volume = _appSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
 
         if (controlNode.ControlType == ControlType.StartSliding)
         {
-            if (_loopProviders.ShouldRemoveAll((int)controlNode.SlideChannel))
+            if (_loopProviderManager.ShouldRemoveAll((int)controlNode.SlideChannel))
             {
-                _loopProviders.RemoveAll(rootMixer);
+                _loopProviderManager.RemoveAll(rootMixer);
             }
 
             try
             {
-                _loopProviders.Create((int)controlNode.SlideChannel, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
+                _loopProviderManager.Create((int)controlNode.SlideChannel, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
             }
             catch (Exception ex)
             {
@@ -86,17 +88,17 @@ public class AudioPlaybackService
         }
         else if (controlNode.ControlType == ControlType.StopSliding)
         {
-            _loopProviders.Remove((int)controlNode.SlideChannel, rootMixer);
+            _loopProviderManager.Remove((int)controlNode.SlideChannel, rootMixer);
         }
         else if (controlNode.ControlType == ControlType.ChangeVolume)
         {
-            _loopProviders.ChangeAllVolumes(volume);
+            _loopProviderManager.ChangeAllVolumes(volume);
         }
     }
 
-    public void ClearAllLoops(MixingSampleProvider? mixer = null)
+    public void ClearAllLoops(MixingSampleProvider? mixingSampleProvider = null)
     {
-        var m = mixer ?? _audioEngine.EffectMixer;
-        _loopProviders.RemoveAll(m);
+        mixingSampleProvider ??= _audioEngine.EffectMixer;
+        _loopProviderManager.RemoveAll(mixingSampleProvider);
     }
 }

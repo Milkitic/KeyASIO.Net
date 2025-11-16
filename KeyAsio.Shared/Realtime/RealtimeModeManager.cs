@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
@@ -234,8 +235,9 @@ public class RealtimeModeManager : ViewModelBase
     public IReadOnlyList<HitsoundNode> PlaybackList => _hitsoundNodeService.PlaybackList;
     public List<PlayableNode> KeyList => _hitsoundNodeService.KeyList;
 
-    public bool TryGetAudioByNode(HitsoundNode playableNode, out CachedAudio cachedSound)
+    public bool TryGetAudioByNode(HitsoundNode playableNode, [NotNullWhen(true)] out CachedAudio? cachedSound)
     {
+
         if (!_audioCacheService.TryGetAudioByNode(playableNode, out cachedSound)) return false;
         return playableNode is not PlayableNode || cachedSound != null;
     }
@@ -259,20 +261,19 @@ public class RealtimeModeManager : ViewModelBase
                 var volume = playableNode.PlayablePriority == PlayablePriority.Effects
                     ? playableNode.Volume * 1.25f
                     : playableNode.Volume;
-                _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedSound, volume, playableNode.Balance,
-                    AppSettings);
+                _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedSound, volume, playableNode.Balance);
             }
         }
         else
         {
             var controlNode = (ControlNode)playbackObject.HitsoundNode;
-            _audioPlaybackService.PlayLoopAudio(playbackObject.CachedSound, controlNode, AppSettings);
+            _audioPlaybackService.PlayLoopAudio(playbackObject.CachedSound, controlNode);
         }
     }
 
     public void PlayAudio(CachedAudio? cachedSound, float volume, float balance)
     {
-        _audioPlaybackService.PlayEffectsAudio(cachedSound, volume, balance, AppSettings);
+        _audioPlaybackService.PlayEffectsAudio(cachedSound, volume, balance);
     }
 
     public async Task StartAsync(string beatmapFilenameFull, string beatmapFilename)

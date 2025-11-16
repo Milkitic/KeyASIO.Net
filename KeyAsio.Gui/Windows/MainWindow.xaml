@@ -9,6 +9,7 @@
   xmlns:models="clr-namespace:KeyAsio.Shared.Models;assembly=KeyAsio.Shared"
   xmlns:mouseKeyHook="clr-namespace:Milki.Extensions.MouseKeyHook;assembly=Milki.Extensions.MouseKeyHook"
   xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
+  x:Name="Self"
   Title="KeyASIO Control Panel"
   Width="630"
   Height="550"
@@ -122,7 +123,7 @@
           UseLayoutRounding="True" />
       </StackPanel>
 
-      <ItemsControl Margin="-5,-5,-5,25" ItemsSource="{Binding AppSettings.Keys}">
+      <ItemsControl Margin="-5,-5,-5,25" ItemsSource="{Binding ElementName=Self, Path=AppSettings.Keys}">
         <ItemsControl.ItemTemplate>
           <DataTemplate DataType="mouseKeyHook:HookKeys">
             <Label
@@ -199,7 +200,7 @@
           <TextBlock
             Grid.Row="3"
             Grid.Column="1"
-            Text="{Binding AudioEngine.EngineWaveFormat.SampleRate}"
+            Text="{Binding ElementName=Self, Path=AudioEngine.EngineWaveFormat.SampleRate}"
             TextWrapping="Wrap" />
           <TextBlock
             Grid.Row="4"
@@ -330,7 +331,10 @@
                   Mode="OneWay"
                   StringFormat="0.000">
                   <Binding Mode="OneWay" Path="PlaybackLatency" />
-                  <Binding Mode="OneWay" Path="AudioEngine.EngineWaveFormat.SampleRate" />
+                  <Binding
+                    ElementName="Self"
+                    Mode="OneWay"
+                    Path="AudioEngine.EngineWaveFormat.SampleRate" />
                 </MultiBinding>
               </Run.Text>
             </Run><Run Text="ms)" />
@@ -343,7 +347,7 @@
           <Style TargetType="StackPanel">
             <Setter Property="Visibility" Value="Collapsed" />
             <Style.Triggers>
-              <DataTrigger Binding="{Binding AppSettings.RealtimeOptions.RealtimeMode}" Value="True">
+              <DataTrigger Binding="{Binding ElementName=Self, Path=AppSettings.RealtimeOptions.RealtimeMode}" Value="True">
                 <Setter Property="Visibility" Value="Visible" />
               </DataTrigger>
             </Style.Triggers>
@@ -421,7 +425,7 @@
             Grid.Row="1"
             Grid.Column="1"
             Margin="0,0,0,0"
-            Text="{Binding RealtimeModeManager.PlayTime, IsAsync=True, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+            Text="{Binding ElementName=Self, Path=RealtimeModeManager.PlayTime, IsAsync=True, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
           <TextBlock
             Grid.Row="2"
             Grid.Column="0"
@@ -429,7 +433,7 @@
           <TextBlock
             Grid.Row="2"
             Grid.Column="1"
-            Text="{Binding RealtimeModeManager.OsuStatus}" />
+            Text="{Binding ElementName=Self, Path=RealtimeModeManager.OsuStatus}" />
           <TextBlock
             Grid.Row="3"
             Grid.Column="0"
@@ -437,7 +441,7 @@
           <TextBlock
             Grid.Row="3"
             Grid.Column="1"
-            Text="{Binding RealtimeModeManager.Beatmap.Filename}"
+            Text="{Binding ElementName=Self, Path=RealtimeModeManager.Beatmap.Filename}"
             TextWrapping="Wrap" />
         </Grid>
       </StackPanel>
@@ -484,12 +488,12 @@
           TickFrequency="0.01"
           UseLayoutRounding="True"
           ValueChanged="RangeBase_OnValueChanged"
-          Value="{Binding AudioEngine.Volume}" />
+          Value="{Binding ElementName=Self, Path=AudioEngine.MainVolume}" />
         <TextBlock
           Grid.Row="2"
           HorizontalAlignment="Center"
           FontSize="11"
-          Text="{Binding AudioEngine.Volume, StringFormat=P0}" />
+          Text="{Binding ElementName=Self, Path=AudioEngine.MainVolume, StringFormat=P0}" />
       </Grid>
       <Grid
         Grid.RowSpan="3"
@@ -520,12 +524,12 @@
           TickFrequency="0.01"
           UseLayoutRounding="True"
           ValueChanged="MusicRangeBase_OnValueChanged"
-          Value="{Binding AudioEngine.MusicVolume}" />
+          Value="{Binding ElementName=Self, Path=AudioEngine.MusicVolume}" />
         <TextBlock
           Grid.Row="2"
           HorizontalAlignment="Center"
           FontSize="11"
-          Text="{Binding AudioEngine.MusicVolume, StringFormat=P0}" />
+          Text="{Binding ElementName=Self, Path=AudioEngine.MusicVolume, StringFormat=P0}" />
       </Grid>
 
       <TextBlock
@@ -573,7 +577,7 @@
           <ToggleButton
             Grid.Row="0"
             Grid.Column="1"
-            IsChecked="{Binding AppSettings.Debugging}" />
+            IsChecked="{Binding ElementName=Self, Path=AppSettings.Debugging}" />
 
           <TextBlock
             Grid.Row="1"
@@ -584,7 +588,7 @@
           <ToggleButton
             Grid.Row="1"
             Grid.Column="1"
-            IsChecked="{Binding AppSettings.RealtimeOptions.RealtimeMode}" />
+            IsChecked="{Binding ElementName=Self, Path=AppSettings.RealtimeOptions.RealtimeMode}" />
 
           <TextBlock
             Grid.Row="2"
@@ -595,7 +599,7 @@
           <ToggleButton
             Grid.Row="2"
             Grid.Column="1"
-            IsChecked="{Binding AppSettings.RealtimeOptions.EnableMusicFunctions}" />
+            IsChecked="{Binding ElementName=Self, Path=AppSettings.RealtimeOptions.EnableMusicFunctions}" />
 
         </Grid>
       </Border>

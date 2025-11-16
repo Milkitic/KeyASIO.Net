@@ -7,7 +7,7 @@ using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Audio;
 
-public class LoopProviders
+public class LoopProviderManager
 {
     private readonly Dictionary<int, LoopProvider> _dictionary = new();
 

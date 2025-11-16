@@ -15,6 +15,7 @@ public class AudioEngine
 
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null);
     private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null);
+    private readonly EnhancedVolumeSampleProvider _mainVolumeSampleProvider = new(null);
     private MasterLimiterProvider? _limiterProvider;
     private bool _enableLimiter = true;
 
@@ -43,6 +44,12 @@ public class AudioEngine
     public MixingSampleProvider MusicMixer { get; private set; } = null!;
     public MixingSampleProvider RootMixer { get; private set; } = null!;
     public ISampleProvider RootSampleProvider { get; private set; } = null!;
+
+    public float MainVolume
+    {
+        get => _mainVolumeSampleProvider.Volume;
+        set => _mainVolumeSampleProvider.Volume = value;
+    }
 
     public float EffectVolume
     {
@@ -86,7 +93,8 @@ public class AudioEngine
         RootMixer.AddMixerInput(_effectVolumeSampleProvider);
         RootMixer.AddMixerInput(_musicVolumeSampleProvider);
 
-        _limiterProvider = new MasterLimiterProvider(RootMixer,
+        _mainVolumeSampleProvider.Source = RootMixer;
+        _limiterProvider = new MasterLimiterProvider(_mainVolumeSampleProvider,
                 thresholdDb: -0.5f, // -0.5dB 触发
                 ceilingDb: -0.1f, // -0.1dB 上限
                 attackMs: 0.1f, // 0.1ms 快速响应
@@ -129,6 +137,7 @@ public class AudioEngine
         _limiterProvider = null;
         _effectVolumeSampleProvider.Source = null;
         _musicVolumeSampleProvider.Source = null;
+        _mainVolumeSampleProvider.Source = null;
         CurrentDevice = null;
     }
 

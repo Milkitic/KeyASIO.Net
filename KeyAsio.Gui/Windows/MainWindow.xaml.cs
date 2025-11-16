@@ -31,10 +31,7 @@ public partial class MainWindow : DialogWindow
     private static readonly ILogger Logger = LogUtils.GetLogger("STA Window");
 
     private bool _forceClose;
-    private readonly AppSettings _appSettings;
-    private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
-    private readonly RealtimeModeManager _realtimeModeManager;
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly SharedViewModel _viewModel;
     private CachedAudio? _cacheSound;
@@ -51,10 +48,10 @@ public partial class MainWindow : DialogWindow
     {
         InitializeComponent();
         DataContext = _viewModel = viewModel;
-        _appSettings = appSettings;
-        _audioEngine = audioEngine;
+        AppSettings = appSettings;
+        AudioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
-        _realtimeModeManager = realtimeModeManager;
+        RealtimeModeManager = realtimeModeManager;
         _audioDeviceManager = audioDeviceManager;
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
@@ -62,41 +59,45 @@ public partial class MainWindow : DialogWindow
         BindOptions();
     }
 
+    public AppSettings AppSettings { get; }
+    public RealtimeModeManager RealtimeModeManager { get; }
+    public AudioEngine AudioEngine { get; }
+
     private void CreateShortcuts()
     {
-        var ignoreBeatmapHitsound = _appSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
+        var ignoreBeatmapHitsound = AppSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
         if (ignoreBeatmapHitsound?.Keys != null)
         {
             _keyboardHook.RegisterHotkey(ignoreBeatmapHitsound.ModifierKeys, ignoreBeatmapHitsound.Keys.Value,
                 (_, _, _) =>
                 {
-                    _appSettings.RealtimeOptions.IgnoreBeatmapHitsound =
-                        !_appSettings.RealtimeOptions.IgnoreBeatmapHitsound;
-                    _appSettings.Save();
+                    AppSettings.RealtimeOptions.IgnoreBeatmapHitsound =
+                        !AppSettings.RealtimeOptions.IgnoreBeatmapHitsound;
+                    AppSettings.Save();
                 });
         }
 
-        var ignoreSliderTicksAndSlides = _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlidesBindKey;
+        var ignoreSliderTicksAndSlides = AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlidesBindKey;
         if (ignoreSliderTicksAndSlides?.Keys != null)
         {
             _keyboardHook.RegisterHotkey(ignoreSliderTicksAndSlides.ModifierKeys, ignoreSliderTicksAndSlides.Keys.Value,
                 (_, _, _) =>
                 {
-                    _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides =
-                        !_appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides;
-                    _appSettings.Save();
+                    AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides =
+                        !AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides;
+                    AppSettings.Save();
                 });
         }
 
-        var ignoreStoryboardSamples = _appSettings.RealtimeOptions.IgnoreStoryboardSamplesBindKey;
+        var ignoreStoryboardSamples = AppSettings.RealtimeOptions.IgnoreStoryboardSamplesBindKey;
         if (ignoreStoryboardSamples?.Keys != null)
         {
             _keyboardHook.RegisterHotkey(ignoreStoryboardSamples.ModifierKeys, ignoreStoryboardSamples.Keys.Value,
                 (_, _, _) =>
                 {
-                    _appSettings.RealtimeOptions.IgnoreStoryboardSamples =
-                        !_appSettings.RealtimeOptions.IgnoreStoryboardSamples;
-                    _appSettings.Save();
+                    AppSettings.RealtimeOptions.IgnoreStoryboardSamples =
+                        !AppSettings.RealtimeOptions.IgnoreStoryboardSamples;
+                    AppSettings.Save();
                 });
         }
     }
@@ -123,7 +124,7 @@ public partial class MainWindow : DialogWindow
             ForceASIOBufferSize = forceBufferSize
         };
 
-        _appSettings.SampleRate = window.ViewModel.SampleRate;
+        AppSettings.SampleRate = window.ViewModel.SampleRate;
 
         await LoadDevice(configuredDeviceDescription, true);
     }
@@ -133,9 +134,10 @@ public partial class MainWindow : DialogWindow
         try
         {
             var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
-            _audioEngine.MusicVolume = _appSettings.RealtimeOptions.MusicTrackVolume / 100f;
-            _audioEngine.EffectVolume = _appSettings.RealtimeOptions.EffectTrackVolume / 100f;
-            _audioEngine.StartDevice(device);
+            AudioEngine.MainVolume = AppSettings.Volume / 100f;
+            AudioEngine.MusicVolume = AppSettings.RealtimeOptions.MusicTrackVolume / 100f;
+            AudioEngine.EffectVolume = AppSettings.RealtimeOptions.EffectTrackVolume / 100f;
+            AudioEngine.StartDevice(device);
 
             if (device is AsioOut asioOut)
             {
@@ -164,19 +166,19 @@ public partial class MainWindow : DialogWindow
                 }, null, 0, 100);
             }
 
-            var waveFormat = _audioEngine.EngineWaveFormat;
-            if (Path.Exists(_appSettings.HitsoundPath))
+            var waveFormat = AudioEngine.EngineWaveFormat;
+            if (Path.Exists(AppSettings.HitsoundPath))
             {
-                await using var fs = File.OpenRead(_appSettings.HitsoundPath);
-                var (cachedAudio, result) = await _audioCacheManager.GetOrCreateOrEmptyAsync(_appSettings.HitsoundPath, fs, waveFormat);
+                await using var fs = File.OpenRead(AppSettings.HitsoundPath);
+                var (cachedAudio, result) = await _audioCacheManager.GetOrCreateOrEmptyAsync(AppSettings.HitsoundPath, fs, waveFormat);
                 _cacheSound = cachedAudio;
             }
 
             _viewModel.DeviceDescription = actualDescription;
             if (saveToSettings)
             {
-                _appSettings.Device = actualDescription;
-                _appSettings.Save();
+                AppSettings.Device = actualDescription;
+                AppSettings.Save();
             }
         }
         catch (Exception ex)
@@ -196,7 +198,7 @@ public partial class MainWindow : DialogWindow
 
     private void DisposeDevice(bool saveToSettings)
     {
-        if (_audioEngine.CurrentDevice is AsioOut asioOut)
+        if (AudioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
             _timer?.Dispose();
@@ -206,7 +208,7 @@ public partial class MainWindow : DialogWindow
         {
             try
             {
-                _audioEngine.CurrentDevice?.Dispose();
+                AudioEngine.CurrentDevice?.Dispose();
                 break;
             }
             catch (Exception ex)
@@ -216,14 +218,14 @@ public partial class MainWindow : DialogWindow
             }
         }
 
-        _audioEngine.StopDevice();
+        AudioEngine.StopDevice();
         _viewModel.DeviceDescription = null;
         _audioCacheManager.Clear();
         _audioCacheManager.Clear("internal");
 
         if (!saveToSettings) return;
-        _appSettings.Device = null;
-        _appSettings.Save();
+        AppSettings.Device = null;
+        AppSettings.Save();
     }
 
     private void RegisterKey(HookKeys key)
@@ -234,13 +236,13 @@ public partial class MainWindow : DialogWindow
 
             Logger.Debug($"{hookKey} {action}");
 
-            if (!_appSettings.RealtimeOptions.RealtimeMode)
+            if (!AppSettings.RealtimeOptions.RealtimeMode)
             {
                 if (_cacheSound != null)
                 {
-                    if (_audioEngine != null)
+                    if (AudioEngine != null)
                     {
-                        _audioEngine.PlayAudio(_cacheSound);
+                        AudioEngine.PlayAudio(_cacheSound);
                     }
                     else
                     {
@@ -256,10 +258,10 @@ public partial class MainWindow : DialogWindow
             }
 
             var playbackInfos =
-                _realtimeModeManager.GetKeyAudio(_appSettings.Keys.IndexOf(hookKey), _appSettings.Keys.Count);
+                RealtimeModeManager.GetKeyAudio(AppSettings.Keys.IndexOf(hookKey), AppSettings.Keys.Count);
             foreach (var playbackInfo in playbackInfos)
             {
-                _realtimeModeManager.PlayAudio(playbackInfo);
+                RealtimeModeManager.PlayAudio(playbackInfo);
             }
         };
 
@@ -283,11 +285,11 @@ public partial class MainWindow : DialogWindow
             Dispatcher.Invoke(ForceClose);
             Thread.Sleep(1000);
         });
-        _appSettings.PropertyChanged += (_, e) =>
+        AppSettings.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(AppSettings.Debugging))
             {
-                if (_appSettings.Debugging)
+                if (AppSettings.Debugging)
                 {
                     ConsoleManager.Show();
                 }
@@ -296,19 +298,19 @@ public partial class MainWindow : DialogWindow
                     ConsoleManager.Hide();
                 }
 
-                _appSettings.Save();
+                AppSettings.Save();
             }
         };
-        _appSettings.RealtimeOptions.PropertyChanged += (_, e) =>
+        AppSettings.RealtimeOptions.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(AppSettings.RealtimeOptions.RealtimeMode))
             {
                 NotifyRestart(e.PropertyName);
-                _appSettings.Save();
+                AppSettings.Save();
             }
             else if (e.PropertyName == nameof(AppSettings.RealtimeOptions.EnableMusicFunctions))
             {
-                _appSettings.Save();
+                AppSettings.Save();
             }
         };
     }
@@ -335,29 +337,29 @@ public partial class MainWindow : DialogWindow
         FixCommit(ref version);
         Title += $" {version}";
 
-        if (_appSettings.Device == null)
+        if (AppSettings.Device == null)
         {
             await Task.Delay(100);
             await SelectDevice();
         }
         else
         {
-            await LoadDevice(_appSettings.Device, false);
+            await LoadDevice(AppSettings.Device, false);
         }
 
-        foreach (var key in _appSettings.Keys)
+        foreach (var key in AppSettings.Keys)
         {
             RegisterKey(key);
         }
 
-        if (!_appSettings.SendLogsToDeveloperConfirmed)
+        if (!AppSettings.SendLogsToDeveloperConfirmed)
         {
             Growl.Ask($"Send logs and errors to developer?\r\n" +
                       $"You can change option later in configuration file.",
                 dialogResult =>
                 {
-                    _appSettings.SendLogsToDeveloper = dialogResult;
-                    _appSettings.SendLogsToDeveloperConfirmed = true;
+                    AppSettings.SendLogsToDeveloper = dialogResult;
+                    AppSettings.SendLogsToDeveloperConfirmed = true;
                     return true;
                 });
         }
@@ -382,7 +384,7 @@ public partial class MainWindow : DialogWindow
     private void MainWindow_OnClosed(object? sender, EventArgs? e)
     {
         DisposeDevice(false);
-        _appSettings.Save();
+        AppSettings.Save();
         Application.Current.Shutdown();
     }
 
@@ -428,7 +430,7 @@ public partial class MainWindow : DialogWindow
 
         _registerList.Clear();
 
-        var window = new KeyBindWindow(_appSettings.Keys)
+        var window = new KeyBindWindow(AppSettings.Keys)
         {
             Owner = this,
             WindowStartupLocation = WindowStartupLocation.CenterOwner
@@ -436,11 +438,11 @@ public partial class MainWindow : DialogWindow
 
         if (window.ShowDialog() == true)
         {
-            _appSettings.Keys = window.ViewModel.Keys.ToList();
-            _appSettings.Save();
+            AppSettings.Keys = window.ViewModel.Keys.ToList();
+            AppSettings.Save();
         }
 
-        foreach (var key in _appSettings.Keys)
+        foreach (var key in AppSettings.Keys)
         {
             RegisterKey(key);
         }
@@ -448,7 +450,7 @@ public partial class MainWindow : DialogWindow
 
     private void btnAsioControlPanel_OnClick(object sender, RoutedEventArgs e)
     {
-        if (_audioEngine?.CurrentDevice is AsioOut asioOut)
+        if (AudioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.ShowControlPanel();
         }
@@ -456,18 +458,14 @@ public partial class MainWindow : DialogWindow
 
     private void RangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_audioEngine is null) return;
-
         var slider = (Slider)sender;
-        _appSettings.Volume = (int)Math.Round(slider.Value * 100);
+        AppSettings.Volume = (int)Math.Round(slider.Value * 100);
     }
 
     private void MusicRangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_audioEngine is null) return;
-
         var slider = (Slider)sender;
-        _appSettings.RealtimeOptions.MusicTrackVolume = (int)Math.Round(slider.Value * 100);
+        AppSettings.RealtimeOptions.MusicTrackVolume = (int)Math.Round(slider.Value * 100);
     }
 
     private void btnLatencyCheck_OnClick(object sender, RoutedEventArgs e)
@@ -483,7 +481,7 @@ public partial class MainWindow : DialogWindow
         latencyGuideWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         latencyGuideWindow.ShowDialog();
 
-        foreach (var key in _appSettings.Keys)
+        foreach (var key in AppSettings.Keys)
         {
             RegisterKey(key);
         }
