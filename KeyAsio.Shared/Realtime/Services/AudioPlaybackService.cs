@@ -2,6 +2,7 @@ using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.SampleProviders.BalancePans;
 using KeyAsio.MemoryReading.Logging;
 using NAudio.Wave.SampleProviders;
 
@@ -35,13 +36,16 @@ public class AudioPlaybackService
 
         try
         {
-            _audioEngine.EffectMixer.AddMixerInput(
-                new BalanceSampleProvider(
-                        new EnhancedVolumeSampleProvider(new SeekableCachedAudioSampleProvider(cachedSound))
-                        { Volume = volume }
-                    )
-                { Balance = balance }
-            );
+            var seekableCachedAudioSampleProvider = new SeekableCachedAudioSampleProvider(cachedSound);
+            var volumeSampleProvider = new EnhancedVolumeSampleProvider(seekableCachedAudioSampleProvider)
+            {
+                Volume = volume
+            };
+            var balanceProvider = new ProfessionalBalanceProvider(volumeSampleProvider, BalanceMode.MidSide, AntiClipStrategy.None)
+            {
+                Balance = balance
+            };
+            _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
         catch (Exception ex)
         {

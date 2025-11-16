@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.SampleProviders.BalancePans;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -7,7 +8,7 @@ namespace KeyAsio.Audio;
 
 internal sealed class LoopProvider : IDisposable
 {
-    private readonly BalanceSampleProvider _balanceProvider;
+    private readonly ProfessionalBalanceProvider _balanceProvider;
     private readonly EnhancedVolumeSampleProvider _volumeProvider;
     private readonly MemoryStream _memoryStream;
     private readonly RawSourceWaveStream _waveStream;
@@ -15,7 +16,7 @@ internal sealed class LoopProvider : IDisposable
     private readonly byte[] _byteArray;
     private bool _isAdded;
 
-    public LoopProvider(BalanceSampleProvider balanceProvider,
+    public LoopProvider(ProfessionalBalanceProvider balanceProvider,
         EnhancedVolumeSampleProvider volumeProvider,
         MemoryStream memoryStream,
         RawSourceWaveStream waveStream,

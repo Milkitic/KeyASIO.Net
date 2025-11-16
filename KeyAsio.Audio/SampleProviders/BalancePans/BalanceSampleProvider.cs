@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Audio.SampleProviders.BalancePans;
 
 public class BalanceSampleProvider : ISampleProvider
 {

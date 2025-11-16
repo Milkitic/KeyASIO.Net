@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.SampleProviders.BalancePans;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -122,7 +123,7 @@ public class LoopProviders
         {
             Volume = volume * volumeFactor
         };
-        var balanceProvider = new BalanceSampleProvider(volumeProvider)
+        var balanceProvider = new ProfessionalBalanceProvider(volumeProvider, BalanceMode.MidSide, AntiClipStrategy.None)
         {
             Balance = balance * balanceFactor
         };

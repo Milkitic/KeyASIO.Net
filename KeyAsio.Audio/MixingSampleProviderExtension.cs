@@ -1,5 +1,6 @@
 ﻿using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.SampleProviders.BalancePans;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -95,12 +96,12 @@ internal static class MixingSampleProviderExtension
         return volumeSampleProvider;
     }
 
-    private static BalanceSampleProvider AddToBalanceProvider(this ISampleProvider input, float balance)
+    private static ProfessionalBalanceProvider AddToBalanceProvider(this ISampleProvider input, float balance)
     {
-        var volumeSampleProvider = new BalanceSampleProvider(input)
+        var balanceProvider = new ProfessionalBalanceProvider(input, BalanceMode.MidSide, AntiClipStrategy.None)
         {
             Balance = balance
         };
-        return volumeSampleProvider;
+        return balanceProvider;
     }
 }
