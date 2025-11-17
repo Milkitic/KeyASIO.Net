@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
 using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders.BalancePans;
@@ -51,11 +53,24 @@ public class ProfessionalBalanceProvider : ISampleProvider
     private const float GainRelease = 0.99995f; // 缓慢恢复
     private const float ClipThreshold = 0.95f; // 提前触发阈值
 
+    private static readonly bool CanUseVectorization =
+        Vector128.IsHardwareAccelerated &&
+        (Sse.IsSupported || AdvSimd.Arm64.IsSupported);
+
     // 用于立体声交换的 Shuffle 掩码 [1, 0, 3, 2] -> 将 [L1, R1, L2, R2] 变为 [R1, L1, R2, L2]
-    private static readonly Vector128<int> StereoSwapMask = Vector128.Create(1, 0, 3, 2);
-    private static readonly Vector128<float> VOne = Vector128.Create(1.0f);
-    private static readonly Vector128<float> VNegOne = Vector128.Create(-1.0f);
-    private static readonly Vector128<float> VHalf = Vector128.Create(0.5f);
+    private static readonly Vector128<int> StereoSwapMask;
+    private static readonly Vector128<float> VOne;
+    private static readonly Vector128<float> VNegOne;
+    private static readonly Vector128<float> VHalf;
+
+    static ProfessionalBalanceProvider()
+    {
+        if (!CanUseVectorization) return;
+        StereoSwapMask = Vector128.Create(1, 0, 3, 2);
+        VOne = Vector128.Create(1.0f);
+        VNegOne = Vector128.Create(-1.0f);
+        VHalf = Vector128.Create(0.5f);
+    }
 
     private readonly ISampleProvider _sourceProvider;
     private float _balanceValue = 0f;
@@ -145,6 +160,7 @@ public class ProfessionalBalanceProvider : ISampleProvider
                 throw new ArgumentOutOfRangeException();
         }
 
+        if (!CanUseVectorization) return;
         _vDirectGain = Vector128.Create(_leftDirectGain, _rightDirectGain, _leftDirectGain, _rightDirectGain);
         _vCrossGain = Vector128.Create(_leftCrossGain, _rightCrossGain, _leftCrossGain, _rightCrossGain);
     }
@@ -243,15 +259,29 @@ public class ProfessionalBalanceProvider : ISampleProvider
         if (_balanceValue == 0 && _mode != BalanceMode.MidSide && _antiClip == AntiClipStrategy.None)
             return samplesRead;
 
-        Span<float> data = buffer.AsSpan(offset, samplesRead);
-
-        if (_mode == BalanceMode.MidSide)
+        if (CanUseVectorization)
         {
-            ProcessMidSideVectorized(data);
+            Span<float> data = buffer.AsSpan(offset, samplesRead);
+
+            if (_mode == BalanceMode.MidSide)
+            {
+                ProcessMidSideVectorized(data);
+            }
+            else
+            {
+                ProcessStandardVectorized(data);
+            }
         }
         else
         {
-            ProcessStandardVectorized(data);
+            if (_mode == BalanceMode.MidSide)
+            {
+                ProcessMidSideSafe(buffer, offset, samplesRead);
+            }
+            else
+            {
+                ProcessStandardSafe(buffer, offset, samplesRead);
+            }
         }
 
         return samplesRead;
@@ -274,7 +304,7 @@ public class ProfessionalBalanceProvider : ISampleProvider
             for (; i < vecSpan.Length; i++)
             {
                 Vector128<float> vIn = vecSpan[i];
-                Vector128<float> vSwapped = Vector128.Shuffle(vIn, StereoSwapMask); // 交换左右声道 [L, R] -> [R, L]
+                Vector128<float> vSwapped = SwapStereoChannels(vIn);
 
                 // 矩阵混音: Out = In * DirectGain + Swapped * CrossGain
                 Vector128<float> vOut = (vIn * _vDirectGain) + (vSwapped * _vCrossGain);
@@ -293,7 +323,7 @@ public class ProfessionalBalanceProvider : ISampleProvider
             for (; i < vecSpan.Length; i++)
             {
                 Vector128<float> vIn = vecSpan[i];
-                Vector128<float> vSwapped = Vector128.Shuffle(vIn, StereoSwapMask);
+                Vector128<float> vSwapped = SwapStereoChannels(vIn);
                 Vector128<float> vOut = (vIn * _vDirectGain) + (vSwapped * _vCrossGain);
 
                 vecSpan[i] = vOut;
@@ -373,7 +403,7 @@ public class ProfessionalBalanceProvider : ISampleProvider
         for (; i < vecSpan.Length; i++)
         {
             Vector128<float> vIn = vecSpan[i]; // [L1, R1, L2, R2]
-            Vector128<float> vSwapped = Vector128.Shuffle(vIn, StereoSwapMask); // [R1, L1, R2, L2]
+            Vector128<float> vSwapped = SwapStereoChannels(vIn);
 
             // Mid = (L+R) * 0.5
             Vector128<float> vMid = (vIn + vSwapped) * VHalf;
@@ -471,5 +501,112 @@ public class ProfessionalBalanceProvider : ISampleProvider
         // 应用动态增益
         left *= _dynamicGainReduction;
         right *= _dynamicGainReduction;
+    }
+
+    private void ProcessStandardSafe(float[] buffer, int offset, int count)
+    {
+        int endIndex = offset + count;
+        for (int i = offset; i < endIndex; i += 2)
+        {
+            float left = buffer[i];
+            float right = buffer[i + 1];
+
+            // 计算输出
+            float outLeft = left * _leftDirectGain + right * _leftCrossGain;
+            float outRight = right * _rightDirectGain + left * _rightCrossGain;
+
+            // 应用防削波策略
+            ApplyAntiClip(ref outLeft, ref outRight);
+            buffer[i] = outLeft;
+            buffer[i + 1] = outRight;
+        }
+    }
+
+    private void ProcessMidSideSafe(float[] buffer, int offset, int count)
+    {
+        int endIndex = offset + count;
+        float sideGain = 1.0f - Math.Abs(_balanceValue);
+        float midBalance = _balanceValue;
+        for (int i = offset; i < endIndex; i += 2)
+        {
+            float left = buffer[i];
+            float right = buffer[i + 1];
+
+            // Mid-Side 变换
+            float mid = (left + right) * 0.5f;
+            float side = (left - right) * 0.5f;
+            side *= sideGain;
+            float outLeft, outRight;
+            if (midBalance < 0)
+            {
+                float amount = -midBalance;
+                outLeft = mid * (1.0f + amount * 0.5f) + side;
+                outRight = mid * (1.0f - amount * 0.5f) - side;
+            }
+            else if (midBalance > 0)
+            {
+                float amount = midBalance;
+                outLeft = mid * (1.0f - amount * 0.5f) + side;
+                outRight = mid * (1.0f + amount * 0.5f) - side;
+            }
+            else
+            {
+                outLeft = mid + side;
+                outRight = mid - side;
+            }
+
+            // 应用防削波
+            ApplyAntiClip(ref outLeft, ref outRight);
+            buffer[i] = outLeft;
+            buffer[i + 1] = outRight;
+        }
+    }
+
+    private void ApplyAntiClip(ref float left, ref float right)
+    {
+        switch (_antiClip)
+        {
+            case AntiClipStrategy.None:
+                break;
+            case AntiClipStrategy.PreventiveAttenuation:
+                // 已在增益计算中处理,这里无需额外操作
+                break;
+            case AntiClipStrategy.SoftClipper:
+                // 使用 tanh 作为软限制器 (音质最好)
+                left = MathF.Tanh(left * 0.9f);
+                right = MathF.Tanh(right * 0.9f);
+                break;
+            case AntiClipStrategy.HardLimit:
+                // 硬限制 (最快但有失真)
+                left = Math.Clamp(left, -1.0f, 1.0f);
+                right = Math.Clamp(right, -1.0f, 1.0f);
+                break;
+            case AntiClipStrategy.DynamicGain:
+                // 动态增益调整
+                ApplyDynamicGainReduction(ref left, ref right);
+                break;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Vector128<float> SwapStereoChannels(Vector128<float> v)
+    {
+        if (Ssse3.IsSupported)
+        {
+            // x86: Shuffle (1 指令)
+            // 交换左右声道 [L, R] -> [R, L]
+            return Vector128.Shuffle(v, StereoSwapMask);
+        }
+
+        if (AdvSimd.Arm64.IsSupported)
+        {
+            // ARM: 使用 Zip/Unzip 指令 (2-3 指令)
+            // [L1, R1, L2, R2] -> [R1, L1, R2, L2]
+            var odds = AdvSimd.Arm64.UnzipOdd(v, v); // [R1, R2, ?, ?]
+            var evens = AdvSimd.Arm64.UnzipEven(v, v); // [L1, L2, ?, ?]
+            return AdvSimd.Arm64.ZipLow(odds, evens); // [R1, L1, R2, L2]
+        }
+
+        return Vector128.Create(v[1], v[0], v[3], v[2]);
     }
 }
