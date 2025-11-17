@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Coosu.Beatmap;
 using KeyAsio.Audio;
 using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.Utils;
 using KeyAsio.Audio.Wave;
 using KeyAsio.MemoryReading.Logging;
 using Milki.Extensions.Configuration;
@@ -115,7 +116,7 @@ public class SelectSongTrack
         Task.Run(() =>
         {
             var currentVol = lowPass.Frequency;
-            var sw = Stopwatch.StartNew();
+            var sw = HighPrecisionTimer.StartNew();
             while (sw.ElapsedMilliseconds < fadeMilliseconds)
             {
                 var ratio = sw.ElapsedMilliseconds / (double)fadeMilliseconds;

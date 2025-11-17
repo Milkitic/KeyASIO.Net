@@ -3,12 +3,12 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public class CachedAudioSampleProvider : ISampleProvider
+public class CachedIeeeAudioProvider : ISampleProvider
 {
-    private readonly CachedAudio _cachedAudio;
+    private readonly CachedIeeeAudio _cachedAudio;
     private int _position;
 
-    public CachedAudioSampleProvider(CachedAudio cachedAudio)
+    public CachedIeeeAudioProvider(CachedIeeeAudio cachedAudio)
     {
         _cachedAudio = cachedAudio;
     }

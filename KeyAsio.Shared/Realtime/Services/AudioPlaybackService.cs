@@ -38,7 +38,7 @@ public class AudioPlaybackService
 
         try
         {
-            var seekableCachedAudioSampleProvider = new SeekableCachedAudioSampleProvider(cachedAudio);
+            var seekableCachedAudioSampleProvider = new SeekableCachedAudioProvider(cachedAudio);
             var volumeSampleProvider = new EnhancedVolumeSampleProvider(seekableCachedAudioSampleProvider)
             {
                 Volume = volume

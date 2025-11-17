@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using KeyAsio.Audio.Utils;
 using KeyAsio.Audio.Wave;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
@@ -21,6 +21,7 @@ public class AudioCacheManager
 
     private readonly ILogger<AudioCacheManager> _logger;
     private readonly ConcurrentDictionary<string, CategoryCache> _categoryDictionary = new();
+    private readonly ConcurrentDictionary<int, WaveFormat> _waveFormats = new();
 
     public AudioCacheManager(ILogger<AudioCacheManager> logger)
     {
@@ -119,7 +120,8 @@ public class AudioCacheManager
         {
             try
             {
-                return CreateAudioAsync(cacheKey, hash, rentBuffer, bytesRead, waveFormat);
+                return CreatePcmCacheAsync(cacheKey, hash, rentBuffer, bytesRead, waveFormat);
+                //return CreateAudioAsync(cacheKey, hash, rentBuffer, bytesRead, waveFormat);
             }
             finally
             {
@@ -155,7 +157,7 @@ public class AudioCacheManager
         return Blake3.Hasher.Hash(data.Span).ToString();
     }
 
-    private async Task<CachedAudio> CreateAudioAsync(string cacheKey, string hash, byte[] rentBuffer, int bytesRead,
+    private async Task<CachedIeeeAudio> CreateIeeeCacheAsync(string cacheKey, string hash, byte[] rentBuffer, int bytesRead,
         WaveFormat waveFormat)
     {
         await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
@@ -168,7 +170,7 @@ public class AudioCacheManager
             ArrayPool<float>.Shared.Rent(sampleChannel.WaveFormat.SampleRate * sampleChannel.WaveFormat.Channels);
         try
         {
-            var sw = Stopwatch.StartNew();
+            var sw = HighPrecisionTimer.StartNew();
             int samplesRead;
             // 循环读取，直到 stream 结束
             while ((samplesRead = sampleChannel.Read(readBuffer, 0, readBuffer.Length)) > 0)
@@ -183,7 +185,43 @@ public class AudioCacheManager
             ArrayPool<float>.Shared.Return(readBuffer);
         }
 
-        return new CachedAudio(hash, allSamples.ToArray(), sampleChannel.WaveFormat);
+        return new CachedIeeeAudio(hash, allSamples.ToArray(), sampleChannel.WaveFormat);
+    }
+
+    private async Task<CachedAudio> CreatePcmCacheAsync(string cacheKey, string hash, byte[] rentBuffer,
+        int bytesRead, WaveFormat waveFormat)
+    {
+        await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
+        var (waveProvider, estimatedShortSamples) =
+            GetPcmWaveProvider(audioFileReader, cacheKey, waveFormat.SampleRate);
+
+        // 估算字节数 = short样本数 * 2
+        int estimatedBytes = estimatedShortSamples > 0 ? (int)estimatedShortSamples * 2 : 0;
+        await using var destStream = new MemoryStream(estimatedBytes > 0 ? estimatedBytes : 1024 * 1024);
+        try
+        {
+            var sw = HighPrecisionTimer.StartNew();
+            var buffer = ArrayPool<byte>.Shared.Rent(waveProvider.WaveFormat.AverageBytesPerSecond);
+            try
+            {
+                int read;
+                while ((read = waveProvider.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    destStream.Write(buffer, 0, read);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+
+            _logger?.LogDebug("Cached {CacheKey} (Byte raw) in {Elapsed:N2}ms", cacheKey, sw.Elapsed.TotalMilliseconds);
+            return new CachedAudio(hash, destStream.ToArray(), waveProvider.WaveFormat);
+        }
+        finally
+        {
+            if (waveProvider is IDisposable d) d.Dispose();
+        }
     }
 
     private (SampleChannel sampleChannel, long totalFloatSamples) GetResampledSampleChannel(
@@ -196,7 +234,7 @@ public class AudioCacheManager
 
         if (!needsResampling)
         {
-            // 长度已知：计算总浮点样本数
+            // 长度已知，计算总浮点样本数
             var sourceStream = audioFileReader.ReaderStream;
             var totalByteLength = sourceStream.Length;
             var bytesPerSample = sourceStream.WaveFormat.BitsPerSample / 8;
@@ -230,6 +268,62 @@ public class AudioCacheManager
 
         // 用 SampleChannel 将 WaveStream (无论是原始的还是重采样的) 转换为 ISampleProvider
         return (new SampleChannel(streamToRead, forceStereo: true), totalFloatSamples);
+    }
+
+    private (IWaveProvider waveProvider, long estimatedShortSamples) GetPcmWaveProvider(
+        AudioFileReader audioFileReader, string cacheKey, int targetSampleRate)
+    {
+        var targetFormat = GetPcm16WaveFormat(targetSampleRate); // 强制 16-bit PCM，双声道，目标采样率
+
+        IWaveProvider provider;
+        long estimatedSamples = -1;
+
+        bool formatMatches = audioFileReader.WaveFormat.SampleRate == targetSampleRate &&
+                             audioFileReader.WaveFormat is
+                             {
+                                 Channels: 2,
+                                 Encoding: WaveFormatEncoding.Pcm,
+                                 BitsPerSample: 16
+                             };
+
+        if (formatMatches)
+        {
+            provider = audioFileReader;
+            if (audioFileReader.Length > 0)
+            {
+                estimatedSamples = audioFileReader.Length / 2;
+            }
+        }
+        else
+        {
+            try
+            {
+                var resampler = new MediaFoundationResampler(audioFileReader, targetFormat)
+                {
+                    ResamplerQuality = 60 // Best quality
+                };
+                provider = resampler;
+                if (audioFileReader.Length > 0)
+                {
+                    double ratio = (double)targetFormat.AverageBytesPerSecond /
+                                   audioFileReader.WaveFormat.AverageBytesPerSecond;
+                    estimatedSamples = (long)(audioFileReader.Length * ratio / 2);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error initializing resampler for {File}", cacheKey);
+                audioFileReader.Dispose();
+                throw;
+            }
+        }
+
+        return (provider, estimatedSamples);
+    }
+
+    private WaveFormat GetPcm16WaveFormat(int targetSampleRate)
+    {
+        return _waveFormats.GetOrAdd(targetSampleRate, rate => new WaveFormat(rate, 16, 2));
     }
 
     private static bool CompareWaveFormat(WaveFormat format1, WaveFormat format2)

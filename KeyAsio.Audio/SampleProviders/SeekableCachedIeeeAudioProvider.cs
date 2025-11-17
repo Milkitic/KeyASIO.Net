@@ -3,15 +3,15 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public class SeekableCachedAudioSampleProvider : ISampleProvider
+public class SeekableCachedIeeeAudioProvider : ISampleProvider
 {
-    private readonly CachedAudio _cachedAudio;
+    private readonly CachedIeeeAudio _cachedAudio;
     private readonly Lock _sourceSoundLock = new();
     private readonly float[] _audioData;
     private readonly int _preSamples;
     private int _position;
 
-    public SeekableCachedAudioSampleProvider(CachedAudio cachedAudio, int leadInMilliseconds = 0)
+    public SeekableCachedIeeeAudioProvider(CachedIeeeAudio cachedAudio, int leadInMilliseconds = 0)
     {
         _cachedAudio = cachedAudio;
         if (leadInMilliseconds != 0)

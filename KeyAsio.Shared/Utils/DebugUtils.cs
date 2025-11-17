@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
+using KeyAsio.Audio.Utils;
 using KeyAsio.MemoryReading.Logging;
 
 namespace KeyAsio.Shared.Utils;
@@ -98,17 +98,15 @@ public static class DebugUtils
 
     public static void InvokeAndPrint(Action method, string caller = "anonymous method")
     {
-        var sw = Stopwatch.StartNew();
+        var sw = HighPrecisionTimer.StartNew();
         method?.Invoke();
-        sw.Stop();
         Console.WriteLine($"[{caller}] Executed in {sw.Elapsed.TotalMilliseconds:#0.000} ms");
     }
 
     public static T InvokeAndPrint<T>(Func<T> method, string caller = "anonymous method")
     {
-        var sw = Stopwatch.StartNew();
+        var sw = HighPrecisionTimer.StartNew();
         var value = method.Invoke();
-        sw.Stop();
         Console.WriteLine($"[{caller}] Executed in {sw.Elapsed.TotalMilliseconds:#0.000} ms");
         return value;
     }
@@ -122,19 +120,18 @@ public static class DebugUtils
     {
         private readonly string _name;
         private readonly ILogger? _logger;
-        private readonly Stopwatch _sw;
+        private readonly HighPrecisionTimer _sw;
 
         public TimerImpl(string name, ILogger? logger)
         {
             _name = name;
             _logger = logger;
             Print($"[{_name}] executing");
-            _sw = Stopwatch.StartNew();
+            _sw = HighPrecisionTimer.StartNew();
         }
 
         public void Dispose()
         {
-            _sw.Stop();
             Print($"[{_name}] executed in {_sw.Elapsed.TotalMilliseconds:#0.000}ms");
         }
 
