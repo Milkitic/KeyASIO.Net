@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using KeyAsio.Audio.Caching;
+using KeyAsio.Audio.Utils;
 using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
@@ -39,12 +40,7 @@ public class CachedAudioProvider : ISampleProvider
         // 目标 Buffer
         var targetSpan = buffer.AsSpan(offset, samplesToCopy);
 
-        // 转换循环：PCM-16 -> IEEE Float
-        // 归一化：除以 32768f
-        for (int i = 0; i < samplesToCopy; i++)
-        {
-            targetSpan[i] = sourceShortsSpan[i] / 32768f;
-        }
+        SimdAudioConverter.Convert16BitToFloat(sourceShortsSpan, targetSpan);
 
         _position += samplesToCopy;
         return samplesToCopy;
