@@ -9,6 +9,7 @@ using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Realtime.AudioProviders;
 using KeyAsio.Shared.Realtime.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var services = new ServiceCollection();
 services.AddSingleton(new AppSettings());
@@ -28,7 +29,9 @@ var osuFile = osuDir.OsuFiles[0];
 realtimeModeManager.OsuFile = osuFile;
 
 var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
-var maniaAudioProvider = new ManiaAudioProvider(audioEngine, realtimeModeManager);
+var logger = provider.GetRequiredService<ILogger<ManiaAudioProvider>>();
+var cacheService = provider.GetRequiredService<AudioCacheService>();
+var maniaAudioProvider = new ManiaAudioProvider(logger, audioEngine, cacheService, realtimeModeManager);
 
 List<PlayableNode> keyList = new();
 List<HitsoundNode> playbackList = new();

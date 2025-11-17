@@ -13,13 +13,14 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Gui.Utils;
-using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
+using LogLevel = KeyAsio.MemoryReading.Logging.LogLevel;
 
 namespace KeyAsio.Gui.Windows;
 
@@ -28,9 +29,8 @@ namespace KeyAsio.Gui.Windows;
 /// </summary>
 public partial class MainWindow : DialogWindow
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger("STA Window");
-
     private bool _forceClose;
+    private readonly ILogger<MainWindow> _logger;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly SharedViewModel _viewModel;
@@ -39,7 +39,9 @@ public partial class MainWindow : DialogWindow
     private readonly List<Guid> _registerList = new();
     private Timer? _timer;
 
-    public MainWindow(AppSettings appSettings,
+    public MainWindow(
+        ILogger<MainWindow> logger,
+        AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
         RealtimeModeManager realtimeModeManager,
@@ -50,6 +52,7 @@ public partial class MainWindow : DialogWindow
         DataContext = _viewModel = viewModel;
         AppSettings = appSettings;
         AudioEngine = audioEngine;
+        _logger = logger;
         _audioCacheManager = audioCacheManager;
         RealtimeModeManager = realtimeModeManager;
         _audioDeviceManager = audioDeviceManager;
@@ -183,7 +186,7 @@ public partial class MainWindow : DialogWindow
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"Error occurs while creating device.");
+            _logger.LogError(ex, $"Error occurs while creating device.");
             LogUtils.LogToSentry(LogLevel.Error, $"Device Creation Error.", ex, scope =>
             {
                 scope.SetTag("device.id", deviceDescription.DeviceId ?? "");
@@ -213,7 +216,7 @@ public partial class MainWindow : DialogWindow
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error while disposing device.", true);
+                _logger.LogError(ex, "Error while disposing device.");
                 Thread.Sleep(100);
             }
         }
@@ -234,7 +237,7 @@ public partial class MainWindow : DialogWindow
         {
             if (action != KeyAction.KeyDown) return;
 
-            Logger.Debug($"{hookKey} {action}");
+            _logger.LogDebug($"{hookKey} {action}");
 
             if (!AppSettings.RealtimeOptions.RealtimeMode)
             {
@@ -246,12 +249,12 @@ public partial class MainWindow : DialogWindow
                     }
                     else
                     {
-                        Logger.Warn("AudioEngine not ready.");
+                        _logger.LogWarning("AudioEngine not ready.");
                     }
                 }
                 else
                 {
-                    Logger.Warn("Hitsound is null. Please check your path.");
+                    _logger.LogWarning("Hitsound is null. Please check your path.");
                 }
 
                 return;

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
@@ -7,12 +6,13 @@ using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.AudioProviders;
 using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Realtime.States;
 using KeyAsio.Shared.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using OsuMemoryDataProvider;
 
@@ -20,8 +20,6 @@ namespace KeyAsio.Shared.Realtime;
 
 public class RealtimeModeManager : ViewModelBase
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(RealtimeModeManager));
-
     private int _playTime;
     private bool _previousSelectSongStatus = true;
     private int _pauseCount = 0;
@@ -37,6 +35,7 @@ public class RealtimeModeManager : ViewModelBase
     private BeatmapIdentifier _beatmap;
     private bool _isStarted;
 
+    private readonly ILogger<RealtimeModeManager> _logger;
     private readonly AudioEngine _audioEngine;
     private readonly SharedViewModel _sharedViewModel;
     private readonly StandardAudioProvider _standardAudioProvider;
@@ -58,7 +57,10 @@ public class RealtimeModeManager : ViewModelBase
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
 
-    public RealtimeModeManager(AudioEngine audioEngine,
+    public RealtimeModeManager(
+        ILogger<RealtimeModeManager> logger,
+        IServiceProvider serviceProvider,
+        AudioEngine audioEngine,
         SharedViewModel sharedViewModel,
         AudioCacheService audioCacheService,
         HitsoundNodeService hitsoundNodeService,
@@ -66,12 +68,15 @@ public class RealtimeModeManager : ViewModelBase
         AudioPlaybackService audioPlaybackService,
         AudioCacheManager audioCacheManager)
     {
+        _logger = logger;
         _audioEngine = audioEngine;
         _sharedViewModel = sharedViewModel;
-        _standardAudioProvider = new StandardAudioProvider(_audioEngine, this);
-        _maniaAudioProvider = new ManiaAudioProvider(_audioEngine, this);
-        // Track services initialized via field initializer
-
+        _standardAudioProvider = new StandardAudioProvider(
+            serviceProvider.GetRequiredService<ILogger<StandardAudioProvider>>(),
+            _audioEngine, audioCacheService, this);
+        _maniaAudioProvider = new ManiaAudioProvider(
+            serviceProvider.GetRequiredService<ILogger<ManiaAudioProvider>>(), _audioEngine,
+            audioCacheService, this);
         _audioProviderDictionary = new Dictionary<GameMode, IAudioProvider>()
         {
             [GameMode.Circle] = _standardAudioProvider,
@@ -235,13 +240,6 @@ public class RealtimeModeManager : ViewModelBase
     public IReadOnlyList<HitsoundNode> PlaybackList => _hitsoundNodeService.PlaybackList;
     public List<PlayableNode> KeyList => _hitsoundNodeService.KeyList;
 
-    public bool TryGetAudioByNode(HitsoundNode playableNode, [NotNullWhen(true)] out CachedAudio? cachedAudio)
-    {
-
-        if (!_audioCacheService.TryGetAudioByNode(playableNode, out cachedAudio)) return false;
-        return playableNode is not PlayableNode || cachedAudio != null;
-    }
-
     public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
     {
         return GetCurrentAudioProvider().GetKeyAudio(keyIndex, keyTotal);
@@ -306,8 +304,9 @@ public class RealtimeModeManager : ViewModelBase
         catch (Exception ex)
         {
             IsStarted = false;
-            Logger.Error(ex, $"Error while starting a beatmap. Filename: {beatmapFilename}. FilenameReal: {OsuFile}");
-            LogUtils.LogToSentry(LogLevel.Error, "Error while starting a beatmap", ex, k =>
+            _logger.LogError(ex, "Error while starting a beatmap. Filename: {BeatmapFilename}. FilenameReal: {OsuFile}",
+                beatmapFilename, OsuFile);
+            LogUtils.LogToSentry(MemoryReading.Logging.LogLevel.Error, "Error while starting a beatmap", ex, k =>
             {
                 k.SetTag("osu.filename", beatmapFilename);
                 k.SetTag("osu.filename_real", OsuFile?.ToString() ?? "");

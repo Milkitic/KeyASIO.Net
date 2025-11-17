@@ -1,17 +1,14 @@
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
 public class HitsoundNodeService
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(HitsoundNodeService));
-
+    private readonly ILogger<HitsoundNodeService> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheService _audioCacheService;
 
@@ -19,8 +16,9 @@ public class HitsoundNodeService
     private readonly List<HitsoundNode> _playbackList = new();
     private int _nextCachingTime;
 
-    public HitsoundNodeService(AppSettings appSettings, AudioCacheService audioCacheService)
+    public HitsoundNodeService(ILogger<HitsoundNodeService> logger, AppSettings appSettings, AudioCacheService audioCacheService)
     {
+        _logger = logger;
         _appSettings = appSettings;
         _audioCacheService = audioCacheService;
     }
@@ -34,7 +32,7 @@ public class HitsoundNodeService
         _playbackList.Clear();
 
         var osuDir = new OsuDirectory(folder);
-        using (DebugUtils.CreateTimer("InitFolder", Logger))
+        using (DebugUtils.CreateTimer("InitFolder", _logger))
         {
             await osuDir.InitializeAsync(diffFilename,
                 ignoreWaveFiles: _appSettings.RealtimeOptions.IgnoreBeatmapHitsound);
@@ -49,7 +47,7 @@ public class HitsoundNodeService
 
         var osuFile = osuDir.OsuFiles[0];
 
-        using var _ = DebugUtils.CreateTimer("InitAudio", Logger);
+        using var _ = DebugUtils.CreateTimer("InitAudio", _logger);
         var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
         await Task.Delay(100);
 

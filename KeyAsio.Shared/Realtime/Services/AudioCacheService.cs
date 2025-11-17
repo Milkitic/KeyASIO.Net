@@ -5,26 +5,27 @@ using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
-using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
+using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
 public class AudioCacheService
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(AudioCacheService));
     private static readonly string[] SkinAudioFiles = ["combobreak"];
+
     private static readonly ParallelOptions ParallelOptions = new()
     {
-        MaxDegreeOfParallelism = 1, // Preserve use
+        MaxDegreeOfParallelism = 2,
     };
 
     private readonly HitsoundFileCache _hitsoundFileCache = new();
     private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedAudioMapping = new();
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
+    private readonly ILogger<AudioCacheService> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
@@ -32,8 +33,10 @@ public class AudioCacheService
     private string? _beatmapFolder;
     private string? _audioFilename;
 
-    public AudioCacheService(IServiceProvider serviceProvider, AudioEngine audioEngine, AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
+    public AudioCacheService(ILogger<AudioCacheService> logger, IServiceProvider serviceProvider, AudioEngine audioEngine,
+        AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
     {
+        _logger = logger;
         _serviceProvider = serviceProvider;
         _audioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
@@ -68,13 +71,13 @@ public class AudioCacheService
     {
         if (_beatmapFolder == null)
         {
-            Logger.Warn("Beatmap folder is null, stop adding cache.");
+            _logger.LogWarning("Beatmap folder is null, stop adding cache.");
             return;
         }
 
         if (_audioEngine.CurrentDevice == null)
         {
-            Logger.Warn("AudioEngine is null, stop adding cache.");
+            _logger.LogWarning("AudioEngine is null, stop adding cache.");
             return;
         }
 
@@ -96,32 +99,33 @@ public class AudioCacheService
 
                 if (status == CacheGetStatus.Failed)
                 {
-                    Logger.Warn("Caching music failed: " + (File.Exists(musicPath) ? musicPath : "FileNotFound"));
+                    _logger.LogWarning("Caching music failed: " + (File.Exists(musicPath) ? musicPath : "FileNotFound"));
                 }
                 else if (status == CacheGetStatus.Hit)
                 {
-                    Logger.Info("Got music cache: " + musicPath);
+                    _logger.LogTrace("Got music cache: " + musicPath);
                 }
                 else if (status == CacheGetStatus.Created)
                 {
-                    Logger.Info("Cached music: " + musicPath);
+                    _logger.LogDebug("Cached music: " + musicPath);
                 }
             }
 
             try
             {
-                await Parallel.ForEachAsync(SkinAudioFiles, ParallelOptions, async (skinAudioFile, _) =>
-                {
-                    await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);
-                });
+                await Parallel.ForEachAsync(SkinAudioFiles, ParallelOptions,
+                    async (skinAudioFile, _) =>
+                    {
+                        await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);
+                    });
             }
             catch (OperationCanceledException)
             {
-                Logger.Warn("Hitsound caching was cancelled.");
+                _logger.LogWarning("Hitsound caching was cancelled.");
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "An error occurred during parallel hitsound caching.");
+                _logger.LogError(ex, "An error occurred during parallel hitsound caching.");
             }
         });
     }
@@ -130,23 +134,24 @@ public class AudioCacheService
         int startTime,
         int endTime,
         IEnumerable<HitsoundNode> playableNodes,
-        [CallerArgumentExpression("playableNodes")] string? expression = null)
+        [CallerArgumentExpression("playableNodes")]
+        string? expression = null)
     {
         if (_beatmapFolder == null)
         {
-            Logger.Warn("Beatmap folder is null, stop adding cache.");
+            _logger.LogWarning("Beatmap folder is null, stop adding cache.");
             return;
         }
 
         if (_audioEngine.CurrentDevice == null)
         {
-            Logger.Warn("AudioEngine is null, stop adding cache.");
+            _logger.LogWarning("AudioEngine is null, stop adding cache.");
             return;
         }
 
         if (playableNodes is System.Collections.IList { Count: 0 })
         {
-            Logger.Warn($"{expression} has no hitsounds, stop adding cache.");
+            _logger.LogWarning($"{expression} has no hitsounds, stop adding cache.");
             return;
         }
 
@@ -156,23 +161,21 @@ public class AudioCacheService
 
         Task.Run(async () =>
         {
-            using var _ = DebugUtils.CreateTimer($"CacheAudio {startTime}~{endTime}", Logger);
+            using var _ = DebugUtils.CreateTimer($"CacheAudio {startTime}~{endTime}", _logger);
             var nodesToCache = playableNodes.Where(k => k.Offset >= startTime && k.Offset < endTime);
 
             try
             {
-                await Parallel.ForEachAsync(nodesToCache, ParallelOptions, async (node, _) =>
-                {
-                    await AddHitsoundCacheAsync(node, folder!, skinFolder, waveFormat);
-                });
+                await Parallel.ForEachAsync(nodesToCache, ParallelOptions,
+                    async (node, _) => { await AddHitsoundCacheAsync(node, folder!, skinFolder, waveFormat); });
             }
             catch (OperationCanceledException)
             {
-                Logger.Warn("Hitsound caching was cancelled.");
+                _logger.LogWarning("Hitsound caching was cancelled.");
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "An error occurred during parallel hitsound caching.");
+                _logger.LogError(ex, "An error occurred during parallel hitsound caching.");
             }
         });
     }
@@ -210,15 +213,15 @@ public class AudioCacheService
 
         if (status == CacheGetStatus.Failed)
         {
-            Logger.Warn("Caching effect failed: " + (File.Exists(path) ? path : "FileNotFound"));
+            _logger.LogWarning("Caching effect failed: " + (File.Exists(path) ? path : "FileNotFound"));
         }
         else if (status == CacheGetStatus.Hit)
         {
-            Logger.Info("Got effect cache: " + path);
+            _logger.LogTrace("Got effect cache: " + path);
         }
         else if (status == CacheGetStatus.Created)
         {
-            Logger.Info("Cached effect: " + path);
+            _logger.LogDebug("Cached effect: " + path);
         }
 
         _filenameToCachedAudioMapping.TryAdd(filenameWithoutExt, result!);
@@ -235,7 +238,7 @@ public class AudioCacheService
         var manager = (RealtimeModeManager)_serviceProvider.GetService(typeof(RealtimeModeManager))!;
         if (!manager.IsStarted)
         {
-            Logger.Warn("Isn't started, stop adding cache.");
+            _logger.LogWarning("Isn't started, stop adding cache.");
             return;
         }
 
@@ -243,7 +246,7 @@ public class AudioCacheService
         {
             if (hitsoundNode is PlayableNode)
             {
-                Logger.Warn("Filename is null, add null cache.");
+                _logger.LogWarning("Filename is null, add null cache.");
             }
 
             var cacheResult = await _audioCacheManager.GetOrCreateEmptyAsync("null", waveFormat);
@@ -271,15 +274,15 @@ public class AudioCacheService
 
         if (status == CacheGetStatus.Failed)
         {
-            Logger.Warn("Caching effect failed: " + (File.Exists(path) ? path : "FileNotFound"));
+            _logger.LogWarning("Caching effect failed: " + (File.Exists(path) ? path : "FileNotFound"));
         }
         else if (status == CacheGetStatus.Hit)
         {
-            Logger.Info("Got effect cache: " + path);
+            _logger.LogTrace("Got effect cache: " + path);
         }
         else if (status == CacheGetStatus.Created)
         {
-            Logger.Info("Cached effect: " + path);
+            _logger.LogDebug("Cached effect: " + path);
         }
 
         _playNodeToCachedAudioMapping.TryAdd(hitsoundNode, result!);

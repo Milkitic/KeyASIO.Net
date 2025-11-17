@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Milki.Extensions.Configuration;
 using OsuMemoryDataProvider;
@@ -13,7 +13,7 @@ namespace KeyAsio.Shared.Realtime;
 public class SkinManager : IHostedService
 {
     private static readonly Lock InstanceLock = new();
-    private static readonly ILogger Logger = LogUtils.GetLogger("SkinManager");
+    private readonly ILogger<SkinManager> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
@@ -21,8 +21,9 @@ public class SkinManager : IHostedService
     private Task? _refreshTask;
     private bool _waiting;
 
-    public SkinManager(AppSettings appSettings, AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
+    public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
     {
+        _logger = logger;
         _appSettings = appSettings;
         _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
@@ -148,7 +149,7 @@ public class SkinManager : IHostedService
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, "Error occurs while finding registry", true);
+            _logger.LogError(ex, "Error occurs while finding registry");
         }
     }
 

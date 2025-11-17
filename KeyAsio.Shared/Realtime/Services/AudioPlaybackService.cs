@@ -3,20 +3,21 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
-using KeyAsio.MemoryReading.Logging;
+using Microsoft.Extensions.Logging;
 using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
 public class AudioPlaybackService
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(AudioPlaybackService));
     private readonly LoopProviderManager _loopProviderManager = new();
+    private readonly ILogger<AudioPlaybackService> _logger;
     private readonly AudioEngine _audioEngine;
     private readonly AppSettings _appSettings;
 
-    public AudioPlaybackService(AudioEngine audioEngine, AppSettings appSettings)
+    public AudioPlaybackService(ILogger<AudioPlaybackService> logger, AudioEngine audioEngine, AppSettings appSettings)
     {
+        _logger = logger;
         _audioEngine = audioEngine;
         _appSettings = appSettings;
     }
@@ -25,7 +26,7 @@ public class AudioPlaybackService
     {
         if (cachedAudio is null)
         {
-            Logger.Warn("Fail to play: CachedSound not found");
+            _logger.LogWarning("Fail to play: CachedSound not found");
             return;
         }
 
@@ -51,12 +52,10 @@ public class AudioPlaybackService
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, "Error occurs while playing audio.", true);
+            _logger.LogError(ex, "Error occurs while playing audio.", true);
         }
 
-        Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedAudio.SourceHash)}; " +
-                     $"Vol. {volume}; " +
-                     $"Bal. {balance}");
+        _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
     }
 
     public void PlayLoopAudio(CachedAudio? cachedAudio, ControlNode controlNode)
@@ -83,7 +82,7 @@ public class AudioPlaybackService
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error occurs while playing looped audio.", true);
+                _logger.LogError(ex, "Error occurs while playing looped audio.", true);
             }
         }
         else if (controlNode.ControlType == ControlType.StopSliding)

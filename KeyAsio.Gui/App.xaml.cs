@@ -166,16 +166,17 @@ public partial class App : Application
 
                 services.AddSingleton(provider =>
                     ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, "."));
+
+                services.AddSingleton<AudioEngine>();
+                services.AddSingleton<AudioCacheManager>();
+                services.AddSingleton<AudioDeviceManager>();
+
                 services.AddSingleton<SkinManager>();
                 services.AddSingleton<AudioCacheService>();
                 services.AddSingleton<HitsoundNodeService>();
                 services.AddSingleton<MusicTrackService>();
                 services.AddSingleton<AudioPlaybackService>();
                 services.AddSingleton<RealtimeModeManager>();
-
-                services.AddSingleton<AudioEngine>();
-                services.AddSingleton<AudioCacheManager>();
-                services.AddSingleton<AudioDeviceManager>();
 
                 services.AddSingleton<SharedViewModel>();
                 services.AddTransient<DeviceWindowViewModel>();

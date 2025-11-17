@@ -1,16 +1,18 @@
 using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Audio;
-using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Utils;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Shared.Realtime.AudioProviders;
 
 public class StandardAudioProvider : IAudioProvider
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(StandardAudioProvider));
+    private readonly ILogger<StandardAudioProvider> _logger;
     private readonly AudioEngine _audioEngine;
+    private readonly AudioCacheService _audioCacheService;
     private readonly RealtimeModeManager _realtimeModeManager;
 
     private Queue<PlayableNode> _hitQueue = new();
@@ -19,9 +21,12 @@ public class StandardAudioProvider : IAudioProvider
     private PlayableNode? _firstNode;
     private HitsoundNode? _firstPlayNode;
 
-    public StandardAudioProvider(AudioEngine audioEngine, RealtimeModeManager realtimeModeManager)
+    public StandardAudioProvider(ILogger<StandardAudioProvider> logger, AudioEngine audioEngine,
+        AudioCacheService audioCacheService, RealtimeModeManager realtimeModeManager)
     {
+        _logger = logger;
         _audioEngine = audioEngine;
+        _audioCacheService = audioCacheService;
         _realtimeModeManager = realtimeModeManager;
     }
 
@@ -35,20 +40,29 @@ public class StandardAudioProvider : IAudioProvider
         var playTime = PlayTime;
         var isStarted = IsStarted;
 
-        if (_audioEngine.CurrentDevice == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
-        if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
+        if (_audioEngine.CurrentDevice == null)
+        {
+            _logger.LogWarning("Engine not ready, return empty.");
+            return [];
+        }
+
+        if (!isStarted)
+        {
+            _logger.LogWarning("Game hasn't started, return empty.");
+            return [];
+        }
 
         var first = includeKey ? _firstPlayNode : _firstNode;
         if (first == null)
         {
-            return Array.Empty<PlaybackInfo>();
-            return ReturnDefaultAndLog("First is null, no item returned.", LogLevel.Warning);
+            return [];
+            _logger.LogWarning("First is null, no item returned.");
         }
 
         if (playTime < first.Offset)
         {
-            return Array.Empty<PlaybackInfo>();
-            return ReturnDefaultAndLog("Haven't reached first, no item returned.", LogLevel.Warning);
+            return [];
+            _logger.LogWarning("Haven't reached first, no item returned.");
         }
 
         return GetNextPlaybackAudio(first, playTime, includeKey);
@@ -56,20 +70,37 @@ public class StandardAudioProvider : IAudioProvider
 
     public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
     {
-        using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", Logger);
+        using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
 
         var playTime = PlayTime;
         var isStarted = IsStarted;
 
-        if (_audioEngine.CurrentDevice == null) return ReturnDefaultAndLog("Engine not ready, return empty.", LogLevel.Warning);
-        if (!isStarted) return ReturnDefaultAndLog("Game hasn't started, return empty.", LogLevel.Warning);
+        if (_audioEngine.CurrentDevice == null)
+        {
+            _logger.LogWarning("Engine not ready, return empty.");
+            return [];
+        }
+
+        if (!isStarted)
+        {
+            _logger.LogWarning("Game hasn't started, return empty.");
+            return [];
+        }
 
         var first = _firstNode;
-        if (first == null) return ReturnDefaultAndLog("First is null, no item returned.", LogLevel.Warning);
+        if (first == null)
+        {
+            _logger.LogWarning("First is null, no item returned.");
+            return [];
+        }
 
-        Logger.Debug($"Click: {playTime}; First node: {first.Offset}");
+        _logger.LogDebug($"Click: {playTime}; First node: {first.Offset}");
 
-        if (playTime < first.Offset - KeyThresholdMilliseconds) return ReturnDefaultAndLog("Haven't reached first, no item returned.", LogLevel.Warning);
+        if (playTime < first.Offset - KeyThresholdMilliseconds)
+        {
+            _logger.LogWarning("Haven't reached first, no item returned.");
+            return [];
+        }
 
         if (playTime < first.Offset + KeyThresholdMilliseconds) // click soon~0~late
         {
@@ -169,7 +200,7 @@ public class StandardAudioProvider : IAudioProvider
 
             isFirst = false;
             checkPreTiming = false;
-            if (_realtimeModeManager.TryGetAudioByNode(firstNode, out var cachedSound))
+            if (_audioCacheService.TryGetAudioByNode(firstNode, out var cachedSound))
             {
                 counter++;
                 preNode = firstNode;
@@ -182,7 +213,7 @@ public class StandardAudioProvider : IAudioProvider
         _firstNode = firstNode;
         if (counter == 0)
         {
-            Logger.Warn($"Counter is zero, no item returned.");
+            _logger.LogWarning($"Counter is zero, no item returned.");
         }
     }
 
@@ -196,7 +227,7 @@ public class StandardAudioProvider : IAudioProvider
             }
 
             if (playTime < firstNode.Offset + 200 &&
-                _realtimeModeManager.TryGetAudioByNode(firstNode, out var cachedSound))
+                _audioCacheService.TryGetAudioByNode(firstNode, out var cachedSound))
             {
                 yield return new PlaybackInfo(cachedSound, firstNode);
             }
@@ -220,11 +251,5 @@ public class StandardAudioProvider : IAudioProvider
         {
             _firstNode = (PlayableNode?)firstNode;
         }
-    }
-
-    private static IEnumerable<PlaybackInfo> ReturnDefaultAndLog(string message, LogLevel logLevel = LogLevel.Debug)
-    {
-        Logger.Log(logLevel, message);
-        return Array.Empty<PlaybackInfo>();
     }
 }
