@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Audio.Wave;
 
 /// <summary>
 /// Stream for looping playback

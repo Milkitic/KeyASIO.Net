@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Coosu.Beatmap;
 using KeyAsio.Audio;
 using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.Wave;
 using KeyAsio.MemoryReading.Logging;
 using Milki.Extensions.Configuration;
 using NAudio.Wave;
@@ -14,7 +15,7 @@ public class SelectSongTrack
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SelectSongTrack));
     private readonly Lock _instanceLock = new();
 
-    private SmartWaveReader? _smartWaveReader;
+    private AudioFileReader? _audioFileReader;
     private EnhancedFadeInOutSampleProvider? _fadeInOutSampleProvider;
     private LowPassSampleProvider? _lowPassSampleProvider;
 
@@ -33,22 +34,22 @@ public class SelectSongTrack
         if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
         if (Mixer is null || WaveFormat is null) return;
 
-        SmartWaveReader? smartWaveReader;
+        AudioFileReader? audioFileReader;
         EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider = null;
         lock (_instanceLock)
         {
-            if (_smartWaveReader is not null) return;
+            if (_audioFileReader is not null) return;
 
             try
             {
-                smartWaveReader = _smartWaveReader = new SmartWaveReader(path);
-                var builder = new SampleProviderBuilder(smartWaveReader);
-                if (smartWaveReader.WaveFormat.Channels == 1)
+                audioFileReader = _audioFileReader = new AudioFileReader(path);
+                var builder = new SampleProviderBuilder(audioFileReader);
+                if (audioFileReader.WaveFormat.Channels == 1)
                 {
                     builder.AddSampleProvider(k => new MonoToStereoSampleProvider(k));
                 }
 
-                if (smartWaveReader.WaveFormat.SampleRate != WaveFormat.SampleRate)
+                if (audioFileReader.WaveFormat.SampleRate != WaveFormat.SampleRate)
                 {
                     builder.AddSampleProvider(k => new WdlResamplingSampleProvider(k, WaveFormat.SampleRate));
                 }
@@ -62,9 +63,9 @@ public class SelectSongTrack
 
                 notifyingSampleProvider.Sample += async (_, _) =>
                 {
-                    if (smartWaveReader.CurrentTime >= smartWaveReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
+                    if (audioFileReader.CurrentTime >= audioFileReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
                     {
-                        await RepositionAndFadeIn(smartWaveReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
+                        await RepositionAndFadeIn(audioFileReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
                     }
                 };
 
@@ -85,26 +86,26 @@ public class SelectSongTrack
             }
         }
 
-        await RepositionAndFadeIn(smartWaveReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
+        await RepositionAndFadeIn(audioFileReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
     }
 
     public async Task StopCurrentMusic(int fadeOutMilliseconds = 500)
     {
-        SmartWaveReader? smartWaveReader;
+        AudioFileReader? audioFileReader;
         EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
-            smartWaveReader = _smartWaveReader;
+            audioFileReader = _audioFileReader;
             fadeInOutSampleProvider = _fadeInOutSampleProvider;
-            if (smartWaveReader is null || fadeInOutSampleProvider is null)
+            if (audioFileReader is null || fadeInOutSampleProvider is null)
                 return;
-            _smartWaveReader = null;
+            _audioFileReader = null;
             _fadeInOutSampleProvider = null;
         }
 
         await FadeAsync(fadeInOutSampleProvider, fadeOutMilliseconds, false);
         Mixer?.RemoveMixerInput(fadeInOutSampleProvider);
-        await smartWaveReader.DisposeAsync();
+        await audioFileReader.DisposeAsync();
     }
 
     public void StartLowPass(int fadeMilliseconds, int targetVol)
@@ -129,13 +130,13 @@ public class SelectSongTrack
 
     public async Task PauseCurrentMusic()
     {
-        SmartWaveReader? smartWaveReader;
+        AudioFileReader? audioFileReader;
         EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
-            smartWaveReader = _smartWaveReader;
+            audioFileReader = _audioFileReader;
             fadeInOutSampleProvider = _fadeInOutSampleProvider;
-            if (smartWaveReader is null || fadeInOutSampleProvider is null)
+            if (audioFileReader is null || fadeInOutSampleProvider is null)
                 return;
         }
 
@@ -144,13 +145,13 @@ public class SelectSongTrack
 
     public async Task RecoverCurrentMusic()
     {
-        SmartWaveReader? smartWaveReader;
+        AudioFileReader? audioFileReader;
         EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
-            smartWaveReader = _smartWaveReader;
+            audioFileReader = _audioFileReader;
             fadeInOutSampleProvider = _fadeInOutSampleProvider;
-            if (smartWaveReader is null || fadeInOutSampleProvider is null)
+            if (audioFileReader is null || fadeInOutSampleProvider is null)
                 return;
         }
 

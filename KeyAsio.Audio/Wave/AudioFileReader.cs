@@ -3,9 +3,9 @@ using NAudio;
 using NAudio.Vorbis;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Audio.Wave;
 
-public class SmartWaveReader : WaveStream, ISampleProvider
+public class AudioFileReader : WaveStream, ISampleProvider
 {
     private readonly NAudio.Wave.SampleProviders.SampleChannel _sampleChannel;
     private readonly int _destBytesPerSample;
@@ -16,17 +16,17 @@ public class SmartWaveReader : WaveStream, ISampleProvider
     private bool _isDisposed;
     private WaveStream _readerStream = null!;
 
-    public SmartWaveReader(string fileName)
+    public AudioFileReader(string fileName)
         : this(File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
     {
     }
 
-    public SmartWaveReader(byte[] buffer, int index, int count)
+    public AudioFileReader(byte[] buffer, int index, int count)
         : this(new MemoryStream(buffer, index, count))
     {
     }
 
-    public SmartWaveReader(Stream stream)
+    public AudioFileReader(Stream stream)
     {
         if (!stream.CanSeek) throw new ArgumentException("Stream must be seekable.", nameof(stream));
 
@@ -117,19 +117,6 @@ public class SmartWaveReader : WaveStream, ISampleProvider
         {
             return _sampleChannel.Read(buffer, offset, count);
         }
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing && ReaderStream != null!)
-        {
-            ReaderStream.Dispose();
-            ReaderStream = null!;
-            _stream.Dispose();
-            _isDisposed = true;
-        }
-
-        base.Dispose(disposing);
     }
 
     private void CreateReaderStream(Stream sourceStream)
@@ -233,5 +220,18 @@ public class SmartWaveReader : WaveStream, ISampleProvider
             throw new NotSupportedException("No available generic media reader for OS: " + os.VersionString + ".");
 
         return new StreamMediaFoundationReader(sourceStream);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && ReaderStream != null!)
+        {
+            ReaderStream.Dispose();
+            ReaderStream = null!;
+            _stream.Dispose();
+            _isDisposed = true;
+        }
+
+        base.Dispose(disposing);
     }
 }

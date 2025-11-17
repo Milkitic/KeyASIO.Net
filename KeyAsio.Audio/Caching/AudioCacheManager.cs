@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using KeyAsio.Audio.Wave;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -157,8 +158,8 @@ public class AudioCacheManager
     private async Task<CachedAudio> CreateAudioAsync(string cacheKey, string hash, byte[] rentBuffer, int bytesRead,
         WaveFormat waveFormat)
     {
-        await using var smartWaveReader = new SmartWaveReader(rentBuffer, 0, bytesRead);
-        var (sampleChannel, totalFloatSamples) = GetResampledSampleChannel(smartWaveReader, cacheKey, waveFormat);
+        await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
+        var (sampleChannel, totalFloatSamples) = GetResampledSampleChannel(audioFileReader, cacheKey, waveFormat);
 
         var allSamples = new List<float>(totalFloatSamples == -1
             ? sampleChannel.WaveFormat.SampleRate * sampleChannel.WaveFormat.Channels * 5
@@ -186,17 +187,17 @@ public class AudioCacheManager
     }
 
     private (SampleChannel sampleChannel, long totalFloatSamples) GetResampledSampleChannel(
-        SmartWaveReader smartWaveReader, string cacheKey, WaveFormat waveFormat)
+        AudioFileReader audioFileReader, string cacheKey, WaveFormat waveFormat)
     {
-        IWaveProvider streamToRead = smartWaveReader;
-        var needsResampling = !CompareWaveFormat(smartWaveReader.WaveFormat, waveFormat);
+        IWaveProvider streamToRead = audioFileReader;
+        var needsResampling = !CompareWaveFormat(audioFileReader.WaveFormat, waveFormat);
 
         long totalFloatSamples = -1; // 默认为未知长度
 
         if (!needsResampling)
         {
             // 长度已知：计算总浮点样本数
-            var sourceStream = smartWaveReader.ReaderStream;
+            var sourceStream = audioFileReader.ReaderStream;
             var totalByteLength = sourceStream.Length;
             var bytesPerSample = sourceStream.WaveFormat.BitsPerSample / 8;
             var totalSourceSamples = (bytesPerSample > 0) ? totalByteLength / bytesPerSample : 0;
@@ -213,8 +214,8 @@ public class AudioCacheManager
         {
             try
             {
-                // MFResampler 会在 Dispose 时自动 Dispose 掉 smartWaveReader
-                streamToRead = new MediaFoundationResampler(smartWaveReader, waveFormat)
+                // MFResampler 会在 Dispose 时自动 Dispose 掉 audioFileReader
+                streamToRead = new MediaFoundationResampler(audioFileReader, waveFormat)
                 {
                     ResamplerQuality = 60
                 };
@@ -222,7 +223,7 @@ public class AudioCacheManager
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error while resampling audio file {File}", cacheKey);
-                smartWaveReader.Dispose(); // 如果 MFResampler 构造失败，手动 Dispose
+                audioFileReader.Dispose(); // 如果 MFResampler 构造失败，手动 Dispose
                 throw;
             }
         }

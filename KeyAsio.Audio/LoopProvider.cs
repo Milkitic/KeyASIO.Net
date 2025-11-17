@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
+using KeyAsio.Audio.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
