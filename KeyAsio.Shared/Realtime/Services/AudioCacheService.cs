@@ -22,8 +22,8 @@ public class AudioCacheService
     };
 
     private readonly HitsoundFileCache _hitsoundFileCache = new();
-    private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedSoundMapping = new();
-    private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedSoundMapping = new();
+    private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedAudioMapping = new();
+    private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
     private readonly IServiceProvider _serviceProvider;
     private readonly AudioEngine _audioEngine;
@@ -49,19 +49,19 @@ public class AudioCacheService
     public void ClearCaches()
     {
         _audioCacheManager.Clear();
-        _playNodeToCachedSoundMapping.Clear();
-        _filenameToCachedSoundMapping.Clear();
+        _playNodeToCachedAudioMapping.Clear();
+        _filenameToCachedAudioMapping.Clear();
     }
 
-    public bool TryGetAudioByNode(HitsoundNode node, [NotNullWhen(true)] out CachedAudio? cachedSound)
+    public bool TryGetAudioByNode(HitsoundNode node, [NotNullWhen(true)] out CachedAudio? cachedAudio)
     {
-        if (!_playNodeToCachedSoundMapping.TryGetValue(node, out cachedSound)) return false;
+        if (!_playNodeToCachedAudioMapping.TryGetValue(node, out cachedAudio)) return false;
         return node is PlayableNode;
     }
 
-    public bool TryGetCachedSound(string filenameWithoutExt, out CachedAudio? cachedSound)
+    public bool TryGetCachedAudio(string filenameWithoutExt, out CachedAudio? cachedAudio)
     {
-        return _filenameToCachedSoundMapping.TryGetValue(filenameWithoutExt, out cachedSound);
+        return _filenameToCachedAudioMapping.TryGetValue(filenameWithoutExt, out cachedAudio);
     }
 
     public void PrecacheMusicAndSkinInBackground()
@@ -151,7 +151,7 @@ public class AudioCacheService
         }
 
         var folder = _beatmapFolder;
-        var waveFormat = _audioEngine.EngineWaveFormat;
+        var waveFormat = _audioEngine.SourceWaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         Task.Run(async () =>
@@ -183,7 +183,7 @@ public class AudioCacheService
         string skinFolder,
         WaveFormat waveFormat)
     {
-        if (_filenameToCachedSoundMapping.TryGetValue(filenameWithoutExt, out var value)) return value;
+        if (_filenameToCachedAudioMapping.TryGetValue(filenameWithoutExt, out var value)) return value;
 
         var category = "default";
         var filename = _hitsoundFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var useUserSkin);
@@ -221,7 +221,7 @@ public class AudioCacheService
             Logger.Info("Cached effect: " + path);
         }
 
-        _filenameToCachedSoundMapping.TryAdd(filenameWithoutExt, result!);
+        _filenameToCachedAudioMapping.TryAdd(filenameWithoutExt, result!);
 
         return result;
     }
@@ -247,7 +247,7 @@ public class AudioCacheService
             }
 
             var cacheResult = await _audioCacheManager.GetOrCreateEmptyAsync("null", waveFormat);
-            _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, cacheResult.CachedAudio!);
+            _playNodeToCachedAudioMapping.TryAdd(hitsoundNode, cacheResult.CachedAudio!);
             return;
         }
 
@@ -282,7 +282,7 @@ public class AudioCacheService
             Logger.Info("Cached effect: " + path);
         }
 
-        _playNodeToCachedSoundMapping.TryAdd(hitsoundNode, result!);
-        _filenameToCachedSoundMapping.TryAdd(Path.GetFileNameWithoutExtension(path), result!);
+        _playNodeToCachedAudioMapping.TryAdd(hitsoundNode, result!);
+        _filenameToCachedAudioMapping.TryAdd(Path.GetFileNameWithoutExtension(path), result!);
     }
 }

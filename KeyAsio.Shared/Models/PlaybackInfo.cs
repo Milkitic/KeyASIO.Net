@@ -5,13 +5,13 @@ namespace KeyAsio.Shared.Models;
 
 public class PlaybackInfo
 {
-    public PlaybackInfo(CachedAudio cachedSound, HitsoundNode hitsoundNode)
+    public PlaybackInfo(CachedAudio cachedAudio, HitsoundNode hitsoundNode)
     {
-        CachedSound = cachedSound;
+        CachedAudio = cachedAudio;
         HitsoundNode = hitsoundNode;
     }
 
     public HitsoundNode HitsoundNode { get; }
 
-    public CachedAudio CachedSound { get; }
+    public CachedAudio CachedAudio { get; }
 }

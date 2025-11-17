@@ -14,11 +14,11 @@ public class SingleSynchronousTrack
 
     private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
 
-    private SeekableCachedAudioSampleProvider? _bgmCachedSoundSampleProvider;
+    private SeekableCachedAudioSampleProvider? _bgmCachedAudioSampleProvider;
     private VariableSpeedSampleProvider? _variableSampleProvider;
     private ISampleProvider? _baseSampleProvider;
 
-    private CachedAudio? _cachedSound;
+    private CachedAudio? _cachedAudio;
 
     private readonly AudioEngine _audioEngine;
 
@@ -31,28 +31,28 @@ public class SingleSynchronousTrack
     public int Offset { get; set; }
     public Mods PlayMods { get; set; }
 
-    public void SyncAudio(CachedAudio? cachedSound, int playTime)
+    public void SyncAudio(CachedAudio? cachedAudio, int playTime)
     {
         if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
-        if (_cachedSound?.SourceHash != cachedSound?.SourceHash)
+        if (_cachedAudio?.SourceHash != cachedAudio?.SourceHash)
         {
             ClearAudio();
-            _cachedSound = cachedSound;
+            _cachedAudio = cachedAudio;
         }
 
-        if (cachedSound is null)
+        if (cachedAudio is null)
         {
-            Logger.Warn("Fail to sync: CachedSound is null");
+            Logger.Warn("Fail to sync: CachedAudio is null");
             return;
         }
 
-        if (_bgmCachedSoundSampleProvider == null)
+        if (_bgmCachedAudioSampleProvider == null)
         {
-            SetNewMixerInput(cachedSound, playTime);
+            SetNewMixerInput(cachedAudio, playTime);
         }
         else
         {
-            UpdateCurrentMixerInput(_bgmCachedSoundSampleProvider, playTime);
+            UpdateCurrentMixerInput(_bgmCachedAudioSampleProvider, playTime);
         }
     }
 
@@ -65,21 +65,21 @@ public class SingleSynchronousTrack
             _variableSampleProvider = null;
         }
 
-        _bgmCachedSoundSampleProvider = null;
+        _bgmCachedAudioSampleProvider = null;
     }
 
-    private void SetNewMixerInput(CachedAudio cachedSound, int playTime)
+    private void SetNewMixerInput(CachedAudio cachedAudio, int playTime)
     {
         GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
             out var diffTolerance);
         var timeSpan = TimeSpan.FromMilliseconds(playTime);
 
-        _bgmCachedSoundSampleProvider = new SeekableCachedAudioSampleProvider(cachedSound,
+        _bgmCachedAudioSampleProvider = new SeekableCachedAudioSampleProvider(cachedAudio,
             (int.MaxValue / 100) + LeadInMilliseconds)
         {
             PlayTime = timeSpan
         };
-        var builder = new SampleProviderBuilder(_bgmCachedSoundSampleProvider);
+        var builder = new SampleProviderBuilder(_bgmCachedAudioSampleProvider);
 
         if (!keepSpeed)
         {

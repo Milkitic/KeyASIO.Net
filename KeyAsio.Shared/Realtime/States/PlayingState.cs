@@ -100,9 +100,9 @@ public class PlayingState : IRealtimeState
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;
 
-        if (ctx.TryGetCachedSound("combobreak", out var cachedSound))
+        if (ctx.TryGetCachedAudio("combobreak", out var cachedAudio))
         {
-            ctx.PlayAudio(cachedSound, 1, 0);
+            ctx.PlayAudio(cachedAudio, 1, 0);
         }
     }
 

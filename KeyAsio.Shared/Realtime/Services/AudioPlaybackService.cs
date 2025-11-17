@@ -21,9 +21,9 @@ public class AudioPlaybackService
         _appSettings = appSettings;
     }
 
-    public void PlayEffectsAudio(CachedAudio? cachedSound, float volume, float balance)
+    public void PlayEffectsAudio(CachedAudio? cachedAudio, float volume, float balance)
     {
-        if (cachedSound is null)
+        if (cachedAudio is null)
         {
             Logger.Warn("Fail to play: CachedSound not found");
             return;
@@ -38,7 +38,7 @@ public class AudioPlaybackService
 
         try
         {
-            var seekableCachedAudioSampleProvider = new SeekableCachedAudioSampleProvider(cachedSound);
+            var seekableCachedAudioSampleProvider = new SeekableCachedAudioSampleProvider(cachedAudio);
             var volumeSampleProvider = new EnhancedVolumeSampleProvider(seekableCachedAudioSampleProvider)
             {
                 Volume = volume
@@ -54,12 +54,12 @@ public class AudioPlaybackService
             Logger.Error(ex, "Error occurs while playing audio.", true);
         }
 
-        Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourceHash)}; " +
+        Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedAudio.SourceHash)}; " +
                      $"Vol. {volume}; " +
                      $"Bal. {balance}");
     }
 
-    public void PlayLoopAudio(CachedAudio? cachedSound, ControlNode controlNode)
+    public void PlayLoopAudio(CachedAudio? cachedAudio, ControlNode controlNode)
     {
         var rootMixer = _audioEngine.EffectMixer;
         //if (rootMixer == null)
@@ -79,7 +79,7 @@ public class AudioPlaybackService
 
             try
             {
-                _loopProviderManager.Create((int)controlNode.SlideChannel, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
+                _loopProviderManager.Create((int)controlNode.SlideChannel, cachedAudio, rootMixer, volume, 0, balanceFactor: 0);
             }
             catch (Exception ex)
             {

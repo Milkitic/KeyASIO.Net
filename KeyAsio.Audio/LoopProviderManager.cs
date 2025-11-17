@@ -25,6 +25,7 @@ public class LoopProviderManager
             var loopProvider = kvp.Value;
             loopProvider.SetVolume(volume * volumeFactor);
         }
+
         return true;
     }
 
@@ -102,34 +103,36 @@ public class LoopProviderManager
     }
 
     public void Create(int slideChannel,
-        CachedAudio? cachedSound,
+        CachedAudio? cachedAudio,
         MixingSampleProvider mixer,
         float volume,
         float balance,
         float volumeFactor = 1.25f,
         float balanceFactor = 1)
     {
-        if (cachedSound is null) return;
+        if (cachedAudio is null) return;
 
         Remove(slideChannel, mixer);
 
-        var audioDataLength = cachedSound.AudioData.Length * sizeof(float);
+        var audioDataLength = cachedAudio.AudioData.Length * sizeof(float);
         var byteArray = ArrayPool<byte>.Shared.Rent(audioDataLength);
-        Buffer.BlockCopy(cachedSound.AudioData, 0, byteArray, 0, audioDataLength);
+        Buffer.BlockCopy(cachedAudio.AudioData, 0, byteArray, 0, audioDataLength);
 
         var memoryStream = new MemoryStream(byteArray, 0, audioDataLength);
-        var waveStream = new RawSourceWaveStream(memoryStream, cachedSound.WaveFormat);
+        var waveStream = new RawSourceWaveStream(memoryStream, cachedAudio.WaveFormat);
         var loopStream = new LoopStream(waveStream);
         var volumeProvider = new EnhancedVolumeSampleProvider(loopStream.ToSampleProvider())
         {
             Volume = volume * volumeFactor
         };
-        var balanceProvider = new ProfessionalBalanceProvider(volumeProvider, BalanceMode.MidSide, AntiClipStrategy.None)
-        {
-            Balance = balance * balanceFactor
-        };
+        var balanceProvider =
+            new ProfessionalBalanceProvider(volumeProvider, BalanceMode.MidSide, AntiClipStrategy.None)
+            {
+                Balance = balance * balanceFactor
+            };
 
-        var loopProvider = new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream, byteArray);
+        var loopProvider = new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream,
+            byteArray);
         _dictionary.Add(slideChannel, loopProvider);
         loopProvider.AddTo(mixer);
     }

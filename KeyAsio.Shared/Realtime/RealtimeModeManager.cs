@@ -235,11 +235,11 @@ public class RealtimeModeManager : ViewModelBase
     public IReadOnlyList<HitsoundNode> PlaybackList => _hitsoundNodeService.PlaybackList;
     public List<PlayableNode> KeyList => _hitsoundNodeService.KeyList;
 
-    public bool TryGetAudioByNode(HitsoundNode playableNode, [NotNullWhen(true)] out CachedAudio? cachedSound)
+    public bool TryGetAudioByNode(HitsoundNode playableNode, [NotNullWhen(true)] out CachedAudio? cachedAudio)
     {
 
-        if (!_audioCacheService.TryGetAudioByNode(playableNode, out cachedSound)) return false;
-        return playableNode is not PlayableNode || cachedSound != null;
+        if (!_audioCacheService.TryGetAudioByNode(playableNode, out cachedAudio)) return false;
+        return playableNode is not PlayableNode || cachedAudio != null;
     }
 
     public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
@@ -256,18 +256,18 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (playbackObject.HitsoundNode is PlayableNode playableNode)
         {
-            if (playbackObject.CachedSound != null)
+            if (playbackObject.CachedAudio != null)
             {
                 var volume = playableNode.PlayablePriority == PlayablePriority.Effects
                     ? playableNode.Volume * 1.25f
                     : playableNode.Volume;
-                _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedSound, volume, playableNode.Balance);
+                _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedAudio, volume, playableNode.Balance);
             }
         }
         else
         {
             var controlNode = (ControlNode)playbackObject.HitsoundNode;
-            _audioPlaybackService.PlayLoopAudio(playbackObject.CachedSound, controlNode);
+            _audioPlaybackService.PlayLoopAudio(playbackObject.CachedAudio, controlNode);
         }
     }
 
@@ -398,9 +398,9 @@ public class RealtimeModeManager : ViewModelBase
         _musicTrackService.StartLowPass(lower, upper);
     }
 
-    internal bool TryGetCachedSound(string filenameWithoutExt, out CachedAudio? cachedSound)
+    internal bool TryGetCachedAudio(string filenameWithoutExt, out CachedAudio? cachedSound)
     {
-        return _audioCacheService.TryGetCachedSound(filenameWithoutExt, out cachedSound);
+        return _audioCacheService.TryGetCachedAudio(filenameWithoutExt, out cachedSound);
     }
 
     internal void StopCurrentMusic(int fadeMs = 0)

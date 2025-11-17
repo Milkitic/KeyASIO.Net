@@ -109,9 +109,9 @@ public class ManiaAudioProvider : IAudioProvider
             Logger.Debug("Use cache");
         }
 
-        if (playableNode != null && _realtimeModeManager.TryGetAudioByNode(playableNode, out var cachedSound))
+        if (playableNode != null && _realtimeModeManager.TryGetAudioByNode(playableNode, out var cachedAudio))
         {
-            return new[] { new PlaybackInfo(cachedSound, playableNode) };
+            return new[] { new PlaybackInfo(cachedAudio, playableNode) };
         }
 
         return ReturnDefaultAndLog("No audio returned.", LogLevel.Warning);
