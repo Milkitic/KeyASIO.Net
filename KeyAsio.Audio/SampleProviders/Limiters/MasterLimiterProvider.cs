@@ -1,4 +1,7 @@
-﻿using NAudio.Wave;
+﻿using System.Diagnostics;
+using System.Numerics.Tensors;
+using System.Runtime.CompilerServices;
+using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders.Limiters;
 
@@ -17,6 +20,7 @@ public class MasterLimiterProvider : ISampleProvider
     private readonly ISampleProvider _source;
     private readonly int _channels;
     private readonly int _lookaheadFrames;
+
     private readonly float[] _lookaheadBuffer;
     private readonly float[] _peakBuffer; // 存储每帧的峰值
 
@@ -73,24 +77,6 @@ public class MasterLimiterProvider : ISampleProvider
     /// <c>true</c> if enabled; otherwise, <c>false</c>. When <c>false</c>, audio passes through unmodified (bypassed).
     /// </value>
     public bool IsEnabled { get; set; } = true;
-
-    /// <summary>
-    /// Gets the number of times the gain reduction was activated to prevent clipping.
-    /// </summary>
-    /// <remarks>
-    /// This is a useful statistic for monitoring how often the limiter is working.
-    /// Can be reset using <see cref="ResetStatistics"/>.
-    /// </remarks>
-    public int ClipPreventionCount { get; private set; }
-
-    /// <summary>
-    /// Gets the maximum peak (linear amplitude) detected in the lookahead buffer since the last reset.
-    /// </summary>
-    /// <remarks>
-    /// This value represents the highest peak level <b>before</b> limiting was applied.
-    /// Can be reset using <see cref="ResetStatistics"/>.
-    /// </remarks>
-    public float MaxPeakDetected { get; private set; }
 
     /// <summary>
     /// Gets the current amount of gain reduction being applied, as a linear scalar.
@@ -170,6 +156,7 @@ public class MasterLimiterProvider : ISampleProvider
     /// <param name="offset">The offset into the buffer to start writing.</param>
     /// <param name="count">The number of samples requested.</param>
     /// <returns>The number of samples read.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Read(float[] buffer, int offset, int count)
     {
         int samplesRead = _source.Read(buffer, offset, count);
@@ -180,98 +167,129 @@ public class MasterLimiterProvider : ISampleProvider
         return samplesRead;
     }
 
-    /// <summary>
-    /// Resets the internal statistics (<see cref="ClipPreventionCount"/> and <see cref="MaxPeakDetected"/>) to zero.
-    /// </summary>
-    public void ResetStatistics()
-    {
-        ClipPreventionCount = 0;
-        MaxPeakDetected = 0f;
-    }
-
     private void Process(float[] buffer, int offset, int count)
     {
         int frameCount = count / _channels;
 
+        float gainReduction = _gainReduction;
+        int writePos = _writePos;
+        int readPos = _readPos;
+        float currentMaxPeak = _currentMaxPeak;
+
+        float thresholdLinear = _thresholdLinear;
+        float ceilingLinear = _ceilingLinear;
+        float attackCoeff = _attackCoeff;
+        float releaseCoeff = _releaseCoeff;
+        int lookaheadFrames = _lookaheadFrames;
+        int channels = _channels;
+
+        float effectiveThreshold = Math.Min(thresholdLinear, ceilingLinear);
+        Span<float> lookaheadBuffer = _lookaheadBuffer.AsSpan();
+        Span<float> peakBuffer = _peakBuffer.AsSpan();
+
         for (int frame = 0; frame < frameCount; frame++)
         {
-            int bufferIndex = offset + (frame * _channels);
-            int writeIndex = _writePos * _channels;
-            int readIndex = _readPos * _channels;
+            int bufferIndex = offset + (frame * channels);
+            int writeIndex = writePos * channels;
+            int readIndex = readPos * channels;
 
             // 计算输入帧的峰值
             float inputPeak = 0f;
-            for (int ch = 0; ch < _channels; ch++)
+            if (channels == 2)
             {
-                float sample = buffer[bufferIndex + ch];
-                _lookaheadBuffer[writeIndex + ch] = sample;
-                inputPeak = Math.Max(inputPeak, Math.Abs(sample));
-            }
+                float s0 = buffer[bufferIndex];
+                float s1 = buffer[bufferIndex + 1];
 
-            // 更新滑动窗口最大值
-            float oldPeak = _peakBuffer[_writePos];
-            _peakBuffer[_writePos] = inputPeak;
+                lookaheadBuffer[writeIndex] = s0;
+                lookaheadBuffer[writeIndex + 1] = s1;
 
-            if (inputPeak >= _currentMaxPeak)
-            {
-                // 新峰值更大，直接更新
-                _currentMaxPeak = inputPeak;
-            }
-            else if (oldPeak >= _currentMaxPeak)
-            {
-                // 移除的是当前最大值，需要重新扫描
-                _currentMaxPeak = 0f;
-                for (int i = 0; i < _lookaheadFrames; i++)
-                {
-                    _currentMaxPeak = Math.Max(_currentMaxPeak, _peakBuffer[i]);
-                }
-            }
-            // 否则保持不变
-
-            MaxPeakDetected = Math.Max(MaxPeakDetected, _currentMaxPeak);
-
-            // 计算目标增益
-            float targetGain = 1.0f;
-            if (_currentMaxPeak > _thresholdLinear)
-            {
-                float effectiveThreshold = Math.Min(_thresholdLinear, _ceilingLinear);
-                targetGain = effectiveThreshold / _currentMaxPeak;
-                ClipPreventionCount++;
-            }
-
-            // 平滑增益
-            if (targetGain < _gainReduction)
-            {
-                _gainReduction = targetGain + (_gainReduction - targetGain) * _attackCoeff;
+                inputPeak = Math.Max(Math.Abs(s0), Math.Abs(s1));
             }
             else
             {
-                _gainReduction = targetGain + (_gainReduction - targetGain) * _releaseCoeff;
+                for (int ch = 0; ch < channels; ch++)
+                {
+                    float sample = buffer[bufferIndex + ch];
+                    lookaheadBuffer[writeIndex + ch] = sample;
+                    inputPeak = Math.Max(inputPeak, Math.Abs(sample));
+                }
+            }
+
+            // 更新滑动窗口最大值
+            float oldPeak = peakBuffer[writePos];
+            peakBuffer[writePos] = inputPeak;
+
+            if (inputPeak >= currentMaxPeak)
+            {
+                // 新峰值更大，直接更新
+                currentMaxPeak = inputPeak;
+            }
+            else if (oldPeak >= currentMaxPeak)
+            {
+                Debug.Assert(oldPeak.Equals(currentMaxPeak));
+                // 移除的是当前最大值，需要重新扫描
+                currentMaxPeak = TensorPrimitives.Max(peakBuffer);
+            }
+
+            // 计算目标增益
+            float targetGain = 1.0f;
+            if (currentMaxPeak > thresholdLinear)
+            {
+                targetGain = effectiveThreshold / currentMaxPeak;
+            }
+
+            // 平滑增益
+            if (targetGain < gainReduction)
+            {
+                gainReduction = targetGain + (gainReduction - targetGain) * attackCoeff;
+            }
+            else
+            {
+                gainReduction = targetGain + (gainReduction - targetGain) * releaseCoeff;
             }
 
             // 输出延迟样本
-            for (int ch = 0; ch < _channels; ch++)
+            if (channels == 2)
             {
-                float delayedSample = _lookaheadBuffer[readIndex + ch];
-                buffer[bufferIndex + ch] = delayedSample * _gainReduction;
+                buffer[bufferIndex] = lookaheadBuffer[readIndex] * gainReduction;
+                buffer[bufferIndex + 1] = lookaheadBuffer[readIndex + 1] * gainReduction;
+            }
+            else
+            {
+                for (int ch = 0; ch < channels; ch++)
+                {
+                    float delayedSample = lookaheadBuffer[readIndex + ch];
+                    buffer[bufferIndex + ch] = delayedSample * gainReduction;
+                }
             }
 
-            _writePos = (_writePos + 1) % _lookaheadFrames;
-            _readPos = (_readPos + 1) % _lookaheadFrames;
+            writePos++;
+            if (writePos >= lookaheadFrames) writePos = 0;
+
+            readPos++;
+            if (readPos >= lookaheadFrames) readPos = 0;
         }
+
+        _gainReduction = gainReduction;
+        _writePos = writePos;
+        _readPos = readPos;
+        _currentMaxPeak = currentMaxPeak;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float DbToLinear(float db)
     {
         return MathF.Pow(10f, db / 20f);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float LinearToDb(float linear)
     {
         if (linear < 0.00001f) return -100.0f;
         return 20f * MathF.Log10(linear);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateCoefficients()
     {
         float sampleRate = WaveFormat.SampleRate;
