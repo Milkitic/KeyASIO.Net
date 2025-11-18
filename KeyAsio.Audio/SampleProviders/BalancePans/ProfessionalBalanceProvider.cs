@@ -365,8 +365,9 @@ public class ProfessionalBalanceProvider : ISampleProvider
     }
 
     private void ProcessMidSideVectorized(Span<float> data)
-    {
-        var vecSpan = MemoryMarshal.Cast<float, Vector128<float>>(data);
+    {  
+        ref float dataRef = ref MemoryMarshal.GetReference(data);
+        int vecCount = data.Length / 4;
 
         // 预计算 M/S 增益
         float sideGainVal = 1.0f - Math.Abs(_balanceValue);
@@ -400,9 +401,11 @@ public class ProfessionalBalanceProvider : ISampleProvider
             or AntiClipStrategy.HardLimit;
 
         int i = 0;
-        for (; i < vecSpan.Length; i++)
-        {
-            Vector128<float> vIn = vecSpan[i]; // [L1, R1, L2, R2]
+        for (; i < vecCount; i++)
+        {  
+            Vector128<float> vIn = Unsafe.As<float, Vector128<float>>(
+                ref Unsafe.Add(ref dataRef, i * 4)
+            ); // [L1, R1, L2, R2]
             Vector128<float> vSwapped = SwapStereoChannels(vIn);
 
             // Mid = (L+R) * 0.5
@@ -419,7 +422,7 @@ public class ProfessionalBalanceProvider : ISampleProvider
                 vOut = Vector128.Min(Vector128.Max(vOut, VNegOne), VOne);
             }
 
-            vecSpan[i] = vOut;
+            Unsafe.As<float, Vector128<float>>(ref Unsafe.Add(ref dataRef, i * 4)) = vOut;
 
             if (!canFullyVectorize)
             {

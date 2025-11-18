@@ -52,9 +52,6 @@ public class AudioCacheService
     public void ClearCaches()
     {
         _audioCacheManager.Clear();
-        foreach (var kv in _playNodeToCachedAudioMapping) kv.Value.Dispose();
-        foreach (var kv in _filenameToCachedAudioMapping) kv.Value.Dispose();
-
         _playNodeToCachedAudioMapping.Clear();
         _filenameToCachedAudioMapping.Clear();
     }
