@@ -4,7 +4,6 @@ using KeyAsio.Audio.Utils;
 using KeyAsio.Audio.Wave;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Audio.Caching;
 
@@ -46,7 +45,7 @@ public class AudioCacheManager
     {
         if (!File.Exists(filePath))
             return await GetOrCreateEmptyAsync(filePath, waveFormat, category);
-        
+
         var exist = await TryGetAsync(filePath, category);
         if (exist != null) return new CacheResult(exist, CacheGetStatus.Hit);
 
@@ -234,52 +233,6 @@ public class AudioCacheManager
         return new CachedAudio(hash, owner, totalBytes, waveProvider.WaveFormat);
     }
 
-    private (SampleChannel sampleChannel, long totalFloatSamples) GetResampledSampleChannel(
-        AudioFileReader audioFileReader, string cacheKey, WaveFormat waveFormat)
-    {
-        IWaveProvider streamToRead = audioFileReader;
-        var needsResampling = !CompareWaveFormat(audioFileReader.WaveFormat, waveFormat);
-
-        long totalFloatSamples = -1; // 默认为未知长度
-
-        if (!needsResampling)
-        {
-            // 长度已知，计算总浮点样本数
-            var sourceStream = audioFileReader.ReaderStream;
-            var totalByteLength = sourceStream.Length;
-            var bytesPerSample = sourceStream.WaveFormat.BitsPerSample / 8;
-            var totalSourceSamples = (bytesPerSample > 0) ? totalByteLength / bytesPerSample : 0;
-
-            totalFloatSamples = totalSourceSamples;
-
-            // 我们在 CreateAudioAsync 总是 forceStereo: true
-            if (sourceStream.WaveFormat.Channels == 1)
-            {
-                totalFloatSamples *= 2; // 单声道转立体声，样本数加倍
-            }
-        }
-        else
-        {
-            try
-            {
-                // MFResampler 会在 Dispose 时自动 Dispose 掉 audioFileReader
-                streamToRead = new MediaFoundationResampler(audioFileReader, waveFormat)
-                {
-                    ResamplerQuality = 60
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error while resampling audio file {File}", cacheKey);
-                audioFileReader.Dispose(); // 如果 MFResampler 构造失败，手动 Dispose
-                throw;
-            }
-        }
-
-        // 用 SampleChannel 将 WaveStream (无论是原始的还是重采样的) 转换为 ISampleProvider
-        return (new SampleChannel(streamToRead, forceStereo: true), totalFloatSamples);
-    }
-
     private (IWaveProvider waveProvider, long estimatedShortSamples) GetWaveProvider(
         AudioFileReader audioFileReader, string cacheKey, int targetSampleRate)
     {
@@ -334,12 +287,5 @@ public class AudioCacheManager
     private WaveFormat GetPcm16WaveFormat(int targetSampleRate)
     {
         return _waveFormats.GetOrAdd(targetSampleRate, rate => new WaveFormat(rate, 16, 2));
-    }
-
-    private static bool CompareWaveFormat(WaveFormat format1, WaveFormat format2)
-    {
-        if (format2.Channels != format1.Channels) return false;
-        if (format2.SampleRate != format1.SampleRate) return false;
-        return true;
     }
 }

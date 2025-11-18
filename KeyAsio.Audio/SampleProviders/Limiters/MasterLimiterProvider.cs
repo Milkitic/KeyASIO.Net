@@ -228,6 +228,7 @@ public class MasterLimiterProvider : ILimiterSampleProvider
             {
                 Debug.Assert(oldPeak.Equals(currentMaxPeak));
                 // 移除的是当前最大值，需要重新扫描
+                // todo: sliding algorithm
                 currentMaxPeak = TensorPrimitives.Max(peakBuffer);
             }
 
