@@ -12,7 +12,7 @@ namespace KeyAsio.Audio.SampleProviders.Limiters;
 /// harsh digital distortion. The <see cref="Drive"/> parameter controls the
 /// intensity of the saturation effect.
 /// </remarks>
-public class SoftLimiterProvider : ISampleProvider
+public class SoftLimiterProvider : ILimiterSampleProvider
 {
     private readonly ISampleProvider _source;
     private float _drive = 0.9f;  // 驱动强度
@@ -30,6 +30,8 @@ public class SoftLimiterProvider : ISampleProvider
         _source = source;
         _drive = drive;
     }
+    
+    public bool IsEnabled { get; set; }
 
     /// <summary>
     /// Gets the WaveFormat of this sample provider.
@@ -56,6 +58,7 @@ public class SoftLimiterProvider : ISampleProvider
     public int Read(float[] buffer, int offset, int count)
     {
         int samplesRead = _source.Read(buffer, offset, count);
+        if (!IsEnabled) return samplesRead;
 
         for (int i = 0; i < samplesRead; i++)
         {

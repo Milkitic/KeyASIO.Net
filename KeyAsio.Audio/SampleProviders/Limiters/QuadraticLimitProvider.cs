@@ -12,14 +12,16 @@ namespace KeyAsio.Audio.SampleProviders.Limiters;
 /// This is not a lookahead limiter and may cause distortion on fast transients,
 /// but it is very lightweight.
 /// </remarks>
-public class SimpleLimiterProvider : ISampleProvider
+public class QuadraticLimitProvider : ILimiterSampleProvider
 {
     private readonly ISampleProvider _source;
     private float _threshold = 0.95f;
     private float _ceiling = 0.99f;
+    private float _range;
+    private float _fourRange;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SimpleLimiterProvider"/> class.
+    /// Initializes a new instance of the <see cref="QuadraticLimitProvider"/> class.
     /// </summary>
     /// <param name="source">The source sample provider.</param>
     /// <param name="threshold">
@@ -30,12 +32,13 @@ public class SimpleLimiterProvider : ISampleProvider
     /// The maximum linear amplitude (0 to 1) for the output signal (hard clip).
     /// Default is 0.99.
     /// </param>
-    public SimpleLimiterProvider(ISampleProvider source, float threshold = 0.95f, float ceiling = 0.99f)
+    public QuadraticLimitProvider(ISampleProvider source, float threshold = 0.95f, float ceiling = 0.99f)
     {
         _source = source;
-        _threshold = threshold;
-        _ceiling = ceiling;
+        UpdateParameters(threshold, ceiling);
     }
+    
+    public bool IsEnabled { get; set; }
 
     /// <summary>
     /// Gets the WaveFormat of this sample provider.
@@ -72,6 +75,12 @@ public class SimpleLimiterProvider : ISampleProvider
     public int Read(float[] buffer, int offset, int count)
     {
         int samplesRead = _source.Read(buffer, offset, count);
+        if (!IsEnabled) return samplesRead;
+
+        float threshold = _threshold;
+        float ceiling = _ceiling;
+        float fourRange = _fourRange;
+        float twoRange = _range * 2.0f;
 
         for (int i = 0; i < samplesRead; i++)
         {
@@ -79,20 +88,37 @@ public class SimpleLimiterProvider : ISampleProvider
             float sample = buffer[index];
             float abs = Math.Abs(sample);
 
-            if (abs > _threshold)
+            if (abs <= threshold) continue;
+
+            float x = abs - threshold;
+
+            if (x < twoRange)
             {
-                // Soft knee 软拐点压缩
-                float excess = abs - _threshold;
-                float compressed = _threshold + excess * 0.5f;
-
-                // 确保不超过 ceiling
-                compressed = Math.Min(compressed, _ceiling);
-
-                // 保持符号
-                buffer[index] = Math.Sign(sample) * compressed;
+                float soft = x - (x * x) / fourRange;
+                buffer[index] = Math.Sign(sample) * (threshold + soft);
+            }
+            else
+            {
+                buffer[index] = Math.Sign(sample) * ceiling;
             }
         }
 
         return samplesRead;
+    }
+
+    private void UpdateParameters(float threshold, float ceiling)
+    {
+        // 确保参数合理
+        _ceiling = Math.Clamp(ceiling, 0.1f, 1.0f);
+        // Threshold 必须小于 Ceiling，否则就没有软拐点空间了
+        _threshold = Math.Clamp(threshold, 0.0f, _ceiling - 0.001f);
+
+        _range = _ceiling - _threshold;
+        _fourRange = 4.0f * _range;
+    }
+
+    public static QuadraticLimitProvider GamePreset(ISampleProvider sampleProvider)
+    {
+        return new QuadraticLimitProvider(sampleProvider, 0.85f, 0.98f);
     }
 }

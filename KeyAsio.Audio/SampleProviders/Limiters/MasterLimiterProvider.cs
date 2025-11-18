@@ -15,7 +15,7 @@ namespace KeyAsio.Audio.SampleProviders.Limiters;
 /// threshold, it applies gain reduction smoothly (based on attack and release times)
 /// to ensure the output signal does not surpass the ceiling.
 /// </remarks>
-public class MasterLimiterProvider : ISampleProvider
+public class MasterLimiterProvider : ILimiterSampleProvider
 {
     private readonly ISampleProvider _source;
     private readonly int _channels;
@@ -295,5 +295,53 @@ public class MasterLimiterProvider : ISampleProvider
         float sampleRate = WaveFormat.SampleRate;
         _attackCoeff = MathF.Exp(-1000f / (_attackTime * sampleRate));
         _releaseCoeff = MathF.Exp(-1000f / (_releaseTime * sampleRate));
+    }
+
+    public static MasterLimiterProvider UltraLowLatencyPreset(ISampleProvider sampleProvider)
+    {
+        return new MasterLimiterProvider(
+            sampleProvider,
+            thresholdDb: -2.0f,
+            ceilingDb: -0.5f,
+            attackMs: 0.5f,
+            lookaheadMs: 1.5f,
+            releaseMs: 40f
+        );
+    }
+
+    public static MasterLimiterProvider GamePreset(ISampleProvider sampleProvider)
+    {
+        return new MasterLimiterProvider(
+            sampleProvider,
+            thresholdDb: -1.0f, // 稍微降低阈值，提前压制
+            ceilingDb: -0.5f, // 降低天花板，防止Attack没来得及压住的瞬态溢出
+            attackMs: 1.5f, // 从0.1加到1.5，消除物理切波的爆音
+            lookaheadMs: 3f, // 3ms延迟，人耳不可察觉，但给了Attack反应时间
+            releaseMs: 60f // 快速释放，适应高BPM密集的鼓点
+        );
+    }
+
+    public static MasterLimiterProvider MusicPreset(ISampleProvider sampleProvider)
+    {
+        return new MasterLimiterProvider(
+            sampleProvider,
+            thresholdDb: -1.0f,
+            ceilingDb: -0.1f,
+            attackMs: 2f,
+            lookaheadMs: 7.5f,
+            releaseMs: 200f
+        );
+    }
+
+    public static MasterLimiterProvider MasteringPreset(ISampleProvider sampleProvider)
+    {
+        return new MasterLimiterProvider(
+            sampleProvider,
+            thresholdDb: -0.5f,
+            ceilingDb: -0.1f,
+            attackMs: 1.0f,
+            lookaheadMs: 5.0f,
+            releaseMs: 300f
+        );
     }
 }

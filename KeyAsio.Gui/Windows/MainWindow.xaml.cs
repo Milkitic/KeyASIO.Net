@@ -137,6 +137,7 @@ public partial class MainWindow : DialogWindow
         try
         {
             var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
+            AudioEngine.EnableLimiter = AppSettings.EnableLimiter;
             AudioEngine.MainVolume = AppSettings.Volume / 100f;
             AudioEngine.MusicVolume = AppSettings.RealtimeOptions.MusicTrackVolume / 100f;
             AudioEngine.EffectVolume = AppSettings.RealtimeOptions.EffectTrackVolume / 100f;

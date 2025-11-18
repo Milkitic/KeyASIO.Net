@@ -16,7 +16,7 @@ public class AudioEngine
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null);
     private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null);
     private readonly EnhancedVolumeSampleProvider _mainVolumeSampleProvider = new(null);
-    private MasterLimiterProvider? _limiterProvider;
+    private ILimiterSampleProvider? _limiterProvider;
     private bool _enableLimiter = true;
 
     public AudioEngine(AudioDeviceManager audioDeviceManager, AudioCacheManager audioCacheManager)
@@ -94,18 +94,8 @@ public class AudioEngine
         RootMixer.AddMixerInput(_musicVolumeSampleProvider);
 
         _mainVolumeSampleProvider.Source = RootMixer;
-        _limiterProvider = new MasterLimiterProvider(_mainVolumeSampleProvider,
-                thresholdDb: -0.5f, // -0.5dB 触发
-                ceilingDb: -0.1f, // -0.1dB 上限
-                attackMs: 0.1f, // 0.1ms 快速响应
-                releaseMs: 50f, // 50ms 释放
-                lookaheadMs: 2f) // 2ms 前瞻
-        {
-            IsEnabled = _enableLimiter
-        };
-        //var root = _limiterProvider = new SoftLimiterProvider(RootMixer,
-        //    drive: 0.9f);
-        //var root = _limiterProvider = new SimpleLimiterProvider(RootMixer);
+        _limiterProvider = MasterLimiterProvider.UltraLowLatencyPreset(_mainVolumeSampleProvider);
+        _limiterProvider.IsEnabled = _enableLimiter;
         ISampleProvider root = _limiterProvider;
         if (outputDevice != null)
         {
