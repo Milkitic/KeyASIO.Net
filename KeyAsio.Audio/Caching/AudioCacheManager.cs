@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Concurrent;
 using KeyAsio.Audio.Utils;
 using KeyAsio.Audio.Wave;
@@ -148,6 +148,27 @@ public class AudioCacheManager
     public void Clear(string? category = null)
     {
         if (!_categoryDictionary.TryGetValue(category ?? DefaultCategory, out var categoryCache)) return;
+
+        foreach (var lazy in categoryCache.AudioCachesByHash.Values)
+        {
+            if (!lazy.IsValueCreated) continue;
+            var task = lazy.Value;
+
+            if (task.IsCompletedSuccessfully)
+            {
+                task.Result.Dispose();
+                continue;
+            }
+
+            _ = task.ContinueWith(t =>
+            {
+                if (t.IsCompletedSuccessfully)
+                {
+                    t.Result.Dispose();
+                }
+            }, TaskScheduler.Default);
+        }
+
         categoryCache.PathHashCaches.Clear();
         categoryCache.AudioCachesByHash.Clear();
     }

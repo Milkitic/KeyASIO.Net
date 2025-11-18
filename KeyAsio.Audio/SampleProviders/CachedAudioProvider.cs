@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.Utils;
 using NAudio.Wave;
@@ -22,8 +22,11 @@ public class CachedAudioProvider : ISampleProvider
 
     public int Read(float[] buffer, int offset, int count)
     {
+        var span = _cachedAudio.Span;
+        if (span.IsEmpty) return 0;
+
         // 计算总样本数：字节数 / 2 (16-bit = 2 bytes)
-        var totalSamples = _cachedAudio.AudioData.Length / 2;
+        var totalSamples = span.Length / 2;
         var availableSamples = totalSamples - _position;
 
         if (availableSamples <= 0) return 0;
@@ -31,8 +34,7 @@ public class CachedAudioProvider : ISampleProvider
         var samplesToCopy = Math.Min(availableSamples, count);
 
         // 获取源数据的 Span (byte)
-        var sourceBytesSpan = _cachedAudio.AudioData.AsSpan()
-            .Slice(_position * 2, samplesToCopy * 2); // x2 因为是字节位置
+        var sourceBytesSpan = span.Slice(_position * 2, samplesToCopy * 2); // x2 因为是字节位置
 
         // 将 byte 视作 short (PCM-16)
         var sourceShortsSpan = MemoryMarshal.Cast<byte, short>(sourceBytesSpan);

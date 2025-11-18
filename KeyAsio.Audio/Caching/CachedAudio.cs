@@ -2,22 +2,27 @@
 
 namespace KeyAsio.Audio.Caching;
 
-public sealed class CachedAudio : IEquatable<CachedAudio>
+public sealed class CachedAudio : IEquatable<CachedAudio>, IDisposable
 {
     public readonly string SourceHash;
-    public readonly byte[] AudioData;
     public readonly WaveFormat WaveFormat;
+
+    private byte[]? _audioData;
+    private bool _disposed;
 
     internal CachedAudio(string sourceHash, byte[] audioData, WaveFormat waveFormat)
     {
         if (waveFormat.Encoding != WaveFormatEncoding.Pcm)
             throw new ArgumentException("Only PCM wave format is supported.", nameof(waveFormat));
+        _audioData = audioData;
+
         SourceHash = sourceHash;
-        AudioData = audioData;
         WaveFormat = waveFormat;
     }
 
-    public TimeSpan Duration => TimeSpan.FromSeconds((double)AudioData.Length / WaveFormat.AverageBytesPerSecond);
+    public TimeSpan Duration => TimeSpan.FromSeconds((double)(
+        _audioData?.Length ?? 0) / WaveFormat.AverageBytesPerSecond);
+    public Span<byte> Span => _audioData is { Length: > 0 } ? _audioData : Span<byte>.Empty;
 
     public bool Equals(CachedAudio? other)
     {
@@ -46,4 +51,13 @@ public sealed class CachedAudio : IEquatable<CachedAudio>
     {
         return !(left == right);
     }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _audioData = null;
+    }
+
+    public bool IsDisposed => _disposed;
 }

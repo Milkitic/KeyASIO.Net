@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
@@ -114,9 +114,12 @@ public class LoopProviderManager
 
         Remove(slideChannel, mixer);
 
-        var audioDataLength = cachedAudio.AudioData.Length * sizeof(float);
+        var span = cachedAudio.Span;
+        if (span.IsEmpty) return;
+
+        var audioDataLength = span.Length;
         var byteArray = ArrayPool<byte>.Shared.Rent(audioDataLength);
-        Buffer.BlockCopy(cachedAudio.AudioData, 0, byteArray, 0, audioDataLength);
+        span.CopyTo(byteArray);
 
         var memoryStream = new MemoryStream(byteArray, 0, audioDataLength);
         var waveStream = new RawSourceWaveStream(memoryStream, cachedAudio.WaveFormat);

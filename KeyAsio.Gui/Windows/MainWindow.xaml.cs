@@ -115,7 +115,7 @@ public partial class MainWindow : DialogWindow
         var deviceDescription = window.ViewModel.SelectedDevice;
         if (deviceDescription == null) return;
 
-        DisposeDevice(false);
+        await DisposeDeviceAsync(false);
 
         var latency = window.ViewModel.Latency;
         var isExclusive = window.ViewModel.IsExclusive;
@@ -199,12 +199,12 @@ public partial class MainWindow : DialogWindow
         }
     }
 
-    private void DisposeDevice(bool saveToSettings)
+    private async ValueTask DisposeDeviceAsync(bool saveToSettings)
     {
         if (AudioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
-            _timer?.Dispose();
+            if (_timer != null) await _timer.DisposeAsync();
         }
 
         for (int i = 0; i < 3; i++)
@@ -384,9 +384,9 @@ public partial class MainWindow : DialogWindow
         }
     }
 
-    private void MainWindow_OnClosed(object? sender, EventArgs? e)
+    private async void MainWindow_OnClosed(object? sender, EventArgs? e)
     {
-        DisposeDevice(false);
+        await DisposeDeviceAsync(false);
         AppSettings.Save();
         Application.Current.Shutdown();
     }
@@ -404,7 +404,7 @@ public partial class MainWindow : DialogWindow
 
         await Dispatcher.InvokeAsync(async () =>
         {
-            DisposeDevice(false);
+            await DisposeDeviceAsync(false);
             await LoadDevice(deviceDescription, false);
         });
     }
@@ -414,9 +414,9 @@ public partial class MainWindow : DialogWindow
         ForceClose();
     }
 
-    private void btnDisposeDevice_OnClick(object sender, RoutedEventArgs e)
+    private async void btnDisposeDevice_OnClick(object sender, RoutedEventArgs e)
     {
-        DisposeDevice(true);
+        await DisposeDeviceAsync(true);
     }
 
     private async void btnChangeDevice_OnClick(object sender, RoutedEventArgs e)

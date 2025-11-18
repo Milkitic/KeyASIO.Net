@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.Utils;
@@ -10,7 +10,6 @@ public class SeekableCachedAudioProvider : ISampleProvider
 {
     private readonly CachedAudio _cachedAudio;
     private readonly Lock _sourceSoundLock = new();
-    private readonly byte[] _audioData;
     private readonly int _preSamples;
 
     private int _position;
@@ -28,7 +27,6 @@ public class SeekableCachedAudioProvider : ISampleProvider
             _position = _preSamples;
         }
 
-        _audioData = cachedAudio.AudioData;
     }
 
     public WaveFormat WaveFormat { get; }
@@ -56,7 +54,10 @@ public class SeekableCachedAudioProvider : ISampleProvider
         lock (_sourceSoundLock)
         {
             // 计算音频数据的总样本数 (Bytes / 2)
-            int totalAudioSamples = _audioData.Length / 2;
+            var span = _cachedAudio.Span;
+            if (span.IsEmpty) return 0;
+
+            int totalAudioSamples = span.Length / 2;
             var availableSamples = (totalAudioSamples + _preSamples) - _position;
 
             if (availableSamples <= 0) return 0;
@@ -66,7 +67,7 @@ public class SeekableCachedAudioProvider : ISampleProvider
             // Case 1: 无前置静音，直接读取
             if (_preSamples == 0)
             {
-                ReadAndConvert(_position, samplesToCopy, buffer, offset);
+                ReadAndConvert(span, _position, samplesToCopy, buffer, offset);
                 _position += samplesToCopy;
                 return samplesToCopy;
             }
@@ -76,7 +77,7 @@ public class SeekableCachedAudioProvider : ISampleProvider
             if (silenceCount <= 0)
             {
                 // 已经过了静音期，纯音频
-                ReadAndConvert(-silenceCount, samplesToCopy, buffer, offset);
+                ReadAndConvert(span, -silenceCount, samplesToCopy, buffer, offset);
             }
             else if (silenceCount >= samplesToCopy)
             {
@@ -89,7 +90,7 @@ public class SeekableCachedAudioProvider : ISampleProvider
                 // 填静音
                 buffer.AsSpan(offset, silenceCount).Clear();
                 // 填音频 (从 0 开始)
-                ReadAndConvert(0, audioCount, buffer, offset + silenceCount);
+                ReadAndConvert(span, 0, audioCount, buffer, offset + silenceCount);
             }
 
             _position += samplesToCopy;
@@ -98,9 +99,9 @@ public class SeekableCachedAudioProvider : ISampleProvider
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ReadAndConvert(int sourceSampleOffset, int sampleCount, float[] targetBuffer, int targetOffset)
+    private void ReadAndConvert(Span<byte> span, int sourceSampleOffset, int sampleCount, float[] targetBuffer, int targetOffset)
     {
-        var sourceBytes = _audioData.AsSpan(sourceSampleOffset * 2, sampleCount * 2);
+        var sourceBytes = span.Slice(sourceSampleOffset * 2, sampleCount * 2);
         var sourceShorts = MemoryMarshal.Cast<byte, short>(sourceBytes);
         var targetSpan = targetBuffer.AsSpan(targetOffset, sampleCount);
         SimdAudioConverter.Convert16BitToFloat(sourceShorts, targetSpan);
