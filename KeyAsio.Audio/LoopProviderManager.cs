@@ -128,11 +128,11 @@ public class LoopProviderManager
         {
             Volume = volume * volumeFactor
         };
-        var balanceProvider =
-            new ProfessionalBalanceProvider(volumeProvider, BalanceMode.MidSide, AntiClipStrategy.None)
-            {
-                Balance = balance * balanceFactor
-            };
+        var balanceProvider = new ProfessionalBalanceProvider(volumeProvider,
+                BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
+        {
+            Balance = balance * balanceFactor
+        };
 
         var loopProvider = new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream,
             byteArray);

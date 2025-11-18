@@ -44,14 +44,14 @@ public class AudioCacheManager
     public async Task<CacheResult> GetOrCreateOrEmptyFromFileAsync(string filePath, WaveFormat waveFormat,
         string? category = null)
     {
-        var cacheKey = Path.GetFileName(filePath);
         if (!File.Exists(filePath))
-        {
-            return await GetOrCreateEmptyAsync(cacheKey, waveFormat, category);
-        }
+            return await GetOrCreateEmptyAsync(filePath, waveFormat, category);
+        
+        var exist = await TryGetAsync(filePath, category);
+        if (exist != null) return new CacheResult(exist, CacheGetStatus.Hit);
 
         await using var fs = File.OpenRead(filePath);
-        return await GetOrCreateOrEmptyAsync(cacheKey, fs, waveFormat, category);
+        return await GetOrCreateOrEmptyAsync(filePath, fs, waveFormat, category);
     }
 
     public async Task<CacheResult> GetOrCreateOrEmptyAsync(string cacheKey, Stream fileStream, WaveFormat waveFormat,
@@ -69,6 +69,9 @@ public class AudioCacheManager
     public async Task<CacheResult> GetOrCreateEmptyAsync(string cacheKey, WaveFormat waveFormat,
         string? category = null)
     {
+        var exist = await TryGetAsync(cacheKey, category);
+        if (exist != null) return new CacheResult(exist, CacheGetStatus.Hit);
+
         using var fs = new MemoryStream(EmptyWaveFile);
         var cacheResult = await TryGetOrCreateAsync(cacheKey, fs, waveFormat, category);
         return cacheResult.Status != CacheGetStatus.Failed
@@ -120,7 +123,7 @@ public class AudioCacheManager
         {
             try
             {
-                return CreatePcmCacheAsync(cacheKey, hash, rentBuffer, bytesRead, waveFormat);
+                return CreateAudioCacheAsync(cacheKey, hash, rentBuffer, bytesRead, waveFormat);
                 //return CreateAudioAsync(cacheKey, hash, rentBuffer, bytesRead, waveFormat);
             }
             finally
@@ -178,43 +181,12 @@ public class AudioCacheManager
         return Blake3.Hasher.Hash(data.Span).ToString();
     }
 
-    private async Task<CachedIeeeAudio> CreateIeeeCacheAsync(string cacheKey, string hash, byte[] rentBuffer,
-        int bytesRead, WaveFormat waveFormat)
-    {
-        await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
-        var (sampleChannel, totalFloatSamples) = GetResampledSampleChannel(audioFileReader, cacheKey, waveFormat);
-
-        var allSamples = new List<float>(totalFloatSamples == -1
-            ? sampleChannel.WaveFormat.SampleRate * sampleChannel.WaveFormat.Channels * 5
-            : (int)totalFloatSamples);
-        var readBuffer =
-            ArrayPool<float>.Shared.Rent(sampleChannel.WaveFormat.SampleRate * sampleChannel.WaveFormat.Channels);
-        try
-        {
-            var sw = HighPrecisionTimer.StartNew();
-            int samplesRead;
-            // 循环读取，直到 stream 结束
-            while ((samplesRead = sampleChannel.Read(readBuffer, 0, readBuffer.Length)) > 0)
-            {
-                allSamples.AddRange(readBuffer.AsSpan(0, samplesRead));
-            }
-
-            _logger?.LogDebug("Cached {CacheKey} in {Elapsed:N2}ms", cacheKey, sw.Elapsed.TotalMilliseconds);
-        }
-        finally
-        {
-            ArrayPool<float>.Shared.Return(readBuffer);
-        }
-
-        return new CachedIeeeAudio(hash, allSamples.ToArray(), sampleChannel.WaveFormat);
-    }
-
-    private async Task<CachedAudio> CreatePcmCacheAsync(string cacheKey, string hash, byte[] rentBuffer,
+    private async Task<CachedAudio> CreateAudioCacheAsync(string cacheKey, string hash, byte[] rentBuffer,
         int bytesRead, WaveFormat waveFormat)
     {
         await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
         var (waveProvider, estimatedShortSamples) =
-            GetPcmWaveProvider(audioFileReader, cacheKey, waveFormat.SampleRate);
+            GetWaveProvider(audioFileReader, cacheKey, waveFormat.SampleRate);
 
         var sw = HighPrecisionTimer.StartNew();
 
@@ -308,7 +280,7 @@ public class AudioCacheManager
         return (new SampleChannel(streamToRead, forceStereo: true), totalFloatSamples);
     }
 
-    private (IWaveProvider waveProvider, long estimatedShortSamples) GetPcmWaveProvider(
+    private (IWaveProvider waveProvider, long estimatedShortSamples) GetWaveProvider(
         AudioFileReader audioFileReader, string cacheKey, int targetSampleRate)
     {
         var targetFormat = GetPcm16WaveFormat(targetSampleRate); // 强制 16-bit PCM，双声道，目标采样率

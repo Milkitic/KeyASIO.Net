@@ -37,7 +37,6 @@ internal static class MixingSampleProviderExtension
             float balance)
         {
             var waveFormat = new WaveFormat(mixer.WaveFormat.SampleRate, mixer.WaveFormat.Channels);
-            await using var fs = File.OpenRead(path);
             var cacheResult = await audioCacheManager.GetOrCreateOrEmptyFromFileAsync(path, waveFormat)
                 .ConfigureAwait(false);
 
@@ -96,7 +95,8 @@ internal static class MixingSampleProviderExtension
 
     private static ProfessionalBalanceProvider AddToBalanceProvider(ISampleProvider input, float balance)
     {
-        var balanceProvider = new ProfessionalBalanceProvider(input, BalanceMode.MidSide, AntiClipStrategy.None)
+        var balanceProvider = new ProfessionalBalanceProvider(input, 
+            BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
         {
             Balance = balance
         };

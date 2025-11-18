@@ -44,7 +44,8 @@ public class AudioPlaybackService
             {
                 Volume = volume
             };
-            var balanceProvider = new ProfessionalBalanceProvider(volumeSampleProvider, BalanceMode.MidSide, AntiClipStrategy.None)
+            var balanceProvider = new ProfessionalBalanceProvider(volumeSampleProvider,
+                BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
             {
                 Balance = balance
             };
