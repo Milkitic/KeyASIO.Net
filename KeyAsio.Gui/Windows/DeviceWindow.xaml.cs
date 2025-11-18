@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
+using KeyAsio.Audio;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Shared.Models;
-using Milki.Extensions.MixPlayer.Devices;
 
 namespace KeyAsio.Gui.Windows;
 
@@ -65,19 +64,21 @@ public class DeviceWindowViewModel : ViewModelBase
 /// </summary>
 public partial class DeviceWindow : DialogWindow
 {
+    private readonly AudioDeviceManager _audioDeviceManager;
     public DeviceWindowViewModel ViewModel { get; }
 
-    public DeviceWindow(DeviceWindowViewModel viewModel)
+    public DeviceWindow(DeviceWindowViewModel viewModel, AudioDeviceManager audioDeviceManager)
     {
+        _audioDeviceManager = audioDeviceManager;
         InitializeComponent();
         DataContext = ViewModel = viewModel;
     }
 
     private async void DeviceWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
-        ViewModel.Devices = await Task.Run(() => DeviceCreationHelper.GetCachedAvailableDevices()
-            .OrderBy(k => k, new DeviceDescriptionComparer())
-            .ToList());
+        ViewModel.Devices = (await _audioDeviceManager.GetCachedAvailableDevicesAsync())
+            .OrderBy(k => k, DeviceDescriptionComparer.Instance)
+            .ToList();
 
         ViewModel.SelectedDevice = ViewModel.Devices.FirstOrDefault(k => k.WavePlayerType == WavePlayerType.ASIO) ??
                                    ViewModel.Devices.FirstOrDefault(k => k.WavePlayerType == WavePlayerType.WASAPI) ??
@@ -92,11 +93,18 @@ public partial class DeviceWindow : DialogWindow
 
 internal class DeviceDescriptionComparer : IComparer<DeviceDescription>
 {
+    private DeviceDescriptionComparer()
+    {
+    }
+
+    public static DeviceDescriptionComparer Instance { get; } = new();
+
     public int Compare(DeviceDescription? x, DeviceDescription? y)
     {
         if (ReferenceEquals(x, y)) return 0;
         if (ReferenceEquals(null, y)) return 1;
         if (ReferenceEquals(null, x)) return -1;
+
         var wavePlayerTypeComparison = x.WavePlayerType.CompareTo(y.WavePlayerType);
         if (wavePlayerTypeComparison != 0) return wavePlayerTypeComparison;
         var deviceIdComparison = string.Compare(x.DeviceId, y.DeviceId, StringComparison.Ordinal);

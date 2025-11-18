@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
-using KeyAsio.MemoryReading.Logging;
+using KeyAsio.Audio.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Utils;
 
@@ -98,17 +99,15 @@ public static class DebugUtils
 
     public static void InvokeAndPrint(Action method, string caller = "anonymous method")
     {
-        var sw = Stopwatch.StartNew();
+        var sw = HighPrecisionTimer.StartNew();
         method?.Invoke();
-        sw.Stop();
         Console.WriteLine($"[{caller}] Executed in {sw.Elapsed.TotalMilliseconds:#0.000} ms");
     }
 
     public static T InvokeAndPrint<T>(Func<T> method, string caller = "anonymous method")
     {
-        var sw = Stopwatch.StartNew();
+        var sw = HighPrecisionTimer.StartNew();
         var value = method.Invoke();
-        sw.Stop();
         Console.WriteLine($"[{caller}] Executed in {sw.Elapsed.TotalMilliseconds:#0.000} ms");
         return value;
     }
@@ -122,31 +121,36 @@ public static class DebugUtils
     {
         private readonly string _name;
         private readonly ILogger? _logger;
-        private readonly Stopwatch _sw;
-
+        private readonly HighPrecisionTimer _sw;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TimerImpl(string name, ILogger? logger)
         {
             _name = name;
             _logger = logger;
-            Print($"[{_name}] executing");
-            _sw = Stopwatch.StartNew();
-        }
 
-        public void Dispose()
-        {
-            _sw.Stop();
-            Print($"[{_name}] executed in {_sw.Elapsed.TotalMilliseconds:#0.000}ms");
-        }
-
-        private void Print(string message)
-        {
             if (_logger == null)
             {
-                Console.WriteLine(message);
+                Console.WriteLine($"[{_name}] executing");
             }
             else
             {
-                _logger.Debug(message);
+                _logger.LogTrace("[{Name}] executing", _name);
+            }
+
+            _sw = HighPrecisionTimer.StartNew();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            if (_logger == null)
+            {
+                Console.WriteLine($"[{_name}] executed in {_sw.Elapsed.TotalMilliseconds:#0.000}ms");
+            }
+            else
+            {
+                _logger.LogDebug("[{Name}] executed in {Elapsed:#0.000}ms", _name, _sw.Elapsed.TotalMilliseconds);
             }
         }
     }

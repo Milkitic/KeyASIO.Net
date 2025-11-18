@@ -8,7 +8,6 @@ namespace KeyAsio.Shared.Realtime;
 internal class ConfigManager
 {
     public static readonly ConfigManager Instance = new();
-    private static readonly ILogger Logger = LogUtils.GetLogger("ConfigManager");
 
     private ConfigManager()
     {

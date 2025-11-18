@@ -1,178 +1,178 @@
 ﻿<userControls:DialogWindow
-    x:Class="KeyAsio.Gui.Windows.DeviceWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:devices="clr-namespace:Milki.Extensions.MixPlayer.Devices;assembly=Milki.Extensions.MixPlayer"
-    xmlns:local="clr-namespace:KeyAsio.Gui"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
-    xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
-    Title="Device Configuration Guide"
-    Width="600"
-    Height="450"
-    d:DataContext="{d:DesignInstance windows:DeviceWindowViewModel,
-                                     IsDesignTimeCreatable=False}"
-    Background="{StaticResource RegionBrush}"
-    FontFamily="Segoe UI,微软雅黑"
-    FontSize="14"
-    Loaded="DeviceWindow_OnLoaded"
-    ResizeMode="NoResize"
-    TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
-    WindowStyle="SingleBorderWindow"
-    mc:Ignorable="d">
-    <Grid Margin="25">
+  x:Class="KeyAsio.Gui.Windows.DeviceWindow"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:audio="clr-namespace:KeyAsio.Audio;assembly=KeyAsio.Audio"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:local="clr-namespace:KeyAsio.Gui"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:userControls="clr-namespace:KeyAsio.Gui.UserControls"
+  xmlns:windows="clr-namespace:KeyAsio.Gui.Windows"
+  Title="Device Configuration Guide"
+  Width="600"
+  Height="450"
+  d:DataContext="{d:DesignInstance windows:DeviceWindowViewModel,
+                                   IsDesignTimeCreatable=False}"
+  Background="{StaticResource RegionBrush}"
+  FontFamily="Segoe UI,微软雅黑"
+  FontSize="14"
+  Loaded="DeviceWindow_OnLoaded"
+  ResizeMode="NoResize"
+  TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
+  WindowStyle="SingleBorderWindow"
+  mc:Ignorable="d">
+  <Grid Margin="25">
+    <StackPanel HorizontalAlignment="Left">
+      <TextBlock
+        Margin="0,0,0,25"
+        FontSize="21"
+        FontWeight="Bold"
+        Text="Config Device" />
+      <TextBlock Margin="0,0,0,10" Text="Sample rate" />
+      <ComboBox
+        Width="100"
+        Height="26"
+        MinHeight="0"
+        Margin="0,0,0,10"
+        Padding="6,0"
+        HorizontalAlignment="Left"
+        FontSize="12"
+        ItemsSource="{Binding SupportedSampleRates}"
+        SelectedItem="{Binding SampleRate, Mode=TwoWay}" />
+
+      <TextBlock Margin="0,0,0,10" Text="Device list" />
+      <ComboBox
+        Width="400"
+        Height="26"
+        MinHeight="0"
+        Margin="0,0,0,20"
+        Padding="6,0"
+        FontSize="12"
+        ItemsSource="{Binding Devices}"
+        SelectedItem="{Binding SelectedDevice}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate DataType="audio:DeviceDescription">
+            <TextBlock TextBlock.FontFamily="Consolas">
+              <Run Text="{Binding WavePlayerType}" /><Run Text=": " /><Run Text="{Binding FriendlyName}" />
+            </TextBlock>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+
+      <StackPanel>
+        <TextBlock Margin="0,0,0,10" Text="Detail Configuration" />
+
         <StackPanel HorizontalAlignment="Left">
-            <TextBlock
-                Margin="0,0,0,25"
-                FontSize="21"
-                FontWeight="Bold"
-                Text="Config Device" />
-            <TextBlock Margin="0,0,0,10" Text="Sample rate" />
-            <ComboBox
-                Width="100"
-                Height="26"
-                MinHeight="0"
-                Margin="0,0,0,10"
-                Padding="6,0"
-                HorizontalAlignment="Left"
-                FontSize="12"
-                ItemsSource="{Binding SupportedSampleRates}"
-                SelectedItem="{Binding SampleRate, Mode=TwoWay}" />
+          <StackPanel.Style>
+            <Style TargetType="StackPanel">
+              <Setter Property="Visibility" Value="Collapsed" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static audio:WavePlayerType.ASIO}">
+                  <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </StackPanel.Style>
 
-            <TextBlock Margin="0,0,0,10" Text="Device list" />
-            <ComboBox
-                Width="400"
-                Height="26"
-                MinHeight="0"
-                Margin="0,0,0,20"
-                Padding="6,0"
-                FontSize="12"
-                ItemsSource="{Binding Devices}"
-                SelectedItem="{Binding SelectedDevice}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="devices:DeviceDescription">
-                        <TextBlock TextBlock.FontFamily="Consolas">
-                            <Run Text="{Binding WavePlayerType}" /><Run Text=": " /><Run Text="{Binding FriendlyName}" />
-                        </TextBlock>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-            <StackPanel>
-                <TextBlock Margin="0,0,0,10" Text="Detail Configuration" />
-
-                <StackPanel HorizontalAlignment="Left">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-
-                    <TextBlock
-                        Margin="0,0,0,10"
-                        FontSize="12"
-                        Foreground="{StaticResource SecondaryTextBrush}"
-                        Text="Force buffer size (0 as default size)" />
-                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                        <Slider
-                            Width="345"
-                            Margin="0,0,8,0"
-                            VerticalAlignment="Center"
-                            AutoToolTipPlacement="BottomRight"
-                            IsSnapToTickEnabled="True"
-                            LargeChange="16"
-                            Maximum="2048"
-                            TickFrequency="1"
-                            TickPlacement="None"
-                            Value="{Binding ForceAsioBufferSize}" />
-                        <TextBox
-                            Width="45"
-                            VerticalAlignment="Center"
-                            HorizontalContentAlignment="Center"
-                            FontSize="12"
-                            Text="{Binding ForceAsioBufferSize, UpdateSourceTrigger=PropertyChanged}" />
-                    </StackPanel>
-                </StackPanel>
-
-                <StackPanel HorizontalAlignment="Left">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Visible" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.ASIO}">
-                                    <Setter Property="Visibility" Value="Hidden" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-
-                    <TextBlock
-                        Margin="0,0,0,10"
-                        FontSize="12"
-                        Foreground="{StaticResource SecondaryTextBrush}"
-                        Text="Latency" />
-                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                        <Slider
-                            Width="300"
-                            Margin="0,0,8,0"
-                            VerticalAlignment="Center"
-                            AutoToolTipPlacement="BottomRight"
-                            IsSnapToTickEnabled="True"
-                            Maximum="200"
-                            TickPlacement="None"
-                            Value="{Binding Latency}" />
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontSize="12"
-                            Text="{Binding Latency}" />
-                    </StackPanel>
-                </StackPanel>
-
-                <StackPanel HorizontalAlignment="Left">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Hidden" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static devices:WavePlayerType.WASAPI}">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-                    <TextBlock
-                        Margin="0,0,0,10"
-                        FontSize="12"
-                        Foreground="{StaticResource SecondaryTextBrush}"
-                        Text="WASAPI Exclusive" />
-                    <StackPanel Orientation="Horizontal">
-                        <ToggleButton
-                            Margin="0,0,8,0"
-                            HorizontalAlignment="Left"
-                            IsChecked="{Binding IsExclusive}"
-                            Style="{StaticResource ToggleButtonSwitch}" />
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontSize="12"
-                            Text="{Binding IsExclusive, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
-                    </StackPanel>
-                </StackPanel>
-
-            </StackPanel>
+          <TextBlock
+            Margin="0,0,0,10"
+            FontSize="12"
+            Foreground="{StaticResource SecondaryTextBrush}"
+            Text="Force buffer size (0 as default size)" />
+          <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+            <Slider
+              Width="345"
+              Margin="0,0,8,0"
+              VerticalAlignment="Center"
+              AutoToolTipPlacement="BottomRight"
+              IsSnapToTickEnabled="True"
+              LargeChange="16"
+              Maximum="2048"
+              TickFrequency="1"
+              TickPlacement="None"
+              Value="{Binding ForceAsioBufferSize}" />
+            <TextBox
+              Width="45"
+              VerticalAlignment="Center"
+              HorizontalContentAlignment="Center"
+              FontSize="12"
+              Text="{Binding ForceAsioBufferSize, UpdateSourceTrigger=PropertyChanged}" />
+          </StackPanel>
         </StackPanel>
 
-        <Button
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            Click="btnConfirm_OnClick"
-            Content="Confirm"
-            FontWeight="Bold"
-            Style="{StaticResource ButtonPrimary}"
-            TextBlock.FontFamily="Consolas" />
-    </Grid>
+        <StackPanel HorizontalAlignment="Left">
+          <StackPanel.Style>
+            <Style TargetType="StackPanel">
+              <Setter Property="Visibility" Value="Visible" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static audio:WavePlayerType.ASIO}">
+                  <Setter Property="Visibility" Value="Hidden" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </StackPanel.Style>
+
+          <TextBlock
+            Margin="0,0,0,10"
+            FontSize="12"
+            Foreground="{StaticResource SecondaryTextBrush}"
+            Text="Latency" />
+          <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+            <Slider
+              Width="300"
+              Margin="0,0,8,0"
+              VerticalAlignment="Center"
+              AutoToolTipPlacement="BottomRight"
+              IsSnapToTickEnabled="True"
+              Maximum="200"
+              TickPlacement="None"
+              Value="{Binding Latency}" />
+            <TextBlock
+              VerticalAlignment="Center"
+              FontSize="12"
+              Text="{Binding Latency}" />
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel HorizontalAlignment="Left">
+          <StackPanel.Style>
+            <Style TargetType="StackPanel">
+              <Setter Property="Visibility" Value="Hidden" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedDevice.WavePlayerType}" Value="{x:Static audio:WavePlayerType.WASAPI}">
+                  <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </StackPanel.Style>
+          <TextBlock
+            Margin="0,0,0,10"
+            FontSize="12"
+            Foreground="{StaticResource SecondaryTextBrush}"
+            Text="WASAPI Exclusive" />
+          <StackPanel Orientation="Horizontal">
+            <ToggleButton
+              Margin="0,0,8,0"
+              HorizontalAlignment="Left"
+              IsChecked="{Binding IsExclusive}"
+              Style="{StaticResource ToggleButtonSwitch}" />
+            <TextBlock
+              VerticalAlignment="Center"
+              FontSize="12"
+              Text="{Binding IsExclusive, Converter={StaticResource Boolean2StringConverter}, ConverterParameter=Off;On}" />
+          </StackPanel>
+        </StackPanel>
+
+      </StackPanel>
+    </StackPanel>
+
+    <Button
+      HorizontalAlignment="Right"
+      VerticalAlignment="Bottom"
+      Click="btnConfirm_OnClick"
+      Content="Confirm"
+      FontWeight="Bold"
+      Style="{StaticResource ButtonPrimary}"
+      TextBlock.FontFamily="Consolas" />
+  </Grid>
 </userControls:DialogWindow>

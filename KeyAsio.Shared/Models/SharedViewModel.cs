@@ -1,30 +1,25 @@
 using System.Collections.ObjectModel;
-using KeyAsio.Shared.Audio;
-using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.Devices;
+using KeyAsio.Audio;
 
 namespace KeyAsio.Shared.Models;
 
 public class SharedViewModel : ViewModelBase
 {
-    private AudioEngine? _audioEngine;
     private DeviceDescription? _deviceDescription;
     private int _framesPerBuffer;
     private int _playbackLatency;
     private SkinDescription? _selectedSkin;
 
+    public SharedViewModel(AppSettings appSettings)
+    {
+        AppSettings = appSettings;
+    }
     public ObservableCollection<SkinDescription> Skins { get; } = [SkinDescription.Default];
 
     public SkinDescription? SelectedSkin
     {
         get => _selectedSkin;
         set => SetField(ref _selectedSkin, value);
-    }
-
-    public AudioEngine? AudioEngine
-    {
-        get => _audioEngine;
-        set => SetField(ref _audioEngine, value);
     }
 
     public DeviceDescription? DeviceDescription
@@ -44,8 +39,8 @@ public class SharedViewModel : ViewModelBase
         get => _playbackLatency;
         set => SetField(ref _playbackLatency, value);
     }
+    public bool AutoMode { get; set; }
 
     public string DefaultFolder { get; } = Path.Combine(Environment.CurrentDirectory, "resources", "default");
-    public bool AutoMode { get; set; }
-    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
+    public AppSettings AppSettings { get; }
 }

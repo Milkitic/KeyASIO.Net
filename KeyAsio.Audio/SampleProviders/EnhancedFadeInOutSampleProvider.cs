@@ -1,12 +1,12 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Shared.Audio;
+namespace KeyAsio.Audio.SampleProviders;
 
 /// <summary>
 /// Sample Provider to allow fading in and out.
 /// <para>Modified from <seealso href="https://github.com/naudio/NAudio/blob/master/NAudio.Core/Wave/SampleProviders/FadeInOutSampleProvider.cs"/></para>
 /// </summary>
-public class FadeInOutSampleProvider : ISampleProvider
+public class EnhancedFadeInOutSampleProvider : ISampleProvider
 {
     enum FadeState
     {
@@ -28,7 +28,7 @@ public class FadeInOutSampleProvider : ISampleProvider
     /// </summary>
     /// <param name="source">The source stream with the audio to be faded in or out</param>
     /// <param name="initiallySilent">If true, we start faded out</param>
-    public FadeInOutSampleProvider(ISampleProvider source, bool initiallySilent = false)
+    public EnhancedFadeInOutSampleProvider(ISampleProvider source, bool initiallySilent = false)
     {
         _source = source;
         _fadeState = initiallySilent ? FadeState.Silence : FadeState.FullVolume;

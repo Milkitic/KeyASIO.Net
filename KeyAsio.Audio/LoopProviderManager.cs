@@ -1,17 +1,18 @@
-锘縰sing System.Buffers;
-using System.IO;
-using Coosu.Beatmap.Extensions.Playback;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+using System.Buffers;
+using KeyAsio.Audio.Caching;
+using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.SampleProviders.BalancePans;
+using KeyAsio.Audio.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace KeyAsio.Shared.Audio;
+namespace KeyAsio.Audio;
 
-internal class LoopProviders
+public class LoopProviderManager
 {
-    private readonly Dictionary<SlideChannel, LoopProvider> _dictionary = new();
+    private readonly Dictionary<int, LoopProvider> _dictionary = new();
 
-    public bool ShouldRemoveAll(SlideChannel channel)
+    public bool ShouldRemoveAll(int channel)
     {
         return _dictionary.ContainsKey(channel);
     }
@@ -24,6 +25,7 @@ internal class LoopProviders
             var loopProvider = kvp.Value;
             loopProvider.SetVolume(volume * volumeFactor);
         }
+
         return true;
     }
 
@@ -39,21 +41,21 @@ internal class LoopProviders
         return true;
     }
 
-    public bool ChangeVolume(SlideChannel slideChannel, float volume, float volumeFactor = 1.25f)
+    public bool ChangeVolume(int slideChannel, float volume, float volumeFactor = 1.25f)
     {
         if (!_dictionary.TryGetValue(slideChannel, out var loopProvider)) return false;
         loopProvider.SetVolume(volume * volumeFactor);
         return true;
     }
 
-    public bool ChangeBalance(SlideChannel slideChannel, float balance, float balanceFactor = 1)
+    public bool ChangeBalance(int slideChannel, float balance, float balanceFactor = 1)
     {
         if (!_dictionary.TryGetValue(slideChannel, out var loopProvider)) return false;
         loopProvider.SetBalance(balance * balanceFactor);
         return true;
     }
 
-    public bool Remove(SlideChannel slideChannel, MixingSampleProvider? mixer)
+    public bool Remove(int slideChannel, MixingSampleProvider? mixer)
     {
         if (_dictionary.TryGetValue(slideChannel, out var loopProvider))
         {
@@ -100,36 +102,40 @@ internal class LoopProviders
         }
     }
 
-    public void Create(ControlNode controlNode,
-        CachedSound? cachedSound,
+    public void Create(int slideChannel,
+        CachedAudio? cachedAudio,
         MixingSampleProvider mixer,
         float volume,
         float balance,
         float volumeFactor = 1.25f,
         float balanceFactor = 1)
     {
-        if (cachedSound is null) return;
+        if (cachedAudio is null) return;
 
-        var slideChannel = controlNode.SlideChannel;
         Remove(slideChannel, mixer);
 
-        var audioDataLength = cachedSound.AudioData.Length * sizeof(float);
+        var span = cachedAudio.Span;
+        if (span.IsEmpty) return;
+
+        var audioDataLength = span.Length;
         var byteArray = ArrayPool<byte>.Shared.Rent(audioDataLength);
-        Buffer.BlockCopy(cachedSound.AudioData, 0, byteArray, 0, audioDataLength);
+        span.CopyTo(byteArray);
 
         var memoryStream = new MemoryStream(byteArray, 0, audioDataLength);
-        var waveStream = new RawSourceWaveStream(memoryStream, cachedSound.WaveFormat);
+        var waveStream = new RawSourceWaveStream(memoryStream, cachedAudio.WaveFormat);
         var loopStream = new LoopStream(waveStream);
         var volumeProvider = new EnhancedVolumeSampleProvider(loopStream.ToSampleProvider())
         {
             Volume = volume * volumeFactor
         };
-        var balanceProvider = new BalanceSampleProvider(volumeProvider)
+        var balanceProvider = new ProfessionalBalanceProvider(volumeProvider,
+                BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
         {
             Balance = balance * balanceFactor
         };
 
-        var loopProvider = new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream, byteArray);
+        var loopProvider = new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream,
+            byteArray);
         _dictionary.Add(slideChannel, loopProvider);
         loopProvider.AddTo(mixer);
     }

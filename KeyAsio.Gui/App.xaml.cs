@@ -12,6 +12,8 @@ using System.Windows;
 using System.Windows.Threading;
 using System.Xml;
 using System.Xml.Linq;
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using KeyAsio.Shared;
@@ -24,7 +26,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer;
 using NLog.Extensions.Logging;
 
 namespace KeyAsio.Gui;
@@ -165,6 +166,11 @@ public partial class App : Application
 
                 services.AddSingleton(provider =>
                     ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, "."));
+
+                services.AddSingleton<AudioEngine>();
+                services.AddSingleton<AudioCacheManager>();
+                services.AddSingleton<AudioDeviceManager>();
+
                 services.AddSingleton<SkinManager>();
                 services.AddSingleton<AudioCacheService>();
                 services.AddSingleton<HitsoundNodeService>();
@@ -183,7 +189,6 @@ public partial class App : Application
             .Build();
         await _host.StartAsync();
 
-        Configuration.Instance.SetLogger(_host.Services.GetRequiredService<ILoggerFactory>());
         NLogDevice.RegisterDefault();
 
         UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());

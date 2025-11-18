@@ -1,9 +1,9 @@
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
+using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Audio;
-using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 
 namespace KeyAsio.Shared.Realtime.Tracks;
@@ -14,73 +14,72 @@ public class SingleSynchronousTrack
 
     private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
 
-    private SeekableCachedSoundSampleProvider? _bgmCachedSoundSampleProvider;
+    private SeekableCachedAudioProvider? _bgmCachedAudioSampleProvider;
     private VariableSpeedSampleProvider? _variableSampleProvider;
     private ISampleProvider? _baseSampleProvider;
 
-    private CachedSound? _cachedSound;
+    private CachedAudio? _cachedAudio;
 
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly AudioEngine _audioEngine;
 
-    public SingleSynchronousTrack(SharedViewModel sharedViewModel)
+    public SingleSynchronousTrack(AudioEngine audioEngine)
     {
-        _sharedViewModel = sharedViewModel;
+        _audioEngine = audioEngine;
     }
 
     public int LeadInMilliseconds { get; set; }
     public int Offset { get; set; }
     public Mods PlayMods { get; set; }
-    private AudioEngine? AudioEngine => _sharedViewModel.AudioEngine;
 
-    public void SyncAudio(CachedSound? cachedSound, int playTime)
+    public void SyncAudio(CachedAudio? cachedAudio, int playTime)
     {
         if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
-        if (_cachedSound?.SourcePath != cachedSound?.SourcePath)
+        if (_cachedAudio?.SourceHash != cachedAudio?.SourceHash)
         {
             ClearAudio();
-            _cachedSound = cachedSound;
+            _cachedAudio = cachedAudio;
         }
 
-        if (cachedSound is null)
+        if (cachedAudio is null)
         {
-            Logger.Warn("Fail to sync: CachedSound is null");
+            Logger.Warn("Fail to sync: CachedAudio is null");
             return;
         }
 
-        if (_bgmCachedSoundSampleProvider == null)
+        if (_bgmCachedAudioSampleProvider == null)
         {
-            SetNewMixerInput(cachedSound, playTime);
+            SetNewMixerInput(cachedAudio, playTime);
         }
         else
         {
-            UpdateCurrentMixerInput(_bgmCachedSoundSampleProvider, playTime);
+            UpdateCurrentMixerInput(_bgmCachedAudioSampleProvider, playTime);
         }
     }
 
     public void ClearAudio()
     {
-        AudioEngine?.MusicMixer.RemoveMixerInput(_baseSampleProvider);
+        _audioEngine.MusicMixer.RemoveMixerInput(_baseSampleProvider);
         if (_variableSampleProvider != null)
         {
             _variableSampleProvider.Dispose();
             _variableSampleProvider = null;
         }
 
-        _bgmCachedSoundSampleProvider = null;
+        _bgmCachedAudioSampleProvider = null;
     }
 
-    private void SetNewMixerInput(CachedSound cachedSound, int playTime)
+    private void SetNewMixerInput(CachedAudio cachedAudio, int playTime)
     {
         GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
             out var diffTolerance);
         var timeSpan = TimeSpan.FromMilliseconds(playTime);
 
-        _bgmCachedSoundSampleProvider = new SeekableCachedSoundSampleProvider(cachedSound,
+        _bgmCachedAudioSampleProvider = new SeekableCachedAudioProvider(cachedAudio,
             (int.MaxValue / 100) + LeadInMilliseconds)
         {
             PlayTime = timeSpan
         };
-        var builder = new SampleProviderBuilder(_bgmCachedSoundSampleProvider);
+        var builder = new SampleProviderBuilder(_bgmCachedAudioSampleProvider);
 
         if (!keepSpeed)
         {
@@ -93,10 +92,10 @@ public class SingleSynchronousTrack
         }
 
         _baseSampleProvider = builder.CurrentSampleProvider;
-        AudioEngine?.MusicMixer.AddMixerInput(_baseSampleProvider);
+        _audioEngine.MusicMixer.AddMixerInput(_baseSampleProvider);
     }
 
-    private void UpdateCurrentMixerInput(SeekableCachedSoundSampleProvider sampleProvider, int playTime)
+    private void UpdateCurrentMixerInput(SeekableCachedAudioProvider sampleProvider, int playTime)
     {
         GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
             out var diffTolerance);

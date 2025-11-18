@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
+using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.Devices;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Shared;
@@ -50,6 +50,9 @@ public sealed class AppSettings : ViewModelBase
 
     [Description("Device configuration (Recommend to configure in GUI).")]
     public DeviceDescription? Device { get; set; }
+
+    [Description("Enable limiter to prevent clipping or distortion; disable for an unprocessed signal. Especially effective when master volume is high.")]
+    public bool EnableLimiter { get; set; } = true;
 
     [Description("Configured device volume, range: 0~150")]
     public float Volume

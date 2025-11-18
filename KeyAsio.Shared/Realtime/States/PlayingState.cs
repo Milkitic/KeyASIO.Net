@@ -1,17 +1,19 @@
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
-using KeyAsio.Shared.Models;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
 public class PlayingState : IRealtimeState
 {
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly AudioEngine _audioEngine;
+    private readonly AudioCacheManager _audioCacheManager;
 
-    public PlayingState(SharedViewModel sharedViewModel)
+    public PlayingState(AudioEngine audioEngine, AudioCacheManager audioCacheManager)
     {
-        _sharedViewModel = sharedViewModel;
+        _audioEngine = audioEngine;
+        _audioCacheManager = audioCacheManager;
     }
 
     public async Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
@@ -33,7 +35,7 @@ public class PlayingState : IRealtimeState
         // Exit behavior will be handled by the next state's Enter.
     }
 
-    public void OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
         ctx.UpdatePauseCount(paused);
@@ -55,7 +57,7 @@ public class PlayingState : IRealtimeState
         if (ctx.GetEnableMusicFunctions())
         {
             if (ctx.GetFirstStartInitialized() && ctx.OsuFile != null && ctx.GetMusicPath() != null &&
-                _sharedViewModel.AudioEngine != null)
+                _audioEngine.CurrentDevice != null)
             {
                 if (ctx.GetPauseCount() >= playingPauseThreshold)
                 {
@@ -64,19 +66,23 @@ public class PlayingState : IRealtimeState
                 else
                 {
                     var musicPath = ctx.GetMusicPath();
-                    if (musicPath != null && CachedSoundFactory.ContainsCache(musicPath))
+                    if (musicPath != null)
                     {
-                        const int codeLatency = -1;
-                        const int osuForceLatency = 15;
-                        var oldMapForceOffset = ctx.OsuFile.Version < 5 ? 24 : 0;
-                        ctx.SetMainTrackOffsetAndLeadIn(osuForceLatency + codeLatency + oldMapForceOffset,
-                            ctx.OsuFile.General.AudioLeadIn);
-                        if (!ctx.IsResultFlag())
+                        var cachedAudio = await _audioCacheManager.TryGetAsync(musicPath);
+                        if (cachedAudio != null)
                         {
-                            ctx.SetSingleTrackPlayMods(ctx.PlayMods);
-                        }
+                            const int codeLatency = -1;
+                            const int osuForceLatency = 15;
+                            var oldMapForceOffset = ctx.OsuFile.Version < 5 ? 24 : 0;
+                            ctx.SetMainTrackOffsetAndLeadIn(osuForceLatency + codeLatency + oldMapForceOffset,
+                                ctx.OsuFile.General.AudioLeadIn);
+                            if (!ctx.IsResultFlag())
+                            {
+                                ctx.SetSingleTrackPlayMods(ctx.PlayMods);
+                            }
 
-                        ctx.SyncMainTrackAudio(CachedSoundFactory.GetCacheSound(musicPath), newMs);
+                            ctx.SyncMainTrackAudio(cachedAudio, newMs);
+                        }
                     }
                 }
             }
@@ -94,9 +100,9 @@ public class PlayingState : IRealtimeState
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;
 
-        if (ctx.TryGetCachedSound("combobreak", out var cachedSound))
+        if (ctx.TryGetCachedAudio("combobreak", out var cachedAudio))
         {
-            ctx.PlayAudio(cachedSound, 1, 0);
+            ctx.PlayAudio(cachedAudio, 1, 0);
         }
     }
 

@@ -1,99 +1,104 @@
 using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Audio;
-using KeyAsio.Shared.Models;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
+using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.SampleProviders.BalancePans;
+using Microsoft.Extensions.Logging;
 using NAudio.Wave.SampleProviders;
-using BalanceSampleProvider = KeyAsio.Shared.Audio.BalanceSampleProvider;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
 public class AudioPlaybackService
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(AudioPlaybackService));
-    private readonly LoopProviders _loopProviders = new();
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly LoopProviderManager _loopProviderManager = new();
+    private readonly ILogger<AudioPlaybackService> _logger;
+    private readonly AudioEngine _audioEngine;
+    private readonly AppSettings _appSettings;
 
-    public AudioPlaybackService(SharedViewModel sharedViewModel)
+    public AudioPlaybackService(ILogger<AudioPlaybackService> logger, AudioEngine audioEngine, AppSettings appSettings)
     {
-        _sharedViewModel = sharedViewModel;
+        _logger = logger;
+        _audioEngine = audioEngine;
+        _appSettings = appSettings;
     }
 
-    public void PlayEffectsAudio(CachedSound? cachedSound, float volume, float balance, AppSettings appSettings)
+    public void PlayEffectsAudio(CachedAudio? cachedAudio, float volume, float balance)
     {
-        if (cachedSound is null)
+        if (cachedAudio is null)
         {
-            Logger.Warn("Fail to play: CachedSound not found");
+            _logger.LogWarning("Fail to play: CachedSound not found");
             return;
         }
 
-        if (appSettings.RealtimeOptions.IgnoreLineVolumes)
+        if (_appSettings.RealtimeOptions.IgnoreLineVolumes)
         {
             volume = 1;
         }
 
-        balance *= appSettings.RealtimeOptions.BalanceFactor;
+        balance *= _appSettings.RealtimeOptions.BalanceFactor;
 
         try
         {
-            _sharedViewModel.AudioEngine?.EffectMixer.AddMixerInput(
-                new BalanceSampleProvider(
-                        new EnhancedVolumeSampleProvider(new SeekableCachedSoundSampleProvider(cachedSound))
-                        { Volume = volume }
-                    )
-                { Balance = balance }
-            );
+            var seekableCachedAudioSampleProvider = new SeekableCachedAudioProvider(cachedAudio);
+            var volumeSampleProvider = new EnhancedVolumeSampleProvider(seekableCachedAudioSampleProvider)
+            {
+                Volume = volume
+            };
+            var balanceProvider = new ProfessionalBalanceProvider(volumeSampleProvider,
+                BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
+            {
+                Balance = balance
+            };
+            _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, "Error occurs while playing audio.", true);
+            _logger.LogError(ex, "Error occurs while playing audio.", true);
         }
 
-        Logger.Debug($"Play {Path.GetFileNameWithoutExtension(cachedSound.SourcePath)}; " +
-                     $"Vol. {volume}; " +
-                     $"Bal. {balance}");
+        _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
     }
 
-    public void PlayLoopAudio(CachedSound? cachedSound, ControlNode controlNode, AppSettings appSettings)
+    public void PlayLoopAudio(CachedAudio? cachedAudio, ControlNode controlNode)
     {
-        var rootMixer = _sharedViewModel.AudioEngine?.EffectMixer;
-        if (rootMixer == null)
-        {
-            Logger.Warn("RootMixer is null, stop adding cache.");
-            return;
-        }
+        var rootMixer = _audioEngine.EffectMixer;
+        //if (rootMixer == null)
+        //{
+        //    Logger.Warn("RootMixer is null, stop adding cache.");
+        //    return;
+        //}
 
-        var volume = appSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
+        var volume = _appSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
 
         if (controlNode.ControlType == ControlType.StartSliding)
         {
-            if (_loopProviders.ShouldRemoveAll(controlNode.SlideChannel))
+            if (_loopProviderManager.ShouldRemoveAll((int)controlNode.SlideChannel))
             {
-                _loopProviders.RemoveAll(rootMixer);
+                _loopProviderManager.RemoveAll(rootMixer);
             }
 
             try
             {
-                _loopProviders.Create(controlNode, cachedSound, rootMixer, volume, 0, balanceFactor: 0);
+                _loopProviderManager.Create((int)controlNode.SlideChannel, cachedAudio, rootMixer, volume, 0, balanceFactor: 0);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error occurs while playing looped audio.", true);
+                _logger.LogError(ex, "Error occurs while playing looped audio.", true);
             }
         }
         else if (controlNode.ControlType == ControlType.StopSliding)
         {
-            _loopProviders.Remove(controlNode.SlideChannel, rootMixer);
+            _loopProviderManager.Remove((int)controlNode.SlideChannel, rootMixer);
         }
         else if (controlNode.ControlType == ControlType.ChangeVolume)
         {
-            _loopProviders.ChangeAllVolumes(volume);
+            _loopProviderManager.ChangeAllVolumes(volume);
         }
     }
 
-    public void ClearAllLoops(MixingSampleProvider? mixer = null)
+    public void ClearAllLoops(MixingSampleProvider? mixingSampleProvider = null)
     {
-        var m = mixer ?? _sharedViewModel.AudioEngine?.EffectMixer;
-        _loopProviders.RemoveAll(m);
+        mixingSampleProvider ??= _audioEngine.EffectMixer;
+        _loopProviderManager.RemoveAll(mixingSampleProvider);
     }
 }

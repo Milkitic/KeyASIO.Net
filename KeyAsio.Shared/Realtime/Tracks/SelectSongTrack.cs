@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using Coosu.Beatmap;
+using KeyAsio.Audio;
+using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Audio.Utils;
+using KeyAsio.Audio.Wave;
 using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared.Audio;
-using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
-using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using FadeInOutSampleProvider = KeyAsio.Shared.Audio.FadeInOutSampleProvider;
 
 namespace KeyAsio.Shared.Realtime.Tracks;
 
@@ -16,41 +16,41 @@ public class SelectSongTrack
     private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SelectSongTrack));
     private readonly Lock _instanceLock = new();
 
-    private SmartWaveReader? _smartWaveReader;
-    private FadeInOutSampleProvider? _fadeInOutSampleProvider;
+    private AudioFileReader? _audioFileReader;
+    private EnhancedFadeInOutSampleProvider? _fadeInOutSampleProvider;
     private LowPassSampleProvider? _lowPassSampleProvider;
 
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly AudioEngine _audioEngine;
 
-    public SelectSongTrack(SharedViewModel sharedViewModel)
+    public SelectSongTrack(AudioEngine audioEngine)
     {
-        _sharedViewModel = sharedViewModel;
+        _audioEngine = audioEngine;
     }
 
-    private MixingSampleProvider? Mixer => _sharedViewModel.AudioEngine?.MusicMixer;
-    private WaveFormat? WaveFormat => _sharedViewModel.AudioEngine?.WaveFormat;
+    private MixingSampleProvider? Mixer => _audioEngine.MusicMixer;
+    private WaveFormat? WaveFormat => _audioEngine.EngineWaveFormat;
 
     public async Task PlaySingleAudio(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
     {
         if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
         if (Mixer is null || WaveFormat is null) return;
 
-        SmartWaveReader? smartWaveReader;
-        FadeInOutSampleProvider? fadeInOutSampleProvider = null;
+        AudioFileReader? audioFileReader;
+        EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider = null;
         lock (_instanceLock)
         {
-            if (_smartWaveReader is not null) return;
+            if (_audioFileReader is not null) return;
 
             try
             {
-                smartWaveReader = _smartWaveReader = new SmartWaveReader(path);
-                var builder = new SampleProviderBuilder(smartWaveReader);
-                if (smartWaveReader.WaveFormat.Channels == 1)
+                audioFileReader = _audioFileReader = new AudioFileReader(path);
+                var builder = new SampleProviderBuilder(audioFileReader);
+                if (audioFileReader.WaveFormat.Channels == 1)
                 {
                     builder.AddSampleProvider(k => new MonoToStereoSampleProvider(k));
                 }
 
-                if (smartWaveReader.WaveFormat.SampleRate != WaveFormat.SampleRate)
+                if (audioFileReader.WaveFormat.SampleRate != WaveFormat.SampleRate)
                 {
                     builder.AddSampleProvider(k => new WdlResamplingSampleProvider(k, WaveFormat.SampleRate));
                 }
@@ -60,13 +60,13 @@ public class SelectSongTrack
                 _lowPassSampleProvider =
                     builder.AddSampleProvider(k => new LowPassSampleProvider(k, WaveFormat.SampleRate, 16000));
                 fadeInOutSampleProvider = _fadeInOutSampleProvider =
-                    builder.AddSampleProvider(k => new FadeInOutSampleProvider(k));
+                    builder.AddSampleProvider(k => new EnhancedFadeInOutSampleProvider(k));
 
                 notifyingSampleProvider.Sample += async (_, _) =>
                 {
-                    if (smartWaveReader.CurrentTime >= smartWaveReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
+                    if (audioFileReader.CurrentTime >= audioFileReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
                     {
-                        await RepositionAndFadeIn(smartWaveReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
+                        await RepositionAndFadeIn(audioFileReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
                     }
                 };
 
@@ -87,26 +87,26 @@ public class SelectSongTrack
             }
         }
 
-        await RepositionAndFadeIn(smartWaveReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
+        await RepositionAndFadeIn(audioFileReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
     }
 
     public async Task StopCurrentMusic(int fadeOutMilliseconds = 500)
     {
-        SmartWaveReader? smartWaveReader;
-        FadeInOutSampleProvider? fadeInOutSampleProvider;
+        AudioFileReader? audioFileReader;
+        EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
-            smartWaveReader = _smartWaveReader;
+            audioFileReader = _audioFileReader;
             fadeInOutSampleProvider = _fadeInOutSampleProvider;
-            if (smartWaveReader is null || fadeInOutSampleProvider is null)
+            if (audioFileReader is null || fadeInOutSampleProvider is null)
                 return;
-            _smartWaveReader = null;
+            _audioFileReader = null;
             _fadeInOutSampleProvider = null;
         }
 
         await FadeAsync(fadeInOutSampleProvider, fadeOutMilliseconds, false);
         Mixer?.RemoveMixerInput(fadeInOutSampleProvider);
-        await smartWaveReader.DisposeAsync();
+        await audioFileReader.DisposeAsync();
     }
 
     public void StartLowPass(int fadeMilliseconds, int targetVol)
@@ -116,7 +116,7 @@ public class SelectSongTrack
         Task.Run(() =>
         {
             var currentVol = lowPass.Frequency;
-            var sw = Stopwatch.StartNew();
+            var sw = HighPrecisionTimer.StartNew();
             while (sw.ElapsedMilliseconds < fadeMilliseconds)
             {
                 var ratio = sw.ElapsedMilliseconds / (double)fadeMilliseconds;
@@ -131,13 +131,13 @@ public class SelectSongTrack
 
     public async Task PauseCurrentMusic()
     {
-        SmartWaveReader? smartWaveReader;
-        FadeInOutSampleProvider? fadeInOutSampleProvider;
+        AudioFileReader? audioFileReader;
+        EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
-            smartWaveReader = _smartWaveReader;
+            audioFileReader = _audioFileReader;
             fadeInOutSampleProvider = _fadeInOutSampleProvider;
-            if (smartWaveReader is null || fadeInOutSampleProvider is null)
+            if (audioFileReader is null || fadeInOutSampleProvider is null)
                 return;
         }
 
@@ -146,13 +146,13 @@ public class SelectSongTrack
 
     public async Task RecoverCurrentMusic()
     {
-        SmartWaveReader? smartWaveReader;
-        FadeInOutSampleProvider? fadeInOutSampleProvider;
+        AudioFileReader? audioFileReader;
+        EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider;
         lock (_instanceLock)
         {
-            smartWaveReader = _smartWaveReader;
+            audioFileReader = _audioFileReader;
             fadeInOutSampleProvider = _fadeInOutSampleProvider;
-            if (smartWaveReader is null || fadeInOutSampleProvider is null)
+            if (audioFileReader is null || fadeInOutSampleProvider is null)
                 return;
         }
 
@@ -160,7 +160,7 @@ public class SelectSongTrack
     }
 
     private static async ValueTask RepositionAndFadeIn(WaveStream waveStream, int playTime,
-        FadeInOutSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds)
+        EnhancedFadeInOutSampleProvider fadeInOutSampleProvider, int fadeInMilliseconds)
     {
         if (playTime < 0)
         {
@@ -174,7 +174,7 @@ public class SelectSongTrack
         await FadeAsync(fadeInOutSampleProvider, fadeInMilliseconds, true);
     }
 
-    private static async ValueTask FadeAsync(FadeInOutSampleProvider fadeInOutSampleProvider, int fadeMilliseconds, bool isFadeIn)
+    private static async ValueTask FadeAsync(EnhancedFadeInOutSampleProvider fadeInOutSampleProvider, int fadeMilliseconds, bool isFadeIn)
     {
         if (isFadeIn)
         {
