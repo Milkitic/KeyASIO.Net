@@ -172,8 +172,8 @@ public partial class MainWindow : DialogWindow
             var waveFormat = AudioEngine.EngineWaveFormat;
             if (Path.Exists(AppSettings.HitsoundPath))
             {
-                await using var fs = File.OpenRead(AppSettings.HitsoundPath);
-                var (cachedAudio, result) = await _audioCacheManager.GetOrCreateOrEmptyAsync(AppSettings.HitsoundPath, fs, waveFormat);
+                var (cachedAudio, result) =
+                    await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(AppSettings.HitsoundPath, waveFormat);
                 _cacheSound = cachedAudio;
             }
 

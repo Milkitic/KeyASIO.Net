@@ -94,11 +94,7 @@ public class AudioCacheService
             {
                 var musicPath = Path.Combine(folder, _audioFilename);
 
-                CacheGetStatus status;
-                await using (var fs = File.OpenRead(musicPath))
-                {
-                    (_, status) = await _audioCacheManager.GetOrCreateOrEmptyAsync(musicPath, fs, waveFormat);
-                }
+                var (_, status) = await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(musicPath, waveFormat);
 
                 if (status == CacheGetStatus.Failed)
                 {
@@ -208,11 +204,7 @@ public class AudioCacheService
         }
 
         CachedAudio result;
-        CacheGetStatus status;
-        await using (var fs = File.OpenRead(path))
-        {
-            (result!, status) = await _audioCacheManager.GetOrCreateOrEmptyAsync(path, fs, waveFormat, category);
-        }
+        (result!, var status) = await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(path, waveFormat, category);
 
         if (status == CacheGetStatus.Failed)
         {
@@ -268,12 +260,7 @@ public class AudioCacheService
                 : Path.Combine(skinFolder, filename);
         }
 
-        CachedAudio result;
-        CacheGetStatus status;
-        await using (var fs = File.OpenRead(path))
-        {
-            (result!, status) = await _audioCacheManager.GetOrCreateOrEmptyAsync(path, fs, waveFormat, category);
-        }
+        var (result, status) = await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(path, waveFormat, category);
 
         if (status == CacheGetStatus.Failed)
         {

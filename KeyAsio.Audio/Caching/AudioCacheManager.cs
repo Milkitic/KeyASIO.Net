@@ -178,8 +178,8 @@ public class AudioCacheManager
         return Blake3.Hasher.Hash(data.Span).ToString();
     }
 
-    private async Task<CachedIeeeAudio> CreateIeeeCacheAsync(string cacheKey, string hash, byte[] rentBuffer, int bytesRead,
-        WaveFormat waveFormat)
+    private async Task<CachedIeeeAudio> CreateIeeeCacheAsync(string cacheKey, string hash, byte[] rentBuffer,
+        int bytesRead, WaveFormat waveFormat)
     {
         await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
         var (sampleChannel, totalFloatSamples) = GetResampledSampleChannel(audioFileReader, cacheKey, waveFormat);
@@ -216,33 +216,50 @@ public class AudioCacheManager
         var (waveProvider, estimatedShortSamples) =
             GetPcmWaveProvider(audioFileReader, cacheKey, waveFormat.SampleRate);
 
-        // 估算字节数 = short样本数 * 2
-        int estimatedBytes = estimatedShortSamples > 0 ? (int)estimatedShortSamples * 2 : 0;
-        await using var destStream = new MemoryStream(estimatedBytes > 0 ? estimatedBytes : 1024 * 1024);
+        var sw = HighPrecisionTimer.StartNew();
+
+        int estimatedBytes = Math.Max(estimatedShortSamples > 0
+            ? (int)(estimatedShortSamples * 2) // 16-bit = 2 bytes
+            : (int)(audioFileReader.Length), 4096);
+
+        var owner = UnmanagedByteMemoryOwner.Allocate(estimatedBytes);
+
+        int totalBytes = 0;
+        int currentCapacity = estimatedBytes;
+
+        var bufferSize = Math.Min(waveProvider.WaveFormat.AverageBytesPerSecond, 64 * 1024);
+        var readBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+
         try
         {
-            var sw = HighPrecisionTimer.StartNew();
-            var buffer = ArrayPool<byte>.Shared.Rent(waveProvider.WaveFormat.AverageBytesPerSecond);
-            try
+            int read;
+            while ((read = waveProvider.Read(readBuffer, 0, readBuffer.Length)) > 0)
             {
-                int read;
-                while ((read = waveProvider.Read(buffer, 0, buffer.Length)) > 0)
+                // 检查容量是否足够
+                if (totalBytes + read > currentCapacity)
                 {
-                    destStream.Write(buffer, 0, read);
+                    int newCapacity = Math.Max(currentCapacity * 2, totalBytes + read);
+                    owner.Resize(newCapacity);
+                    currentCapacity = newCapacity;
                 }
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
 
-            _logger?.LogDebug("Cached {CacheKey} (Byte raw) in {Elapsed:N2}ms", cacheKey, sw.Elapsed.TotalMilliseconds);
-            return new CachedAudio(hash, destStream.ToArray(), waveProvider.WaveFormat);
+                new Span<byte>(readBuffer, 0, read).CopyTo(owner.Memory.Span.Slice(totalBytes));
+                totalBytes += read;
+            }
         }
         finally
         {
+            ArrayPool<byte>.Shared.Return(readBuffer);
             if (waveProvider is IDisposable d) d.Dispose();
         }
+
+        if (totalBytes < currentCapacity)
+        {
+            owner.Resize(totalBytes);
+        }
+
+        _logger?.LogDebug("Cached {CacheKey} (Unmanaged) in {Elapsed:N2}ms", cacheKey, sw.Elapsed.TotalMilliseconds);
+        return new CachedAudio(hash, owner, totalBytes, waveProvider.WaveFormat);
     }
 
     private (SampleChannel sampleChannel, long totalFloatSamples) GetResampledSampleChannel(

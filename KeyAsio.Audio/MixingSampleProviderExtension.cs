@@ -26,9 +26,8 @@ internal static class MixingSampleProviderExtension
             SampleControl? sampleControl)
         {
             var waveFormat = new WaveFormat(mixer.WaveFormat.SampleRate, mixer.WaveFormat.Channels);
-            await using var fs = File.OpenRead(path);
-            var cacheResult =
-                await audioCacheManager.GetOrCreateOrEmptyAsync(path, fs, waveFormat).ConfigureAwait(false);
+            var cacheResult = await audioCacheManager.GetOrCreateOrEmptyFromFileAsync(path, waveFormat)
+                .ConfigureAwait(false);
 
             PlayAudio(mixer, cacheResult.CachedAudio!, sampleControl, out var rootSample);
             return rootSample;
@@ -39,8 +38,8 @@ internal static class MixingSampleProviderExtension
         {
             var waveFormat = new WaveFormat(mixer.WaveFormat.SampleRate, mixer.WaveFormat.Channels);
             await using var fs = File.OpenRead(path);
-            var cacheResult =
-                await audioCacheManager.GetOrCreateOrEmptyAsync(path, fs, waveFormat).ConfigureAwait(false);
+            var cacheResult = await audioCacheManager.GetOrCreateOrEmptyFromFileAsync(path, waveFormat)
+                .ConfigureAwait(false);
 
             PlayAudio(mixer, cacheResult.CachedAudio!, volume, balance, out var rootSample);
             return rootSample;
