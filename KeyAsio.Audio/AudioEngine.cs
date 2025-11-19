@@ -146,24 +146,28 @@ public class AudioEngine
         }
     }
 
+    [Obsolete]
     public ISampleProvider? PlayAudio(CachedAudio cachedAudio, SampleControl? sampleControl = null)
     {
         var rootSample = RootMixer.PlayAudio(cachedAudio, sampleControl);
         return rootSample;
     }
 
+    [Obsolete]
     public ISampleProvider? PlayAudio(CachedAudio cachedAudio, float volume, float balance = 0)
     {
         var rootSample = RootMixer.PlayAudio(cachedAudio, balance, volume);
         return rootSample;
     }
 
+    [Obsolete]
     public async Task<ISampleProvider?> PlayAudio(string path, SampleControl? sampleControl = null)
     {
         var rootSample = await RootMixer.PlayAudio(_audioCacheManager, path, sampleControl).ConfigureAwait(false);
         return rootSample;
     }
 
+    [Obsolete]
     public async Task<ISampleProvider?> PlayAudio(string path, float volume, float balance = 0)
     {
         var rootSample = await RootMixer.PlayAudio(_audioCacheManager, path, balance, volume).ConfigureAwait(false);

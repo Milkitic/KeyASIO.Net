@@ -5,22 +5,25 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio;
 
-internal static class MixingSampleProviderExtension
+internal static class EnhancedMixingSampleProviderExtension
 {
     extension(EnhancedMixingSampleProvider mixer)
     {
+        [Obsolete]
         public ISampleProvider? PlayAudio(CachedAudio cachedAudio, SampleControl? sampleControl)
         {
             PlayAudio(mixer, cachedAudio, sampleControl, out var rootSample);
             return rootSample;
         }
-
+        
+        [Obsolete]
         public ISampleProvider? PlayAudio(CachedAudio cachedAudio, float volume, float balance)
         {
             PlayAudio(mixer, cachedAudio, volume, balance, out var rootSample);
             return rootSample;
         }
-
+        
+        [Obsolete]
         public async Task<ISampleProvider?> PlayAudio(AudioCacheManager audioCacheManager, string path,
             SampleControl? sampleControl)
         {
@@ -31,7 +34,8 @@ internal static class MixingSampleProviderExtension
             PlayAudio(mixer, cacheResult.CachedAudio!, sampleControl, out var rootSample);
             return rootSample;
         }
-
+        
+        [Obsolete]
         public async Task<ISampleProvider?> PlayAudio(AudioCacheManager audioCacheManager, string path, float volume,
             float balance)
         {
@@ -42,7 +46,8 @@ internal static class MixingSampleProviderExtension
             PlayAudio(mixer, cacheResult.CachedAudio!, volume, balance, out var rootSample);
             return rootSample;
         }
-
+        
+        [Obsolete]
         public void AddMixerInput(ISampleProvider input, SampleControl? sampleControl, out ISampleProvider rootSample)
         {
             if (sampleControl != null)
@@ -60,7 +65,8 @@ internal static class MixingSampleProviderExtension
                 mixer.AddMixerInput(input);
             }
         }
-
+        
+        [Obsolete]
         public void AddMixerInput(ISampleProvider input, float volume, float balance, out ISampleProvider rootSample)
         {
             var adjustVolume = volume >= 1 ? input : AddToAdjustVolume(input, volume);
@@ -70,33 +76,39 @@ internal static class MixingSampleProviderExtension
             mixer.AddMixerInput(adjustBalance);
         }
     }
-
+    
+    [Obsolete]
     private static void PlayAudio(EnhancedMixingSampleProvider mixer, CachedAudio cachedAudio, SampleControl? sampleControl,
         out ISampleProvider? rootSample)
     {
         mixer.AddMixerInput(new CachedAudioProvider(cachedAudio), sampleControl, out rootSample);
     }
-
+    
+    [Obsolete]
     private static void PlayAudio(EnhancedMixingSampleProvider mixer, CachedAudio cachedAudio, float volume, float balance,
         out ISampleProvider? rootSample)
     {
         mixer.AddMixerInput(new CachedAudioProvider(cachedAudio), volume, balance, out rootSample);
     }
 
+    [Obsolete]
     private static EnhancedVolumeSampleProvider AddToAdjustVolume(ISampleProvider input, float volume)
     {
         var volumeSampleProvider = new EnhancedVolumeSampleProvider(input)
         {
+            ExcludeFromPool = true,
             Volume = volume
         };
         return volumeSampleProvider;
     }
-
+    
+    [Obsolete]
     private static ProfessionalBalanceProvider AddToBalanceProvider(ISampleProvider input, float balance)
     {
         var balanceProvider = new ProfessionalBalanceProvider(input,
             BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
         {
+            ExcludeFromPool = true,
             Balance = balance
         };
         return balanceProvider;
