@@ -87,11 +87,9 @@ public sealed class SeekableCachedAudioProvider : IRecyclableProvider, IPoolable
 
         lock (_sourceSoundLock)
         {
-            if (_cachedAudio is not { } cachedAudio) return 0;
-
             var availableSamples = _totalSamples - _position;
             if (availableSamples <= 0) return 0;
-            if (!cachedAudio.TryAcquirePointer(out byte* pSrcBase) || pSrcBase == null)
+            if (_cachedAudio?.TryAcquirePointer(out byte* pSrcBase) != true || pSrcBase == null)
             {
                 return 0;
             }
