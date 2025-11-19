@@ -255,13 +255,10 @@ public class RealtimeModeManager : ViewModelBase
     {
         if (playbackObject.HitsoundNode is PlayableNode playableNode)
         {
-            if (playbackObject.CachedAudio != null)
-            {
-                var volume = playableNode.PlayablePriority == PlayablePriority.Effects
-                    ? playableNode.Volume * 1.25f
-                    : playableNode.Volume;
-                _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedAudio, volume, playableNode.Balance);
-            }
+            var volume = playableNode.PlayablePriority == PlayablePriority.Effects
+                ? playableNode.Volume * 1.25f
+                : playableNode.Volume;
+            _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedAudio, volume, playableNode.Balance);
         }
         else
         {

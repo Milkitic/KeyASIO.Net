@@ -59,15 +59,9 @@ public class AudioPlaybackService
         _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
     }
 
-    public void PlayLoopAudio(CachedAudio? cachedAudio, ControlNode controlNode)
+    public void PlayLoopAudio(CachedAudio cachedAudio, ControlNode controlNode)
     {
         var rootMixer = _audioEngine.EffectMixer;
-        //if (rootMixer == null)
-        //{
-        //    Logger.Warn("RootMixer is null, stop adding cache.");
-        //    return;
-        //}
-
         var volume = _appSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
 
         if (controlNode.ControlType == ControlType.StartSliding)
