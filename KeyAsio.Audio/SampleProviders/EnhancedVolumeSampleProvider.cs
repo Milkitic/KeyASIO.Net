@@ -1,5 +1,6 @@
 ﻿using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
+using KeyAsio.Audio.Utils;
 using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
@@ -7,9 +8,13 @@ namespace KeyAsio.Audio.SampleProviders;
 /// <summary>
 /// Very simple sample provider supporting adjustable gain
 /// </summary>
-public sealed class EnhancedVolumeSampleProvider : ISampleProvider
+public sealed class EnhancedVolumeSampleProvider : IRecyclableProvider, IPoolable
 {
     private const float VolumeTolerance = 0.001f;
+
+    public EnhancedVolumeSampleProvider()
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of VolumeSampleProvider
@@ -18,7 +23,6 @@ public sealed class EnhancedVolumeSampleProvider : ISampleProvider
     public EnhancedVolumeSampleProvider(ISampleProvider? source)
     {
         Source = source;
-        Volume = 1.0f;
     }
 
     /// <summary>
@@ -29,12 +33,19 @@ public sealed class EnhancedVolumeSampleProvider : ISampleProvider
     /// <summary>
     /// Allows adjusting the volume, 1.0f = full volume
     /// </summary>
-    public float Volume { get; set; }
+    public float Volume { get; set; } = 1.0f;
 
     /// <summary>
     /// WaveFormat
     /// </summary>
     public WaveFormat WaveFormat => Source?.WaveFormat ?? throw new InvalidOperationException("Source not ready");
+
+    public ISampleProvider? ResetAndGetSource()
+    {
+        var child = Source;
+        Reset();
+        return child;
+    }
 
     /// <summary>
     /// Reads samples from this sample provider
@@ -52,6 +63,7 @@ public sealed class EnhancedVolumeSampleProvider : ISampleProvider
             return sampleCount;
         }
 
+        if (sampleCount == 0) return 0;
         int samplesRead = Source.Read(buffer, offset, sampleCount);
 
         float currentVolume = Volume;
@@ -65,4 +77,13 @@ public sealed class EnhancedVolumeSampleProvider : ISampleProvider
 
         return samplesRead;
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Reset()
+    {
+        Source = null;
+        Volume = 1.0f;
+    }
+
+    public bool ExcludeFromPool { get; init; }
 }

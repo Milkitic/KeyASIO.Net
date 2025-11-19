@@ -3,7 +3,6 @@ using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.Limiters;
 using Milki.Extensions.Threading;
 using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Audio;
 
@@ -13,9 +12,9 @@ public class AudioEngine
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SynchronizationContext _context;
 
-    private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null);
-    private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null);
-    private readonly EnhancedVolumeSampleProvider _mainVolumeSampleProvider = new(null);
+    private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null) { ExcludeFromPool = true };
+    private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null) { ExcludeFromPool = true };
+    private readonly EnhancedVolumeSampleProvider _mainVolumeSampleProvider = new(null) { ExcludeFromPool = true };
     private ILimiterSampleProvider? _limiterProvider;
     private bool _enableLimiter = true;
 

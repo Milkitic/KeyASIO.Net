@@ -1,6 +1,7 @@
 ﻿using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
+using KeyAsio.Audio.Utils;
 
 namespace KeyAsio.Audio;
 
@@ -13,21 +14,13 @@ internal sealed class LoopProvider : IDisposable
 
     private EnhancedMixingSampleProvider? _baseMixer;
 
-    public LoopProvider(CachedAudio cachedAudio,
-        float initialVolume,
-        float initialBalance)
+    public LoopProvider(CachedAudio cachedAudio, float initialVolume, float initialBalance)
     {
-        _sourceProvider = new SeekableCachedAudioProvider(cachedAudio);
-        _loopWrapper = new LoopSampleProvider(_sourceProvider);
-        _volumeProvider = new EnhancedVolumeSampleProvider(_loopWrapper)
-        {
-            Volume = initialVolume
-        };
-        _balanceProvider = new ProfessionalBalanceProvider(_volumeProvider,
-            BalanceMode.MidSide, AntiClipStrategy.None)
-        {
-            Balance = initialBalance
-        };
+        _sourceProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
+        _loopWrapper = RecyclableSampleProviderFactory.RentLoopProvider(_sourceProvider);
+        _volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(_loopWrapper, initialVolume);
+        _balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(_volumeProvider, initialBalance,
+            BalanceMode.MidSide, AntiClipStrategy.None); // 由 MasterLimiterProvider 统一处理防削波
     }
 
     public void SetBalance(float balance)

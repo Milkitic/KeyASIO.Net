@@ -3,11 +3,12 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
+using KeyAsio.Audio.Utils;
 using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders.BalancePans;
 
-public sealed class ProfessionalBalanceProvider : ISampleProvider
+public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
 {
     // =============== 使用示例和性能对比 ===============
     /*
@@ -89,10 +90,9 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
         }
     }
 
-    private readonly ISampleProvider _sourceProvider;
-    private float _balanceValue = 0f;
-    private BalanceMode _mode;
-    private AntiClipStrategy _antiClip;
+    private float _balanceValue;
+    private BalanceMode _mode = BalanceMode.CrossMix;
+    private AntiClipStrategy _antiClip = AntiClipStrategy.PreventiveAttenuation;
 
     // 缓存的增益值
     private float _leftDirectGain;
@@ -108,18 +108,35 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
     // 动态增益调整用
     private float _dynamicGainReduction = 1.0f;
 
+    public ProfessionalBalanceProvider()
+    {
+        Balance = 0f;
+    }
+
     public ProfessionalBalanceProvider(
-        ISampleProvider sourceProvider,
+        ISampleProvider? sourceProvider,
         BalanceMode mode = BalanceMode.CrossMix,
         AntiClipStrategy antiClip = AntiClipStrategy.PreventiveAttenuation)
     {
-        if (sourceProvider.WaveFormat.Channels != 2)
-            throw new NotSupportedException(
-                $"Only stereo (2 channels) supported, got {_sourceProvider.WaveFormat.Channels}");
-        _sourceProvider = sourceProvider;
         _mode = mode;
         _antiClip = antiClip;
+        Source = sourceProvider;
         Balance = 0f;
+    }
+
+    public ISampleProvider? Source
+    {
+        get => field;
+        set
+        {
+            if (value != null && value.WaveFormat.Channels != 2)
+            {
+                throw new NotSupportedException(
+                    $"Only stereo (2 channels) supported, got {value.WaveFormat.Channels}");
+            }
+
+            field = value;
+        }
     }
 
     public float Balance
@@ -151,7 +168,14 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
         set => _antiClip = value;
     }
 
-    public WaveFormat WaveFormat => _sourceProvider.WaveFormat;
+    public WaveFormat WaveFormat => Source?.WaveFormat ?? throw new InvalidOperationException("Source not ready");
+
+    public ISampleProvider? ResetAndGetSource()
+    {
+        var child = Source;
+        Reset();
+        return child;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateGains()
@@ -268,18 +292,25 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int Read(float[] buffer, int offset, int count)
+    public int Read(float[] buffer, int offset, int sampleCount)
     {
-        if (count == 0) return 0;
-        int samplesRead = _sourceProvider.Read(buffer, offset, count);
+        if (Source == null)
+        {
+            Array.Clear(buffer, offset, sampleCount);
+            return sampleCount;
+        }
+
+        if (sampleCount == 0) return 0;
+        int samplesRead = Source.Read(buffer, offset, sampleCount);
 
         if (_balanceValue == 0 && _mode != BalanceMode.MidSide && _antiClip == AntiClipStrategy.None)
+        {
             return samplesRead;
+        }
 
         if (CanUseVectorization)
         {
             Span<float> data = buffer.AsSpan(offset, samplesRead);
-
             if (_mode == BalanceMode.MidSide)
             {
                 ProcessMidSideVectorized(data);
@@ -381,105 +412,7 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
         }
     }
 
-    //private void ProcessMidSideVectorized(Span<float> data)
-    //{
-    //    ref float dataRef = ref MemoryMarshal.GetReference(data);
-    //    int vecCount = data.Length / 4;
-
-    //    // 预计算 M/S 增益
-    //    float sideGainVal = 1.0f - Math.Abs(_balanceValue);
-    //    float midBalance = _balanceValue;
-
-    //    // 计算 Mid 增益
-    //    float midGainL, midGainR;
-    //    if (midBalance < 0)
-    //    {
-    //        float amount = -midBalance;
-    //        midGainL = 1.0f + amount * 0.5f;
-    //        midGainR = 1.0f - amount * 0.5f;
-    //    }
-    //    else if (midBalance > 0)
-    //    {
-    //        float amount = midBalance;
-    //        midGainL = 1.0f - amount * 0.5f;
-    //        midGainR = 1.0f + amount * 0.5f;
-    //    }
-    //    else
-    //    {
-    //        midGainL = midGainR = 1.0f;
-    //    }
-
-    //    // 构建向量: [GainL, GainR, GainL, GainR]
-    //    var vMidMixGain = Vector128.Create(midGainL, midGainR, midGainL, midGainR);
-    //    var vSideGain = Vector128.Create(sideGainVal);
-
-    //    bool canFullyVectorize = _antiClip is AntiClipStrategy.None
-    //        or AntiClipStrategy.PreventiveAttenuation
-    //        or AntiClipStrategy.HardLimit;
-
-    //    int i = 0;
-    //    for (; i < vecCount; i++)
-    //    {
-    //        Vector128<float> vIn = Unsafe.As<float, Vector128<float>>(
-    //            ref Unsafe.Add(ref dataRef, i * 4)
-    //        ); // [L1, R1, L2, R2]
-    //        Vector128<float> vSwapped = SwapStereoChannels(vIn);
-
-    //        // Mid = (L+R) * 0.5
-    //        Vector128<float> vMid = (vIn + vSwapped) * VHalf;
-
-    //        // Side = (L-R) * 0.5, 自然产生 [S, -S, S, -S] 符号
-    //        Vector128<float> vRawSide = (vIn - vSwapped) * VHalf;
-
-    //        // 混合: OutL = Mid*GainL + Side*Gain, OutR = Mid*GainR - Side*Gain
-    //        Vector128<float> vOut = (vMid * vMidMixGain) + (vRawSide * vSideGain);
-
-    //        if (canFullyVectorize && _antiClip == AntiClipStrategy.HardLimit)
-    //        {
-    //            vOut = Vector128.Min(Vector128.Max(vOut, VNegOne), VOne);
-    //        }
-
-    //        Unsafe.As<float, Vector128<float>>(ref Unsafe.Add(ref dataRef, i * 4)) = vOut;
-
-    //        if (!canFullyVectorize)
-    //        {
-    //            int baseIdx = i * 4;
-    //            ApplyComplexAntiClip(ref data[baseIdx], ref data[baseIdx + 1]);
-    //            ApplyComplexAntiClip(ref data[baseIdx + 2], ref data[baseIdx + 3]);
-    //        }
-    //    }
-
-    //    // 处理剩余部分
-    //    int remainingStart = i * 4;
-    //    for (int j = remainingStart; j < data.Length; j += 2)
-    //    {
-    //        float l = data[j];
-    //        float r = data[j + 1];
-    //        float mid = (l + r) * 0.5f;
-    //        float side = (l - r) * 0.5f * sideGainVal;
-
-    //        float outL = mid * midGainL + side;
-    //        float outR = mid * midGainR - side;
-
-    //        if (canFullyVectorize)
-    //        {
-    //            if (_antiClip == AntiClipStrategy.HardLimit)
-    //            {
-    //                outL = Math.Clamp(outL, -1f, 1f);
-    //                outR = Math.Clamp(outR, -1f, 1f);
-    //            }
-    //        }
-    //        else
-    //        {
-    //            ApplyComplexAntiClip(ref outL, ref outR);
-    //        }
-
-    //        data[j] = outL;
-    //        data[j + 1] = outR;
-    //    }
-    //}
-
-    public void ProcessMidSideVectorized(Span<float> data)
+    private void ProcessMidSideVectorized(Span<float> data)
     {
         ref float dataRef = ref MemoryMarshal.GetReference(data);
         int len = data.Length;
@@ -806,4 +739,15 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
 
         return Vector128.Create(v[1], v[0], v[3], v[2]);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Reset()
+    {
+        Source = null;
+        Balance = 0f;
+        Mode = BalanceMode.CrossMix;
+        AntiClipStrategy = AntiClipStrategy.PreventiveAttenuation;
+    }
+
+    public bool ExcludeFromPool { get; init; }
 }

@@ -3,8 +3,8 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
+using KeyAsio.Audio.Utils;
 using Microsoft.Extensions.Logging;
-using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
@@ -39,16 +39,11 @@ public class AudioPlaybackService
 
         try
         {
-            var seekableCachedAudioSampleProvider = new SeekableCachedAudioProvider(cachedAudio);
-            var volumeSampleProvider = new EnhancedVolumeSampleProvider(seekableCachedAudioSampleProvider)
-            {
-                Volume = volume
-            };
-            var balanceProvider = new ProfessionalBalanceProvider(volumeSampleProvider,
-                BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
-            {
-                Balance = balance
-            };
+            var seekableCachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
+            var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(seekableCachedAudioProvider, volume);
+            var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
+                BalanceMode.MidSide, AntiClipStrategy.None); // 由 MasterLimiterProvider 统一处理防削波
+
             _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
         catch (Exception ex)
@@ -61,19 +56,19 @@ public class AudioPlaybackService
 
     public void PlayLoopAudio(CachedAudio cachedAudio, ControlNode controlNode)
     {
-        var rootMixer = _audioEngine.EffectMixer;
+        var effectMixer = _audioEngine.EffectMixer;
         var volume = _appSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
 
         if (controlNode.ControlType == ControlType.StartSliding)
         {
             if (_loopProviderManager.ShouldRemoveAll((int)controlNode.SlideChannel))
             {
-                _loopProviderManager.RemoveAll(rootMixer);
+                _loopProviderManager.RemoveAll(effectMixer);
             }
 
             try
             {
-                _loopProviderManager.Create((int)controlNode.SlideChannel, cachedAudio, rootMixer, volume, 0, balanceFactor: 0);
+                _loopProviderManager.Create((int)controlNode.SlideChannel, cachedAudio, effectMixer, volume, 0, balanceFactor: 0);
             }
             catch (Exception ex)
             {
@@ -82,7 +77,7 @@ public class AudioPlaybackService
         }
         else if (controlNode.ControlType == ControlType.StopSliding)
         {
-            _loopProviderManager.Remove((int)controlNode.SlideChannel, rootMixer);
+            _loopProviderManager.Remove((int)controlNode.SlideChannel, effectMixer);
         }
         else if (controlNode.ControlType == ControlType.ChangeVolume)
         {

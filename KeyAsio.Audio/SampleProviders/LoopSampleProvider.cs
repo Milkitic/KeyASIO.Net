@@ -1,28 +1,46 @@
-﻿using NAudio.Wave;
+﻿using KeyAsio.Audio.Utils;
+using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public sealed class LoopSampleProvider : ISampleProvider
+public sealed class LoopSampleProvider : IRecyclableProvider, IPoolable
 {
-    private readonly SeekableCachedAudioProvider _source;
+    public LoopSampleProvider()
+    {
+    }
 
     public LoopSampleProvider(SeekableCachedAudioProvider source)
     {
-        _source = source;
+        Source = source;
     }
+
+    public SeekableCachedAudioProvider? Source { get; set; }
 
     public bool EnableLooping { get; set; } = true;
 
-    public WaveFormat WaveFormat => _source.WaveFormat;
+    public WaveFormat WaveFormat => Source?.WaveFormat ?? throw new InvalidOperationException("Source not initialized");
+
+    public ISampleProvider? ResetAndGetSource()
+    {
+        var child = Source;
+        Reset();
+        return child;
+    }
 
     public int Read(float[] buffer, int offset, int count)
     {
+        if (Source == null)
+        {
+            Array.Clear(buffer, offset, count);
+            return count;
+        }
+
         int totalSamplesRead = 0;
 
         while (totalSamplesRead < count)
         {
             int samplesRequired = count - totalSamplesRead;
-            int samplesRead = _source.Read(buffer, offset + totalSamplesRead, samplesRequired);
+            int samplesRead = Source.Read(buffer, offset + totalSamplesRead, samplesRequired);
 
             if (samplesRead == 0)
             {
@@ -31,14 +49,14 @@ public sealed class LoopSampleProvider : ISampleProvider
                     break;
                 }
 
-                if (_source.PlayTime == TimeSpan.Zero)
+                if (Source.PlayTime == TimeSpan.Zero)
                 {
                     // Something wrong with the source stream
                     break;
                 }
 
                 // Begin loop
-                _source.PlayTime = TimeSpan.Zero;
+                Source.PlayTime = TimeSpan.Zero;
             }
 
             totalSamplesRead += samplesRead;
@@ -52,4 +70,12 @@ public sealed class LoopSampleProvider : ISampleProvider
 
         return totalSamplesRead;
     }
+
+    public void Reset()
+    {
+        Source = null;
+        EnableLooping = true;
+    }
+
+    public bool ExcludeFromPool { get; init; }
 }

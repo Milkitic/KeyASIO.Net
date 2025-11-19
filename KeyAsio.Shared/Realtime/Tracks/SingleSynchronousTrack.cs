@@ -77,6 +77,7 @@ public class SingleSynchronousTrack
         _bgmCachedAudioSampleProvider = new SeekableCachedAudioProvider(cachedAudio,
             (int.MaxValue / 100) + LeadInMilliseconds)
         {
+            ExcludeFromPool = true,
             PlayTime = timeSpan
         };
         var builder = new SampleProviderBuilder(_bgmCachedAudioSampleProvider);

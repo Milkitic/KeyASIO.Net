@@ -5,23 +5,32 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public sealed class SeekableCachedAudioProvider : ISampleProvider
+public sealed class SeekableCachedAudioProvider : IRecyclableProvider, IPoolable
 {
-    private readonly CachedAudio _cachedAudio;
     private readonly Lock _sourceSoundLock = new();
 
-    private readonly int _channels;
-    private readonly int _sampleRate;
+    private CachedAudio? _cachedAudio;
 
-    private readonly int _preSamples;
-    private readonly int _totalAudioSamples;
-    private readonly int _totalSamples;
+    private int _channels;
+    private int _sampleRate;
 
-    private readonly double _inverseSampleRate; // 预计算 1/SampleRate 用于乘法代替除法
+    private int _preSamples;
+    private int _totalAudioSamples;
+    private int _totalSamples;
 
+    private double _inverseSampleRate; // 预计算 1/SampleRate 用于乘法代替除法
     private int _position;
 
+    public SeekableCachedAudioProvider()
+    {
+    }
+
     public SeekableCachedAudioProvider(CachedAudio cachedAudio, int leadInMilliseconds = 0)
+    {
+        Initialize(cachedAudio, leadInMilliseconds);
+    }
+
+    public void Initialize(CachedAudio cachedAudio, int leadInMilliseconds = 0)
     {
         _cachedAudio = cachedAudio;
 
@@ -45,7 +54,14 @@ public sealed class SeekableCachedAudioProvider : ISampleProvider
         _totalSamples = _totalAudioSamples + _preSamples;
     }
 
-    public WaveFormat WaveFormat { get; }
+    public WaveFormat WaveFormat { get; private set; } = null!;
+    public bool IsInitialized => _cachedAudio != null;
+
+    public ISampleProvider? ResetAndGetSource()
+    {
+        Reset();
+        return null;
+    }
 
     public TimeSpan PlayTime
     {
@@ -71,9 +87,11 @@ public sealed class SeekableCachedAudioProvider : ISampleProvider
 
         lock (_sourceSoundLock)
         {
+            if (_cachedAudio is not { } cachedAudio) return 0;
+
             var availableSamples = _totalSamples - _position;
             if (availableSamples <= 0) return 0;
-            if (!_cachedAudio.TryAcquirePointer(out byte* pSrcBase) || pSrcBase == null)
+            if (!cachedAudio.TryAcquirePointer(out byte* pSrcBase) || pSrcBase == null)
             {
                 return 0;
             }
@@ -86,9 +104,9 @@ public sealed class SeekableCachedAudioProvider : ISampleProvider
                     float* pTarget = pBuffer + offset;
                     short* pSourceShorts = (short*)pSrcBase;
 
-                    if (_position >= _preSamples)
+                    int readOffset = _position - _preSamples;
+                    if (readOffset >= 0)
                     {
-                        int readOffset = _position - _preSamples;
                         var pSrcCurrent = pSourceShorts + readOffset;
                         SimdAudioConverter.Convert16BitToFloatUnsafe(
                             pSrcCurrent,
@@ -107,7 +125,7 @@ public sealed class SeekableCachedAudioProvider : ISampleProvider
             }
             finally
             {
-                _cachedAudio.ReleasePointer();
+                cachedAudio.ReleasePointer();
             }
         }
     }
@@ -135,13 +153,20 @@ public sealed class SeekableCachedAudioProvider : ISampleProvider
         }
     }
 
-    private int TimeSpanToSamples(TimeSpan timeSpan)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int TimeSpanToSamples(TimeSpan timeSpan) => (int)(timeSpan.TotalSeconds * _sampleRate) * _channels;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private TimeSpan SamplesToTimeSpan(int samples) => TimeSpan.FromSeconds(samples * _inverseSampleRate / _channels);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Reset()
     {
-        return (int)(timeSpan.TotalSeconds * _sampleRate) * _channels;
+        _cachedAudio = null;
+        WaveFormat = null!;
+        _position = 0;
+        _preSamples = 0;
     }
 
-    private TimeSpan SamplesToTimeSpan(int samples)
-    {
-        return TimeSpan.FromSeconds(samples * _inverseSampleRate / _channels);
-    }
+    public bool ExcludeFromPool { get; init; }
 }

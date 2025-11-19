@@ -1,5 +1,7 @@
 ﻿using System.Buffers;
 using System.Numerics.Tensors;
+using KeyAsio.Audio.SampleProviders.BalancePans;
+using KeyAsio.Audio.Utils;
 using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
@@ -39,17 +41,34 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider
         if (WaveFormat == null) WaveFormat = mixerInput.WaveFormat;
         else if (WaveFormat.SampleRate != mixerInput.WaveFormat.SampleRate ||
                  WaveFormat.Channels != mixerInput.WaveFormat.Channels)
+        {
             throw new ArgumentException("All mixer inputs must have the same WaveFormat");
+        }
     }
 
     public void RemoveMixerInput(ISampleProvider mixerInput)
     {
-        lock (_lock) _sources.Remove(mixerInput);
+        lock (_lock)
+        {
+            var success = _sources.Remove(mixerInput);
+            if (success)
+            {
+                RecycleSourceChain(mixerInput);
+            }
+        }
     }
 
     public void RemoveAllMixerInputs()
     {
-        lock (_lock) _sources.Clear();
+        lock (_lock)
+        {
+            for (var i = _sources.Count - 1; i >= 0; i--)
+            {
+                var source = _sources[i];
+                _sources.RemoveAt(i);
+                RecycleSourceChain(source);
+            }
+        }
     }
 
     public int Read(float[] buffer, int offset, int count)
@@ -81,6 +100,7 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider
                     if (samplesRead < count)
                     {
                         _sources.RemoveAt(index);
+                        RecycleSourceChain(source);
                     }
 
                     index--;
@@ -95,5 +115,38 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider
         return ReadFully ? count : maxSamplesRead;
     }
 
-    public IEnumerable<ISampleProvider> MixerInputs => _sources;
+    public IEnumerable<ISampleProvider> MixerInputs
+    {
+        get
+        {
+            lock (_lock) return _sources;
+        }
+    }
+
+    private void RecycleSourceChain(ISampleProvider provider)
+    {
+        var current = provider;
+
+        while (current is IRecyclableProvider recyclable)
+        {
+            var next = recyclable.ResetAndGetSource();
+            switch (current)
+            {
+                case EnhancedVolumeSampleProvider vol:
+                    RecyclableSampleProviderFactory.Return(vol);
+                    break;
+                case ProfessionalBalanceProvider pan:
+                    RecyclableSampleProviderFactory.Return(pan);
+                    break;
+                case LoopSampleProvider loop:
+                    RecyclableSampleProviderFactory.Return(loop);
+                    break;
+                case SeekableCachedAudioProvider cache:
+                    RecyclableSampleProviderFactory.Return(cache);
+                    break;
+            }
+
+            current = next;
+        }
+    }
 }
