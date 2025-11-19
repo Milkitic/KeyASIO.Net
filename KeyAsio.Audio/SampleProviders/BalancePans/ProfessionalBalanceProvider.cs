@@ -52,24 +52,41 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
     //private const float GainAttack = 0.9999f;   // 快速降低
     private const float GainRelease = 0.99995f; // 缓慢恢复
     private const float ClipThreshold = 0.95f; // 提前触发阈值
+    public static bool EnableAvx512 { get; set; } = true;
 
     private static readonly bool CanUseVectorization =
         Vector128.IsHardwareAccelerated &&
         (Sse.IsSupported || AdvSimd.Arm64.IsSupported);
 
-    // 用于立体声交换的 Shuffle 掩码 [1, 0, 3, 2] -> 将 [L1, R1, L2, R2] 变为 [R1, L1, R2, L2]
     private static readonly Vector128<int> StereoSwapMask;
+    private static readonly Vector256<int> SwapMask256;
+    private static readonly Vector512<int> SwapMask512;
+
     private static readonly Vector128<float> VOne;
     private static readonly Vector128<float> VNegOne;
     private static readonly Vector128<float> VHalf;
 
     static ProfessionalBalanceProvider()
     {
-        if (!CanUseVectorization) return;
-        StereoSwapMask = Vector128.Create(1, 0, 3, 2);
-        VOne = Vector128.Create(1.0f);
-        VNegOne = Vector128.Create(-1.0f);
-        VHalf = Vector128.Create(0.5f);
+        if (CanUseVectorization)
+        {
+            // 用于立体声交换的 Shuffle 掩码 [1, 0, 3, 2] -> 将 [L1, R1, L2, R2] 变为 [R1, L1, R2, L2]
+            StereoSwapMask = Vector128.Create(1, 0, 3, 2);
+            VOne = Vector128.Create(1.0f);
+            VNegOne = Vector128.Create(-1.0f);
+            VHalf = Vector128.Create(0.5f);
+        }
+
+        if (Vector256.IsHardwareAccelerated)
+        {
+            // [1, 0, 3, 2, 5, 4, 7, 6] -> 交换相邻的 L/R
+            SwapMask256 = Vector256.Create(1, 0, 3, 2, 5, 4, 7, 6);
+        }
+
+        if (Vector512.IsHardwareAccelerated && EnableAvx512)
+        {
+            SwapMask512 = Vector512.Create(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14);
+        }
     }
 
     private readonly ISampleProvider _sourceProvider;
@@ -364,17 +381,113 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
         }
     }
 
-    private void ProcessMidSideVectorized(Span<float> data)
-    {  
-        ref float dataRef = ref MemoryMarshal.GetReference(data);
-        int vecCount = data.Length / 4;
+    //private void ProcessMidSideVectorized(Span<float> data)
+    //{
+    //    ref float dataRef = ref MemoryMarshal.GetReference(data);
+    //    int vecCount = data.Length / 4;
 
-        // 预计算 M/S 增益
+    //    // 预计算 M/S 增益
+    //    float sideGainVal = 1.0f - Math.Abs(_balanceValue);
+    //    float midBalance = _balanceValue;
+
+    //    // 计算 Mid 增益
+    //    float midGainL, midGainR;
+    //    if (midBalance < 0)
+    //    {
+    //        float amount = -midBalance;
+    //        midGainL = 1.0f + amount * 0.5f;
+    //        midGainR = 1.0f - amount * 0.5f;
+    //    }
+    //    else if (midBalance > 0)
+    //    {
+    //        float amount = midBalance;
+    //        midGainL = 1.0f - amount * 0.5f;
+    //        midGainR = 1.0f + amount * 0.5f;
+    //    }
+    //    else
+    //    {
+    //        midGainL = midGainR = 1.0f;
+    //    }
+
+    //    // 构建向量: [GainL, GainR, GainL, GainR]
+    //    var vMidMixGain = Vector128.Create(midGainL, midGainR, midGainL, midGainR);
+    //    var vSideGain = Vector128.Create(sideGainVal);
+
+    //    bool canFullyVectorize = _antiClip is AntiClipStrategy.None
+    //        or AntiClipStrategy.PreventiveAttenuation
+    //        or AntiClipStrategy.HardLimit;
+
+    //    int i = 0;
+    //    for (; i < vecCount; i++)
+    //    {
+    //        Vector128<float> vIn = Unsafe.As<float, Vector128<float>>(
+    //            ref Unsafe.Add(ref dataRef, i * 4)
+    //        ); // [L1, R1, L2, R2]
+    //        Vector128<float> vSwapped = SwapStereoChannels(vIn);
+
+    //        // Mid = (L+R) * 0.5
+    //        Vector128<float> vMid = (vIn + vSwapped) * VHalf;
+
+    //        // Side = (L-R) * 0.5, 自然产生 [S, -S, S, -S] 符号
+    //        Vector128<float> vRawSide = (vIn - vSwapped) * VHalf;
+
+    //        // 混合: OutL = Mid*GainL + Side*Gain, OutR = Mid*GainR - Side*Gain
+    //        Vector128<float> vOut = (vMid * vMidMixGain) + (vRawSide * vSideGain);
+
+    //        if (canFullyVectorize && _antiClip == AntiClipStrategy.HardLimit)
+    //        {
+    //            vOut = Vector128.Min(Vector128.Max(vOut, VNegOne), VOne);
+    //        }
+
+    //        Unsafe.As<float, Vector128<float>>(ref Unsafe.Add(ref dataRef, i * 4)) = vOut;
+
+    //        if (!canFullyVectorize)
+    //        {
+    //            int baseIdx = i * 4;
+    //            ApplyComplexAntiClip(ref data[baseIdx], ref data[baseIdx + 1]);
+    //            ApplyComplexAntiClip(ref data[baseIdx + 2], ref data[baseIdx + 3]);
+    //        }
+    //    }
+
+    //    // 处理剩余部分
+    //    int remainingStart = i * 4;
+    //    for (int j = remainingStart; j < data.Length; j += 2)
+    //    {
+    //        float l = data[j];
+    //        float r = data[j + 1];
+    //        float mid = (l + r) * 0.5f;
+    //        float side = (l - r) * 0.5f * sideGainVal;
+
+    //        float outL = mid * midGainL + side;
+    //        float outR = mid * midGainR - side;
+
+    //        if (canFullyVectorize)
+    //        {
+    //            if (_antiClip == AntiClipStrategy.HardLimit)
+    //            {
+    //                outL = Math.Clamp(outL, -1f, 1f);
+    //                outR = Math.Clamp(outR, -1f, 1f);
+    //            }
+    //        }
+    //        else
+    //        {
+    //            ApplyComplexAntiClip(ref outL, ref outR);
+    //        }
+
+    //        data[j] = outL;
+    //        data[j + 1] = outR;
+    //    }
+    //}
+
+    public void ProcessMidSideVectorized(Span<float> data)
+    {
+        ref float dataRef = ref MemoryMarshal.GetReference(data);
+        int len = data.Length;
+
         float sideGainVal = 1.0f - Math.Abs(_balanceValue);
         float midBalance = _balanceValue;
-
-        // 计算 Mid 增益
         float midGainL, midGainR;
+
         if (midBalance < 0)
         {
             float amount = -midBalance;
@@ -392,52 +505,134 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
             midGainL = midGainR = 1.0f;
         }
 
-        // 构建向量: [GainL, GainR, GainL, GainR]
-        var vMidMixGain = Vector128.Create(midGainL, midGainR, midGainL, midGainR);
-        var vSideGain = Vector128.Create(sideGainVal);
+        // 2. 准备不同宽度的向量常量
+        // 注意：Create 方法会自动将这4个值平铺填满整个向量
+        // 例如 Vector256 会填入 [L, R, L, R, L, R, L, R]
+        var vMidMixGain128 = Vector128.Create(midGainL, midGainR, midGainL, midGainR);
+        var vSideGain128 = Vector128.Create(sideGainVal);
+        var vHalf128 = Vector128.Create(0.5f);
+        var vOne128 = Vector128.Create(1.0f);
+        var vNegOne128 = Vector128.Create(-1.0f);
 
+        // 判断是否只做简单处理 (HardLimit 支持向量化)
         bool canFullyVectorize = _antiClip is AntiClipStrategy.None
             or AntiClipStrategy.PreventiveAttenuation
             or AntiClipStrategy.HardLimit;
 
         int i = 0;
-        for (; i < vecCount; i++)
-        {  
-            Vector128<float> vIn = Unsafe.As<float, Vector128<float>>(
-                ref Unsafe.Add(ref dataRef, i * 4)
-            ); // [L1, R1, L2, R2]
-            Vector128<float> vSwapped = SwapStereoChannels(vIn);
 
-            // Mid = (L+R) * 0.5
-            Vector128<float> vMid = (vIn + vSwapped) * VHalf;
+        // ---------------------------------------------------------
+        // PATH A: AVX-512 (512-bit, 16 floats / 8 stereo pairs)
+        // ---------------------------------------------------------
+        if (Vector512.IsHardwareAccelerated && canFullyVectorize && EnableAvx512)
+        {
+            var vMidMixGain = Vector512.Create(midGainL, midGainR, midGainL, midGainR, midGainL, midGainR, midGainL,
+                midGainR,
+                midGainL, midGainR, midGainL, midGainR, midGainL, midGainR, midGainL, midGainR);
+            var vSideGain = Vector512.Create(sideGainVal);
+            var vHalf = Vector512.Create(0.5f);
+            var vOne = Vector512.Create(1.0f);
+            var vNegOne = Vector512.Create(-1.0f);
 
-            // Side = (L-R) * 0.5, 自然产生 [S, -S, S, -S] 符号
-            Vector128<float> vRawSide = (vIn - vSwapped) * VHalf;
-
-            // 混合: OutL = Mid*GainL + Side*Gain, OutR = Mid*GainR - Side*Gain
-            Vector128<float> vOut = (vMid * vMidMixGain) + (vRawSide * vSideGain);
-
-            if (canFullyVectorize && _antiClip == AntiClipStrategy.HardLimit)
+            for (; i <= len - Vector512<float>.Count; i += Vector512<float>.Count)
             {
-                vOut = Vector128.Min(Vector128.Max(vOut, VNegOne), VOne);
+                // Load
+                Vector512<float> vIn = Vector512.LoadUnsafe(ref dataRef, (nuint)i);
+
+                // Swap L/R: [L, R...] -> [R, L...]
+                Vector512<float> vSwapped = Vector512.Shuffle(vIn, SwapMask512);
+
+                // Math
+                Vector512<float> vMid = (vIn + vSwapped) * vHalf;
+                Vector512<float> vRawSide = (vIn - vSwapped) * vHalf; // S = (L-R)/2
+                Vector512<float> vOut = (vMid * vMidMixGain) + (vRawSide * vSideGain);
+
+                // Hard Limit
+                if (_antiClip == AntiClipStrategy.HardLimit)
+                {
+                    vOut = Vector512.Min(Vector512.Max(vOut, vNegOne), vOne);
+                }
+
+                // Store
+                vOut.StoreUnsafe(ref dataRef, (nuint)i);
             }
+        }
+        // ---------------------------------------------------------
+        // PATH B: AVX2 (256-bit, 8 floats / 4 stereo pairs)
+        // ---------------------------------------------------------
+        else if (Vector256.IsHardwareAccelerated && canFullyVectorize)
+        {
+            var vMidMixGain = Vector256.Create(midGainL, midGainR, midGainL, midGainR, midGainL, midGainR, midGainL,
+                midGainR);
+            var vSideGain = Vector256.Create(sideGainVal);
+            var vHalf = Vector256.Create(0.5f);
+            var vOne = Vector256.Create(1.0f);
+            var vNegOne = Vector256.Create(-1.0f);
 
-            Unsafe.As<float, Vector128<float>>(ref Unsafe.Add(ref dataRef, i * 4)) = vOut;
-
-            if (!canFullyVectorize)
+            for (; i <= len - Vector256<float>.Count; i += Vector256<float>.Count)
             {
-                int baseIdx = i * 4;
-                ApplyComplexAntiClip(ref data[baseIdx], ref data[baseIdx + 1]);
-                ApplyComplexAntiClip(ref data[baseIdx + 2], ref data[baseIdx + 3]);
+                Vector256<float> vIn = Vector256.LoadUnsafe(ref dataRef, (nuint)i);
+
+                // .NET 8+ Shuffle 能够生成高效的 vpermps / vpermilps 指令
+                Vector256<float> vSwapped = Vector256.Shuffle(vIn, SwapMask256);
+
+                Vector256<float> vMid = (vIn + vSwapped) * vHalf;
+                Vector256<float> vRawSide = (vIn - vSwapped) * vHalf;
+                Vector256<float> vOut = (vMid * vMidMixGain) + (vRawSide * vSideGain);
+
+                if (_antiClip == AntiClipStrategy.HardLimit)
+                {
+                    vOut = Vector256.Min(Vector256.Max(vOut, vNegOne), vOne);
+                }
+
+                vOut.StoreUnsafe(ref dataRef, (nuint)i);
             }
         }
 
-        // 处理剩余部分
-        int remainingStart = i * 4;
-        for (int j = remainingStart; j < data.Length; j += 2)
+        // ---------------------------------------------------------
+        // PATH C: SSE/Neon (128-bit, 4 floats / 2 stereo pairs)
+        // ---------------------------------------------------------
+        // 这里的逻辑和你原有的类似，但是稍微清理了 unsafe 写法，直接用 Vector API
+        for (; i <= len - Vector128<float>.Count; i += Vector128<float>.Count)
         {
-            float l = data[j];
-            float r = data[j + 1];
+            Vector128<float> vIn = Vector128.LoadUnsafe(ref dataRef, (nuint)i);
+
+            // 使用原有的 SwapStereoChannels (假设它已针对 128位 优化)
+            Vector128<float> vSwapped = SwapStereoChannels(vIn);
+
+            Vector128<float> vMid = (vIn + vSwapped) * vHalf128;
+            Vector128<float> vRawSide = (vIn - vSwapped) * vHalf128;
+            Vector128<float> vOut = (vMid * vMidMixGain128) + (vRawSide * vSideGain128);
+
+            if (canFullyVectorize && _antiClip == AntiClipStrategy.HardLimit)
+            {
+                vOut = Vector128.Min(Vector128.Max(vOut, vNegOne128), vOne128);
+            }
+
+            vOut.StoreUnsafe(ref dataRef, (nuint)i);
+
+            // 处理复杂的 AntiClip (不能向量化的部分)
+            if (!canFullyVectorize)
+            {
+                int baseIdx = i;
+                // Vector128 存回去之后，再取出来做非线性处理 (Tanh/Dynamic)
+                // 注意：这里有个性能陷阱。如果你在这里做 SoftClip，
+                // 之前的向量化计算可能被 Store-Load Forwarding 延迟拖慢。
+                // 但考虑到 SoftClip 本身全是数学函数，这点开销可以接受。
+                ApplyComplexAntiClip(ref Unsafe.Add(ref dataRef, baseIdx), ref Unsafe.Add(ref dataRef, baseIdx + 1));
+                ApplyComplexAntiClip(ref Unsafe.Add(ref dataRef, baseIdx + 2),
+                    ref Unsafe.Add(ref dataRef, baseIdx + 3));
+            }
+        }
+
+        // 3. 处理剩余尾部 (Scalar Loop)
+        for (; i < len; i += 2)
+        {
+            // 保持原有的 Scalar 处理逻辑 ...
+            // (此处代码省略，与原版一致)
+            float l = Unsafe.Add(ref dataRef, i);
+            float r = Unsafe.Add(ref dataRef, i + 1);
+
             float mid = (l + r) * 0.5f;
             float side = (l - r) * 0.5f * sideGainVal;
 
@@ -457,11 +652,10 @@ public sealed class ProfessionalBalanceProvider : ISampleProvider
                 ApplyComplexAntiClip(ref outL, ref outR);
             }
 
-            data[j] = outL;
-            data[j + 1] = outR;
+            Unsafe.Add(ref dataRef, i) = outL;
+            Unsafe.Add(ref dataRef, i + 1) = outR;
         }
     }
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ApplyComplexAntiClip(ref float left, ref float right)
