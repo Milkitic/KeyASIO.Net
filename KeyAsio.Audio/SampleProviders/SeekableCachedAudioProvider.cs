@@ -5,7 +5,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public class SeekableCachedAudioProvider : ISampleProvider
+public sealed class SeekableCachedAudioProvider : ISampleProvider
 {
     private readonly CachedAudio _cachedAudio;
     private readonly Lock _sourceSoundLock = new();

@@ -2,7 +2,7 @@
 
 namespace KeyAsio.Audio.SampleProviders.BalancePans;
 
-public class BalanceSampleProvider : ISampleProvider
+public sealed class BalanceSampleProvider : ISampleProvider
 {
     private readonly ISampleProvider _sourceProvider;
     private float _leftVolume = 0.5f;

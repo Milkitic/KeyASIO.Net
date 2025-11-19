@@ -15,7 +15,7 @@ namespace KeyAsio.Audio.SampleProviders.Limiters;
 /// threshold, it applies gain reduction smoothly (based on attack and release times)
 /// to ensure the output signal does not surpass the ceiling.
 /// </remarks>
-public class MasterLimiterProvider : ILimiterSampleProvider
+public sealed class MasterLimiterProvider : ILimiterSampleProvider
 {
     private readonly ISampleProvider _source;
     private readonly int _channels;
@@ -169,6 +169,7 @@ public class MasterLimiterProvider : ILimiterSampleProvider
 
     private void Process(float[] buffer, int offset, int count)
     {
+        int channels = _channels;
         int frameCount = count / _channels;
 
         float gainReduction = _gainReduction;
@@ -178,12 +179,12 @@ public class MasterLimiterProvider : ILimiterSampleProvider
 
         float thresholdLinear = _thresholdLinear;
         float ceilingLinear = _ceilingLinear;
+        float effectiveThreshold = Math.Min(thresholdLinear, ceilingLinear);
+
         float attackCoeff = _attackCoeff;
         float releaseCoeff = _releaseCoeff;
         int lookaheadFrames = _lookaheadFrames;
-        int channels = _channels;
 
-        float effectiveThreshold = Math.Min(thresholdLinear, ceilingLinear);
         Span<float> lookaheadBuffer = _lookaheadBuffer.AsSpan();
         Span<float> peakBuffer = _peakBuffer.AsSpan();
 

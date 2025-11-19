@@ -6,7 +6,7 @@ namespace KeyAsio.Audio.SampleProviders;
 /// Sample Provider to allow fading in and out.
 /// <para>Modified from <seealso href="https://github.com/naudio/NAudio/blob/master/NAudio.Core/Wave/SampleProviders/FadeInOutSampleProvider.cs"/></para>
 /// </summary>
-public class EnhancedFadeInOutSampleProvider : ISampleProvider
+public sealed class EnhancedFadeInOutSampleProvider : ISampleProvider
 {
     enum FadeState
     {

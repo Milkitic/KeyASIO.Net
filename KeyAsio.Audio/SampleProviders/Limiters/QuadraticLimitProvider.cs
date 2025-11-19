@@ -12,7 +12,7 @@ namespace KeyAsio.Audio.SampleProviders.Limiters;
 /// This is not a lookahead limiter and may cause distortion on fast transients,
 /// but it is very lightweight.
 /// </remarks>
-public class QuadraticLimitProvider : ILimiterSampleProvider
+public sealed class QuadraticLimitProvider : ILimiterSampleProvider
 {
     private readonly ISampleProvider _source;
     private float _threshold = 0.95f;

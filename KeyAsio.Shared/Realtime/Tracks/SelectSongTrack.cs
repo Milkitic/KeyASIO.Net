@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Coosu.Beatmap;
 using KeyAsio.Audio;
 using KeyAsio.Audio.SampleProviders;
@@ -27,7 +26,7 @@ public class SelectSongTrack
         _audioEngine = audioEngine;
     }
 
-    private MixingSampleProvider? Mixer => _audioEngine.MusicMixer;
+    private EnhancedMixingSampleProvider? Mixer => _audioEngine.MusicMixer;
     private WaveFormat? WaveFormat => _audioEngine.EngineWaveFormat;
 
     public async Task PlaySingleAudio(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)

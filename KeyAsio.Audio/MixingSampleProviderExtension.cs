@@ -2,13 +2,12 @@
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
 using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Audio;
 
 internal static class MixingSampleProviderExtension
 {
-    extension(MixingSampleProvider mixer)
+    extension(EnhancedMixingSampleProvider mixer)
     {
         public ISampleProvider? PlayAudio(CachedAudio cachedAudio, SampleControl? sampleControl)
         {
@@ -72,13 +71,13 @@ internal static class MixingSampleProviderExtension
         }
     }
 
-    private static void PlayAudio(MixingSampleProvider mixer, CachedAudio cachedAudio, SampleControl? sampleControl,
+    private static void PlayAudio(EnhancedMixingSampleProvider mixer, CachedAudio cachedAudio, SampleControl? sampleControl,
         out ISampleProvider? rootSample)
     {
         mixer.AddMixerInput(new CachedAudioProvider(cachedAudio), sampleControl, out rootSample);
     }
 
-    private static void PlayAudio(MixingSampleProvider mixer, CachedAudio cachedAudio, float volume, float balance,
+    private static void PlayAudio(EnhancedMixingSampleProvider mixer, CachedAudio cachedAudio, float volume, float balance,
         out ISampleProvider? rootSample)
     {
         mixer.AddMixerInput(new CachedAudioProvider(cachedAudio), volume, balance, out rootSample);
@@ -95,7 +94,7 @@ internal static class MixingSampleProviderExtension
 
     private static ProfessionalBalanceProvider AddToBalanceProvider(ISampleProvider input, float balance)
     {
-        var balanceProvider = new ProfessionalBalanceProvider(input, 
+        var balanceProvider = new ProfessionalBalanceProvider(input,
             BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
         {
             Balance = balance

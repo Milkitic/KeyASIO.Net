@@ -2,7 +2,7 @@
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public class LoopSampleProvider : ISampleProvider
+public sealed class LoopSampleProvider : ISampleProvider
 {
     private readonly SeekableCachedAudioProvider _source;
 

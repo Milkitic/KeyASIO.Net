@@ -1,7 +1,6 @@
 ﻿using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
-using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Audio;
 
@@ -12,7 +11,7 @@ internal sealed class LoopProvider : IDisposable
     private readonly EnhancedVolumeSampleProvider _volumeProvider;
     private readonly ProfessionalBalanceProvider _balanceProvider;
 
-    private MixingSampleProvider? _baseMixer;
+    private EnhancedMixingSampleProvider? _baseMixer;
 
     public LoopProvider(CachedAudio cachedAudio,
         float initialVolume,
@@ -41,14 +40,14 @@ internal sealed class LoopProvider : IDisposable
         _volumeProvider.Volume = volume;
     }
 
-    public void AddTo(MixingSampleProvider? mixer)
+    public void AddTo(EnhancedMixingSampleProvider? mixer)
     {
         if (_baseMixer != null) return;
         mixer?.AddMixerInput(_balanceProvider);
         _baseMixer = mixer;
     }
 
-    public void RemoveFrom(MixingSampleProvider? mixer)
+    public void RemoveFrom(EnhancedMixingSampleProvider? mixer)
     {
         if (_baseMixer == null) return;
         mixer?.RemoveMixerInput(_balanceProvider);

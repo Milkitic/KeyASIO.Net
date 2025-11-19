@@ -1,5 +1,5 @@
 using KeyAsio.Audio.Caching;
-using NAudio.Wave.SampleProviders;
+using KeyAsio.Audio.SampleProviders;
 
 namespace KeyAsio.Audio;
 
@@ -50,7 +50,7 @@ public class LoopProviderManager
         return true;
     }
 
-    public bool Remove(int slideChannel, MixingSampleProvider? mixer)
+    public bool Remove(int slideChannel, EnhancedMixingSampleProvider? mixer)
     {
         if (_dictionary.TryGetValue(slideChannel, out var loopProvider))
         {
@@ -62,7 +62,7 @@ public class LoopProviderManager
         return false;
     }
 
-    public void RemoveAll(MixingSampleProvider? mixer)
+    public void RemoveAll(EnhancedMixingSampleProvider? mixer)
     {
         foreach (var kvp in _dictionary.ToList())
         {
@@ -75,7 +75,7 @@ public class LoopProviderManager
         }
     }
 
-    public void PauseAll(MixingSampleProvider? mixer)
+    public void PauseAll(EnhancedMixingSampleProvider? mixer)
     {
         foreach (var kvp in _dictionary)
         {
@@ -86,7 +86,7 @@ public class LoopProviderManager
         }
     }
 
-    public void RecoverAll(MixingSampleProvider? mixer)
+    public void RecoverAll(EnhancedMixingSampleProvider? mixer)
     {
         foreach (var kvp in _dictionary)
         {
@@ -99,13 +99,13 @@ public class LoopProviderManager
 
     public void Create(int slideChannel,
         CachedAudio cachedAudio,
-        MixingSampleProvider mixer,
+        EnhancedMixingSampleProvider mixingSampleProvider,
         float volume,
         float balance,
         float volumeFactor = 1.25f,
         float balanceFactor = 1)
     {
-        Remove(slideChannel, mixer);
+        Remove(slideChannel, mixingSampleProvider);
 
         if (cachedAudio.Length == 0 || cachedAudio.IsDisposingOrDisposed)
         {
@@ -118,6 +118,6 @@ public class LoopProviderManager
         );
 
         _dictionary.Add(slideChannel, loopProvider);
-        loopProvider.AddTo(mixer);
+        loopProvider.AddTo(mixingSampleProvider);
     }
 }

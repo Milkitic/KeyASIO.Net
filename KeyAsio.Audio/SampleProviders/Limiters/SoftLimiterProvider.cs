@@ -12,7 +12,7 @@ namespace KeyAsio.Audio.SampleProviders.Limiters;
 /// harsh digital distortion. The <see cref="Drive"/> parameter controls the
 /// intensity of the saturation effect.
 /// </remarks>
-public class SoftLimiterProvider : ILimiterSampleProvider
+public sealed class SoftLimiterProvider : ILimiterSampleProvider
 {
     private readonly ISampleProvider _source;
     private float _drive = 0.9f;  // 驱动强度

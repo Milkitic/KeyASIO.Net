@@ -2,7 +2,7 @@
 
 namespace KeyAsio.Audio.SampleProviders.BalancePans;
 
-public class PanSampleProvider : ISampleProvider
+public sealed class PanSampleProvider : ISampleProvider
 {
     private readonly ISampleProvider _sourceProvider;
     private float _balanceValue = 0f;

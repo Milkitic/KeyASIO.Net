@@ -7,7 +7,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders.BalancePans;
 
-public class ProfessionalBalanceProvider : ISampleProvider
+public sealed class ProfessionalBalanceProvider : ISampleProvider
 {
     // =============== 使用示例和性能对比 ===============
     /*

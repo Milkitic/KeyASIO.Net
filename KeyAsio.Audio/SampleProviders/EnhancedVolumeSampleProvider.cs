@@ -7,7 +7,7 @@ namespace KeyAsio.Audio.SampleProviders;
 /// <summary>
 /// Very simple sample provider supporting adjustable gain
 /// </summary>
-public class EnhancedVolumeSampleProvider : ISampleProvider
+public sealed class EnhancedVolumeSampleProvider : ISampleProvider
 {
     private const float VolumeTolerance = 0.001f;
 

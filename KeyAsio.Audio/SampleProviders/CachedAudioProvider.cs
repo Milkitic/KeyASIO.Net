@@ -4,7 +4,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public class CachedAudioProvider : ISampleProvider
+public sealed class CachedAudioProvider : ISampleProvider
 {
     private readonly CachedAudio _cachedAudio;
     private readonly int _totalSamples;

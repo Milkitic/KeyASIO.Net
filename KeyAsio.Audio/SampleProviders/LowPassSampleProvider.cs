@@ -3,7 +3,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public class LowPassSampleProvider : ISampleProvider
+public sealed class LowPassSampleProvider : ISampleProvider
 {
     private readonly ISampleProvider _sourceProvider;
     private readonly int _sampleRate;

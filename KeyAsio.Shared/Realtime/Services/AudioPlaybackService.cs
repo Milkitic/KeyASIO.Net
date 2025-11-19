@@ -90,7 +90,7 @@ public class AudioPlaybackService
         }
     }
 
-    public void ClearAllLoops(MixingSampleProvider? mixingSampleProvider = null)
+    public void ClearAllLoops(EnhancedMixingSampleProvider? mixingSampleProvider = null)
     {
         mixingSampleProvider ??= _audioEngine.EffectMixer;
         _loopProviderManager.RemoveAll(mixingSampleProvider);

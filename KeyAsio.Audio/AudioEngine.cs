@@ -40,9 +40,9 @@ public class AudioEngine
     public IWavePlayer? CurrentDevice { get; private set; }
     public WaveFormat SourceWaveFormat { get; private set; } = null!;
     public WaveFormat EngineWaveFormat { get; private set; } = null!;
-    public MixingSampleProvider EffectMixer { get; private set; } = null!;
-    public MixingSampleProvider MusicMixer { get; private set; } = null!;
-    public MixingSampleProvider RootMixer { get; private set; } = null!;
+    public EnhancedMixingSampleProvider EffectMixer { get; private set; } = null!;
+    public EnhancedMixingSampleProvider MusicMixer { get; private set; } = null!;
+    public EnhancedMixingSampleProvider RootMixer { get; private set; } = null!;
     public ISampleProvider RootSampleProvider { get; private set; } = null!;
 
     public float MainVolume
@@ -75,17 +75,17 @@ public class AudioEngine
         EngineWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
         SourceWaveFormat = waveFormat;
 
-        RootMixer = new MixingSampleProvider(EngineWaveFormat)
+        RootMixer = new EnhancedMixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };
-        EffectMixer = new MixingSampleProvider(EngineWaveFormat)
+        EffectMixer = new EnhancedMixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };
         _effectVolumeSampleProvider.Source = EffectMixer;
 
-        MusicMixer = new MixingSampleProvider(EngineWaveFormat)
+        MusicMixer = new EnhancedMixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };
