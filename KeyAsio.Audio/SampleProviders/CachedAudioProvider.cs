@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.Utils;
 using NAudio.Wave;
@@ -8,6 +7,7 @@ namespace KeyAsio.Audio.SampleProviders;
 public class CachedAudioProvider : ISampleProvider
 {
     private readonly CachedAudio _cachedAudio;
+    private readonly int _totalSamples;
     private int _position; // Sample的位置
 
     public CachedAudioProvider(CachedAudio cachedAudio)
@@ -16,35 +16,47 @@ public class CachedAudioProvider : ISampleProvider
         WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(
             cachedAudio.WaveFormat.SampleRate,
             cachedAudio.WaveFormat.Channels);
+        // 计算总样本数：字节数 / 2 (16-bit = 2 bytes)
+        _totalSamples = cachedAudio.Length / 2;
     }
 
     public WaveFormat WaveFormat { get; }
 
-    public int Read(float[] buffer, int offset, int count)
+    public unsafe int Read(float[] buffer, int offset, int count)
     {
-        var span = _cachedAudio.Span;
-        if (span.IsEmpty) return 0;
+        if (count == 0) return 0;
 
-        // 计算总样本数：字节数 / 2 (16-bit = 2 bytes)
-        var totalSamples = span.Length / 2;
-        var availableSamples = totalSamples - _position;
-
+        var readOffset = _position;
+        var availableSamples = _totalSamples - readOffset;
         if (availableSamples <= 0) return 0;
 
-        var samplesToCopy = Math.Min(availableSamples, count);
+        if (!_cachedAudio.TryAcquirePointer(out byte* pSrcBase) || pSrcBase == null)
+        {
+            return 0;
+        }
 
-        // 获取源数据的 Span (byte)
-        var sourceBytesSpan = span.Slice(_position * 2, samplesToCopy * 2); // x2 因为是字节位置
+        try
+        {
+            var samplesToCopy = Math.Min(availableSamples, count);
+            var pSourceShorts = (short*)pSrcBase;
+            short* pSrcCurrent = pSourceShorts + readOffset;
 
-        // 将 byte 视作 short (PCM-16)
-        var sourceShortsSpan = MemoryMarshal.Cast<byte, short>(sourceBytesSpan);
+            fixed (float* pBuffer = buffer)
+            {
+                var pTarget = pBuffer + offset;
+                SimdAudioConverter.Convert16BitToFloatUnsafe(
+                    pSrcCurrent,
+                    pTarget,
+                    samplesToCopy
+                );
+            }
 
-        // 目标 Buffer
-        var targetSpan = buffer.AsSpan(offset, samplesToCopy);
-
-        SimdAudioConverter.Convert16BitToFloat(sourceShortsSpan, targetSpan);
-
-        _position += samplesToCopy;
-        return samplesToCopy;
+            _position += samplesToCopy;
+            return samplesToCopy;
+        }
+        finally
+        {
+            _cachedAudio.ReleasePointer();
+        }
     }
 }

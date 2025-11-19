@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace KeyAsio.Audio.Utils;
 
@@ -7,42 +8,39 @@ public static class SimdAudioConverter
     // 预计算乘法因子，乘法比除法快
     private const float ScalingFactor = 1.0f / 32768f;
 
-    public static void Convert16BitToFloat(ReadOnlySpan<short> source, Span<float> destination)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe void Convert16BitToFloatUnsafe(short* pSource, float* pDest, int sampleCount)
     {
         int i = 0;
 
-        // 检查硬件加速是否可用
         if (Vector.IsHardwareAccelerated)
         {
-            // Vector<short>.Count 通常是 8 (128-bit) 或 16 (256-bit)
-            int vectorSize = Vector<short>.Count;
+            // Vector<short>.Count: AVX2=16, SSE2=8
+            int vectorShortCount = Vector<short>.Count;
 
-            // 必须确保源和目标都足够长
-            while (i <= source.Length - vectorSize)
+            while (i <= sampleCount - vectorShortCount)
             {
-                // 1. 加载 Short 向量
-                var sourceVector = new Vector<short>(source.Slice(i));
+                var sourceVector = Unsafe.Read<Vector<short>>(pSource + i);
 
-                // 2. 将 Short 扩展为 Int (因为 Short->Float 精度提升，宽度翻倍)
+                // Widen: Short -> Int
                 Vector.Widen(sourceVector, out Vector<int> lowInts, out Vector<int> highInts);
 
-                // 3. 将 Int 转 Float 并乘以缩放因子
+                // Int -> Float 并缩放
                 var lowFloats = Vector.ConvertToSingle(lowInts) * ScalingFactor;
                 var highFloats = Vector.ConvertToSingle(highInts) * ScalingFactor;
 
-                // 4. 写入目标 (Vector<int> 变成了两个 Vector<float>)
                 // Vector<float>.Count 是 Vector<short>.Count 的一半
-                lowFloats.CopyTo(destination.Slice(i));
-                highFloats.CopyTo(destination.Slice(i + Vector<float>.Count));
+                // 比如 Short向量是16个，那么 Float向量是8个，需要写两次
+                Unsafe.Write(pDest + i, lowFloats);
+                Unsafe.Write(pDest + i + Vector<float>.Count, highFloats);
 
-                i += vectorSize;
+                i += vectorShortCount;
             }
         }
 
-        // 处理剩余的数据 (或者不支持 SIMD 的机器)
-        for (; i < source.Length; i++)
+        for (; i < sampleCount; i++)
         {
-            destination[i] = source[i] * ScalingFactor;
+            pDest[i] = pSource[i] * ScalingFactor;
         }
     }
 }

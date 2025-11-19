@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.Utils;
 using NAudio.Wave;
@@ -10,16 +9,32 @@ public class SeekableCachedAudioProvider : ISampleProvider
 {
     private readonly CachedAudio _cachedAudio;
     private readonly Lock _sourceSoundLock = new();
+
+    private readonly int _channels;
+    private readonly int _sampleRate;
+
     private readonly int _preSamples;
+    private readonly int _totalAudioSamples;
+    private readonly int _totalSamples;
+
+    private readonly double _inverseSampleRate; // 预计算 1/SampleRate 用于乘法代替除法
 
     private int _position;
 
     public SeekableCachedAudioProvider(CachedAudio cachedAudio, int leadInMilliseconds = 0)
     {
         _cachedAudio = cachedAudio;
+
+        _sampleRate = cachedAudio.WaveFormat.SampleRate;
+        _channels = cachedAudio.WaveFormat.Channels;
+
         WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(
             cachedAudio.WaveFormat.SampleRate,
             cachedAudio.WaveFormat.Channels);
+
+        _inverseSampleRate = 1.0 / _sampleRate;
+        // 计算音频数据的总样本数 (Bytes / 2)
+        _totalAudioSamples = _cachedAudio.Length / 2;
 
         if (leadInMilliseconds != 0)
         {
@@ -27,6 +42,7 @@ public class SeekableCachedAudioProvider : ISampleProvider
             _position = _preSamples;
         }
 
+        _totalSamples = _totalAudioSamples + _preSamples;
     }
 
     public WaveFormat WaveFormat { get; }
@@ -49,78 +65,83 @@ public class SeekableCachedAudioProvider : ISampleProvider
         }
     }
 
-    public int Read(float[] buffer, int offset, int count)
+    public unsafe int Read(float[] buffer, int offset, int count)
     {
+        if (count == 0) return 0;
+
         lock (_sourceSoundLock)
         {
-            // 计算音频数据的总样本数 (Bytes / 2)
-            var span = _cachedAudio.Span;
-            if (span.IsEmpty) return 0;
-
-            int totalAudioSamples = span.Length / 2;
-            var availableSamples = (totalAudioSamples + _preSamples) - _position;
-
+            var availableSamples = _totalSamples - _position;
             if (availableSamples <= 0) return 0;
-
-            var samplesToCopy = Math.Min(availableSamples, count);
-
-            // Case 1: 无前置静音，直接读取
-            if (_preSamples == 0)
+            if (!_cachedAudio.TryAcquirePointer(out byte* pSrcBase) || pSrcBase == null)
             {
-                ReadAndConvert(span, _position, samplesToCopy, buffer, offset);
+                return 0;
+            }
+
+            try
+            {
+                var samplesToCopy = Math.Min(availableSamples, count);
+                fixed (float* pBuffer = buffer)
+                {
+                    float* pTarget = pBuffer + offset;
+                    short* pSourceShorts = (short*)pSrcBase;
+
+                    if (_position >= _preSamples)
+                    {
+                        int readOffset = _position - _preSamples;
+                        var pSrcCurrent = pSourceShorts + readOffset;
+                        SimdAudioConverter.Convert16BitToFloatUnsafe(
+                            pSrcCurrent,
+                            pTarget,
+                            samplesToCopy
+                        );
+                    }
+                    else
+                    {
+                        ProcessWithSilence(pSourceShorts, pTarget, samplesToCopy);
+                    }
+                }
+
                 _position += samplesToCopy;
                 return samplesToCopy;
             }
-
-            // Case 2: 有前置静音逻辑
-            var silenceCount = _preSamples - _position;
-            if (silenceCount <= 0)
+            finally
             {
-                // 已经过了静音期，纯音频
-                ReadAndConvert(span, -silenceCount, samplesToCopy, buffer, offset);
+                _cachedAudio.ReleasePointer();
             }
-            else if (silenceCount >= samplesToCopy)
-            {
-                // 完全在静音期内
-                buffer.AsSpan(offset, samplesToCopy).Clear();
-            }
-            else
-            {
-                var audioCount = samplesToCopy - silenceCount;
-                // 填静音
-                buffer.AsSpan(offset, silenceCount).Clear();
-                // 填音频 (从 0 开始)
-                ReadAndConvert(span, 0, audioCount, buffer, offset + silenceCount);
-            }
-
-            _position += samplesToCopy;
-            return samplesToCopy;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ReadAndConvert(Span<byte> span, int sourceSampleOffset, int sampleCount, float[] targetBuffer, int targetOffset)
+    private unsafe void ProcessWithSilence(short* pSource, float* pTarget, int samplesToCopy)
     {
-        var sourceBytes = span.Slice(sourceSampleOffset * 2, sampleCount * 2);
-        var sourceShorts = MemoryMarshal.Cast<byte, short>(sourceBytes);
-        var targetSpan = targetBuffer.AsSpan(targetOffset, sampleCount);
-        SimdAudioConverter.Convert16BitToFloat(sourceShorts, targetSpan);
+        var silenceCount = _preSamples - _position;
+
+        // 如果剩余部分全是静音
+        if (silenceCount >= samplesToCopy)
+        {
+            new Span<float>(pTarget, samplesToCopy).Clear();
+        }
+        else
+        {
+            new Span<float>(pTarget, silenceCount).Clear();
+
+            var audioCount = samplesToCopy - silenceCount;
+            SimdAudioConverter.Convert16BitToFloatUnsafe(
+                pSource,
+                pTarget + silenceCount,
+                audioCount
+            );
+        }
     }
 
     private int TimeSpanToSamples(TimeSpan timeSpan)
     {
-        return (int)(timeSpan.TotalSeconds * WaveFormat.SampleRate) * WaveFormat.Channels;
+        return (int)(timeSpan.TotalSeconds * _sampleRate) * _channels;
     }
 
     private TimeSpan SamplesToTimeSpan(int samples)
     {
-        return WaveFormat.Channels switch
-        {
-            1 => TimeSpan.FromSeconds((samples) / (double)WaveFormat.SampleRate),
-            2 => TimeSpan.FromSeconds((samples >> 1) / (double)WaveFormat.SampleRate),
-            4 => TimeSpan.FromSeconds((samples >> 2) / (double)WaveFormat.SampleRate),
-            8 => TimeSpan.FromSeconds((samples >> 3) / (double)WaveFormat.SampleRate),
-            _ => TimeSpan.FromSeconds(samples / (double)WaveFormat.Channels / WaveFormat.SampleRate)
-        };
+        return TimeSpan.FromSeconds(samples * _inverseSampleRate / _channels);
     }
 }

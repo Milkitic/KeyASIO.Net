@@ -44,20 +44,11 @@ internal sealed unsafe class UnmanagedByteMemoryOwner : IMemoryOwner<byte>
         _manager = new UnmanagedByteMemoryManager((byte*)ptr, length);
     }
 
-    public static UnmanagedByteMemoryOwner Allocate(int length)
-    {
-        var p = NativeMemory.Alloc((nuint)length);
-        return new UnmanagedByteMemoryOwner((IntPtr)p, length);
-    }
+    internal byte* Pointer => (byte*)_ptr;
 
     public Memory<byte> Memory => _disposed || _manager == null ? Memory<byte>.Empty : _manager.Memory;
 
     public int Length => _length;
-
-    ~UnmanagedByteMemoryOwner()
-    {
-        Dispose(false);
-    }
 
     public void Resize(int newLength)
     {
@@ -69,6 +60,17 @@ internal sealed unsafe class UnmanagedByteMemoryOwner : IMemoryOwner<byte>
         _length = newLength;
 
         _manager = new UnmanagedByteMemoryManager((byte*)newPtr, newLength);
+    }
+
+    public static UnmanagedByteMemoryOwner Allocate(int length)
+    {
+        var p = NativeMemory.Alloc((nuint)length);
+        return new UnmanagedByteMemoryOwner((IntPtr)p, length);
+    }
+
+    ~UnmanagedByteMemoryOwner()
+    {
+        Dispose(false);
     }
 
     public void Dispose()
