@@ -1,9 +1,4 @@
-using System.Buffers;
 using KeyAsio.Audio.Caching;
-using KeyAsio.Audio.SampleProviders;
-using KeyAsio.Audio.SampleProviders.BalancePans;
-using KeyAsio.Audio.Wave;
-using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Audio;
@@ -103,39 +98,25 @@ public class LoopProviderManager
     }
 
     public void Create(int slideChannel,
-        CachedAudio? cachedAudio,
+        CachedAudio cachedAudio,
         MixingSampleProvider mixer,
         float volume,
         float balance,
         float volumeFactor = 1.25f,
         float balanceFactor = 1)
     {
-        if (cachedAudio is null) return;
-
         Remove(slideChannel, mixer);
 
-        var span = cachedAudio.Span;
-        if (span.IsEmpty) return;
-
-        var audioDataLength = span.Length;
-        var byteArray = ArrayPool<byte>.Shared.Rent(audioDataLength);
-        span.CopyTo(byteArray);
-
-        var memoryStream = new MemoryStream(byteArray, 0, audioDataLength);
-        var waveStream = new RawSourceWaveStream(memoryStream, cachedAudio.WaveFormat);
-        var loopStream = new LoopStream(waveStream);
-        var volumeProvider = new EnhancedVolumeSampleProvider(loopStream.ToSampleProvider())
+        if (cachedAudio.Length == 0 || cachedAudio.IsDisposingOrDisposed)
         {
-            Volume = volume * volumeFactor
-        };
-        var balanceProvider = new ProfessionalBalanceProvider(volumeProvider,
-                BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
-        {
-            Balance = balance * balanceFactor
-        };
+            return;
+        }
 
-        var loopProvider = new LoopProvider(balanceProvider, volumeProvider, memoryStream, waveStream, loopStream,
-            byteArray);
+        var loopProvider = new LoopProvider(cachedAudio,
+            volume * volumeFactor,
+            balance * balanceFactor
+        );
+
         _dictionary.Add(slideChannel, loopProvider);
         loopProvider.AddTo(mixer);
     }

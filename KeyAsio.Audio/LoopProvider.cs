@@ -1,35 +1,34 @@
-﻿using System.Buffers;
+﻿using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
-using KeyAsio.Audio.Wave;
-using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Audio;
 
 internal sealed class LoopProvider : IDisposable
 {
-    private readonly ProfessionalBalanceProvider _balanceProvider;
+    private readonly SeekableCachedAudioProvider _sourceProvider;
+    private readonly LoopSampleProvider _loopWrapper;
     private readonly EnhancedVolumeSampleProvider _volumeProvider;
-    private readonly MemoryStream _memoryStream;
-    private readonly RawSourceWaveStream _waveStream;
-    private readonly LoopStream _loopStream;
-    private readonly byte[] _byteArray;
-    private bool _isAdded;
+    private readonly ProfessionalBalanceProvider _balanceProvider;
 
-    public LoopProvider(ProfessionalBalanceProvider balanceProvider,
-        EnhancedVolumeSampleProvider volumeProvider,
-        MemoryStream memoryStream,
-        RawSourceWaveStream waveStream,
-        LoopStream loopStream,
-        byte[] byteArray)
+    private MixingSampleProvider? _baseMixer;
+
+    public LoopProvider(CachedAudio cachedAudio,
+        float initialVolume,
+        float initialBalance)
     {
-        _balanceProvider = balanceProvider;
-        _volumeProvider = volumeProvider;
-        _memoryStream = memoryStream;
-        _waveStream = waveStream;
-        _loopStream = loopStream;
-        _byteArray = byteArray;
+        _sourceProvider = new SeekableCachedAudioProvider(cachedAudio);
+        _loopWrapper = new LoopSampleProvider(_sourceProvider);
+        _volumeProvider = new EnhancedVolumeSampleProvider(_loopWrapper)
+        {
+            Volume = initialVolume
+        };
+        _balanceProvider = new ProfessionalBalanceProvider(_volumeProvider,
+            BalanceMode.MidSide, AntiClipStrategy.None)
+        {
+            Balance = initialBalance
+        };
     }
 
     public void SetBalance(float balance)
@@ -44,28 +43,20 @@ internal sealed class LoopProvider : IDisposable
 
     public void AddTo(MixingSampleProvider? mixer)
     {
-        if (_isAdded) return;
+        if (_baseMixer != null) return;
         mixer?.AddMixerInput(_balanceProvider);
-        _isAdded = true;
+        _baseMixer = mixer;
     }
 
     public void RemoveFrom(MixingSampleProvider? mixer)
     {
+        if (_baseMixer == null) return;
         mixer?.RemoveMixerInput(_balanceProvider);
-        _isAdded = false;
+        _baseMixer = null;
     }
 
     public void Dispose()
     {
-        try
-        {
-            _loopStream.Dispose();
-            _waveStream.Dispose();
-            _memoryStream.Dispose();
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(_byteArray);
-        }
+        _baseMixer = null;
     }
 }
