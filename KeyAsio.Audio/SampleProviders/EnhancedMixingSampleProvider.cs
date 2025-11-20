@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics.Tensors;
-using KeyAsio.Audio.SampleProviders.BalancePans;
 using KeyAsio.Audio.Utils;
 using NAudio.Utils;
 using NAudio.Wave;
@@ -122,7 +121,7 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider, IDisposable
             if (samplesRead < count)
             {
                 RemoveSourceAt(index);
-                RecycleSourceChain(source);
+                AudioRecycling.QueueForRecycle(source);
             }
         }
 
@@ -133,16 +132,16 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider, IDisposable
     {
         if (_clearRequested)
         {
-            foreach (var source in _sources)
+            for (var i = _sources.Count - 1; i >= 0; i--)
             {
-                RecycleSourceChain(source);
+                var source = _sources[i];
+                _sources.RemoveAt(i);
+                AudioRecycling.QueueForRecycle(source);
             }
-
-            _sources.Clear();
 
             while (_pendingAdditions.TryDequeue(out var pending))
             {
-                RecycleSourceChain(pending);
+                AudioRecycling.QueueForRecycle(pending);
             }
 
             Interlocked.Exchange(ref _estimatedSourceCount, 0);
@@ -153,7 +152,7 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider, IDisposable
         {
             if (_sources.Remove(toRemove))
             {
-                RecycleSourceChain(toRemove);
+                AudioRecycling.QueueForRecycle(toRemove);
             }
         }
 
@@ -166,7 +165,7 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider, IDisposable
             else
             {
                 // 理论上 AddMixerInput 已经拦截了，但这作为防御性编程
-                RecycleSourceChain(source);
+                AudioRecycling.QueueForRecycle(source);
                 Interlocked.Decrement(ref _estimatedSourceCount);
             }
         }
@@ -191,33 +190,6 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider, IDisposable
 
         _sources.RemoveAt(lastIndex);
         Interlocked.Decrement(ref _estimatedSourceCount);
-    }
-
-    private static void RecycleSourceChain(ISampleProvider provider)
-    {
-        var current = provider;
-
-        while (current is IRecyclableProvider recyclable)
-        {
-            var next = recyclable.ResetAndGetSource();
-            switch (current)
-            {
-                case EnhancedVolumeSampleProvider vol:
-                    RecyclableSampleProviderFactory.Return(vol);
-                    break;
-                case ProfessionalBalanceProvider pan:
-                    RecyclableSampleProviderFactory.Return(pan);
-                    break;
-                case LoopSampleProvider loop:
-                    RecyclableSampleProviderFactory.Return(loop);
-                    break;
-                case SeekableCachedAudioProvider cache:
-                    RecyclableSampleProviderFactory.Return(cache);
-                    break;
-            }
-
-            current = next;
-        }
     }
 
     public void Dispose()
