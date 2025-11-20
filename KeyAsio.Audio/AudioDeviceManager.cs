@@ -1,32 +1,18 @@
-﻿using System.Reflection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
-using NAudio.Wave.Asio;
 
 namespace KeyAsio.Audio;
 
 public class AudioDeviceManager : IDisposable
 {
-    private static readonly FieldInfo? AsioExtField;
-    private static readonly FieldInfo? CapabilityField;
-
     private readonly ILogger<AudioDeviceManager> _logger;
     private readonly MMDeviceEnumerator _mmDeviceEnumerator;
     private readonly MmNotificationClient _mmNotificationClient;
 
     private bool _disposed;
     private Lazy<Task<IReadOnlyList<DeviceDescription>>> _cachedDevices;
-
-    static AudioDeviceManager()
-    {
-        // HACK: Accessing private NAudio fields to force ASIO buffer size.
-        // This targets NAudio v2.2.1.
-        // AsioOut.driver -> AsioDriverExt.capability -> AsioDriverCapability.BufferPreferredSize
-        AsioExtField = typeof(AsioOut).GetField("driver", BindingFlags.Instance | BindingFlags.NonPublic);
-        CapabilityField = typeof(AsioDriverExt).GetField("capability", BindingFlags.Instance | BindingFlags.NonPublic);
-    }
 
     public AudioDeviceManager(ILogger<AudioDeviceManager> logger)
     {
@@ -143,32 +129,14 @@ public class AudioDeviceManager : IDisposable
 
         var device = new AsioOut(description.DeviceId);
 
-        if (description.ForceASIOBufferSize <= 0) return device;
-
-        if (AsioExtField == null || CapabilityField == null)
+        if (description.ForceASIOBufferSize <= 0)
         {
-            _logger.LogWarning(
-                "Failed to force ASIO buffer size: Reflection fields not found. (NAudio internal API may have changed).");
             return device;
         }
 
-        var driver = AsioExtField.GetValue(device);
-        if (driver == null)
-        {
-            _logger.LogWarning(
-                "Failed to force ASIO buffer size: Could not get 'driver' instance. (NAudio internal API may have changed).");
-            return device;
-        }
-
-        var capability = (AsioDriverCapability?)CapabilityField.GetValue(driver);
-        if (capability == null)
-        {
-            _logger.LogWarning(
-                "Failed to force ASIO buffer size: Could not get 'capability' instance. (NAudio internal API may have changed).");
-            return device;
-        }
-
+        var capability = device.UnderlineDriver.Capabilities;
         capability.BufferPreferredSize = description.ForceASIOBufferSize;
+
         _logger.LogDebug("Successfully forced ASIO buffer size to {BufferSize}", description.ForceASIOBufferSize);
         return device;
     }
