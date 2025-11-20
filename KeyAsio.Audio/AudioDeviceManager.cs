@@ -5,7 +5,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio;
 
-public class AudioDeviceManager : IDisposable
+public sealed class AudioDeviceManager : IDisposable
 {
     private readonly ILogger<AudioDeviceManager> _logger;
     private readonly MMDeviceEnumerator _mmDeviceEnumerator;
@@ -23,7 +23,6 @@ public class AudioDeviceManager : IDisposable
         }
 
         _mmDeviceEnumerator = new MMDeviceEnumerator();
-
         _cachedDevices = CreateLazyDeviceListAsync();
 
         _mmNotificationClient = new MmNotificationClient(this);
@@ -268,7 +267,7 @@ public class AudioDeviceManager : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_disposed)
         {

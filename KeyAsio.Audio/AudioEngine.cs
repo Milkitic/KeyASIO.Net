@@ -130,22 +130,6 @@ public class AudioEngine
         CurrentDevice = null;
     }
 
-    public void AddMixerInput(ISampleProvider input)
-    {
-        if (!RootMixer.MixerInputs.Contains(input))
-        {
-            RootMixer.AddMixerInput(input);
-        }
-    }
-
-    public void RemoveMixerInput(ISampleProvider input)
-    {
-        if (RootMixer.MixerInputs.Contains(input))
-        {
-            RootMixer.RemoveMixerInput(input);
-        }
-    }
-
     [Obsolete]
     public ISampleProvider? PlayAudio(CachedAudio cachedAudio, SampleControl? sampleControl = null)
     {
