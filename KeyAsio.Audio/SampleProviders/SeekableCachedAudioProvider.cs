@@ -67,10 +67,8 @@ public sealed class SeekableCachedAudioProvider : IRecyclableProvider, IPoolable
     {
         get
         {
-            lock (_sourceSoundLock)
-            {
-                return SamplesToTimeSpan(_position - _preSamples);
-            }
+            var position = Volatile.Read(ref _position);
+            return SamplesToTimeSpan(position - _preSamples);
         }
         set
         {
