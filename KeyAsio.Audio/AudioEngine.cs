@@ -1,6 +1,7 @@
 ﻿using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.Limiters;
+using KeyAsio.Audio.Wave;
 using Milki.Extensions.Threading;
 using NAudio.Wave;
 
@@ -103,7 +104,7 @@ public class AudioEngine
             {
                 try
                 {
-                    outputDevice.Init(root);
+                    outputDevice.Init(new PerfSampleToWaveProvider(root));
                 }
                 catch (Exception e)
                 {
