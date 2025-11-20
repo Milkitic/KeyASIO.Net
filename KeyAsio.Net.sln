@@ -37,6 +37,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioTests", "Tests\AudioTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAudio.Asio", "dependencies\NAudio\NAudio.Asio\NAudio.Asio.csproj", "{E2160B0B-FBF7-74BA-081C-D29A62C251EA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{8DD73718-27A1-481B-BF85-B47656FC8B36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimdBenchmarks", "Benchmarks\SimdBenchmarks\SimdBenchmarks.csproj", "{1A03ED63-04DF-4E75-A0C6-FA812827EC49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -215,6 +219,18 @@ Global
 		{E2160B0B-FBF7-74BA-081C-D29A62C251EA}.Release|x64.Build.0 = Release|Any CPU
 		{E2160B0B-FBF7-74BA-081C-D29A62C251EA}.Release|x86.ActiveCfg = Release|Any CPU
 		{E2160B0B-FBF7-74BA-081C-D29A62C251EA}.Release|x86.Build.0 = Release|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Debug|x64.Build.0 = Debug|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Debug|x86.Build.0 = Debug|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Release|x64.ActiveCfg = Release|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Release|x64.Build.0 = Release|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Release|x86.ActiveCfg = Release|Any CPU
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -229,6 +245,7 @@ Global
 		{FC52840E-C7C6-4741-9DEA-AB286F7AE7F6} = {63042D0D-CE64-4B9A-B030-99FBC7C2D87B}
 		{6E14B547-11D3-415C-BF1E-1B4C4B495F4A} = {3BA3090D-36C2-4B9A-B7FB-CA9A3F3600DE}
 		{E2160B0B-FBF7-74BA-081C-D29A62C251EA} = {63042D0D-CE64-4B9A-B030-99FBC7C2D87B}
+		{1A03ED63-04DF-4E75-A0C6-FA812827EC49} = {8DD73718-27A1-481B-BF85-B47656FC8B36}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EEF979C8-6F73-4E7B-BA29-D8F8C0B3C90C}

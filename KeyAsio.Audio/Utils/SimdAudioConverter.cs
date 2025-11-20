@@ -1,14 +1,14 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
-using System.Runtime.Intrinsics.X86;
 
 namespace KeyAsio.Audio.Utils;
 
 public static class SimdAudioConverter
 {
-    // 预计算乘法因子，乘法比除法快
-    private const float ScalingFactor = 1.0f / 32768f;
+    private const int Avx512VectorSize = 32;
+    private const int Avx2VectorSize = 16;
+    private const float ScalingFactor = 1.0f / 32768f; // 预计算乘法因子，乘法比除法快
 
     public static bool EnableAvx512 { get; set; } = true;
 
@@ -16,12 +16,11 @@ public static class SimdAudioConverter
     {
         var i = 0;
 
-        if (Avx512F.IsSupported && EnableAvx512)
+        if (Vector512.IsHardwareAccelerated && EnableAvx512)
         {
-            const int vectorSize = 32;
             var vScale = Vector512.Create(ScalingFactor);
 
-            while (i <= sampleCount - vectorSize)
+            while (i <= sampleCount - Avx512VectorSize)
             {
                 var sourceVector = Vector512.Load(pSource + i);
 
@@ -38,7 +37,46 @@ public static class SimdAudioConverter
                 lowFloats.Store(pDest + i);
                 highFloats.Store(pDest + i + 16);
 
-                i += vectorSize;
+                i += Avx512VectorSize;
+            }
+        }
+
+        if (Vector256.IsHardwareAccelerated)
+        {
+            var vScale = Vector256.Create(ScalingFactor);
+
+            // 2x 循环展开：每次处理 32 个采样
+            while (i <= sampleCount - Avx2VectorSize * 2)
+            {
+                var v1 = Vector256.Load(pSource + i);
+                var v2 = Vector256.Load(pSource + i + Avx2VectorSize);
+
+                // 第一组
+                var (lowInts1, highInts1) = Vector256.Widen(v1);
+                var lowFloats1 = Vector256.ConvertToSingle(lowInts1) * vScale;
+                var highFloats1 = Vector256.ConvertToSingle(highInts1) * vScale;
+
+                lowFloats1.Store(pDest + i);
+                highFloats1.Store(pDest + i + 8);
+
+                // 第二组
+                var (lowInts2, highInts2) = Vector256.Widen(v2);
+                var lowFloats2 = Vector256.ConvertToSingle(lowInts2) * vScale;
+                var highFloats2 = Vector256.ConvertToSingle(highInts2) * vScale;
+
+                lowFloats2.Store(pDest + i + Avx2VectorSize);
+                highFloats2.Store(pDest + i + Avx2VectorSize + 8);
+
+                i += Avx2VectorSize * 2;
+            }
+
+            while (i <= sampleCount - Avx2VectorSize)
+            {
+                var v = Vector256.Load(pSource + i);
+                var (lowInt, highInt) = Vector256.Widen(v);
+                (Vector256.ConvertToSingle(lowInt) * vScale).Store(pDest + i);
+                (Vector256.ConvertToSingle(highInt) * vScale).Store(pDest + i + 8);
+                i += Avx2VectorSize;
             }
         }
 
