@@ -123,7 +123,7 @@ public sealed class SeekableCachedAudioProvider : IRecyclableProvider, IPoolable
             }
             finally
             {
-                cachedAudio.ReleasePointer();
+                _cachedAudio.ReleasePointer();
             }
         }
     }
