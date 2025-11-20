@@ -14,7 +14,7 @@ public class SingleSynchronousTrack
 
     private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
 
-    private SeekableCachedAudioProvider? _bgmCachedAudioSampleProvider;
+    private CachedAudioProvider? _bgmCachedAudioSampleProvider;
     private VariableSpeedSampleProvider? _variableSampleProvider;
     private ISampleProvider? _baseSampleProvider;
 
@@ -74,8 +74,7 @@ public class SingleSynchronousTrack
             out var diffTolerance);
         var timeSpan = TimeSpan.FromMilliseconds(playTime);
 
-        _bgmCachedAudioSampleProvider = new SeekableCachedAudioProvider(cachedAudio,
-            (int.MaxValue / 100) + LeadInMilliseconds)
+        _bgmCachedAudioSampleProvider = new CachedAudioProvider(cachedAudio)
         {
             ExcludeFromPool = true,
             PlayTime = timeSpan
@@ -96,7 +95,7 @@ public class SingleSynchronousTrack
         _audioEngine.MusicMixer.AddMixerInput(_baseSampleProvider);
     }
 
-    private void UpdateCurrentMixerInput(SeekableCachedAudioProvider sampleProvider, int playTime)
+    private void UpdateCurrentMixerInput(CachedAudioProvider sampleProvider, int playTime)
     {
         GetPlayInfoByPlayMod(ref playTime, PlayMods, out var keepTune, out var keepSpeed, out var playbackRate,
             out var diffTolerance);

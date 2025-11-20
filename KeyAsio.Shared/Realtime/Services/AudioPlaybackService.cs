@@ -39,8 +39,8 @@ public class AudioPlaybackService
 
         try
         {
-            var seekableCachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
-            var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(seekableCachedAudioProvider, volume);
+            var cachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
+            var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(cachedAudioProvider, volume);
             var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
                 BalanceMode.MidSide, AntiClipStrategy.None); // 由 MasterLimiterProvider 统一处理防削波
 

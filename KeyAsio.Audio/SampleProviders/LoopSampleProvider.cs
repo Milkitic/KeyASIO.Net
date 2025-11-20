@@ -9,12 +9,12 @@ public sealed class LoopSampleProvider : IRecyclableProvider, IPoolable
     {
     }
 
-    public LoopSampleProvider(SeekableCachedAudioProvider source)
+    public LoopSampleProvider(CachedAudioProvider source)
     {
         Source = source;
     }
 
-    public SeekableCachedAudioProvider? Source { get; set; }
+    public CachedAudioProvider? Source { get; set; }
 
     public bool EnableLooping { get; set; } = true;
 

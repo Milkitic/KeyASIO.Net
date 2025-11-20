@@ -7,7 +7,7 @@ namespace KeyAsio.Audio;
 
 internal sealed class LoopProvider : IDisposable
 {
-    private readonly SeekableCachedAudioProvider _sourceProvider;
+    private readonly CachedAudioProvider _sourceProvider;
     private readonly LoopSampleProvider _loopWrapper;
     private readonly EnhancedVolumeSampleProvider _volumeProvider;
     private readonly ProfessionalBalanceProvider _balanceProvider;

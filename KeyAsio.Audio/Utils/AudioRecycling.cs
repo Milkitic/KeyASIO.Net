@@ -42,7 +42,7 @@ public static class AudioRecycling
                 case LoopSampleProvider loop:
                     RecyclableSampleProviderFactory.Return(loop);
                     break;
-                case SeekableCachedAudioProvider cache:
+                case CachedAudioProvider cache:
                     RecyclableSampleProviderFactory.Return(cache);
                     break;
             }

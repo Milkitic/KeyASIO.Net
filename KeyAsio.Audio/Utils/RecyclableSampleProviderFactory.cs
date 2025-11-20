@@ -26,17 +26,17 @@ public static class RecyclableSampleProviderFactory
         return provider;
     }
 
-    public static LoopSampleProvider RentLoopProvider(SeekableCachedAudioProvider source)
+    public static LoopSampleProvider RentLoopProvider(CachedAudioProvider source)
     {
         var provider = SharedPool<LoopSampleProvider>.Rent();
         provider.Source = source;
         return provider;
     }
 
-    public static SeekableCachedAudioProvider RentCacheProvider(CachedAudio cachedAudio, int leadInMilliseconds = 0)
+    public static CachedAudioProvider RentCacheProvider(CachedAudio cachedAudio)
     {
-        var provider = SharedPool<SeekableCachedAudioProvider>.Rent();
-        provider.Initialize(cachedAudio, leadInMilliseconds);
+        var provider = SharedPool<CachedAudioProvider>.Rent();
+        provider.Initialize(cachedAudio);
         return provider;
     }
 
@@ -55,8 +55,8 @@ public static class RecyclableSampleProviderFactory
         SharedPool<LoopSampleProvider>.Return(provider);
     }
 
-    public static void Return(SeekableCachedAudioProvider provider)
+    public static void Return(CachedAudioProvider provider)
     {
-        SharedPool<SeekableCachedAudioProvider>.Return(provider);
+        SharedPool<CachedAudioProvider>.Return(provider);
     }
 }

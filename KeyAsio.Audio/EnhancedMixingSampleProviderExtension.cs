@@ -81,14 +81,14 @@ internal static class EnhancedMixingSampleProviderExtension
     private static void PlayAudio(EnhancedMixingSampleProvider mixer, CachedAudio cachedAudio, SampleControl? sampleControl,
         out ISampleProvider? rootSample)
     {
-        mixer.AddMixerInput(new CachedAudioProvider(cachedAudio), sampleControl, out rootSample);
+        mixer.AddMixerInput(new CachedAudioProvider1(cachedAudio), sampleControl, out rootSample);
     }
     
     [Obsolete]
     private static void PlayAudio(EnhancedMixingSampleProvider mixer, CachedAudio cachedAudio, float volume, float balance,
         out ISampleProvider? rootSample)
     {
-        mixer.AddMixerInput(new CachedAudioProvider(cachedAudio), volume, balance, out rootSample);
+        mixer.AddMixerInput(new CachedAudioProvider1(cachedAudio), volume, balance, out rootSample);
     }
 
     [Obsolete]
