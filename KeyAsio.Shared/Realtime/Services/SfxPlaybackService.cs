@@ -9,14 +9,14 @@ using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
-public class AudioPlaybackService
+public class SfxPlaybackService
 {
     private readonly LoopProviderManager _loopProviderManager = new();
-    private readonly ILogger<AudioPlaybackService> _logger;
+    private readonly ILogger<SfxPlaybackService> _logger;
     private readonly AudioEngine _audioEngine;
     private readonly AppSettings _appSettings;
 
-    public AudioPlaybackService(ILogger<AudioPlaybackService> logger, AudioEngine audioEngine, AppSettings appSettings)
+    public SfxPlaybackService(ILogger<SfxPlaybackService> logger, AudioEngine audioEngine, AppSettings appSettings)
     {
         _logger = logger;
         _audioEngine = audioEngine;

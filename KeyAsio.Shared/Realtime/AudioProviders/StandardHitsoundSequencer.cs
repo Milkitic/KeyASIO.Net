@@ -7,14 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.AudioProviders;
 
-public class StandardAudioProvider : IAudioProvider
+public class StandardHitsoundSequencer : IHitsoundSequencer
 {
-    private readonly ILogger<StandardAudioProvider> _logger;
+    private readonly ILogger<StandardHitsoundSequencer> _logger;
     private readonly AppSettings _appSettings;
-    private readonly RealtimeProperties _realtimeProperties;
+    private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheService _audioCacheService;
-    private readonly PlaySessionManager _playSessionManager;
+    private readonly GameplaySessionManager _gameplaySessionManager;
 
     private Queue<PlayableNode> _hitQueue = new();
     private Queue<HitsoundNode> _playQueue = new();
@@ -22,27 +22,27 @@ public class StandardAudioProvider : IAudioProvider
     private PlayableNode? _firstNode;
     private HitsoundNode? _firstPlayNode;
 
-    public StandardAudioProvider(ILogger<StandardAudioProvider> logger,
+    public StandardHitsoundSequencer(ILogger<StandardHitsoundSequencer> logger,
         AppSettings appSettings,
-        RealtimeProperties realtimeProperties,
+        RealtimeSessionContext realtimeSessionContext,
         AudioEngine audioEngine,
         AudioCacheService audioCacheService,
-        PlaySessionManager playSessionManager)
+        GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
         _appSettings = appSettings;
-        _realtimeProperties = realtimeProperties;
+        _realtimeSessionContext = realtimeSessionContext;
         _audioEngine = audioEngine;
         _audioCacheService = audioCacheService;
-        _playSessionManager = playSessionManager;
+        _gameplaySessionManager = gameplaySessionManager;
     }
 
     public int KeyThresholdMilliseconds { get; set; } = 100;
 
     public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey)
     {
-        var playTime = _realtimeProperties.PlayTime;
-        var isStarted = _realtimeProperties.IsStarted;
+        var playTime = _realtimeSessionContext.PlayTime;
+        var isStarted = _realtimeSessionContext.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -76,8 +76,8 @@ public class StandardAudioProvider : IAudioProvider
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
 
-        var playTime = _realtimeProperties.PlayTime;
-        var isStarted = _realtimeProperties.IsStarted;
+        var playTime = _realtimeSessionContext.PlayTime;
+        var isStarted = _realtimeSessionContext.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -174,9 +174,9 @@ public class StandardAudioProvider : IAudioProvider
 
     public void ResetNodes(int playTime)
     {
-        _hitQueue = new Queue<PlayableNode>(_playSessionManager.KeyList);
-        _playQueue = new Queue<HitsoundNode>(_playSessionManager.PlaybackList
-            .Where(k => k.Offset >= _realtimeProperties.PlayTime));
+        _hitQueue = new Queue<PlayableNode>(_gameplaySessionManager.KeyList);
+        _playQueue = new Queue<HitsoundNode>(_gameplaySessionManager.PlaybackList
+            .Where(k => k.Offset >= _realtimeSessionContext.PlayTime));
         _hitQueue.TryDequeue(out _firstNode);
         _playQueue.TryDequeue(out _firstPlayNode);
     }

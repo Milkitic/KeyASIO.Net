@@ -7,14 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.AudioProviders;
 
-public class ManiaAudioProvider : IAudioProvider
+public class ManiaHitsoundSequencer : IHitsoundSequencer
 {
-    private readonly ILogger<ManiaAudioProvider> _logger;
+    private readonly ILogger<ManiaHitsoundSequencer> _logger;
     private readonly AppSettings _appSettings;
-    private readonly RealtimeProperties _realtimeProperties;
+    private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheService _audioCacheService;
-    private readonly PlaySessionManager _playSessionManager;
+    private readonly GameplaySessionManager _gameplaySessionManager;
 
     private List<Queue<PlayableNode>> _hitQueue = new();
     private PlayableNode?[] _hitQueueCache = Array.Empty<PlayableNode>();
@@ -25,25 +25,25 @@ public class ManiaAudioProvider : IAudioProvider
     private HitsoundNode? _firstAutoNode;
     private HitsoundNode? _firstPlayNode;
 
-    public ManiaAudioProvider(ILogger<ManiaAudioProvider> logger,
+    public ManiaHitsoundSequencer(ILogger<ManiaHitsoundSequencer> logger,
         AppSettings appSettings,
-        RealtimeProperties realtimeProperties,
+        RealtimeSessionContext realtimeSessionContext,
         AudioEngine audioEngine,
         AudioCacheService audioCacheService,
-        PlaySessionManager playSessionManager)
+        GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
         _appSettings = appSettings;
-        _realtimeProperties = realtimeProperties;
+        _realtimeSessionContext = realtimeSessionContext;
         _audioEngine = audioEngine;
         _audioCacheService = audioCacheService;
-        _playSessionManager = playSessionManager;
+        _gameplaySessionManager = gameplaySessionManager;
     }
 
     public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey)
     {
-        var playTime = _realtimeProperties.PlayTime;
-        var isStarted = _realtimeProperties.IsStarted;
+        var playTime = _realtimeSessionContext.PlayTime;
+        var isStarted = _realtimeSessionContext.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -76,8 +76,8 @@ public class ManiaAudioProvider : IAudioProvider
     public void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
-        var playTime = _realtimeProperties.PlayTime;
-        var isStarted = _realtimeProperties.IsStarted;
+        var playTime = _realtimeSessionContext.PlayTime;
+        var isStarted = _realtimeSessionContext.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -172,21 +172,21 @@ public class ManiaAudioProvider : IAudioProvider
 
     public void ResetNodes(int playTime)
     {
-        _hitQueue = GetHitQueue(_playSessionManager.KeyList, playTime);
+        _hitQueue = GetHitQueue(_gameplaySessionManager.KeyList, playTime);
         _hitQueueCache = new PlayableNode[_hitQueue.Count];
 
-        _autoPlayQueue = new Queue<HitsoundNode>(_playSessionManager.KeyList);
-        _playQueue = new Queue<HitsoundNode>(_playSessionManager.PlaybackList.Where(k => k.Offset >= playTime));
+        _autoPlayQueue = new Queue<HitsoundNode>(_gameplaySessionManager.KeyList);
+        _playQueue = new Queue<HitsoundNode>(_gameplaySessionManager.PlaybackList.Where(k => k.Offset >= playTime));
         _autoPlayQueue.TryDequeue(out _firstAutoNode);
         _playQueue.TryDequeue(out _firstPlayNode);
     }
 
     private List<Queue<PlayableNode>> GetHitQueue(IReadOnlyList<PlayableNode> keyList, int playTime)
     {
-        if (_playSessionManager.OsuFile == null)
+        if (_gameplaySessionManager.OsuFile == null)
             return new List<Queue<PlayableNode>>();
 
-        var keyCount = (int)_playSessionManager.OsuFile.Difficulty.CircleSize;
+        var keyCount = (int)_gameplaySessionManager.OsuFile.Difficulty.CircleSize;
         var list = new List<Queue<PlayableNode>>(keyCount);
         for (int i = 0; i < keyCount; i++)
         {

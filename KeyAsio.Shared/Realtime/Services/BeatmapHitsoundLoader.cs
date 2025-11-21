@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
-public class HitsoundNodeService
+public class BeatmapHitsoundLoader
 {
-    private readonly ILogger<HitsoundNodeService> _logger;
+    private readonly ILogger<BeatmapHitsoundLoader> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheService _audioCacheService;
 
@@ -16,7 +16,7 @@ public class HitsoundNodeService
     private readonly List<HitsoundNode> _playbackList = new();
     private int _nextCachingTime;
 
-    public HitsoundNodeService(ILogger<HitsoundNodeService> logger, AppSettings appSettings,
+    public BeatmapHitsoundLoader(ILogger<BeatmapHitsoundLoader> logger, AppSettings appSettings,
         AudioCacheService audioCacheService)
     {
         _logger = logger;
@@ -28,7 +28,7 @@ public class HitsoundNodeService
     public List<PlayableNode> KeyList => _keyList;
 
     public async Task<OsuFile?> InitializeNodeListsAsync(string folder, string diffFilename,
-        IAudioProvider audioProvider, Mods playMods)
+        IHitsoundSequencer hitsoundSequencer, Mods playMods)
     {
         _keyList.Clear();
         _playbackList.Clear();
@@ -66,13 +66,13 @@ public class HitsoundNodeService
             hitsoundList = hitsoundList.OrderBy(k => k.Offset).ToList();
         }
 
-        audioProvider.FillAudioList(hitsoundList, _keyList, _playbackList);
+        hitsoundSequencer.FillAudioList(hitsoundList, _keyList, _playbackList);
         return osuFile;
     }
 
-    public void ResetNodes(IAudioProvider audioProvider, int playTime)
+    public void ResetNodes(IHitsoundSequencer hitsoundSequencer, int playTime)
     {
-        audioProvider.ResetNodes(playTime);
+        hitsoundSequencer.ResetNodes(playTime);
         _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _keyList);
         _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _playbackList);
         _nextCachingTime = 10000;

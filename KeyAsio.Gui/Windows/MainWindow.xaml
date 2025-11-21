@@ -425,7 +425,7 @@
             Grid.Row="1"
             Grid.Column="1"
             Margin="0,0,0,0"
-            Text="{Binding ElementName=Self, Path=RealtimeModeManager.PlayTime, IsAsync=True, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+            Text="{Binding ElementName=Self, Path=RealtimeController.PlayTime, IsAsync=True, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
           <TextBlock
             Grid.Row="2"
             Grid.Column="0"
@@ -433,7 +433,7 @@
           <TextBlock
             Grid.Row="2"
             Grid.Column="1"
-            Text="{Binding ElementName=Self, Path=RealtimeModeManager.OsuStatus}" />
+            Text="{Binding ElementName=Self, Path=RealtimeController.OsuStatus}" />
           <TextBlock
             Grid.Row="3"
             Grid.Column="0"
@@ -441,7 +441,7 @@
           <TextBlock
             Grid.Row="3"
             Grid.Column="1"
-            Text="{Binding ElementName=Self, Path=RealtimeModeManager.Beatmap.Filename}"
+            Text="{Binding ElementName=Self, Path=RealtimeController.Beatmap.Filename}"
             TextWrapping="Wrap" />
         </Grid>
       </StackPanel>

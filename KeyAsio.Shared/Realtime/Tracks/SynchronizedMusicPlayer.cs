@@ -8,9 +8,9 @@ using NAudio.Wave;
 
 namespace KeyAsio.Shared.Realtime.Tracks;
 
-public class SingleSynchronousTrack
+public class SynchronizedMusicPlayer
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SingleSynchronousTrack));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SynchronizedMusicPlayer));
 
     private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
 
@@ -22,7 +22,7 @@ public class SingleSynchronousTrack
 
     private readonly AudioEngine _audioEngine;
 
-    public SingleSynchronousTrack(AudioEngine audioEngine)
+    public SynchronizedMusicPlayer(AudioEngine audioEngine)
     {
         _audioEngine = audioEngine;
     }

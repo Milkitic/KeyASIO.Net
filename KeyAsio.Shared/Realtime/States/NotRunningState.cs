@@ -4,44 +4,44 @@ using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
-public class NotRunningState : IRealtimeState
+public class NotRunningState : IGameState
 {
     private readonly AppSettings _appSettings;
-    private readonly MusicTrackService _musicTrackService;
+    private readonly BackgroundMusicManager _backgroundMusicManager;
 
-    public NotRunningState(AppSettings appSettings, MusicTrackService musicTrackService)
+    public NotRunningState(AppSettings appSettings, BackgroundMusicManager backgroundMusicManager)
     {
         _appSettings = appSettings;
-        _musicTrackService = musicTrackService;
+        _backgroundMusicManager = backgroundMusicManager;
     }
 
-    public Task EnterAsync(RealtimeProperties ctx, OsuMemoryStatus from)
+    public Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
     {
         if (_appSettings.RealtimeOptions.EnableMusicFunctions)
         {
-            _musicTrackService.StopCurrentMusic(2000);
+            _backgroundMusicManager.StopCurrentMusic(2000);
         }
 
         return Task.CompletedTask;
     }
 
-    public void Exit(RealtimeProperties ctx, OsuMemoryStatus to)
+    public void Exit(RealtimeSessionContext ctx, OsuMemoryStatus to)
     {
     }
 
-    public async Task OnPlayTimeChanged(RealtimeProperties ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeSessionContext ctx, int oldMs, int newMs, bool paused)
     {
     }
 
-    public void OnComboChanged(RealtimeProperties ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(RealtimeSessionContext ctx, int oldCombo, int newCombo)
     {
     }
 
-    public void OnBeatmapChanged(RealtimeProperties ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(RealtimeSessionContext ctx, BeatmapIdentifier beatmap)
     {
     }
 
-    public void OnModsChanged(RealtimeProperties ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(RealtimeSessionContext ctx, Mods oldMods, Mods newMods)
     {
     }
 }

@@ -10,9 +10,9 @@ using NAudio.Wave.SampleProviders;
 
 namespace KeyAsio.Shared.Realtime.Tracks;
 
-public class SelectSongTrack
+public class SongPreviewPlayer
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SelectSongTrack));
+    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SongPreviewPlayer));
     private readonly Lock _instanceLock = new();
 
     private AudioFileReader? _audioFileReader;
@@ -21,7 +21,7 @@ public class SelectSongTrack
 
     private readonly AudioEngine _audioEngine;
 
-    public SelectSongTrack(AudioEngine audioEngine)
+    public SongPreviewPlayer(AudioEngine audioEngine)
     {
         _audioEngine = audioEngine;
     }
@@ -29,7 +29,7 @@ public class SelectSongTrack
     private EnhancedMixingSampleProvider? Mixer => _audioEngine.MusicMixer;
     private WaveFormat? WaveFormat => _audioEngine.EngineWaveFormat;
 
-    public async Task PlaySingleAudio(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
+    public async Task Play(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
     {
         if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
         if (Mixer is null || WaveFormat is null) return;

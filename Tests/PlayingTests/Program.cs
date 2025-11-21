@@ -44,13 +44,13 @@ static class Program
         }, context);
         var services = new ServiceCollection();
         services.AddSingleton(appSettings);
-        services.AddSingleton<PlaySessionManager>();
+        services.AddSingleton<GameplaySessionManager>();
         services.AddSingleton<SharedViewModel>();
         services.AddSingleton<AudioCacheService>();
-        services.AddSingleton<HitsoundNodeService>();
-        services.AddSingleton<MusicTrackService>();
-        services.AddSingleton<AudioPlaybackService>();
-        services.AddSingleton<RealtimeProperties>();
+        services.AddSingleton<BeatmapHitsoundLoader>();
+        services.AddSingleton<BackgroundMusicManager>();
+        services.AddSingleton<SfxPlaybackService>();
+        services.AddSingleton<RealtimeSessionContext>();
         var provider = services.BuildServiceProvider();
         var sharedViewModel = provider.GetRequiredService<SharedViewModel>();
         sharedViewModel.AutoMode = true;
@@ -64,7 +64,7 @@ static class Program
             @"C:\Users\milkitic\Downloads\1680421 EBIMAYO - GOODTEK [no video]\EBIMAYO - GOODTEK (yf_bmp) [Maboyu's Another].osu";
         var filename = Path.GetFileName(filenameFull);
 
-        var realtimeModeManager = provider.GetRequiredService<RealtimeProperties>();
+        var realtimeModeManager = provider.GetRequiredService<RealtimeSessionContext>();
         realtimeModeManager.BaseMemoryTime = -1;
         realtimeModeManager.PlayMods = Mods.None;
         realtimeModeManager.OsuStatus = OsuMemoryStatus.SongSelect;
@@ -116,7 +116,7 @@ static class Program
         await Task.Delay(3000);
         sw.Reset();
 
-        var playSessionService = provider.GetRequiredService<PlaySessionManager>();
+        var playSessionService = provider.GetRequiredService<GameplaySessionManager>();
 
         //realtimeModeManager.Stop();
         await playSessionService.StartAsync(filenameFull, filename);

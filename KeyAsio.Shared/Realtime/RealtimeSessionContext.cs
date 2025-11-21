@@ -7,7 +7,7 @@ using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
-public class RealtimeProperties : ViewModelBase
+public class RealtimeSessionContext : ViewModelBase
 {
     public Func<int, int, ValueTask>? OnComboChanged;
     public Func<Mods, Mods, ValueTask>? OnPlayModsChanged;
@@ -18,6 +18,7 @@ public class RealtimeProperties : ViewModelBase
     private readonly AppSettings _appSettings;
     private readonly Stopwatch _playTimeStopwatch = new();
 
+    private int _playTime;
     private string? _username;
     private Mods _playMods;
     private int _baseMemoryTime;
@@ -26,7 +27,7 @@ public class RealtimeProperties : ViewModelBase
     private OsuMemoryStatus _osuStatus;
     private BeatmapIdentifier _beatmap;
 
-    public RealtimeProperties(AppSettings appSettings)
+    public RealtimeSessionContext(AppSettings appSettings)
     {
         _appSettings = appSettings;
     }
@@ -62,13 +63,22 @@ public class RealtimeProperties : ViewModelBase
             }
         }
     }
+
     public int PlayTime
     {
-        get
+        get => _playTime;
+        set
         {
-            var offset = _appSettings.RealtimeOptions.RealtimeModeAudioOffset;
-            var interpolated = _playTimeStopwatch.ElapsedMilliseconds;
-            return _baseMemoryTime + offset + (int)interpolated;
+            value += _appSettings.RealtimeOptions.RealtimeModeAudioOffset + (int)_playTimeStopwatch.ElapsedMilliseconds;
+            var val = _playTime;
+            if (SetField(ref _playTime, value))
+            {
+                OnFetchedPlayTimeChanged?.Invoke(val, value, false);
+            }
+            else
+            {
+                OnFetchedPlayTimeChanged?.Invoke(val, value, true);
+            }
         }
     }
 
@@ -77,9 +87,9 @@ public class RealtimeProperties : ViewModelBase
         get => _baseMemoryTime;
         set
         {
-            var playTime = PlayTime;
-            var val = _baseMemoryTime;
             if (SetField(ref _baseMemoryTime, value))
+
+
             {
                 _playTimeStopwatch.Restart();
             }
@@ -88,8 +98,8 @@ public class RealtimeProperties : ViewModelBase
                 _playTimeStopwatch.Reset();
             }
 
-            OnPropertyChanged(nameof(PlayTime));
-            OnFetchedPlayTimeChanged?.Invoke(playTime, PlayTime, val == value);
+            PlayTime = value;
+
         }
     }
 

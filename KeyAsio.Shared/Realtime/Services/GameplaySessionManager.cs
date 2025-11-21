@@ -6,53 +6,53 @@ using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
-public class PlaySessionManager
+public class GameplaySessionManager
 {
-    private readonly ILogger<PlaySessionManager> _logger;
+    private readonly ILogger<GameplaySessionManager> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly AudioCacheService _audioCacheService;
     private readonly AudioEngine _audioEngine;
-    private readonly RealtimeProperties _realtimeProperties;
-    private readonly HitsoundNodeService _hitsoundNodeService;
-    private readonly MusicTrackService _musicTrackService;
-    private readonly AudioPlaybackService _audioPlaybackService;
+    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly BeatmapHitsoundLoader _beatmapHitsoundLoader;
+    private readonly BackgroundMusicManager _backgroundMusicManager;
+    private readonly SfxPlaybackService _sfxPlaybackService;
 
-    private readonly Dictionary<GameMode, IAudioProvider> _audioProviderDictionary = new();
+    private readonly Dictionary<GameMode, IHitsoundSequencer> _audioProviderDictionary = new();
 
-    public PlaySessionManager(ILogger<PlaySessionManager> logger,
+    public GameplaySessionManager(ILogger<GameplaySessionManager> logger,
         IServiceProvider serviceProvider,
         AudioCacheService audioCacheService,
         AudioEngine audioEngine,
-        RealtimeProperties realtimeProperties,
-        HitsoundNodeService hitsoundNodeService,
-        MusicTrackService musicTrackService,
-        AudioPlaybackService audioPlaybackService)
+        RealtimeSessionContext realtimeSessionContext,
+        BeatmapHitsoundLoader beatmapHitsoundLoader,
+        BackgroundMusicManager backgroundMusicManager,
+        SfxPlaybackService sfxPlaybackService)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _audioCacheService = audioCacheService;
         _audioEngine = audioEngine;
-        _realtimeProperties = realtimeProperties;
-        _hitsoundNodeService = hitsoundNodeService;
-        _musicTrackService = musicTrackService;
-        _audioPlaybackService = audioPlaybackService;
+        _realtimeSessionContext = realtimeSessionContext;
+        _beatmapHitsoundLoader = beatmapHitsoundLoader;
+        _backgroundMusicManager = backgroundMusicManager;
+        _sfxPlaybackService = sfxPlaybackService;
     }
 
     public OsuFile? OsuFile { get; internal set; }
     public string? AudioFilename { get; internal set; }
 
-    public IReadOnlyList<HitsoundNode> PlaybackList => _hitsoundNodeService.PlaybackList;
-    public List<PlayableNode> KeyList => _hitsoundNodeService.KeyList;
+    public IReadOnlyList<HitsoundNode> PlaybackList => _beatmapHitsoundLoader.PlaybackList;
+    public List<PlayableNode> KeyList => _beatmapHitsoundLoader.KeyList;
 
-    public void InitializeProviders(IAudioProvider standardAudioProvider, IAudioProvider maniaAudioProvider)
+    public void InitializeProviders(IHitsoundSequencer standardHitsoundSequencer, IHitsoundSequencer maniaHitsoundSequencer)
     {
-        _audioProviderDictionary[GameMode.Circle] = standardAudioProvider;
-        _audioProviderDictionary[GameMode.Taiko] = standardAudioProvider;
-        _audioProviderDictionary[GameMode.Catch] = standardAudioProvider;
-        _audioProviderDictionary[GameMode.Mania] = maniaAudioProvider;
+        _audioProviderDictionary[GameMode.Circle] = standardHitsoundSequencer;
+        _audioProviderDictionary[GameMode.Taiko] = standardHitsoundSequencer;
+        _audioProviderDictionary[GameMode.Catch] = standardHitsoundSequencer;
+        _audioProviderDictionary[GameMode.Mania] = maniaHitsoundSequencer;
     }
 
-    public IAudioProvider CurrentAudioProvider
+    public IHitsoundSequencer CurrentHitsoundSequencer
     {
         get
         {
@@ -66,7 +66,7 @@ public class PlaySessionManager
         try
         {
             _logger.LogInformation("Start playing.");
-            _realtimeProperties.IsStarted = true;
+            _realtimeSessionContext.IsStarted = true;
             OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
@@ -75,19 +75,19 @@ public class PlaySessionManager
                 throw new Exception("The beatmap folder is null!");
             }
 
-            var osuFile = await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename,
-                CurrentAudioProvider, _realtimeProperties.PlayMods);
+            var osuFile = await _beatmapHitsoundLoader.InitializeNodeListsAsync(folder, beatmapFilename,
+                CurrentHitsoundSequencer, _realtimeSessionContext.PlayMods);
             OsuFile = osuFile;
             AudioFilename = osuFile?.General?.AudioFilename;
 
-            var previousFolder = _musicTrackService.GetMainTrackFolder();
-            _musicTrackService.UpdateMainTrackContext(folder, AudioFilename);
+            var previousFolder = _backgroundMusicManager.GetMainTrackFolder();
+            _backgroundMusicManager.UpdateMainTrackContext(folder, AudioFilename);
             PerformCache(previousFolder, folder);
-            ResetNodes(_realtimeProperties.PlayTime);
+            ResetNodes(_realtimeSessionContext.PlayTime);
         }
         catch (Exception ex)
         {
-            _realtimeProperties.IsStarted = false;
+            _realtimeSessionContext.IsStarted = false;
             _logger.LogError(ex, "Error while starting a beatmap. Filename: {BeatmapFilename}. FilenameReal: {OsuFile}",
                 beatmapFilename, OsuFile);
             LogUtils.LogToSentry(MemoryReading.Logging.LogLevel.Error, "Error while starting a beatmap", ex, k =>
@@ -106,8 +106,8 @@ public class PlaySessionManager
             _audioCacheService.ClearCaches();
         }
 
-        var mainFolder = _musicTrackService.GetMainTrackFolder();
-        var mainAudioFilename = _musicTrackService.GetMainAudioFilename();
+        var mainFolder = _backgroundMusicManager.GetMainTrackFolder();
+        var mainAudioFilename = _backgroundMusicManager.GetMainAudioFilename();
         if (mainFolder == null)
         {
             _logger.LogWarning("Main track folder is null, stop adding cache.");
@@ -127,25 +127,25 @@ public class PlaySessionManager
     public void Stop()
     {
         _logger.LogInformation("Stop playing.");
-        _realtimeProperties.IsStarted = false;
-        _musicTrackService.SetFirstStartInitialized(false);
+        _realtimeSessionContext.IsStarted = false;
+        _backgroundMusicManager.SetFirstStartInitialized(false);
         var mixer = _audioEngine.EffectMixer;
-        _audioPlaybackService.ClearAllLoops(mixer);
-        _musicTrackService.ClearMainTrackAudio();
+        _sfxPlaybackService.ClearAllLoops(mixer);
+        _backgroundMusicManager.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();
 
         if (OsuFile != null)
         {
-            _musicTrackService.PlaySingleAudioPreview(OsuFile, _musicTrackService.GetPreviewAudioFilePath(),
+            _backgroundMusicManager.PlaySingleAudioPreview(OsuFile, _backgroundMusicManager.GetPreviewAudioFilePath(),
                 OsuFile.General.PreviewTime);
         }
 
-        _realtimeProperties.BaseMemoryTime = 0;
-        _realtimeProperties.Combo = 0;
+        _realtimeSessionContext.PlayTime = 0;
+        _realtimeSessionContext.Combo = 0;
     }
 
     private void ResetNodes(int playTime)
     {
-        _hitsoundNodeService.ResetNodes(CurrentAudioProvider, playTime);
+        _beatmapHitsoundLoader.ResetNodes(CurrentHitsoundSequencer, playTime);
     }
 }

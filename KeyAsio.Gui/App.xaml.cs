@@ -173,12 +173,12 @@ public partial class App : Application
 
                 services.AddSingleton<SkinManager>();
                 services.AddSingleton<AudioCacheService>();
-                services.AddSingleton<HitsoundNodeService>();
-                services.AddSingleton<MusicTrackService>();
-                services.AddSingleton<AudioPlaybackService>();
-                services.AddSingleton<PlaySessionManager>();
-                services.AddSingleton<RealtimeProperties>();
-                services.AddSingleton<RealtimeModeManager>();
+                services.AddSingleton<BeatmapHitsoundLoader>();
+                services.AddSingleton<BackgroundMusicManager>();
+                services.AddSingleton<SfxPlaybackService>();
+                services.AddSingleton<GameplaySessionManager>();
+                services.AddSingleton<RealtimeSessionContext>();
+                services.AddSingleton<RealtimeController>();
 
                 services.AddSingleton<SharedViewModel>();
                 services.AddTransient<DeviceWindowViewModel>();

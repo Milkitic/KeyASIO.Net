@@ -34,8 +34,8 @@ public partial class MainWindow : DialogWindow
     private readonly ILogger<MainWindow> _logger;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly AudioDeviceManager _audioDeviceManager;
-    private readonly PlaySessionManager _playSessionManager;
-    private readonly AudioPlaybackService _audioPlaybackService;
+    private readonly GameplaySessionManager _gameplaySessionManager;
+    private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SharedViewModel _viewModel;
     private CachedAudio? _cacheSound;
     private readonly IKeyboardHook _keyboardHook;
@@ -48,11 +48,11 @@ public partial class MainWindow : DialogWindow
         AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
-        RealtimeModeManager realtimeModeManager,
+        RealtimeController realtimeController,
         AudioDeviceManager audioDeviceManager,
         SharedViewModel viewModel,
-        PlaySessionManager playSessionManager,
-        AudioPlaybackService audioPlaybackService)
+        GameplaySessionManager gameplaySessionManager,
+        SfxPlaybackService sfxPlaybackService)
     {
         InitializeComponent();
         DataContext = _viewModel = viewModel;
@@ -60,10 +60,10 @@ public partial class MainWindow : DialogWindow
         AudioEngine = audioEngine;
         _logger = logger;
         _audioCacheManager = audioCacheManager;
-        RealtimeModeManager = realtimeModeManager;
+        RealtimeController = realtimeController;
         _audioDeviceManager = audioDeviceManager;
-        _playSessionManager = playSessionManager;
-        _audioPlaybackService = audioPlaybackService;
+        _gameplaySessionManager = gameplaySessionManager;
+        _sfxPlaybackService = sfxPlaybackService;
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
@@ -71,7 +71,7 @@ public partial class MainWindow : DialogWindow
     }
 
     public AppSettings AppSettings { get; }
-    public RealtimeModeManager RealtimeModeManager { get; }
+    public RealtimeController RealtimeController { get; }
     public AudioEngine AudioEngine { get; }
 
     private void CreateShortcuts()
@@ -270,11 +270,11 @@ public partial class MainWindow : DialogWindow
             }
 
             _playbackBuffer.Clear();
-            _playSessionManager.CurrentAudioProvider.FillKeyAudio(_playbackBuffer, AppSettings.Keys.IndexOf(hookKey),
+            _gameplaySessionManager.CurrentHitsoundSequencer.FillKeyAudio(_playbackBuffer, AppSettings.Keys.IndexOf(hookKey),
                 AppSettings.Keys.Count);
             foreach (var playbackInfo in _playbackBuffer)
             {
-                _audioPlaybackService.DispatchPlayback(playbackInfo);
+                _sfxPlaybackService.DispatchPlayback(playbackInfo);
             }
         };
 

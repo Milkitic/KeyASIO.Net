@@ -14,12 +14,12 @@ namespace KeyAsio.Gui;
 internal class StartupService : IHostedService
 {
     private readonly AppSettings _appSettings;
-    private readonly RealtimeProperties _realtimeProperties;
+    private readonly RealtimeSessionContext _realtimeSessionContext;
 
-    public StartupService(AppSettings appSettings, RealtimeProperties realtimeProperties)
+    public StartupService(AppSettings appSettings, RealtimeSessionContext realtimeSessionContext)
     {
         _appSettings = appSettings;
-        _realtimeProperties = realtimeProperties;
+        _realtimeSessionContext = realtimeSessionContext;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -39,7 +39,7 @@ internal class StartupService : IHostedService
         try
         {
             var player = EncodeUtils.FromBase64String(_appSettings.PlayerBase64, Encoding.ASCII);
-            _realtimeProperties.Username = player;
+            _realtimeSessionContext.Username = player;
         }
         catch
         {
@@ -49,21 +49,21 @@ internal class StartupService : IHostedService
         var dispatcher = Application.Current.Dispatcher;
         KeyAsio.MemoryReading.Logger.SetLoggerFactory(LogUtils.LoggerFactory);
         MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.Username = player);
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.Username = player);
         MemoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.PlayMods = mods);
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.PlayMods = mods);
         MemoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.Combo = combo);
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.Combo = combo);
         MemoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.Score = score);
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.Score = score);
         MemoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.IsReplay = isReplay);
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.IsReplay = isReplay);
         MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.BaseMemoryTime = playTime);
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.BaseMemoryTime = playTime);
         MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.Beatmap = beatmap);
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.Beatmap = beatmap);
         MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.OsuStatus = current);
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.OsuStatus = current);
         MemoryScan.Start(_appSettings.RealtimeOptions.GeneralScanInterval, _appSettings.RealtimeOptions.TimingScanInterval);
     }
 

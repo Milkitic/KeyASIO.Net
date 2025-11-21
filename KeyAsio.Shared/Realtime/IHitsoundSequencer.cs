@@ -3,7 +3,7 @@ using KeyAsio.Shared.Models;
 
 namespace KeyAsio.Shared.Realtime;
 
-public interface IAudioProvider
+public interface IHitsoundSequencer
 {
     void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey);
     void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal);
