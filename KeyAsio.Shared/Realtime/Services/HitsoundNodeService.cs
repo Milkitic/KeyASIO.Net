@@ -16,7 +16,8 @@ public class HitsoundNodeService
     private readonly List<HitsoundNode> _playbackList = new();
     private int _nextCachingTime;
 
-    public HitsoundNodeService(ILogger<HitsoundNodeService> logger, AppSettings appSettings, AudioCacheService audioCacheService)
+    public HitsoundNodeService(ILogger<HitsoundNodeService> logger, AppSettings appSettings,
+        AudioCacheService audioCacheService)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -26,7 +27,8 @@ public class HitsoundNodeService
     public IReadOnlyList<HitsoundNode> PlaybackList => _playbackList;
     public List<PlayableNode> KeyList => _keyList;
 
-    public async Task<OsuFile?> InitializeNodeListsAsync(string folder, string diffFilename, IAudioProvider audioProvider, Mods playMods)
+    public async Task<OsuFile?> InitializeNodeListsAsync(string folder, string diffFilename,
+        IAudioProvider audioProvider, Mods playMods)
     {
         _keyList.Clear();
         _playbackList.Clear();

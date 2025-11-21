@@ -37,7 +37,7 @@ public class ManiaAudioProvider : IAudioProvider
     public int PlayTime => _realtimeModeManager.PlayTime;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
-    public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)
+    public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey)
     {
         var playTime = PlayTime;
         var isStarted = IsStarted;
@@ -45,32 +45,32 @@ public class ManiaAudioProvider : IAudioProvider
         if (_audioEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready, return empty.");
-            return [];
+            return;
         }
 
         if (!isStarted)
         {
             _logger.LogWarning("Game hasn't started, return empty.");
-            return [];
+            return;
         }
 
         var first = includeKey ? _firstPlayNode : _firstAutoNode;
         if (first == null)
         {
-            return [];
+            return;
             _logger.LogWarning("First is null, no item returned.");
         }
 
         if (playTime < first.Offset)
         {
-            return [];
+            return;
             _logger.LogWarning("Haven't reached first, no item returned.");
         }
 
-        return GetNextPlaybackAudio(first, playTime, includeKey);
+        FillNextPlaybackAudio(buffer, first, playTime, includeKey);
     }
 
-    public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
+    public void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
         var playTime = PlayTime;
@@ -79,13 +79,13 @@ public class ManiaAudioProvider : IAudioProvider
         if (_audioEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready, return empty.");
-            return [];
+            return;
         }
 
         if (!isStarted)
         {
             _logger.LogWarning("Game hasn't started, return empty.");
-            return [];
+            return;
         }
 
         if (_hitQueue.Count - 1 < keyIndex || _hitQueueCache.Length - 1 < keyIndex)
@@ -93,7 +93,7 @@ public class ManiaAudioProvider : IAudioProvider
             _logger.LogWarning(
                 "Key index was out of range ({KeyIndex}). Please check your key configuration to match mania columns.",
                 keyIndex);
-            return [];
+            return;
         }
 
         var queue = _hitQueue[keyIndex];
@@ -136,13 +136,14 @@ public class ManiaAudioProvider : IAudioProvider
             _logger.LogDebug("Use cache");
         }
 
-        if (playableNode != null && _audioCacheService.TryGetAudioByNode(playableNode, out var cachedAudio))
+        if (playableNode == null || !_audioCacheService.TryGetAudioByNode(playableNode, out var cachedAudio))
         {
-            return new[] { new PlaybackInfo(cachedAudio, playableNode) };
+            _logger.LogWarning("No audio returned.");
         }
-
-        _logger.LogWarning("No audio returned.");
-        return [];
+        else
+        {
+            buffer.Add(new PlaybackInfo(cachedAudio, playableNode));
+        }
     }
 
     public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
@@ -199,7 +200,7 @@ public class ManiaAudioProvider : IAudioProvider
         return list;
     }
 
-    private IEnumerable<PlaybackInfo> GetNextPlaybackAudio(HitsoundNode? firstNode, int playTime, bool includeKey)
+    private void FillNextPlaybackAudio(List<PlaybackInfo> buffer, HitsoundNode? firstNode, int playTime, bool includeKey)
     {
         while (firstNode != null)
         {
@@ -211,7 +212,7 @@ public class ManiaAudioProvider : IAudioProvider
             if (playTime < firstNode.Offset + 200 &&
                 _audioCacheService.TryGetAudioByNode(firstNode, out var cachedSound))
             {
-                yield return new PlaybackInfo(cachedSound, firstNode);
+                buffer.Add(new PlaybackInfo(cachedSound, firstNode));
             }
 
             if (includeKey)

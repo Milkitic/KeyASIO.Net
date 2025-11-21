@@ -39,6 +39,7 @@ public partial class MainWindow : DialogWindow
     private CachedAudio? _cacheSound;
     private readonly IKeyboardHook _keyboardHook;
     private readonly List<Guid> _registerList = new();
+    private readonly List<PlaybackInfo> _playbackBuffer = new(64);
     private Timer? _timer;
 
     public MainWindow(
@@ -265,9 +266,9 @@ public partial class MainWindow : DialogWindow
                 return;
             }
 
-            var playbackInfos =
-                RealtimeModeManager.GetKeyAudio(AppSettings.Keys.IndexOf(hookKey), AppSettings.Keys.Count);
-            foreach (var playbackInfo in playbackInfos)
+            _playbackBuffer.Clear();
+            RealtimeModeManager.FillKeyAudio(_playbackBuffer, AppSettings.Keys.IndexOf(hookKey), AppSettings.Keys.Count);
+            foreach (var playbackInfo in _playbackBuffer)
             {
                 _audioPlaybackService.DispatchPlayback(playbackInfo);
             }

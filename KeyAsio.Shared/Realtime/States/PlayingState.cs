@@ -16,7 +16,7 @@ public class PlayingState : IRealtimeState
     private readonly AudioPlaybackService _audioPlaybackService;
     private readonly SharedViewModel _sharedViewModel;
     private readonly AudioCacheService _audioCacheService;
-
+    private readonly List<PlaybackInfo> _playbackBuffer = new(64);
     public PlayingState(AudioEngine audioEngine, AudioCacheManager audioCacheManager,
         MusicTrackService musicTrackService, HitsoundNodeService hitsoundNodeService,
         AudioPlaybackService audioPlaybackService, SharedViewModel sharedViewModel, AudioCacheService audioCacheService)
@@ -135,18 +135,20 @@ public class PlayingState : IRealtimeState
 
     private void PlayAutoPlaybackIfNeeded(RealtimeModeManager ctx)
     {
-        if (_sharedViewModel.AutoMode || (ctx.PlayMods & Mods.Autoplay) != 0 || ctx.IsReplay)
+        if (!_sharedViewModel.AutoMode && (ctx.PlayMods & Mods.Autoplay) == 0 && !ctx.IsReplay) return;
+        _playbackBuffer.Clear();
+        ctx.FillPlaybackAudio(_playbackBuffer, false);
+        foreach (var playbackObject in _playbackBuffer)
         {
-            foreach (var playbackObject in ctx.GetPlaybackAudio(false))
-            {
-                _audioPlaybackService.DispatchPlayback(playbackObject);
-            }
+            _audioPlaybackService.DispatchPlayback(playbackObject);
         }
     }
 
     private void PlayManualPlaybackIfNeeded(RealtimeModeManager ctx)
     {
-        foreach (var playbackObject in ctx.GetPlaybackAudio(true))
+        _playbackBuffer.Clear();
+        ctx.FillPlaybackAudio(_playbackBuffer, true);
+        foreach (var playbackObject in _playbackBuffer)
         {
             _audioPlaybackService.DispatchPlayback(playbackObject);
         }

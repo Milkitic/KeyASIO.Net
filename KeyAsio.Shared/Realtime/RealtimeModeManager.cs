@@ -227,14 +227,14 @@ public class RealtimeModeManager : ViewModelBase
     public IReadOnlyList<HitsoundNode> PlaybackList => _hitsoundNodeService.PlaybackList;
     public List<PlayableNode> KeyList => _hitsoundNodeService.KeyList;
 
-    public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
+    public void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
     {
-        return GetCurrentAudioProvider().GetKeyAudio(keyIndex, keyTotal);
+        GetCurrentAudioProvider().FillKeyAudio(buffer, keyIndex, keyTotal);
     }
 
-    public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool isAuto)
+    public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool isAuto)
     {
-        return GetCurrentAudioProvider().GetPlaybackAudio(isAuto);
+        GetCurrentAudioProvider().FillPlaybackAudio(buffer, isAuto);
     }
 
     public async Task StartAsync(string beatmapFilenameFull, string beatmapFilename)

@@ -35,7 +35,7 @@ public class StandardAudioProvider : IAudioProvider
     public int PlayTime => _realtimeModeManager.PlayTime;
     public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
-    public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)
+    public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey)
     {
         var playTime = PlayTime;
         var isStarted = IsStarted;
@@ -43,32 +43,32 @@ public class StandardAudioProvider : IAudioProvider
         if (_audioEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready, return empty.");
-            return [];
+            return;
         }
 
         if (!isStarted)
         {
             _logger.LogWarning("Game hasn't started, return empty.");
-            return [];
+            return;
         }
 
         var first = includeKey ? _firstPlayNode : _firstNode;
         if (first == null)
         {
-            return [];
+            return;
             _logger.LogWarning("First is null, no item returned.");
         }
 
         if (playTime < first.Offset)
         {
-            return [];
+            return;
             _logger.LogWarning("Haven't reached first, no item returned.");
         }
 
-        return GetNextPlaybackAudio(first, playTime, includeKey);
+        FillNextPlaybackAudio(buffer, first, playTime, includeKey);
     }
 
-    public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
+    public void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
 
@@ -78,20 +78,20 @@ public class StandardAudioProvider : IAudioProvider
         if (_audioEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready, return empty.");
-            return [];
+            return;
         }
 
         if (!isStarted)
         {
             _logger.LogWarning("Game hasn't started, return empty.");
-            return [];
+            return;
         }
 
         var first = _firstNode;
         if (first == null)
         {
             _logger.LogWarning("First is null, no item returned.");
-            return [];
+            return;
         }
 
         _logger.LogDebug($"Click: {playTime}; First node: {first.Offset}");
@@ -99,15 +99,15 @@ public class StandardAudioProvider : IAudioProvider
         if (playTime < first.Offset - KeyThresholdMilliseconds)
         {
             _logger.LogWarning("Haven't reached first, no item returned.");
-            return [];
+            return;
         }
 
         if (playTime < first.Offset + KeyThresholdMilliseconds) // click soon~0~late
         {
-            return GetNextKeyAudio(first, playTime, false);
+            FillNextKeyAudio(buffer, first, playTime, false);
         }
 
-        return GetNextKeyAudio(first, playTime, true);
+        FillNextKeyAudio(buffer, first, playTime, true);
     }
 
     public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
@@ -176,7 +176,7 @@ public class StandardAudioProvider : IAudioProvider
         _playQueue.TryDequeue(out _firstPlayNode);
     }
 
-    private IEnumerable<PlaybackInfo> GetNextKeyAudio(PlayableNode? firstNode, int playTime, bool checkPreTiming)
+    private void FillNextKeyAudio(List<PlaybackInfo> buffer, PlayableNode? firstNode, int playTime, bool checkPreTiming)
     {
         int counter = 0;
         bool isFirst = true;
@@ -204,7 +204,7 @@ public class StandardAudioProvider : IAudioProvider
             {
                 counter++;
                 preNode = firstNode;
-                yield return new PlaybackInfo(cachedSound, firstNode);
+                buffer.Add(new PlaybackInfo(cachedSound, firstNode));
             }
 
             _hitQueue.TryDequeue(out firstNode);
@@ -217,7 +217,8 @@ public class StandardAudioProvider : IAudioProvider
         }
     }
 
-    private IEnumerable<PlaybackInfo> GetNextPlaybackAudio(HitsoundNode? firstNode, int playTime, bool includeKey)
+    private void FillNextPlaybackAudio(List<PlaybackInfo> buffer, HitsoundNode? firstNode, int playTime,
+        bool includeKey)
     {
         while (firstNode != null)
         {
@@ -229,7 +230,7 @@ public class StandardAudioProvider : IAudioProvider
             if (playTime < firstNode.Offset + 200 &&
                 _audioCacheService.TryGetAudioByNode(firstNode, out var cachedSound))
             {
-                yield return new PlaybackInfo(cachedSound, firstNode);
+                buffer.Add(new PlaybackInfo(cachedSound, firstNode));
             }
 
             if (includeKey)
