@@ -62,7 +62,7 @@ public class PlayingState : IRealtimeState
             _musicTrackService.SetPauseCount(0);
             _musicTrackService.StopCurrentMusic();
             _musicTrackService.StartLowPass(200, 16000);
-            ctx.SetFirstStartInitialized(true);
+            _musicTrackService.SetFirstStartInitialized(true);
             ctx.ClearMixerLoopsAndMainTrackAudio();
             ctx.ResetNodesExternal();
             return;
@@ -70,7 +70,7 @@ public class PlayingState : IRealtimeState
 
         if (ctx.GetEnableMusicFunctions())
         {
-            if (ctx.GetFirstStartInitialized() && ctx.OsuFile != null &&
+            if (_musicTrackService.GetFirstStartInitialized() && ctx.OsuFile != null &&
                 _musicTrackService.GetMainTrackPath() != null &&
                 _audioEngine.CurrentDevice != null)
             {

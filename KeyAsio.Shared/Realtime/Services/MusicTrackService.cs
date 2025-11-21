@@ -16,6 +16,7 @@ public class MusicTrackService
     private string? _mainAudioFilename;
     private bool _previousSelectSongStatus = true;
     private int _pauseCount;
+    private bool _firstStartInitialized;
     private bool _isResult;
 
     public MusicTrackService(AudioEngine audioEngine)
@@ -123,4 +124,7 @@ public class MusicTrackService
     }
 
     public bool IsResultFlag() => _isResult;
+
+    public bool GetFirstStartInitialized() => _firstStartInitialized;
+    public void SetFirstStartInitialized(bool value) => _firstStartInitialized = value;
 }

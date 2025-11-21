@@ -49,8 +49,6 @@ public class RealtimeModeManager : ViewModelBase
     private readonly AudioPlaybackService _audioPlaybackService;
     private readonly AudioCacheManager _audioCacheManager;
 
-    private bool _firstStartInitialized; // After starting a map and playtime to zero
-
     public RealtimeModeManager(ILogger<RealtimeModeManager> logger, IServiceProvider serviceProvider,
         AudioEngine audioEngine, SharedViewModel sharedViewModel, AudioCacheService audioCacheService,
         HitsoundNodeService hitsoundNodeService, MusicTrackService musicTrackService,
@@ -285,7 +283,7 @@ public class RealtimeModeManager : ViewModelBase
     {
         Logger.Info("Stop playing.");
         IsStarted = false;
-        _firstStartInitialized = false;
+        _musicTrackService.SetFirstStartInitialized(false);
         var mixer = _audioEngine.EffectMixer;
         _audioPlaybackService.ClearAllLoops(mixer);
         _musicTrackService.ClearMainTrackAudio();
@@ -362,9 +360,6 @@ public class RealtimeModeManager : ViewModelBase
     }
 
     internal bool GetEnableMusicFunctions() => AppSettings.RealtimeOptions.EnableMusicFunctions;
-
-    internal bool GetFirstStartInitialized() => _firstStartInitialized;
-    internal void SetFirstStartInitialized(bool value) => _firstStartInitialized = value;
 
     internal void ClearMixerLoopsAndMainTrackAudio()
     {
