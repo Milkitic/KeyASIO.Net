@@ -9,6 +9,7 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class PlayingState : IRealtimeState
 {
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly MusicTrackService _musicTrackService;
@@ -17,10 +18,17 @@ public class PlayingState : IRealtimeState
     private readonly SharedViewModel _sharedViewModel;
     private readonly AudioCacheService _audioCacheService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
-    public PlayingState(AudioEngine audioEngine, AudioCacheManager audioCacheManager,
-        MusicTrackService musicTrackService, HitsoundNodeService hitsoundNodeService,
-        AudioPlaybackService audioPlaybackService, SharedViewModel sharedViewModel, AudioCacheService audioCacheService)
+
+    public PlayingState(AppSettings appSettings,
+        AudioEngine audioEngine,
+        AudioCacheManager audioCacheManager,
+        MusicTrackService musicTrackService,
+        HitsoundNodeService hitsoundNodeService,
+        AudioPlaybackService audioPlaybackService,
+        SharedViewModel sharedViewModel,
+        AudioCacheService audioCacheService)
     {
+        _appSettings = appSettings;
         _audioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
         _musicTrackService = musicTrackService;
@@ -30,7 +38,7 @@ public class PlayingState : IRealtimeState
         _audioCacheService = audioCacheService;
     }
 
-    public async Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
+    public async Task EnterAsync(IRealtimeContext ctx, OsuMemoryStatus from)
     {
         _musicTrackService.StartLowPass(200, 800);
         _musicTrackService.SetResultFlag(false);
@@ -44,12 +52,12 @@ public class PlayingState : IRealtimeState
         await ctx.StartAsync(ctx.Beatmap.FilenameFull, ctx.Beatmap.Filename);
     }
 
-    public void Exit(RealtimeModeManager ctx, OsuMemoryStatus to)
+    public void Exit(IRealtimeContext ctx, OsuMemoryStatus to)
     {
         // Exit behavior will be handled by the next state's Enter.
     }
 
-    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(IRealtimeContext ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
         _musicTrackService.UpdatePauseCount(paused);
@@ -71,7 +79,7 @@ public class PlayingState : IRealtimeState
             return;
         }
 
-        if (ctx.AppSettings.RealtimeOptions.EnableMusicFunctions)
+        if (_appSettings.RealtimeOptions.EnableMusicFunctions)
         {
             if (_musicTrackService.GetFirstStartInitialized() && ctx.OsuFile != null &&
                 _musicTrackService.GetMainTrackPath() != null &&
@@ -112,9 +120,9 @@ public class PlayingState : IRealtimeState
         PlayManualPlaybackIfNeeded(ctx);
     }
 
-    public void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(IRealtimeContext ctx, int oldCombo, int newCombo)
     {
-        if (ctx.AppSettings.RealtimeOptions.IgnoreComboBreak) return;
+        if (_appSettings.RealtimeOptions.IgnoreComboBreak) return;
         if (!ctx.IsStarted) return;
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;
@@ -125,15 +133,15 @@ public class PlayingState : IRealtimeState
         }
     }
 
-    public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(IRealtimeContext ctx, BeatmapIdentifier beatmap)
     {
     }
 
-    public void OnModsChanged(RealtimeModeManager ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(IRealtimeContext ctx, Mods oldMods, Mods newMods)
     {
     }
 
-    private void PlayAutoPlaybackIfNeeded(RealtimeModeManager ctx)
+    private void PlayAutoPlaybackIfNeeded(IRealtimeContext ctx)
     {
         if (!_sharedViewModel.AutoMode && (ctx.PlayMods & Mods.Autoplay) == 0 && !ctx.IsReplay) return;
         _playbackBuffer.Clear();
@@ -144,7 +152,7 @@ public class PlayingState : IRealtimeState
         }
     }
 
-    private void PlayManualPlaybackIfNeeded(RealtimeModeManager ctx)
+    private void PlayManualPlaybackIfNeeded(IRealtimeContext ctx)
     {
         _playbackBuffer.Clear();
         ctx.FillPlaybackAudio(_playbackBuffer, true);

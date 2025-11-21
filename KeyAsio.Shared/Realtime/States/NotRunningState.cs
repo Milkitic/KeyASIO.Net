@@ -6,16 +6,18 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class NotRunningState : IRealtimeState
 {
+    private readonly AppSettings _appSettings;
     private readonly MusicTrackService _musicTrackService;
 
-    public NotRunningState(MusicTrackService musicTrackService)
+    public NotRunningState(AppSettings appSettings, MusicTrackService musicTrackService)
     {
+        _appSettings = appSettings;
         _musicTrackService = musicTrackService;
     }
 
-    public Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
+    public Task EnterAsync(IRealtimeContext ctx, OsuMemoryStatus from)
     {
-        if (ctx.AppSettings.RealtimeOptions.EnableMusicFunctions)
+        if (_appSettings.RealtimeOptions.EnableMusicFunctions)
         {
             _musicTrackService.StopCurrentMusic(2000);
         }
@@ -23,23 +25,23 @@ public class NotRunningState : IRealtimeState
         return Task.CompletedTask;
     }
 
-    public void Exit(RealtimeModeManager ctx, OsuMemoryStatus to)
+    public void Exit(IRealtimeContext ctx, OsuMemoryStatus to)
     {
     }
 
-    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(IRealtimeContext ctx, int oldMs, int newMs, bool paused)
     {
     }
 
-    public void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(IRealtimeContext ctx, int oldCombo, int newCombo)
     {
     }
 
-    public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(IRealtimeContext ctx, BeatmapIdentifier beatmap)
     {
     }
 
-    public void OnModsChanged(RealtimeModeManager ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(IRealtimeContext ctx, Mods oldMods, Mods newMods)
     {
     }
 }

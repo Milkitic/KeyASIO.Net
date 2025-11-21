@@ -7,14 +7,16 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class BrowsingState : IRealtimeState
 {
+    private readonly AppSettings _appSettings;
     private readonly MusicTrackService _musicTrackService;
 
-    public BrowsingState(MusicTrackService musicTrackService)
+    public BrowsingState(AppSettings appSettings, MusicTrackService musicTrackService)
     {
+        _appSettings = appSettings;
         _musicTrackService = musicTrackService;
     }
 
-    public Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
+    public Task EnterAsync(IRealtimeContext ctx, OsuMemoryStatus from)
     {
         _musicTrackService.StartLowPass(200, 16000);
         _musicTrackService.SetResultFlag(false);
@@ -22,14 +24,14 @@ public class BrowsingState : IRealtimeState
         return Task.CompletedTask;
     }
 
-    public void Exit(RealtimeModeManager ctx, OsuMemoryStatus to)
+    public void Exit(IRealtimeContext ctx, OsuMemoryStatus to)
     {
     }
 
-    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(IRealtimeContext ctx, int oldMs, int newMs, bool paused)
     {
         const int selectSongPauseThreshold = 20;
-        if (!ctx.AppSettings.RealtimeOptions.EnableMusicFunctions) return;
+        if (!_appSettings.RealtimeOptions.EnableMusicFunctions) return;
 
         // Maintain pause state lifecycle for song-select preview
         _musicTrackService.UpdatePauseCount(paused);
@@ -48,11 +50,11 @@ public class BrowsingState : IRealtimeState
         }
     }
 
-    public void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(IRealtimeContext ctx, int oldCombo, int newCombo)
     {
     }
 
-    public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(IRealtimeContext ctx, BeatmapIdentifier beatmap)
     {
         if (beatmap == default)
         {
@@ -87,7 +89,7 @@ public class BrowsingState : IRealtimeState
         _musicTrackService.ResetPauseState();
     }
 
-    public void OnModsChanged(RealtimeModeManager ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(IRealtimeContext ctx, Mods oldMods, Mods newMods)
     {
     }
 }

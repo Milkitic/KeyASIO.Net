@@ -18,26 +18,30 @@ services.AddSingleton<AudioCacheService>();
 services.AddSingleton<HitsoundNodeService>();
 services.AddSingleton<MusicTrackService>();
 services.AddSingleton<AudioPlaybackService>();
+services.AddSingleton<PlaySessionService>();
 services.AddSingleton<RealtimeModeManager>();
 var provider = services.BuildServiceProvider();
 
 var audioEngine = provider.GetRequiredService<AudioEngine>();
 var realtimeModeManager = provider.GetRequiredService<RealtimeModeManager>();
+var playSessionService = provider.GetRequiredService<PlaySessionService>();
+var hitsoundNodeService = provider.GetRequiredService<HitsoundNodeService>();
 var osuDir = new OsuDirectory(@"E:\Games\osu!\Songs\807527 IOSYS - Miracle Hinacle");
 await osuDir.InitializeAsync("IOSYS - Miracle Hinacle (FAMoss) [Lunatic].osu", ignoreWaveFiles: false);
 var osuFile = osuDir.OsuFiles[0];
-realtimeModeManager.OsuFile = osuFile;
+playSessionService.OsuFile = osuFile;
 
 var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
 var logger = provider.GetRequiredService<ILogger<ManiaAudioProvider>>();
 var cacheService = provider.GetRequiredService<AudioCacheService>();
-var maniaAudioProvider = new ManiaAudioProvider(logger, audioEngine, cacheService, realtimeModeManager);
+var playSession = provider.GetRequiredService<PlaySessionService>();
+var maniaAudioProvider = new ManiaAudioProvider(logger, realtimeModeManager, audioEngine, cacheService, playSession);
 
 List<PlayableNode> keyList = new();
 List<HitsoundNode> playbackList = new();
 
 maniaAudioProvider.FillAudioList(hitsoundList, keyList, playbackList);
-realtimeModeManager.KeyList.AddRange(keyList);
+hitsoundNodeService.KeyList.AddRange(keyList);
 maniaAudioProvider.ResetNodes(0);
 
 return;

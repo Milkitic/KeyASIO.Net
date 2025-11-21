@@ -5,10 +5,10 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public interface IRealtimeState
 {
-    Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from);
-    void Exit(RealtimeModeManager ctx, OsuMemoryStatus to);
-    Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused);
-    void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo);
-    void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap);
-    void OnModsChanged(RealtimeModeManager ctx, Mods oldMods, Mods newMods);
+    Task EnterAsync(IRealtimeContext ctx, OsuMemoryStatus from);
+    void Exit(IRealtimeContext ctx, OsuMemoryStatus to);
+    Task OnPlayTimeChanged(IRealtimeContext ctx, int oldMs, int newMs, bool paused);
+    void OnComboChanged(IRealtimeContext ctx, int oldCombo, int newCombo);
+    void OnBeatmapChanged(IRealtimeContext ctx, BeatmapIdentifier beatmap);
+    void OnModsChanged(IRealtimeContext ctx, Mods oldMods, Mods newMods);
 }

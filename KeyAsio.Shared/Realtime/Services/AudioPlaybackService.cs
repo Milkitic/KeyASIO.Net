@@ -43,7 +43,7 @@ public class AudioPlaybackService
             var cachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
             var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(cachedAudioProvider, volume);
             var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
-                BalanceMode.MidSide, AntiClipStrategy.None); // �� MasterLimiterProvider ͳһ����������
+                BalanceMode.MidSide, AntiClipStrategy.None); // 削波处理交给MasterLimiterProvider
 
             _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
