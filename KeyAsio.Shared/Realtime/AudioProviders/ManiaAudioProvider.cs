@@ -145,7 +145,8 @@ public class ManiaAudioProvider : IAudioProvider
         return [];
     }
 
-    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<HitsoundNode> playbackList)
+    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
+        List<HitsoundNode> playbackList)
     {
         foreach (var hitsoundNode in nodeList)
         {

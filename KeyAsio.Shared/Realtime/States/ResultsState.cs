@@ -1,14 +1,22 @@
 using KeyAsio.MemoryReading;
+using KeyAsio.Shared.Realtime.Services;
 using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
 public class ResultsState : IRealtimeState
 {
+    private readonly MusicTrackService _musicTrackService;
+
+    public ResultsState(MusicTrackService musicTrackService)
+    {
+        _musicTrackService = musicTrackService;
+    }
+
     public Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
     {
         ctx.SetResultFlag(true);
-        ctx.SetSingleTrackPlayMods(Mods.None);
+        _musicTrackService.SetSingleTrackPlayMods(Mods.None);
         return Task.CompletedTask;
     }
 

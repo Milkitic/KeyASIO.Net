@@ -1,5 +1,4 @@
 using Coosu.Shared.IO;
-using KeyAsio.MemoryReading.Logging;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;
 

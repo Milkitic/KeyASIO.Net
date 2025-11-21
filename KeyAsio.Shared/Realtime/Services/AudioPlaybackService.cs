@@ -4,6 +4,7 @@ using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.BalancePans;
 using KeyAsio.Audio.Utils;
+using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.Services;
@@ -42,7 +43,7 @@ public class AudioPlaybackService
             var cachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
             var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(cachedAudioProvider, volume);
             var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
-                BalanceMode.MidSide, AntiClipStrategy.None); // ÓÉ MasterLimiterProvider Í³Ò»´¦Àí·ÀÏ÷²¨
+                BalanceMode.MidSide, AntiClipStrategy.None); // ï¿½ï¿½ MasterLimiterProvider Í³Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
             _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
@@ -89,5 +90,25 @@ public class AudioPlaybackService
     {
         mixingSampleProvider ??= _audioEngine.EffectMixer;
         _loopProviderManager.RemoveAll(mixingSampleProvider);
+    }
+
+    public void DispatchPlayback(PlaybackInfo playbackInfo)
+    {
+        var cachedAudio = playbackInfo.CachedAudio;
+        var hitsoundNode = playbackInfo.HitsoundNode;
+        if (hitsoundNode is PlayableNode playableNode)
+        {
+            var volume = _appSettings.RealtimeOptions.IgnoreLineVolumes
+                ? 1
+                : playableNode.PlayablePriority == PlayablePriority.Effects
+                    ? playableNode.Volume * 1.25f
+                    : playableNode.Volume;
+            PlayEffectsAudio(cachedAudio, volume, playableNode.Balance);
+        }
+        else
+        {
+            var controlNode = (ControlNode)hitsoundNode;
+            PlayLoopAudio(cachedAudio!, controlNode);
+        }
     }
 }

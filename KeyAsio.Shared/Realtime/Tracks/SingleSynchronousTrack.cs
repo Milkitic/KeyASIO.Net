@@ -105,7 +105,8 @@ public class SingleSynchronousTrack
         var diffMilliseconds = Math.Abs((currentPlayTime - timeSpan).TotalMilliseconds);
         if (diffMilliseconds > diffTolerance)
         {
-            Logger.Debug($"Music offset too large {diffMilliseconds:N2}ms for {diffTolerance:N0}ms, will force to seek.");
+            Logger.Debug(
+                $"Music offset too large {diffMilliseconds:N2}ms for {diffTolerance:N0}ms, will force to seek.");
             sampleProvider.PlayTime = timeSpan;
         }
 

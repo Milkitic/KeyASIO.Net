@@ -21,7 +21,8 @@ public class SkinManager : IHostedService
     private Task? _refreshTask;
     private bool _waiting;
 
-    public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
+    public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
+        SharedViewModel sharedViewModel)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -122,7 +123,7 @@ public class SkinManager : IHostedService
 
                 var selected = AppSettings.SelectedSkin;
                 _sharedViewModel.SelectedSkin = _sharedViewModel.Skins.FirstOrDefault(k => k.FolderName == selected) ??
-                                               _sharedViewModel.Skins.FirstOrDefault();
+                                                _sharedViewModel.Skins.FirstOrDefault();
             });
         });
 

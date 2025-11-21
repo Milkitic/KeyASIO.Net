@@ -21,8 +21,6 @@ namespace KeyAsio.Shared.Realtime;
 public class RealtimeModeManager : ViewModelBase
 {
     private int _playTime;
-    private bool _previousSelectSongStatus = true;
-    private int _pauseCount = 0;
 
     private readonly Lock _isStartedLock = new();
 
@@ -52,32 +50,23 @@ public class RealtimeModeManager : ViewModelBase
     private readonly AudioCacheManager _audioCacheManager;
 
     private string? _lastPlayFolder;
-    private string? _previewFolder;
-    private string? _previewAudioFilePath;
 
     private bool _firstStartInitialized; // After starting a map and playtime to zero
     private bool _result;
 
-    public RealtimeModeManager(
-        ILogger<RealtimeModeManager> logger,
-        IServiceProvider serviceProvider,
-        AudioEngine audioEngine,
-        SharedViewModel sharedViewModel,
-        AudioCacheService audioCacheService,
-        HitsoundNodeService hitsoundNodeService,
-        MusicTrackService musicTrackService,
-        AudioPlaybackService audioPlaybackService,
-        AudioCacheManager audioCacheManager)
+    public RealtimeModeManager(ILogger<RealtimeModeManager> logger, IServiceProvider serviceProvider,
+        AudioEngine audioEngine, SharedViewModel sharedViewModel, AudioCacheService audioCacheService,
+        HitsoundNodeService hitsoundNodeService, MusicTrackService musicTrackService,
+        AudioPlaybackService audioPlaybackService, AudioCacheManager audioCacheManager)
     {
         _logger = logger;
         _audioEngine = audioEngine;
         _sharedViewModel = sharedViewModel;
         _standardAudioProvider = new StandardAudioProvider(
-            serviceProvider.GetRequiredService<ILogger<StandardAudioProvider>>(),
+            serviceProvider.GetRequiredService<ILogger<StandardAudioProvider>>(), _audioEngine, audioCacheService,
+            this);
+        _maniaAudioProvider = new ManiaAudioProvider(serviceProvider.GetRequiredService<ILogger<ManiaAudioProvider>>(),
             _audioEngine, audioCacheService, this);
-        _maniaAudioProvider = new ManiaAudioProvider(
-            serviceProvider.GetRequiredService<ILogger<ManiaAudioProvider>>(), _audioEngine,
-            audioCacheService, this);
         _audioProviderDictionary = new Dictionary<GameMode, IAudioProvider>()
         {
             [GameMode.Circle] = _standardAudioProvider,
@@ -89,13 +78,15 @@ public class RealtimeModeManager : ViewModelBase
         // Initialize realtime state machine with scene mappings
         _stateMachine = new RealtimeStateMachine(new Dictionary<OsuMemoryStatus, IRealtimeState>
         {
-            [OsuMemoryStatus.Playing] = new PlayingState(audioEngine, audioCacheManager),
-            [OsuMemoryStatus.ResultsScreen] = new ResultsState(),
-            [OsuMemoryStatus.NotRunning] = new NotRunningState(),
-            [OsuMemoryStatus.SongSelect] = new BrowsingState(),
-            [OsuMemoryStatus.SongSelectEdit] = new BrowsingState(),
-            [OsuMemoryStatus.MainMenu] = new BrowsingState(),
-            [OsuMemoryStatus.MultiplayerSongSelect] = new BrowsingState(),
+            [OsuMemoryStatus.Playing] =
+                new PlayingState(audioEngine, audioCacheManager, musicTrackService, hitsoundNodeService,
+                    audioPlaybackService, sharedViewModel, audioCacheService),
+            [OsuMemoryStatus.ResultsScreen] = new ResultsState(musicTrackService),
+            [OsuMemoryStatus.NotRunning] = new NotRunningState(musicTrackService),
+            [OsuMemoryStatus.SongSelect] = new BrowsingState(musicTrackService),
+            [OsuMemoryStatus.SongSelectEdit] = new BrowsingState(musicTrackService),
+            [OsuMemoryStatus.MainMenu] = new BrowsingState(musicTrackService),
+            [OsuMemoryStatus.MultiplayerSongSelect] = new BrowsingState(musicTrackService),
         });
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
         _audioCacheService = audioCacheService;
@@ -251,27 +242,6 @@ public class RealtimeModeManager : ViewModelBase
         return GetCurrentAudioProvider().GetPlaybackAudio(isAuto);
     }
 
-    public void PlayAudio(PlaybackInfo playbackObject)
-    {
-        if (playbackObject.HitsoundNode is PlayableNode playableNode)
-        {
-            var volume = playableNode.PlayablePriority == PlayablePriority.Effects
-                ? playableNode.Volume * 1.25f
-                : playableNode.Volume;
-            _audioPlaybackService.PlayEffectsAudio(playbackObject.CachedAudio, volume, playableNode.Balance);
-        }
-        else
-        {
-            var controlNode = (ControlNode)playbackObject.HitsoundNode;
-            _audioPlaybackService.PlayLoopAudio(playbackObject.CachedAudio, controlNode);
-        }
-    }
-
-    public void PlayAudio(CachedAudio? cachedSound, float volume, float balance)
-    {
-        _audioPlaybackService.PlayEffectsAudio(cachedSound, volume, balance);
-    }
-
     public async Task StartAsync(string beatmapFilenameFull, string beatmapFilename)
     {
         try
@@ -293,9 +263,12 @@ public class RealtimeModeManager : ViewModelBase
                 throw new Exception("The beatmap folder is null!");
             }
 
-            var osuFile = await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename, GetCurrentAudioProvider(), PlayMods);
+            var osuFile =
+                await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename, GetCurrentAudioProvider(),
+                    PlayMods);
             OsuFile = osuFile;
             AudioFilename = osuFile?.General?.AudioFilename;
+            _musicTrackService.UpdateMainTrackContext(folder!, AudioFilename);
             AddSkinCacheInBackground();
             ResetNodes();
         }
@@ -324,10 +297,10 @@ public class RealtimeModeManager : ViewModelBase
         _playTime = 0;
         Combo = 0;
 
-        if (_previewFolder != null && OsuFile != null)
+        if (OsuFile != null)
         {
-            var path = Path.Combine(_previewFolder, OsuFile.General.AudioFilename ?? "");
-            _musicTrackService.PlaySingleAudioPreview(OsuFile, path, OsuFile.General.PreviewTime);
+            _musicTrackService.PlaySingleAudioPreview(OsuFile, _musicTrackService.GetPreviewAudioFilePath(),
+                OsuFile.General.PreviewTime);
         }
     }
 
@@ -390,78 +363,12 @@ public class RealtimeModeManager : ViewModelBase
         _stateMachine.Current?.OnPlayTimeChanged(this, oldMs, newMs, paused);
     }
 
-    internal void StartLowPass(int lower, int upper)
-    {
-        _musicTrackService.StartLowPass(lower, upper);
-    }
-
-    internal bool TryGetCachedAudio(string filenameWithoutExt, out CachedAudio? cachedSound)
-    {
-        return _audioCacheService.TryGetCachedAudio(filenameWithoutExt, out cachedSound);
-    }
-
-    internal void StopCurrentMusic(int fadeMs = 0)
-    {
-        _musicTrackService.StopCurrentMusic(fadeMs);
-    }
-
     internal void SetResultFlag(bool value)
     {
         _result = value;
     }
 
-    internal void SetSingleTrackPlayMods(Mods mods)
-    {
-        _musicTrackService.SetSingleTrackPlayMods(mods);
-    }
-
-    internal string? GetAudioFilePath() => _previewAudioFilePath;
-
-    internal void UpdateAudioPreviewContext(string folder, string? audioFilePath)
-    {
-        _previewFolder = folder;
-        _previewAudioFilePath = audioFilePath;
-    }
-
-    internal void ResetBrowsingPauseState()
-    {
-        _previousSelectSongStatus = true;
-        _pauseCount = 0;
-    }
-
-    internal void PlaySingleAudioPreview(OsuFile osuFile, string? path, int playTime)
-    {
-        if (path is null) return;
-        _musicTrackService.PlaySingleAudioPreview(osuFile, path, playTime);
-    }
-
-    internal void UpdatePauseCount(bool paused)
-    {
-        if (paused && _previousSelectSongStatus)
-        {
-            _pauseCount++;
-        }
-        else if (!paused)
-        {
-            _pauseCount = 0;
-        }
-    }
-
-    internal bool GetPreviousSelectSongStatus() => _previousSelectSongStatus;
-    internal void SetPreviousSelectSongStatus(bool value) => _previousSelectSongStatus = value;
-    internal int GetPauseCount() => _pauseCount;
-    internal void SetPauseCount(int value) => _pauseCount = value;
     internal bool GetEnableMusicFunctions() => AppSettings.RealtimeOptions.EnableMusicFunctions;
-
-    internal void PauseCurrentMusic()
-    {
-        _musicTrackService.PauseCurrentMusic();
-    }
-
-    internal void RecoverCurrentMusic()
-    {
-        _musicTrackService.RecoverCurrentMusic();
-    }
 
     internal bool GetFirstStartInitialized() => _firstStartInitialized;
     internal void SetFirstStartInitialized(bool value) => _firstStartInitialized = value;
@@ -476,50 +383,5 @@ public class RealtimeModeManager : ViewModelBase
 
     internal void ResetNodesExternal() => _hitsoundNodeService.ResetNodes(GetCurrentAudioProvider(), PlayTime);
 
-    internal string? GetMusicPath()
-    {
-        if (_lastPlayFolder == null || AudioFilename == null) return null;
-        return Path.Combine(_lastPlayFolder, AudioFilename);
-    }
-
-    internal void SetMainTrackOffsetAndLeadIn(int offset, int leadInMs)
-    {
-        _musicTrackService.SetMainTrackOffsetAndLeadIn(offset, leadInMs);
-    }
-
     internal bool IsResultFlag() => _result;
-
-    internal void SyncMainTrackAudio(CachedAudio sound, int positionMs)
-    {
-        _musicTrackService.SyncMainTrackAudio(sound, positionMs);
-    }
-
-    internal void ClearMainTrackAudio()
-    {
-        _musicTrackService.ClearMainTrackAudio();
-    }
-
-    internal void AdvanceCachingWindow(int newMs)
-    {
-        _hitsoundNodeService.AdvanceCachingWindow(newMs);
-    }
-
-    internal void PlayAutoPlaybackIfNeeded()
-    {
-        if (_sharedViewModel.AutoMode || (PlayMods & Mods.Autoplay) != 0 || IsReplay)
-        {
-            foreach (var playbackObject in GetPlaybackAudio(false))
-            {
-                PlayAudio(playbackObject);
-            }
-        }
-    }
-
-    internal void PlayManualPlaybackIfNeeded()
-    {
-        foreach (var playbackObject in GetPlaybackAudio(true))
-        {
-            PlayAudio(playbackObject);
-        }
-    }
 }

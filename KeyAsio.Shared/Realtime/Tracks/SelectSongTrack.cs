@@ -65,7 +65,8 @@ public class SelectSongTrack
                 {
                     if (audioFileReader.CurrentTime >= audioFileReader.TotalTime.Add(-TimeSpan.FromMilliseconds(50)))
                     {
-                        await RepositionAndFadeIn(audioFileReader, playTime, fadeInOutSampleProvider, fadeInMilliseconds);
+                        await RepositionAndFadeIn(audioFileReader, playTime, fadeInOutSampleProvider,
+                            fadeInMilliseconds);
                     }
                 };
 
@@ -173,7 +174,8 @@ public class SelectSongTrack
         await FadeAsync(fadeInOutSampleProvider, fadeInMilliseconds, true);
     }
 
-    private static async ValueTask FadeAsync(EnhancedFadeInOutSampleProvider fadeInOutSampleProvider, int fadeMilliseconds, bool isFadeIn)
+    private static async ValueTask FadeAsync(EnhancedFadeInOutSampleProvider fadeInOutSampleProvider,
+        int fadeMilliseconds, bool isFadeIn)
     {
         if (isFadeIn)
         {

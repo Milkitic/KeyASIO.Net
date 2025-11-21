@@ -1,15 +1,23 @@
 using KeyAsio.MemoryReading;
+using KeyAsio.Shared.Realtime.Services;
 using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
 public class NotRunningState : IRealtimeState
 {
+    private readonly MusicTrackService _musicTrackService;
+
+    public NotRunningState(MusicTrackService musicTrackService)
+    {
+        _musicTrackService = musicTrackService;
+    }
+
     public Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
     {
         if (ctx.AppSettings.RealtimeOptions.EnableMusicFunctions)
         {
-            ctx.StopCurrentMusic(2000);
+            _musicTrackService.StopCurrentMusic(2000);
         }
 
         return Task.CompletedTask;

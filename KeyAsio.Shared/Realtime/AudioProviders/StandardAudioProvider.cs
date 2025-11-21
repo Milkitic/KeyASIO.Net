@@ -110,7 +110,8 @@ public class StandardAudioProvider : IAudioProvider
         return GetNextKeyAudio(first, playTime, true);
     }
 
-    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<HitsoundNode> playbackList)
+    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
+        List<HitsoundNode> playbackList)
     {
         var secondaryCache = new List<PlayableNode>();
         foreach (var hitsoundNode in nodeList)
@@ -195,7 +196,6 @@ public class StandardAudioProvider : IAudioProvider
                     _hitQueue.TryDequeue(out firstNode);
                     continue;
                 }
-
             }
 
             isFirst = false;
