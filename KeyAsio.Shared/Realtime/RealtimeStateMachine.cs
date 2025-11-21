@@ -16,7 +16,7 @@ public class RealtimeStateMachine
         CurrentStatus = OsuMemoryStatus.NotRunning;
     }
 
-    public async Task TransitionToAsync(RealtimeModeManager ctx, OsuMemoryStatus next)
+    public async Task TransitionToAsync(RealtimeProperties ctx, OsuMemoryStatus next)
     {
         var from = CurrentStatus;
         if (!_states.TryGetValue(next, out var target))

@@ -42,8 +42,8 @@ public class HitsoundNodeService
 
         if (osuDir.OsuFiles.Count <= 0)
         {
-            Logger.Warn($"There is no available beatmaps after scanning. " +
-                        $"Directory: {folder}; File: {diffFilename}");
+            _logger.LogWarning("There is no available beatmaps after scanning. Directory: {Folder}; File: {Filename}",
+                folder, diffFilename);
             return null;
         }
 
@@ -58,7 +58,7 @@ public class HitsoundNodeService
         {
             if (isNightcore)
             {
-                Logger.Info("Current Mods:" + playMods);
+                _logger.LogInformation("Current Mods: {PlayMods}", playMods);
             }
 
             var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);

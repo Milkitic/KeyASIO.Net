@@ -110,7 +110,7 @@ public class SkinManager : IHostedService
 
                 var skinDescription = new SkinDescription(Path.GetFileName(directory), directory, name, author);
                 list.Add(skinDescription);
-                Logger.Debug("Find skin: " + skinDescription);
+                _logger.LogDebug("Find skin: {SkinDescription}", skinDescription);
                 if (_cts.IsCancellationRequested) return;
             }
 

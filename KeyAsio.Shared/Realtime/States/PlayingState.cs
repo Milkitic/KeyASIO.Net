@@ -16,6 +16,7 @@ public class PlayingState : IRealtimeState
     private readonly HitsoundNodeService _hitsoundNodeService;
     private readonly AudioPlaybackService _audioPlaybackService;
     private readonly SharedViewModel _sharedViewModel;
+    private readonly PlaySessionManager _playSessionManager;
     private readonly AudioCacheService _audioCacheService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
@@ -26,6 +27,7 @@ public class PlayingState : IRealtimeState
         HitsoundNodeService hitsoundNodeService,
         AudioPlaybackService audioPlaybackService,
         SharedViewModel sharedViewModel,
+        PlaySessionManager playSessionManager,
         AudioCacheService audioCacheService)
     {
         _appSettings = appSettings;
@@ -35,10 +37,11 @@ public class PlayingState : IRealtimeState
         _hitsoundNodeService = hitsoundNodeService;
         _audioPlaybackService = audioPlaybackService;
         _sharedViewModel = sharedViewModel;
+        _playSessionManager = playSessionManager;
         _audioCacheService = audioCacheService;
     }
 
-    public async Task EnterAsync(IRealtimeContext ctx, OsuMemoryStatus from)
+    public async Task EnterAsync(RealtimeProperties ctx, OsuMemoryStatus from)
     {
         _musicTrackService.StartLowPass(200, 800);
         _musicTrackService.SetResultFlag(false);
@@ -49,15 +52,15 @@ public class PlayingState : IRealtimeState
             return;
         }
 
-        await ctx.StartAsync(ctx.Beatmap.FilenameFull, ctx.Beatmap.Filename);
+        await _playSessionManager.StartAsync(ctx.Beatmap.FilenameFull, ctx.Beatmap.Filename);
     }
 
-    public void Exit(IRealtimeContext ctx, OsuMemoryStatus to)
+    public void Exit(RealtimeProperties ctx, OsuMemoryStatus to)
     {
         // Exit behavior will be handled by the next state's Enter.
     }
 
-    public async Task OnPlayTimeChanged(IRealtimeContext ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeProperties ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
         _musicTrackService.UpdatePauseCount(paused);
@@ -75,13 +78,13 @@ public class PlayingState : IRealtimeState
             _audioPlaybackService.ClearAllLoops(mixer);
             _musicTrackService.ClearMainTrackAudio();
             mixer?.RemoveAllMixerInputs();
-            _hitsoundNodeService.ResetNodes(ctx.CurrentAudioProvider, ctx.PlayTime);
+            _hitsoundNodeService.ResetNodes(_playSessionManager.CurrentAudioProvider, ctx.PlayTime);
             return;
         }
 
         if (_appSettings.RealtimeOptions.EnableMusicFunctions)
         {
-            if (_musicTrackService.GetFirstStartInitialized() && ctx.OsuFile != null &&
+            if (_musicTrackService.GetFirstStartInitialized() && _playSessionManager.OsuFile != null &&
                 _musicTrackService.GetMainTrackPath() != null &&
                 _audioEngine.CurrentDevice != null)
             {
@@ -99,10 +102,10 @@ public class PlayingState : IRealtimeState
                         {
                             const int codeLatency = -1;
                             const int osuForceLatency = 15;
-                            var oldMapForceOffset = ctx.OsuFile.Version < 5 ? 24 : 0;
+                            var oldMapForceOffset = _playSessionManager.OsuFile.Version < 5 ? 24 : 0;
                             _musicTrackService.SetMainTrackOffsetAndLeadIn(
                                 osuForceLatency + codeLatency + oldMapForceOffset,
-                                ctx.OsuFile.General.AudioLeadIn);
+                                _playSessionManager.OsuFile.General.AudioLeadIn);
                             if (!_musicTrackService.IsResultFlag())
                             {
                                 _musicTrackService.SetSingleTrackPlayMods(ctx.PlayMods);
@@ -120,7 +123,7 @@ public class PlayingState : IRealtimeState
         PlayManualPlaybackIfNeeded(ctx);
     }
 
-    public void OnComboChanged(IRealtimeContext ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(RealtimeProperties ctx, int oldCombo, int newCombo)
     {
         if (_appSettings.RealtimeOptions.IgnoreComboBreak) return;
         if (!ctx.IsStarted) return;
@@ -133,29 +136,29 @@ public class PlayingState : IRealtimeState
         }
     }
 
-    public void OnBeatmapChanged(IRealtimeContext ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(RealtimeProperties ctx, BeatmapIdentifier beatmap)
     {
     }
 
-    public void OnModsChanged(IRealtimeContext ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(RealtimeProperties ctx, Mods oldMods, Mods newMods)
     {
     }
 
-    private void PlayAutoPlaybackIfNeeded(IRealtimeContext ctx)
+    private void PlayAutoPlaybackIfNeeded(RealtimeProperties ctx)
     {
         if (!_sharedViewModel.AutoMode && (ctx.PlayMods & Mods.Autoplay) == 0 && !ctx.IsReplay) return;
         _playbackBuffer.Clear();
-        ctx.FillPlaybackAudio(_playbackBuffer, false);
+        _playSessionManager.CurrentAudioProvider.FillPlaybackAudio(_playbackBuffer, false);
         foreach (var playbackObject in _playbackBuffer)
         {
             _audioPlaybackService.DispatchPlayback(playbackObject);
         }
     }
 
-    private void PlayManualPlaybackIfNeeded(IRealtimeContext ctx)
+    private void PlayManualPlaybackIfNeeded(RealtimeProperties ctx)
     {
         _playbackBuffer.Clear();
-        ctx.FillPlaybackAudio(_playbackBuffer, true);
+        _playSessionManager.CurrentAudioProvider.FillPlaybackAudio(_playbackBuffer, true);
         foreach (var playbackObject in _playbackBuffer)
         {
             _audioPlaybackService.DispatchPlayback(playbackObject);

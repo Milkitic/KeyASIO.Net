@@ -12,19 +12,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 var services = new ServiceCollection();
-services.AddSingleton(new AppSettings());
+var appSettings = new AppSettings();
+services.AddSingleton(appSettings);
 services.AddSingleton<SharedViewModel>();
 services.AddSingleton<AudioCacheService>();
 services.AddSingleton<HitsoundNodeService>();
 services.AddSingleton<MusicTrackService>();
 services.AddSingleton<AudioPlaybackService>();
-services.AddSingleton<PlaySessionService>();
+services.AddSingleton<PlaySessionManager>();
+services.AddSingleton<RealtimeProperties>();
 services.AddSingleton<RealtimeModeManager>();
 var provider = services.BuildServiceProvider();
 
 var audioEngine = provider.GetRequiredService<AudioEngine>();
-var realtimeModeManager = provider.GetRequiredService<RealtimeModeManager>();
-var playSessionService = provider.GetRequiredService<PlaySessionService>();
+var realtimeProperties = provider.GetRequiredService<RealtimeProperties>();
+var playSessionService = provider.GetRequiredService<PlaySessionManager>();
 var hitsoundNodeService = provider.GetRequiredService<HitsoundNodeService>();
 var osuDir = new OsuDirectory(@"E:\Games\osu!\Songs\807527 IOSYS - Miracle Hinacle");
 await osuDir.InitializeAsync("IOSYS - Miracle Hinacle (FAMoss) [Lunatic].osu", ignoreWaveFiles: false);
@@ -34,8 +36,8 @@ playSessionService.OsuFile = osuFile;
 var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
 var logger = provider.GetRequiredService<ILogger<ManiaAudioProvider>>();
 var cacheService = provider.GetRequiredService<AudioCacheService>();
-var playSession = provider.GetRequiredService<PlaySessionService>();
-var maniaAudioProvider = new ManiaAudioProvider(logger, realtimeModeManager, audioEngine, cacheService, playSession);
+var playSession = provider.GetRequiredService<PlaySessionManager>();
+var maniaAudioProvider = new ManiaAudioProvider(logger, appSettings, realtimeProperties, audioEngine, cacheService, playSession);
 
 List<PlayableNode> keyList = new();
 List<HitsoundNode> playbackList = new();

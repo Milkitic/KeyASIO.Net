@@ -176,7 +176,8 @@ public partial class App : Application
                 services.AddSingleton<HitsoundNodeService>();
                 services.AddSingleton<MusicTrackService>();
                 services.AddSingleton<AudioPlaybackService>();
-                services.AddSingleton<PlaySessionService>();
+                services.AddSingleton<PlaySessionManager>();
+                services.AddSingleton<RealtimeProperties>();
                 services.AddSingleton<RealtimeModeManager>();
 
                 services.AddSingleton<SharedViewModel>();

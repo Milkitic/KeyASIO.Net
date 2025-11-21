@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text;
-using Coosu.Beatmap;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
@@ -15,10 +14,18 @@ using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
-public class RealtimeModeManager : ViewModelBase, IRealtimeContext
+public class RealtimeProperties : ViewModelBase
 {
-    private int _playTime;
+    public Func<int, int, ValueTask>? OnComboChanged;
+    public Func<Mods, Mods, ValueTask>? OnPlayModsChanged;
+    public Func<int, int, bool, ValueTask>? OnFetchedPlayTimeChanged;
+    public Func<OsuMemoryStatus, OsuMemoryStatus, ValueTask>? OnStatusChanged;
+    public Func<BeatmapIdentifier, BeatmapIdentifier, ValueTask>? OnBeatmapChanged;
 
+    private readonly AppSettings _appSettings;
+    private readonly Stopwatch _playTimeStopwatch = new();
+
+    private int _playTime;
     private string? _username;
     private Mods _playMods;
     private int _lastFetchedPlayTime;
@@ -26,51 +33,14 @@ public class RealtimeModeManager : ViewModelBase, IRealtimeContext
     private int _score;
     private OsuMemoryStatus _osuStatus;
     private BeatmapIdentifier _beatmap;
-    private bool _isStarted;
 
-    private readonly AppSettings _appSettings;
-    private readonly Stopwatch _playTimeStopwatch = new();
-    private readonly PlaySessionService _playSessionService;
-    private readonly RealtimeStateMachine _stateMachine;
-
-    private readonly Lock _isStartedLock = new();
-
-    public RealtimeModeManager(ILogger<RealtimeModeManager> logger,
-        IServiceProvider serviceProvider,
-        AppSettings appSettings,
-        AudioEngine audioEngine,
-        SharedViewModel sharedViewModel,
-        AudioCacheService audioCacheService,
-        HitsoundNodeService hitsoundNodeService,
-        MusicTrackService musicTrackService,
-        AudioPlaybackService audioPlaybackService,
-        AudioCacheManager audioCacheManager,
-        PlaySessionService playSessionService)
+    public RealtimeProperties(AppSettings appSettings)
     {
         _appSettings = appSettings;
-        _playSessionService = playSessionService;
-        var standardAudioProvider = new StandardAudioProvider(
-            serviceProvider.GetRequiredService<ILogger<StandardAudioProvider>>(),
-            this, audioEngine, audioCacheService, _playSessionService);
-        var maniaAudioProvider = new ManiaAudioProvider(
-            serviceProvider.GetRequiredService<ILogger<ManiaAudioProvider>>(),
-            this, audioEngine, audioCacheService, _playSessionService);
-        _playSessionService.InitializeProviders(standardAudioProvider, maniaAudioProvider);
-
-        // Initialize realtime state machine with scene mappings
-        _stateMachine = new RealtimeStateMachine(new Dictionary<OsuMemoryStatus, IRealtimeState>
-        {
-            [OsuMemoryStatus.Playing] = new PlayingState(appSettings, audioEngine, audioCacheManager, musicTrackService,
-                hitsoundNodeService, audioPlaybackService, sharedViewModel, audioCacheService),
-            [OsuMemoryStatus.ResultsScreen] = new ResultsState(musicTrackService),
-            [OsuMemoryStatus.NotRunning] = new NotRunningState(appSettings, musicTrackService),
-            [OsuMemoryStatus.SongSelect] = new BrowsingState(appSettings, musicTrackService),
-            [OsuMemoryStatus.SongSelectEdit] = new BrowsingState(appSettings, musicTrackService),
-            [OsuMemoryStatus.MainMenu] = new BrowsingState(appSettings, musicTrackService),
-            [OsuMemoryStatus.MultiplayerSongSelect] = new BrowsingState(appSettings, musicTrackService),
-        });
-        Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
     }
+
+    public bool IsStarted { get; set; }
+    public bool IsReplay { get; set; }
 
     public string? Username
     {
@@ -96,7 +66,7 @@ public class RealtimeModeManager : ViewModelBase, IRealtimeContext
             var val = _playMods;
             if (SetField(ref _playMods, value))
             {
-                OnPlayModsChanged(val, value);
+                OnPlayModsChanged?.Invoke(val, value);
             }
         }
     }
@@ -110,11 +80,11 @@ public class RealtimeModeManager : ViewModelBase, IRealtimeContext
             var val = _playTime;
             if (SetField(ref _playTime, value))
             {
-                OnFetchedPlayTimeChanged(val, value);
+                OnFetchedPlayTimeChanged?.Invoke(val, value, false);
             }
             else
             {
-                OnFetchedPlayTimeChanged(val, value, true);
+                OnFetchedPlayTimeChanged?.Invoke(val, value, true);
             }
         }
     }
@@ -145,7 +115,7 @@ public class RealtimeModeManager : ViewModelBase, IRealtimeContext
             var val = _combo;
             if (SetField(ref _combo, value))
             {
-                OnComboChanged(val, value);
+                OnComboChanged?.Invoke(val, value);
             }
         }
     }
@@ -156,100 +126,104 @@ public class RealtimeModeManager : ViewModelBase, IRealtimeContext
         set => SetField(ref _score, value);
     }
 
-    public bool IsReplay { get; set; }
-
     public OsuMemoryStatus OsuStatus
     {
         get => _osuStatus;
         set
         {
+            var val = _osuStatus;
             if (SetField(ref _osuStatus, value))
             {
-                _ = OnStatusChanged(_osuStatus);
+                OnStatusChanged?.Invoke(val, value);
             }
         }
     }
-
-    public OsuFile? OsuFile => _playSessionService.OsuFile;
 
     public BeatmapIdentifier Beatmap
     {
         get => _beatmap;
         set
         {
+            var val = _beatmap;
             if (SetField(ref _beatmap, value))
             {
-                OnBeatmapChanged(value);
+                OnBeatmapChanged?.Invoke(val, value);
             }
         }
     }
+}
 
-    public bool IsStarted
+public class RealtimeModeManager
+{
+    private readonly RealtimeProperties _realtimeProperties;
+    private readonly RealtimeStateMachine _stateMachine;
+
+    public RealtimeModeManager(IServiceProvider serviceProvider,
+        AppSettings appSettings,
+        AudioEngine audioEngine,
+        SharedViewModel sharedViewModel,
+        AudioCacheService audioCacheService,
+        HitsoundNodeService hitsoundNodeService,
+        MusicTrackService musicTrackService,
+        AudioPlaybackService audioPlaybackService,
+        AudioCacheManager audioCacheManager,
+        PlaySessionManager playSessionManager,
+        RealtimeProperties realtimeProperties)
     {
-        get
+        _realtimeProperties = realtimeProperties;
+        _realtimeProperties.OnBeatmapChanged = OnBeatmapChanged;
+        _realtimeProperties.OnComboChanged = OnComboChanged;
+        _realtimeProperties.OnStatusChanged = OnStatusChanged;
+        _realtimeProperties.OnPlayModsChanged = OnPlayModsChanged;
+        _realtimeProperties.OnFetchedPlayTimeChanged = OnFetchedPlayTimeChanged;
+
+        var standardAudioProvider = new StandardAudioProvider(
+            serviceProvider.GetRequiredService<ILogger<StandardAudioProvider>>(),
+            appSettings, realtimeProperties, audioEngine, audioCacheService, playSessionManager);
+        var maniaAudioProvider = new ManiaAudioProvider(
+            serviceProvider.GetRequiredService<ILogger<ManiaAudioProvider>>(),
+            appSettings, realtimeProperties, audioEngine, audioCacheService, playSessionManager);
+        playSessionManager.InitializeProviders(standardAudioProvider, maniaAudioProvider);
+
+        // Initialize realtime state machine with scene mappings
+        _stateMachine = new RealtimeStateMachine(new Dictionary<OsuMemoryStatus, IRealtimeState>
         {
-            lock (_isStartedLock)
-            {
-                return _isStarted;
-            }
-        }
-        set
-        {
-            lock (_isStartedLock)
-            {
-                SetField(ref _isStarted, value);
-            }
-        }
+            [OsuMemoryStatus.Playing] = new PlayingState(appSettings, audioEngine, audioCacheManager, musicTrackService,
+                hitsoundNodeService, audioPlaybackService, sharedViewModel, playSessionManager, audioCacheService),
+            [OsuMemoryStatus.ResultsScreen] = new ResultsState(musicTrackService),
+            [OsuMemoryStatus.NotRunning] = new NotRunningState(appSettings, musicTrackService),
+            [OsuMemoryStatus.SongSelect] = new BrowsingState(appSettings, musicTrackService, playSessionManager),
+            [OsuMemoryStatus.SongSelectEdit] = new BrowsingState(appSettings, musicTrackService, playSessionManager),
+            [OsuMemoryStatus.MainMenu] = new BrowsingState(appSettings, musicTrackService, playSessionManager),
+            [OsuMemoryStatus.MultiplayerSongSelect] =
+                new BrowsingState(appSettings, musicTrackService, playSessionManager),
+        });
+        Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
     }
 
-    public void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
+
+    private async ValueTask OnComboChanged(int oldCombo, int newCombo)
     {
-        CurrentAudioProvider.FillKeyAudio(buffer, keyIndex, keyTotal);
+        _stateMachine.Current?.OnComboChanged(_realtimeProperties, oldCombo, newCombo);
     }
 
-    public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool isAuto)
+    private async ValueTask OnStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus)
     {
-        CurrentAudioProvider.FillPlaybackAudio(buffer, isAuto);
+        await _stateMachine.TransitionToAsync(_realtimeProperties, newStatus);
     }
 
-    public async Task StartAsync(string beatmapFilenameFull, string beatmapFilename)
+    private async ValueTask OnBeatmapChanged(BeatmapIdentifier oldBeatmap, BeatmapIdentifier newBeatmap)
     {
-        await _playSessionService.StartAsync(beatmapFilenameFull, beatmapFilename, PlayMods, PlayTime);
-        IsStarted = _playSessionService.IsStarted;
+        _stateMachine.Current?.OnBeatmapChanged(_realtimeProperties, newBeatmap);
     }
 
-    public void Stop()
+    private async ValueTask OnPlayModsChanged(Mods oldMods, Mods newMods)
     {
-        _playSessionService.Stop();
-        _playTime = 0;
-        Combo = 0;
-        IsStarted = _playSessionService.IsStarted;
+        _stateMachine.Current?.OnModsChanged(_realtimeProperties, oldMods, newMods);
     }
 
-    public IAudioProvider CurrentAudioProvider => _playSessionService.CurrentAudioProvider;
-
-    private void OnComboChanged(int oldCombo, int newCombo)
+    private async ValueTask OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
     {
-        _stateMachine.Current?.OnComboChanged(this, oldCombo, newCombo);
-    }
-
-    private async Task OnStatusChanged(OsuMemoryStatus cur)
-    {
-        await _stateMachine.TransitionToAsync(this, cur);
-    }
-
-    private void OnBeatmapChanged(BeatmapIdentifier beatmap)
-    {
-        _stateMachine.Current?.OnBeatmapChanged(this, beatmap);
-    }
-
-    private void OnPlayModsChanged(Mods oldMods, Mods newMods)
-    {
-        _stateMachine.Current?.OnModsChanged(this, oldMods, newMods);
-    }
-
-    private void OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
-    {
-        _stateMachine.Current?.OnPlayTimeChanged(this, oldMs, newMs, paused);
+        _stateMachine.Current?.OnPlayTimeChanged(_realtimeProperties, oldMs, newMs, paused);
     }
 }

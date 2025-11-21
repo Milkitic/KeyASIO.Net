@@ -4,17 +4,17 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Shared.Realtime.AudioProviders;
 
 public class ManiaAudioProvider : IAudioProvider
 {
     private readonly ILogger<ManiaAudioProvider> _logger;
-    private readonly IRealtimeContext _realtimeContext;
+    private readonly AppSettings _appSettings;
+    private readonly RealtimeProperties _realtimeProperties;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheService _audioCacheService;
-    private readonly PlaySessionService _playSessionService;
+    private readonly PlaySessionManager _playSessionManager;
 
     private List<Queue<PlayableNode>> _hitQueue = new();
     private PlayableNode?[] _hitQueueCache = Array.Empty<PlayableNode>();
@@ -25,23 +25,25 @@ public class ManiaAudioProvider : IAudioProvider
     private HitsoundNode? _firstAutoNode;
     private HitsoundNode? _firstPlayNode;
 
-    public ManiaAudioProvider(ILogger<ManiaAudioProvider> logger, IRealtimeContext realtimeContext,
-        AudioEngine audioEngine, AudioCacheService audioCacheService, PlaySessionService playSessionService)
+    public ManiaAudioProvider(ILogger<ManiaAudioProvider> logger,
+        AppSettings appSettings,
+        RealtimeProperties realtimeProperties,
+        AudioEngine audioEngine,
+        AudioCacheService audioCacheService,
+        PlaySessionManager playSessionManager)
     {
         _logger = logger;
-        _realtimeContext = realtimeContext;
+        _appSettings = appSettings;
+        _realtimeProperties = realtimeProperties;
         _audioEngine = audioEngine;
         _audioCacheService = audioCacheService;
-        _playSessionService = playSessionService;
+        _playSessionManager = playSessionManager;
     }
-
-    public bool IsStarted => _playSessionService.IsStarted;
-    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey)
     {
-        var playTime = _realtimeContext.PlayTime;
-        var isStarted = IsStarted;
+        var playTime = _realtimeProperties.PlayTime;
+        var isStarted = _realtimeProperties.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -74,8 +76,8 @@ public class ManiaAudioProvider : IAudioProvider
     public void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
-        var playTime = _realtimeContext.PlayTime;
-        var isStarted = IsStarted;
+        var playTime = _realtimeProperties.PlayTime;
+        var isStarted = _realtimeProperties.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -156,7 +158,7 @@ public class ManiaAudioProvider : IAudioProvider
 
             if (playableNode.PlayablePriority is PlayablePriority.Sampling)
             {
-                if (!AppSettings.RealtimeOptions.IgnoreStoryboardSamples)
+                if (!_appSettings.RealtimeOptions.IgnoreStoryboardSamples)
                 {
                     playbackList.Add(playableNode);
                 }
@@ -170,21 +172,21 @@ public class ManiaAudioProvider : IAudioProvider
 
     public void ResetNodes(int playTime)
     {
-        _hitQueue = GetHitQueue(_playSessionService.KeyList, playTime);
+        _hitQueue = GetHitQueue(_playSessionManager.KeyList, playTime);
         _hitQueueCache = new PlayableNode[_hitQueue.Count];
 
-        _autoPlayQueue = new Queue<HitsoundNode>(_playSessionService.KeyList);
-        _playQueue = new Queue<HitsoundNode>(_playSessionService.PlaybackList.Where(k => k.Offset >= playTime));
+        _autoPlayQueue = new Queue<HitsoundNode>(_playSessionManager.KeyList);
+        _playQueue = new Queue<HitsoundNode>(_playSessionManager.PlaybackList.Where(k => k.Offset >= playTime));
         _autoPlayQueue.TryDequeue(out _firstAutoNode);
         _playQueue.TryDequeue(out _firstPlayNode);
     }
 
     private List<Queue<PlayableNode>> GetHitQueue(IReadOnlyList<PlayableNode> keyList, int playTime)
     {
-        if (_playSessionService.OsuFile == null)
+        if (_playSessionManager.OsuFile == null)
             return new List<Queue<PlayableNode>>();
 
-        var keyCount = (int)_playSessionService.OsuFile.Difficulty.CircleSize;
+        var keyCount = (int)_playSessionManager.OsuFile.Difficulty.CircleSize;
         var list = new List<Queue<PlayableNode>>(keyCount);
         for (int i = 0; i < keyCount; i++)
         {

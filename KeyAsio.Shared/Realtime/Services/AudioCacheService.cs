@@ -26,18 +26,21 @@ public class AudioCacheService
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
     private readonly ILogger<AudioCacheService> _logger;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly RealtimeProperties _realtimeProperties;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
     private string? _beatmapFolder;
     private string? _audioFilename;
 
-    public AudioCacheService(ILogger<AudioCacheService> logger, IServiceProvider serviceProvider, AudioEngine audioEngine,
-        AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
+    public AudioCacheService(ILogger<AudioCacheService> logger,
+        RealtimeProperties realtimeProperties,
+        AudioEngine audioEngine,
+        AudioCacheManager audioCacheManager,
+        SharedViewModel sharedViewModel)
     {
         _logger = logger;
-        _serviceProvider = serviceProvider;
+        _realtimeProperties = realtimeProperties;
         _audioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
@@ -227,8 +230,7 @@ public class AudioCacheService
         string skinFolder,
         WaveFormat waveFormat)
     {
-        var manager = (RealtimeModeManager)_serviceProvider.GetService(typeof(RealtimeModeManager))!;
-        if (!manager.IsStarted)
+        if (!_realtimeProperties.IsStarted)
         {
             _logger.LogWarning("Isn't started, stop adding cache.");
             return;

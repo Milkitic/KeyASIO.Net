@@ -4,17 +4,17 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Shared.Realtime.AudioProviders;
 
 public class StandardAudioProvider : IAudioProvider
 {
     private readonly ILogger<StandardAudioProvider> _logger;
-    private readonly IRealtimeContext _realtimeContext;
+    private readonly AppSettings _appSettings;
+    private readonly RealtimeProperties _realtimeProperties;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheService _audioCacheService;
-    private readonly PlaySessionService _playSessionService;
+    private readonly PlaySessionManager _playSessionManager;
 
     private Queue<PlayableNode> _hitQueue = new();
     private Queue<HitsoundNode> _playQueue = new();
@@ -22,25 +22,27 @@ public class StandardAudioProvider : IAudioProvider
     private PlayableNode? _firstNode;
     private HitsoundNode? _firstPlayNode;
 
-    public StandardAudioProvider(ILogger<StandardAudioProvider> logger, IRealtimeContext realtimeContext,
+    public StandardAudioProvider(ILogger<StandardAudioProvider> logger,
+        AppSettings appSettings,
+        RealtimeProperties realtimeProperties,
         AudioEngine audioEngine,
-        AudioCacheService audioCacheService, PlaySessionService playSessionService)
+        AudioCacheService audioCacheService,
+        PlaySessionManager playSessionManager)
     {
         _logger = logger;
-        _realtimeContext = realtimeContext;
+        _appSettings = appSettings;
+        _realtimeProperties = realtimeProperties;
         _audioEngine = audioEngine;
         _audioCacheService = audioCacheService;
-        _playSessionService = playSessionService;
+        _playSessionManager = playSessionManager;
     }
 
     public int KeyThresholdMilliseconds { get; set; } = 100;
-    public bool IsStarted => _playSessionService.IsStarted;
-    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
 
     public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey)
     {
-        var playTime = _realtimeContext.PlayTime;
-        var isStarted = IsStarted;
+        var playTime = _realtimeProperties.PlayTime;
+        var isStarted = _realtimeProperties.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -74,8 +76,8 @@ public class StandardAudioProvider : IAudioProvider
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
 
-        var playTime = _realtimeContext.PlayTime;
-        var isStarted = IsStarted;
+        var playTime = _realtimeProperties.PlayTime;
+        var isStarted = _realtimeProperties.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -122,7 +124,7 @@ public class StandardAudioProvider : IAudioProvider
             {
                 var controlNode = (ControlNode)hitsoundNode;
                 if (controlNode.ControlType is ControlType.ChangeBalance or ControlType.None) continue;
-                if (AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides) continue;
+                if (_appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides) continue;
                 playbackList.Add(controlNode);
                 continue;
             }
@@ -135,7 +137,7 @@ public class StandardAudioProvider : IAudioProvider
             }
             else if (playableNode.PlayablePriority is PlayablePriority.Secondary)
             {
-                var sliderTailBehavior = AppSettings.RealtimeOptions.SliderTailPlaybackBehavior;
+                var sliderTailBehavior = _appSettings.RealtimeOptions.SliderTailPlaybackBehavior;
                 if (sliderTailBehavior == SliderTailPlaybackBehavior.Normal)
                 {
                     playbackList.Add(playableNode);
@@ -147,14 +149,14 @@ public class StandardAudioProvider : IAudioProvider
             }
             else if (playableNode.PlayablePriority is PlayablePriority.Effects)
             {
-                if (!AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides)
+                if (!_appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides)
                 {
                     playbackList.Add(playableNode);
                 }
             }
             else if (playableNode.PlayablePriority is PlayablePriority.Sampling)
             {
-                if (!AppSettings.RealtimeOptions.IgnoreStoryboardSamples)
+                if (!_appSettings.RealtimeOptions.IgnoreStoryboardSamples)
                 {
                     playbackList.Add(playableNode);
                 }
@@ -172,9 +174,9 @@ public class StandardAudioProvider : IAudioProvider
 
     public void ResetNodes(int playTime)
     {
-        _hitQueue = new Queue<PlayableNode>(_playSessionService.KeyList);
-        _playQueue = new Queue<HitsoundNode>(_playSessionService.PlaybackList
-            .Where(k => k.Offset >= _realtimeContext.PlayTime));
+        _hitQueue = new Queue<PlayableNode>(_playSessionManager.KeyList);
+        _playQueue = new Queue<HitsoundNode>(_playSessionManager.PlaybackList
+            .Where(k => k.Offset >= _realtimeProperties.PlayTime));
         _hitQueue.TryDequeue(out _firstNode);
         _playQueue.TryDequeue(out _firstPlayNode);
     }
@@ -190,7 +192,7 @@ public class StandardAudioProvider : IAudioProvider
             {
                 if (!isFirst && !checkPreTiming && playTime < firstNode.Offset - 3)
                 {
-                    //Logger.LogWarning($"Haven't reached first, return empty.");
+                    //_logger.LogWarning($"Haven't reached first, return empty.");
                     break;
                 }
 

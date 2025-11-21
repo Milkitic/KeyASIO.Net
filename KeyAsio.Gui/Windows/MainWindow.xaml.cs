@@ -34,6 +34,7 @@ public partial class MainWindow : DialogWindow
     private readonly ILogger<MainWindow> _logger;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly AudioDeviceManager _audioDeviceManager;
+    private readonly PlaySessionManager _playSessionManager;
     private readonly AudioPlaybackService _audioPlaybackService;
     private readonly SharedViewModel _viewModel;
     private CachedAudio? _cacheSound;
@@ -50,6 +51,7 @@ public partial class MainWindow : DialogWindow
         RealtimeModeManager realtimeModeManager,
         AudioDeviceManager audioDeviceManager,
         SharedViewModel viewModel,
+        PlaySessionManager playSessionManager,
         AudioPlaybackService audioPlaybackService)
     {
         InitializeComponent();
@@ -60,6 +62,7 @@ public partial class MainWindow : DialogWindow
         _audioCacheManager = audioCacheManager;
         RealtimeModeManager = realtimeModeManager;
         _audioDeviceManager = audioDeviceManager;
+        _playSessionManager = playSessionManager;
         _audioPlaybackService = audioPlaybackService;
 
         _keyboardHook = KeyboardHookFactory.CreateGlobal();
@@ -267,7 +270,8 @@ public partial class MainWindow : DialogWindow
             }
 
             _playbackBuffer.Clear();
-            RealtimeModeManager.FillKeyAudio(_playbackBuffer, AppSettings.Keys.IndexOf(hookKey), AppSettings.Keys.Count);
+            _playSessionManager.CurrentAudioProvider.FillKeyAudio(_playbackBuffer, AppSettings.Keys.IndexOf(hookKey),
+                AppSettings.Keys.Count);
             foreach (var playbackInfo in _playbackBuffer)
             {
                 _audioPlaybackService.DispatchPlayback(playbackInfo);

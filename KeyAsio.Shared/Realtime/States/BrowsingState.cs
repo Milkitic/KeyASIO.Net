@@ -9,26 +9,30 @@ public class BrowsingState : IRealtimeState
 {
     private readonly AppSettings _appSettings;
     private readonly MusicTrackService _musicTrackService;
+    private readonly PlaySessionManager _playSessionManager;
 
-    public BrowsingState(AppSettings appSettings, MusicTrackService musicTrackService)
+    public BrowsingState(AppSettings appSettings,
+        MusicTrackService musicTrackService,
+        PlaySessionManager playSessionManager)
     {
         _appSettings = appSettings;
         _musicTrackService = musicTrackService;
+        _playSessionManager = playSessionManager;
     }
 
-    public Task EnterAsync(IRealtimeContext ctx, OsuMemoryStatus from)
+    public Task EnterAsync(RealtimeProperties ctx, OsuMemoryStatus from)
     {
         _musicTrackService.StartLowPass(200, 16000);
         _musicTrackService.SetResultFlag(false);
-        ctx.Stop();
+        _playSessionManager.Stop();
         return Task.CompletedTask;
     }
 
-    public void Exit(IRealtimeContext ctx, OsuMemoryStatus to)
+    public void Exit(RealtimeProperties ctx, OsuMemoryStatus to)
     {
     }
 
-    public async Task OnPlayTimeChanged(IRealtimeContext ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeProperties ctx, int oldMs, int newMs, bool paused)
     {
         const int selectSongPauseThreshold = 20;
         if (!_appSettings.RealtimeOptions.EnableMusicFunctions) return;
@@ -50,11 +54,11 @@ public class BrowsingState : IRealtimeState
         }
     }
 
-    public void OnComboChanged(IRealtimeContext ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(RealtimeProperties ctx, int oldCombo, int newCombo)
     {
     }
 
-    public void OnBeatmapChanged(IRealtimeContext ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(RealtimeProperties ctx, BeatmapIdentifier beatmap)
     {
         if (beatmap == default)
         {
@@ -89,7 +93,7 @@ public class BrowsingState : IRealtimeState
         _musicTrackService.ResetPauseState();
     }
 
-    public void OnModsChanged(IRealtimeContext ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(RealtimeProperties ctx, Mods oldMods, Mods newMods)
     {
     }
 }
