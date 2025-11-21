@@ -49,10 +49,7 @@ public class RealtimeModeManager : ViewModelBase
     private readonly AudioPlaybackService _audioPlaybackService;
     private readonly AudioCacheManager _audioCacheManager;
 
-    private string? _lastPlayFolder;
-
     private bool _firstStartInitialized; // After starting a map and playtime to zero
-    private bool _result;
 
     public RealtimeModeManager(ILogger<RealtimeModeManager> logger, IServiceProvider serviceProvider,
         AudioEngine audioEngine, SharedViewModel sharedViewModel, AudioCacheService audioCacheService,
@@ -251,24 +248,23 @@ public class RealtimeModeManager : ViewModelBase
             OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
-            if (_lastPlayFolder != folder)
+            var previousFolder = _musicTrackService.GetMainTrackFolder();
+            if (previousFolder != null && previousFolder != folder)
             {
                 Logger.Info("Cleaning caches caused by folder changing.");
                 CleanAudioCaches();
             }
 
-            _lastPlayFolder = folder;
             if (folder == null)
             {
                 throw new Exception("The beatmap folder is null!");
             }
 
-            var osuFile =
-                await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename, GetCurrentAudioProvider(),
-                    PlayMods);
+            var osuFile = await _hitsoundNodeService.InitializeNodeListsAsync(folder, beatmapFilename,
+                GetCurrentAudioProvider(), PlayMods);
             OsuFile = osuFile;
             AudioFilename = osuFile?.General?.AudioFilename;
-            _musicTrackService.UpdateMainTrackContext(folder!, AudioFilename);
+            _musicTrackService.UpdateMainTrackContext(folder, AudioFilename);
             AddSkinCacheInBackground();
             ResetNodes();
         }
@@ -316,9 +312,11 @@ public class RealtimeModeManager : ViewModelBase
 
     private void AddSkinCacheInBackground()
     {
-        if (_lastPlayFolder == null)
+        var mainFolder = _musicTrackService.GetMainTrackFolder();
+        var mainAudioFilename = _musicTrackService.GetMainAudioFilename();
+        if (mainFolder == null)
         {
-            Logger.Warn($"{nameof(_lastPlayFolder)} is null, stop adding cache.");
+            Logger.Warn("Main track folder is null, stop adding cache.");
             return;
         }
 
@@ -328,7 +326,7 @@ public class RealtimeModeManager : ViewModelBase
             return;
         }
 
-        _audioCacheService.SetContext(_lastPlayFolder, AudioFilename);
+        _audioCacheService.SetContext(mainFolder, mainAudioFilename);
         _audioCacheService.PrecacheMusicAndSkinInBackground();
     }
 
@@ -363,11 +361,6 @@ public class RealtimeModeManager : ViewModelBase
         _stateMachine.Current?.OnPlayTimeChanged(this, oldMs, newMs, paused);
     }
 
-    internal void SetResultFlag(bool value)
-    {
-        _result = value;
-    }
-
     internal bool GetEnableMusicFunctions() => AppSettings.RealtimeOptions.EnableMusicFunctions;
 
     internal bool GetFirstStartInitialized() => _firstStartInitialized;
@@ -382,6 +375,4 @@ public class RealtimeModeManager : ViewModelBase
     }
 
     internal void ResetNodesExternal() => _hitsoundNodeService.ResetNodes(GetCurrentAudioProvider(), PlayTime);
-
-    internal bool IsResultFlag() => _result;
 }

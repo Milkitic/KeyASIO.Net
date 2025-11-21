@@ -16,6 +16,7 @@ public class MusicTrackService
     private string? _mainAudioFilename;
     private bool _previousSelectSongStatus = true;
     private int _pauseCount;
+    private bool _isResult;
 
     public MusicTrackService(AudioEngine audioEngine)
     {
@@ -90,6 +91,9 @@ public class MusicTrackService
         return Path.Combine(_mainTrackFolder, _mainAudioFilename);
     }
 
+    public string? GetMainTrackFolder() => _mainTrackFolder;
+    public string? GetMainAudioFilename() => _mainAudioFilename;
+
     public void ResetPauseState()
     {
         _previousSelectSongStatus = true;
@@ -112,4 +116,11 @@ public class MusicTrackService
     public void SetPreviousSelectSongStatus(bool value) => _previousSelectSongStatus = value;
     public int GetPauseCount() => _pauseCount;
     public void SetPauseCount(int value) => _pauseCount = value;
+
+    public void SetResultFlag(bool value)
+    {
+        _isResult = value;
+    }
+
+    public bool IsResultFlag() => _isResult;
 }

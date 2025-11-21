@@ -15,7 +15,7 @@ public class ResultsState : IRealtimeState
 
     public Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
     {
-        ctx.SetResultFlag(true);
+        _musicTrackService.SetResultFlag(true);
         _musicTrackService.SetSingleTrackPlayMods(Mods.None);
         return Task.CompletedTask;
     }

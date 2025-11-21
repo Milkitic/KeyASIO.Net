@@ -17,7 +17,7 @@ public class BrowsingState : IRealtimeState
     public Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
     {
         _musicTrackService.StartLowPass(200, 16000);
-        ctx.SetResultFlag(false);
+        _musicTrackService.SetResultFlag(false);
         ctx.Stop();
         return Task.CompletedTask;
     }

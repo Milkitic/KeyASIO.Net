@@ -33,7 +33,7 @@ public class PlayingState : IRealtimeState
     public async Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
     {
         _musicTrackService.StartLowPass(200, 800);
-        ctx.SetResultFlag(false);
+        _musicTrackService.SetResultFlag(false);
 
         if (ctx.Beatmap == default)
         {
@@ -92,7 +92,7 @@ public class PlayingState : IRealtimeState
                             _musicTrackService.SetMainTrackOffsetAndLeadIn(
                                 osuForceLatency + codeLatency + oldMapForceOffset,
                                 ctx.OsuFile.General.AudioLeadIn);
-                            if (!ctx.IsResultFlag())
+                            if (!_musicTrackService.IsResultFlag())
                             {
                                 _musicTrackService.SetSingleTrackPlayMods(ctx.PlayMods);
                             }
