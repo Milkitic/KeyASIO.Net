@@ -65,7 +65,7 @@ static class Program
         var filename = Path.GetFileName(filenameFull);
 
         var realtimeModeManager = provider.GetRequiredService<RealtimeProperties>();
-        realtimeModeManager.PlayTime = -1;
+        realtimeModeManager.BaseMemoryTime = -1;
         realtimeModeManager.PlayMods = Mods.None;
         realtimeModeManager.OsuStatus = OsuMemoryStatus.SongSelect;
         var files = Directory.EnumerateFiles(@"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\", "*.osu",
@@ -107,7 +107,7 @@ static class Program
         {
             while (true)
             {
-                realtimeModeManager.PlayTime = (int)sw.ElapsedMilliseconds - 1000;
+                realtimeModeManager.BaseMemoryTime = (int)sw.ElapsedMilliseconds - 1000;
                 Thread.Sleep(3);
             }
         });

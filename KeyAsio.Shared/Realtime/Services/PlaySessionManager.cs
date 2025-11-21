@@ -140,7 +140,7 @@ public class PlaySessionManager
                 OsuFile.General.PreviewTime);
         }
 
-        _realtimeProperties.PlayTime = 0;
+        _realtimeProperties.BaseMemoryTime = 0;
         _realtimeProperties.Combo = 0;
     }
 

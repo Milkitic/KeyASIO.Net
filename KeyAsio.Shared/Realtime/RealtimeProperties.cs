@@ -18,10 +18,9 @@ public class RealtimeProperties : ViewModelBase
     private readonly AppSettings _appSettings;
     private readonly Stopwatch _playTimeStopwatch = new();
 
-    private int _playTime;
     private string? _username;
     private Mods _playMods;
-    private int _lastFetchedPlayTime;
+    private int _baseMemoryTime;
     private int _combo;
     private int _score;
     private OsuMemoryStatus _osuStatus;
@@ -63,31 +62,24 @@ public class RealtimeProperties : ViewModelBase
             }
         }
     }
-
     public int PlayTime
     {
-        get => _playTime;
-        set
+        get
         {
-            value += _appSettings.RealtimeOptions.RealtimeModeAudioOffset + (int)_playTimeStopwatch.ElapsedMilliseconds;
-            var val = _playTime;
-            if (SetField(ref _playTime, value))
-            {
-                OnFetchedPlayTimeChanged?.Invoke(val, value, false);
-            }
-            else
-            {
-                OnFetchedPlayTimeChanged?.Invoke(val, value, true);
-            }
+            var offset = _appSettings.RealtimeOptions.RealtimeModeAudioOffset;
+            var interpolated = _playTimeStopwatch.ElapsedMilliseconds;
+            return _baseMemoryTime + offset + (int)interpolated;
         }
     }
 
-    public int LastFetchedPlayTime
+    public int BaseMemoryTime
     {
-        get => _lastFetchedPlayTime;
+        get => _baseMemoryTime;
         set
         {
-            if (SetField(ref _lastFetchedPlayTime, value))
+            var playTime = PlayTime;
+            var val = _baseMemoryTime;
+            if (SetField(ref _baseMemoryTime, value))
             {
                 _playTimeStopwatch.Restart();
             }
@@ -96,7 +88,8 @@ public class RealtimeProperties : ViewModelBase
                 _playTimeStopwatch.Reset();
             }
 
-            PlayTime = value;
+            OnPropertyChanged(nameof(PlayTime));
+            OnFetchedPlayTimeChanged?.Invoke(playTime, PlayTime, val == value);
         }
     }
 

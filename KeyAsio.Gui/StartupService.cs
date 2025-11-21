@@ -59,7 +59,7 @@ internal class StartupService : IHostedService
         MemoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
             dispatcher.InvokeAsync(() => _realtimeProperties.IsReplay = isReplay);
         MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            dispatcher.InvokeAsync(() => _realtimeProperties.LastFetchedPlayTime = playTime);
+            dispatcher.InvokeAsync(() => _realtimeProperties.BaseMemoryTime = playTime);
         MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
             dispatcher.InvokeAsync(() => _realtimeProperties.Beatmap = beatmap);
         MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
