@@ -334,6 +334,8 @@ public class RealtimeModeManager : ViewModelBase
         return _audioProviderDictionary[OsuFile.General.Mode];
     }
 
+    internal IAudioProvider CurrentAudioProvider => GetCurrentAudioProvider();
+
     private void OnComboChanged(int oldCombo, int newCombo)
     {
         _stateMachine.Current?.OnComboChanged(this, oldCombo, newCombo);
@@ -358,16 +360,4 @@ public class RealtimeModeManager : ViewModelBase
     {
         _stateMachine.Current?.OnPlayTimeChanged(this, oldMs, newMs, paused);
     }
-
-    internal bool GetEnableMusicFunctions() => AppSettings.RealtimeOptions.EnableMusicFunctions;
-
-    internal void ClearMixerLoopsAndMainTrackAudio()
-    {
-        var mixer = _audioEngine.EffectMixer;
-        _audioPlaybackService.ClearAllLoops(mixer);
-        _musicTrackService.ClearMainTrackAudio();
-        mixer?.RemoveAllMixerInputs();
-    }
-
-    internal void ResetNodesExternal() => _hitsoundNodeService.ResetNodes(GetCurrentAudioProvider(), PlayTime);
 }

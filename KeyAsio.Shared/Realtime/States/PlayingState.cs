@@ -63,12 +63,15 @@ public class PlayingState : IRealtimeState
             _musicTrackService.StopCurrentMusic();
             _musicTrackService.StartLowPass(200, 16000);
             _musicTrackService.SetFirstStartInitialized(true);
-            ctx.ClearMixerLoopsAndMainTrackAudio();
-            ctx.ResetNodesExternal();
+            var mixer = _audioEngine.EffectMixer;
+            _audioPlaybackService.ClearAllLoops(mixer);
+            _musicTrackService.ClearMainTrackAudio();
+            mixer?.RemoveAllMixerInputs();
+            _hitsoundNodeService.ResetNodes(ctx.CurrentAudioProvider, ctx.PlayTime);
             return;
         }
 
-        if (ctx.GetEnableMusicFunctions())
+        if (ctx.AppSettings.RealtimeOptions.EnableMusicFunctions)
         {
             if (_musicTrackService.GetFirstStartInitialized() && ctx.OsuFile != null &&
                 _musicTrackService.GetMainTrackPath() != null &&

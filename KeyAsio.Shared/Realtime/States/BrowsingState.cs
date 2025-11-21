@@ -29,7 +29,7 @@ public class BrowsingState : IRealtimeState
     public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
     {
         const int selectSongPauseThreshold = 20;
-        if (!ctx.GetEnableMusicFunctions()) return;
+        if (!ctx.AppSettings.RealtimeOptions.EnableMusicFunctions) return;
 
         // Maintain pause state lifecycle for song-select preview
         _musicTrackService.UpdatePauseCount(paused);
