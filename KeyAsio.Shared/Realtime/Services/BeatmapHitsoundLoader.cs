@@ -72,7 +72,7 @@ public class BeatmapHitsoundLoader
 
     public void ResetNodes(IHitsoundSequencer hitsoundSequencer, int playTime)
     {
-        hitsoundSequencer.ResetNodes(playTime);
+        hitsoundSequencer.SeekTo(playTime);
         _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _keyList);
         _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _playbackList);
         _nextCachingTime = 10000;

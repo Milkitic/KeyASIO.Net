@@ -270,7 +270,7 @@ public partial class MainWindow : DialogWindow
             }
 
             _playbackBuffer.Clear();
-            _gameplaySessionManager.CurrentHitsoundSequencer.FillKeyAudio(_playbackBuffer, AppSettings.Keys.IndexOf(hookKey),
+            _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer, AppSettings.Keys.IndexOf(hookKey),
                 AppSettings.Keys.Count);
             foreach (var playbackInfo in _playbackBuffer)
             {

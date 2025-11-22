@@ -1,3 +1,5 @@
+using Coosu.Beatmap.Extensions.Playback;
+using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
@@ -148,7 +150,7 @@ public class PlayingState : IGameState
     {
         if (!_sharedViewModel.AutoMode && (ctx.PlayMods & Mods.Autoplay) == 0 && !ctx.IsReplay) return;
         _playbackBuffer.Clear();
-        _gameplaySessionManager.CurrentHitsoundSequencer.FillPlaybackAudio(_playbackBuffer, false);
+        _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, false);
         foreach (var playbackObject in _playbackBuffer)
         {
             _sfxPlaybackService.DispatchPlayback(playbackObject);
@@ -158,9 +160,16 @@ public class PlayingState : IGameState
     private void PlayManualPlaybackIfNeeded(RealtimeSessionContext ctx)
     {
         _playbackBuffer.Clear();
-        _gameplaySessionManager.CurrentHitsoundSequencer.FillPlaybackAudio(_playbackBuffer, true);
+        _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, true);
         foreach (var playbackObject in _playbackBuffer)
         {
+            if (_gameplaySessionManager.OsuFile.General.Mode == GameMode.Mania &&
+                playbackObject.HitsoundNode is PlayableNode { PlayablePriority: PlayablePriority.Sampling })
+            {
+                _sfxPlaybackService.DispatchPlayback(playbackObject, playbackObject.HitsoundNode.Volume * 0.6666666f);
+                continue;
+            }
+
             _sfxPlaybackService.DispatchPlayback(playbackObject);
         }
     }

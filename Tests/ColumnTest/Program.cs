@@ -44,6 +44,6 @@ List<HitsoundNode> playbackList = new();
 
 maniaAudioProvider.FillAudioList(hitsoundList, keyList, playbackList);
 hitsoundNodeService.KeyList.AddRange(keyList);
-maniaAudioProvider.ResetNodes(0);
+maniaAudioProvider.SeekTo(0);
 
 return;

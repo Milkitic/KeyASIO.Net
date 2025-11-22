@@ -62,7 +62,7 @@ public class AudioCacheService
     public bool TryGetAudioByNode(HitsoundNode node, [NotNullWhen(true)] out CachedAudio? cachedAudio)
     {
         if (!_playNodeToCachedAudioMapping.TryGetValue(node, out cachedAudio)) return false;
-        return node is PlayableNode;
+        return true;
     }
 
     public bool TryGetCachedAudio(string filenameWithoutExt, out CachedAudio? cachedAudio)

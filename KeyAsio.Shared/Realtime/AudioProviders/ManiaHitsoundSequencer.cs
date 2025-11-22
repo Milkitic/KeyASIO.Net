@@ -40,7 +40,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
         _gameplaySessionManager = gameplaySessionManager;
     }
 
-    public void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey)
+    public void ProcessAutoPlay(List<PlaybackInfo> buffer, bool processHitQueueAsAuto)
     {
         var playTime = _realtimeSessionContext.PlayTime;
         var isStarted = _realtimeSessionContext.IsStarted;
@@ -57,7 +57,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
             return;
         }
 
-        var first = includeKey ? _firstPlayNode : _firstAutoNode;
+        var first = processHitQueueAsAuto ? _firstPlayNode : _firstAutoNode;
         if (first == null)
         {
             return;
@@ -70,10 +70,10 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
             _logger.LogWarning("Haven't reached first, no item returned.");
         }
 
-        FillNextPlaybackAudio(buffer, first, playTime, includeKey);
+        FillNextPlaybackAudio(buffer, first, playTime, processHitQueueAsAuto);
     }
 
-    public void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
+    public void ProcessInteraction(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
         var playTime = _realtimeSessionContext.PlayTime;
@@ -170,7 +170,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
         }
     }
 
-    public void ResetNodes(int playTime)
+    public void SeekTo(int playTime)
     {
         _hitQueue = GetHitQueue(_gameplaySessionManager.KeyList, playTime);
         _hitQueueCache = new PlayableNode[_hitQueue.Count];

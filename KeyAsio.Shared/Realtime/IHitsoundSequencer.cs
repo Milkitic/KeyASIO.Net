@@ -5,9 +5,9 @@ namespace KeyAsio.Shared.Realtime;
 
 public interface IHitsoundSequencer
 {
-    void FillPlaybackAudio(List<PlaybackInfo> buffer, bool includeKey);
-    void FillKeyAudio(List<PlaybackInfo> buffer, int keyIndex, int keyTotal);
+    void ProcessAutoPlay(List<PlaybackInfo> buffer, bool processHitQueueAsAuto);
+    void ProcessInteraction(List<PlaybackInfo> buffer, int keyIndex, int keyTotal);
 
     void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList, List<HitsoundNode> playbackList);
-    void ResetNodes(int playTime);
+    void SeekTo(int playTime);
 }

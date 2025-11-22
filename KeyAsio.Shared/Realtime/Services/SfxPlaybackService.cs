@@ -49,7 +49,7 @@ public class SfxPlaybackService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurs while playing audio.", true);
+            _logger.LogError(ex, "Error occurs while playing audio.");
         }
 
         _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
@@ -73,7 +73,7 @@ public class SfxPlaybackService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurs while playing looped audio.", true);
+                _logger.LogError(ex, "Error occurs while playing looped audio.");
             }
         }
         else if (controlNode.ControlType == ControlType.StopSliding)
@@ -92,17 +92,27 @@ public class SfxPlaybackService
         _loopProviderManager.RemoveAll(mixingSampleProvider);
     }
 
-    public void DispatchPlayback(PlaybackInfo playbackInfo)
+    public void DispatchPlayback(PlaybackInfo playbackInfo, float? overrideVolume = null)
     {
         var cachedAudio = playbackInfo.CachedAudio;
         var hitsoundNode = playbackInfo.HitsoundNode;
         if (hitsoundNode is PlayableNode playableNode)
         {
-            var volume = _appSettings.RealtimeOptions.IgnoreLineVolumes
-                ? 1
-                : playableNode.PlayablePriority == PlayablePriority.Effects
-                    ? playableNode.Volume * 1.25f
-                    : playableNode.Volume;
+            float volume;
+            if (_appSettings.RealtimeOptions.IgnoreLineVolumes)
+            {
+                volume = 1;
+            }
+            else
+            {
+                if (overrideVolume != null)
+                    volume = overrideVolume.Value;
+                else if (playableNode.PlayablePriority == PlayablePriority.Effects)
+                    volume = playableNode.Volume * 1.25f;
+                else
+                    volume = playableNode.Volume;
+            }
+
             PlayEffectsAudio(cachedAudio, volume, playableNode.Balance);
         }
         else
