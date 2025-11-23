@@ -1,29 +1,16 @@
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.Loader;
 using System.Text;
-using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
-using System.Xml;
-using System.Xml.Linq;
-using KeyAsio.Audio;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
+using KeyAsio.MemoryReading;
 using KeyAsio.Shared;
-using KeyAsio.Shared.Configuration;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
-using NLog.Extensions.Logging;
 
 namespace KeyAsio.Gui;
 
@@ -32,170 +19,82 @@ namespace KeyAsio.Gui;
 /// </summary>
 public partial class App : Application
 {
-    private static readonly KeyAsio.MemoryReading.Logging.ILogger Logger = LogUtils.GetLogger("Application");
-    private IHost? _host;
+    private readonly ILogger<App> _logger;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly AppSettings _appSettings;
+    private readonly MemoryScan _memoryScan;
+    private readonly RealtimeSessionContext _realtimeSessionContext;
 
-    public IServiceProvider Services => _host?.Services ?? throw new InvalidOperationException("Host not initialized.");
-
-    [STAThread]
-    internal static void Main()
+    public App(ILogger<App> logger,
+        IServiceProvider serviceProvider,
+        AppSettings appSettings,
+        MemoryScan memoryScan,
+        RealtimeSessionContext realtimeSessionContext)
     {
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        //AssemblyLoadContext.Default.Resolving += ResolveAssembly;
-        RedirectLogs();
-        CreateApplication();
-    }
-
-    private static void CreateApplication()
-    {
-        var mutex = new Mutex(true, "KeyAsio.Net", out bool createNew);
-        if (!createNew)
-        {
-            var process = Process
-                .GetProcessesByName(Process.GetCurrentProcess().ProcessName)
-                .FirstOrDefault(k => k.Id != Environment.ProcessId && k.MainWindowHandle != IntPtr.Zero);
-            if (process == null) return;
-            ProcessUtils.ShowWindow(process.MainWindowHandle, ProcessUtils.SW_SHOW);
-            ProcessUtils.SetForegroundWindow(process.MainWindowHandle);
-            return;
-        }
-
-        using var _ = new EmbeddedSentryConfiguration(options =>
-        {
-            options.HttpProxy = HttpClient.DefaultProxy;
-            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
-            //options.DefaultTags.Add("os.detail", HardwareInformationHelper.GetOsInformation());
-            //options.DefaultTags.Add("processor", HardwareInformationHelper.GetProcessorInformation());
-            //options.DefaultTags.Add("total_memory", HardwareInformationHelper.GetPhysicalMemory());
-        });
-
-        try
-        {
-            Logger.Info("Application started.", true);
-            var app = new App();
-            app.InitializeComponent();
-            app.Run();
-        }
-        finally
-        {
-            mutex.ReleaseMutex();
-            Logger.Info("Application stopped.", true);
-        }
-    }
-
-    private static void RedirectLogs()
-    {
-        var configFile = Path.Combine(Environment.CurrentDirectory, "bin", "nlog.config");
-        if (!File.Exists(configFile)) return;
-        Console.WriteLine("Found File: " + configFile);
-        const string ns = "http://www.nlog-project.org/schemas/NLog.xsd";
-        XDocument xDocument;
-        bool changed = false;
-        using (var fs = File.Open(configFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-        {
-            xDocument = XDocument.Load(fs);
-            var xe_targets = xDocument.Root?.Element(XName.Get("targets", ns));
-            if (xe_targets != null)
-            {
-                var targets = xe_targets.Elements(XName.Get("target", ns));
-                foreach (var xe_target in targets)
-                {
-                    var xa_fileName = xe_target.Attribute("fileName");
-                    if (xa_fileName == null || !xa_fileName.Value.StartsWith("logs/")) continue;
-                    var value = xa_fileName.Value;
-                    xa_fileName.Value = "../" + xa_fileName.Value;
-                    changed = true;
-                    Console.WriteLine($"Redirected \"{value}\" to \"{xa_fileName.Value}\"");
-                }
-            }
-        }
-
-        if (!changed) return;
-        xDocument.DescendantNodes().OfType<XComment>().Remove();
-        using var fsw = new StreamWriter(configFile, Encoding.UTF8, new FileStreamOptions
-        {
-            Mode = FileMode.Create,
-            Access = FileAccess.Write,
-            Share = FileShare.None
-        });
-        using var xmlWriter = XmlWriter.Create(fsw, new XmlWriterSettings
-        {
-            Indent = true
-        });
-        xDocument.Save(xmlWriter);
-    }
-
-    private static Assembly? ResolveAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
-    {
-        var originalPath = Path.Combine(AppContext.BaseDirectory, $"{assemblyName.Name}.dll");
-        if (File.Exists(originalPath)) return context.LoadFromAssemblyPath(originalPath);
-        var pathMaybe = Path.Combine(AppContext.BaseDirectory, "bin", $"{assemblyName.Name}.dll");
-        return File.Exists(pathMaybe) ? context.LoadFromAssemblyPath(pathMaybe) : null;
-    }
-
-    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-    {
-        var exception = (Exception)e.ExceptionObject;
-        if (Current?.MainWindow == null)
-        {
-            MessageBox.Show(exception.ToFullTypeMessage(), "KeyASIO startup error ",
-                MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        else
-        {
-            MessageBox.Show(exception.ToFullTypeMessage(), "KeyASIO runtime error",
-                MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        _logger = logger;
+        _serviceProvider = serviceProvider;
+        _appSettings = appSettings;
+        _memoryScan = memoryScan;
+        _realtimeSessionContext = realtimeSessionContext;
     }
 
     private async void App_OnStartup(object sender, StartupEventArgs e)
     {
-        _host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(logging =>
-            {
-                logging.ClearProviders();
-                logging.AddNLog("nlog.config");
-            })
-            .ConfigureServices(services => services
-                .AddAudioModule()
-                .AddRealtimeModule()
-                .AddGuiModule()
-                .AddSingleton(provider =>
-                    ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".")))
-            .Build();
-        await _host.StartAsync();
-
-        NLogDevice.RegisterDefault();
+        NLogDevice.RegisterDefault(_serviceProvider.GetRequiredService<ILogger<NLogDevice>>());
 
         UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());
         Dispatcher.UnhandledException += Dispatcher_UnhandledException;
 
-        MainWindow = _host.Services.GetRequiredService<MainWindow>();
+        MainWindow = Program.Host.Services.GetRequiredService<MainWindow>();
         MainWindow.Show();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Dispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-    {
-        Logger.Error(e.Exception, "Unhandled Exception (Dispatcher): " + e.Exception.Message, true);
-        e.Handled = true;
-    }
 
-    protected override void OnExit(ExitEventArgs e)
+
+    private void StartMemoryScan()
     {
+        if (!_appSettings.RealtimeOptions.RealtimeMode) return;
+
         try
         {
-            _host?.StopAsync().GetAwaiter().GetResult();
+            var player = EncodeUtils.FromBase64String(_appSettings.PlayerBase64, Encoding.ASCII);
+            _realtimeSessionContext.Username = player;
         }
         catch
         {
             // ignored
         }
-        finally
-        {
-            _host?.Dispose();
-        }
 
+        var dispatcher = Current.Dispatcher;
+        _memoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.Username = player);
+        _memoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.PlayMods = mods);
+        _memoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.Combo = combo);
+        _memoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.Score = score);
+        _memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.IsReplay = isReplay);
+        _memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.BaseMemoryTime = playTime);
+        _memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.Beatmap = beatmap);
+        _memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
+            dispatcher.InvokeAsync(() => _realtimeSessionContext.OsuStatus = current);
+        _memoryScan.Start(_appSettings.RealtimeOptions.GeneralScanInterval, _appSettings.RealtimeOptions.TimingScanInterval);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Dispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        _logger.LogError(e.Exception, "Unhandled Exception (Dispatcher): " + e.Exception.Message, true);
+        e.Handled = true;
+    }
+
+    protected override async void OnExit(ExitEventArgs e)
+    {
+        await Program.Host.StopAsync();
         base.OnExit(e);
     }
 }
