@@ -125,7 +125,7 @@
 
       <ItemsControl Margin="-5,-5,-5,25" ItemsSource="{Binding ElementName=Self, Path=AppSettings.Keys}">
         <ItemsControl.ItemTemplate>
-          <DataTemplate DataType="mouseKeyHook:HookKeys">
+          <DataTemplate DataType="{x:Type mouseKeyHook:HookKeys}">
             <Label
               Height="24"
               MinWidth="24"

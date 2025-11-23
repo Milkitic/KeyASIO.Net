@@ -218,62 +218,6 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         }
     }
 
-    /// <summary>
-    /// 核心逻辑：处理点击队列。支持播放（Hit）和修剪（Prune）两种模式。
-    /// </summary>
-    private void ProcessHitQueue(List<PlaybackInfo> buffer, int playTime, bool isPruningOnly)
-    {
-        Guid? currentGroupGuid = null;
-        bool isFirstInLoop = true;
-
-        while (_hitQueue.TryPeek(out var node))
-        {
-            // 组处理逻辑：检测是否遇到新的 Note 组
-            if (!isFirstInLoop && currentGroupGuid != node.Guid)
-            {
-                // 如果我们是在响应点击 (Hit)，遇到新组直接停止，防止一次点击触发两个时间点的音符
-                if (!isPruningOnly)
-                {
-                    // Hit模式：遇到新组立即停止，防止一次点击触发下一组
-                    break;
-                }
-
-                // Prune模式：如果新组还在时间窗口内（未过期），则停止修剪
-                if (isPruningOnly && playTime < node.Offset + KeyThresholdMilliseconds)
-                {
-                    break;
-                }
-            }
-
-            if (isFirstInLoop)
-            {
-                currentGroupGuid = node.Guid;
-            }
-
-            // 判定逻辑
-            if (!isPruningOnly)
-            {
-                // Hit模式：直接播放并出队
-                DequeueAndPlay(buffer, _hitQueue);
-            }
-            else
-            {
-                // Prune模式：检查是否过期
-                var isExpired = playTime >= node.Offset + KeyThresholdMilliseconds;
-                if (isExpired)
-                {
-                    _hitQueue.Dequeue(); // 过期，丢弃
-                }
-                else
-                {
-                    break; // 未过期，停止修剪
-                }
-            }
-
-            isFirstInLoop = false;
-        }
-    }
-
     private void ProcessTimeBasedQueue<T>(List<PlaybackInfo> buffer, Queue<T> queue, int playTime)
         where T : HitsoundNode
     {
