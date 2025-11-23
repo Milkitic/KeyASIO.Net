@@ -7,3 +7,6 @@
 [submodule "dependencies/NAudio"]
 	path = dependencies/NAudio
 	url = https://github.com/Milkitic/NAudio.git
+[submodule "dependencies/Milki.Extensions"]
+	path = dependencies/Milki.Extensions
+	url = https://github.com/Milkitic/Milki.Extensions.git
