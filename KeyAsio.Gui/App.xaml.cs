@@ -15,6 +15,7 @@ using System.Xml.Linq;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Gui.Utils;
+using KeyAsio.Gui.Services;
 using KeyAsio.Gui.Windows;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
@@ -179,6 +180,8 @@ public partial class App : Application
                 services.AddSingleton<GameplaySessionManager>();
                 services.AddSingleton<RealtimeSessionContext>();
                 services.AddSingleton<RealtimeController>();
+
+                services.AddSingleton<KeyboardBindingInitializer>();
 
                 services.AddSingleton<SharedViewModel>();
                 services.AddTransient<DeviceWindowViewModel>();

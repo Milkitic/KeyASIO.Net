@@ -1,0 +1,146 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
+using KeyAsio.Shared;
+using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Realtime.Services;
+using Microsoft.Extensions.Logging;
+using Milki.Extensions.MouseKeyHook;
+
+namespace KeyAsio.Gui.Services;
+
+public class KeyboardBindingInitializer
+{
+    private readonly ILogger<KeyboardBindingInitializer> _logger;
+    private readonly AppSettings _appSettings;
+    private readonly AudioEngine _audioEngine;
+    private readonly GameplaySessionManager _gameplaySessionManager;
+    private readonly SfxPlaybackService _sfxPlaybackService;
+
+    private IKeyboardHook _keyboardHook = null!;
+    private readonly List<Guid> _registerList = new();
+    private readonly List<PlaybackInfo> _playbackBuffer = new(64);
+
+    public KeyboardBindingInitializer(
+        ILogger<KeyboardBindingInitializer> logger,
+        AppSettings appSettings,
+        AudioEngine audioEngine,
+        GameplaySessionManager gameplaySessionManager,
+        SfxPlaybackService sfxPlaybackService)
+    {
+        _logger = logger;
+        _appSettings = appSettings;
+        _audioEngine = audioEngine;
+        _gameplaySessionManager = gameplaySessionManager;
+        _sfxPlaybackService = sfxPlaybackService;
+    }
+
+    public CachedAudio? CacheSound { get; set; }
+
+    public void Setup()
+    {
+        _keyboardHook = _appSettings.UseRawInput
+            ? KeyboardHookFactory.CreateRawInput()
+            : KeyboardHookFactory.CreateGlobal();
+        CreateShortcuts();
+    }
+
+    public void RegisterKeys(IEnumerable<HookKeys> keys)
+    {
+        foreach (var key in keys)
+        {
+            RegisterKey(key);
+        }
+    }
+
+    public void UnregisterAll()
+    {
+        foreach (var guid in _registerList.ToList())
+        {
+            _keyboardHook.TryUnregister(guid);
+        }
+
+        _registerList.Clear();
+    }
+
+    private void CreateShortcuts()
+    {
+        var ignoreBeatmapHitsound = _appSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
+        if (ignoreBeatmapHitsound?.Keys != null)
+        {
+            _keyboardHook.RegisterHotkey(ignoreBeatmapHitsound.ModifierKeys, ignoreBeatmapHitsound.Keys.Value,
+                (_, _, _) =>
+                {
+                    _appSettings.RealtimeOptions.IgnoreBeatmapHitsound =
+                        !_appSettings.RealtimeOptions.IgnoreBeatmapHitsound;
+                    _appSettings.Save();
+                });
+        }
+
+        var ignoreSliderTicksAndSlides = _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlidesBindKey;
+        if (ignoreSliderTicksAndSlides?.Keys != null)
+        {
+            _keyboardHook.RegisterHotkey(ignoreSliderTicksAndSlides.ModifierKeys, ignoreSliderTicksAndSlides.Keys.Value,
+                (_, _, _) =>
+                {
+                    _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides =
+                        !_appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides;
+                    _appSettings.Save();
+                });
+        }
+
+        var ignoreStoryboardSamples = _appSettings.RealtimeOptions.IgnoreStoryboardSamplesBindKey;
+        if (ignoreStoryboardSamples?.Keys != null)
+        {
+            _keyboardHook.RegisterHotkey(ignoreStoryboardSamples.ModifierKeys, ignoreStoryboardSamples.Keys.Value,
+                (_, _, _) =>
+                {
+                    _appSettings.RealtimeOptions.IgnoreStoryboardSamples =
+                        !_appSettings.RealtimeOptions.IgnoreStoryboardSamples;
+                    _appSettings.Save();
+                });
+        }
+    }
+
+    private void RegisterKey(HookKeys key)
+    {
+        KeyboardCallback callback = (_, hookKey, action) =>
+        {
+            if (action != KeyAction.KeyDown) return;
+            _logger.LogDebug($"{hookKey} {action}");
+
+            if (!_appSettings.RealtimeOptions.RealtimeMode)
+            {
+                if (CacheSound != null)
+                {
+                    _audioEngine.PlayAudio(CacheSound);
+                }
+                else
+                {
+                    _logger.LogWarning("Hitsound is null. Please check your path.");
+                }
+
+                return;
+            }
+
+            _playbackBuffer.Clear();
+            _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer, _appSettings.Keys.IndexOf(hookKey),
+                _appSettings.Keys.Count);
+            foreach (var playbackInfo in _playbackBuffer)
+            {
+                _sfxPlaybackService.DispatchPlayback(playbackInfo);
+            }
+        };
+
+        _registerList.Add(_keyboardHook.RegisterKey(key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Alt, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Alt, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
+        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
+    }
+}
