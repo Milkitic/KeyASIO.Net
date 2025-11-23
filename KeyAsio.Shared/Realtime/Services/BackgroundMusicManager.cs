@@ -3,6 +3,7 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared.Realtime.Tracks;
+using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
@@ -19,10 +20,10 @@ public class BackgroundMusicManager
     private bool _firstStartInitialized;
     private bool _isResult;
 
-    public BackgroundMusicManager(AudioEngine audioEngine)
+    public BackgroundMusicManager(ILogger<SynchronizedMusicPlayer> mLogger, ILogger<SongPreviewPlayer> pLogger, AudioEngine audioEngine)
     {
-        _synchronizedMusicPlayer = new SynchronizedMusicPlayer(audioEngine);
-        _songPreviewPlayer = new SongPreviewPlayer(audioEngine);
+        _synchronizedMusicPlayer = new SynchronizedMusicPlayer(mLogger, audioEngine);
+        _songPreviewPlayer = new SongPreviewPlayer(pLogger, audioEngine);
     }
 
     public void StartLowPass(int lower, int upper)

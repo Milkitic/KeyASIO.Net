@@ -5,7 +5,6 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Realtime.Services;
 using Microsoft.Extensions.DependencyInjection;
-using OrtdpLogger = KeyAsio.MemoryReading.Logger;
 
 namespace MemoryReadingTest
 {
@@ -19,7 +18,6 @@ namespace MemoryReadingTest
         public App()
         {
             var services = new ServiceCollection();
-            services.AddSingleton(LogUtils.GetLogger("MemoryReadingTest"));
             services.AddSingleton(new AppSettings());
             services.AddSingleton<SharedViewModel>();
             services.AddSingleton<AudioCacheService>();
@@ -34,7 +32,6 @@ namespace MemoryReadingTest
 
         private void App_OnStartup(object sender, StartupEventArgs e)
         {
-            OrtdpLogger.SetLoggerFactory(LogUtils.LoggerFactory);
             MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) => _realtimeSessionContext.Username = player;
             MemoryScan.MemoryReadObject.ModsChanged += (_, mods) => _realtimeSessionContext.PlayMods = mods;
             MemoryScan.MemoryReadObject.ComboChanged += (_, combo) => _realtimeSessionContext.Combo = combo;

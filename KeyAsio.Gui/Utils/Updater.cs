@@ -8,25 +8,43 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using KeyAsio.MemoryReading.Logging;
-using KeyAsio.Shared;
+using Microsoft.Extensions.Logging;
 using Semver;
 
 namespace KeyAsio.Gui.Utils;
 
-public static class Updater
+public class Updater
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(Updater));
     private const string Repo = "Milkitic/KeyAsio.Net";
-    private static string? _version;
     private const int Timeout = 10000;
     private const int RetryCount = 3;
+
     private static readonly HttpClient HttpClient;
 
-    public static UpdateUtils.GithubRelease? NewRelease { get; private set; }
-    public static bool IsRunningChecking { get; private set; }
+    static Updater()
+    {
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        HttpClient =
+            new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip })
+            {
+                Timeout = TimeSpan.FromMilliseconds(Timeout)
+            };
+        HttpClient.DefaultRequestHeaders.Add("User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+    }
 
-    public static string GetVersion()
+    private readonly ILogger<Updater> _logger;
+    private string? _version;
+
+    public Updater(ILogger<Updater> logger)
+    {
+        _logger = logger;
+    }
+
+    public UpdateUtils.GithubRelease? NewRelease { get; private set; }
+    public bool IsRunningChecking { get; private set; }
+
+    public string GetVersion()
     {
         if (_version != null) return _version;
 
@@ -36,7 +54,7 @@ public static class Updater
         return _version;
     }
 
-    public static async Task<bool?> CheckUpdateAsync()
+    public async Task<bool?> CheckUpdateAsync()
     {
         IsRunningChecking = true;
 
@@ -51,7 +69,7 @@ public static class Updater
             if (json == null) return null;
             if (json.Contains("API rate limit"))
             {
-                Logger.Error("Error while checking for updates: Github API rate limit exceeded. Please retry later.");
+                _logger.LogError("Error while checking for updates: Github API rate limit exceeded. Please retry later.");
                 return null;
             }
 
@@ -70,7 +88,7 @@ public static class Updater
             var latestVerObj = SemVersion.Parse(latestVer, SemVersionStyles.Strict);
             var nowVerObj = SemVersion.Parse(GetVersion(), SemVersionStyles.Strict);
 
-            Logger.LogDebug($"Current version: {nowVerObj}; Got version info: {latestVerObj}");
+            _logger.LogDebug("Current version: {NowVerObj}; Got version info: {LatestVerObj}", nowVerObj, latestVerObj);
 
             if (latestVerObj.ComparePrecedenceTo(nowVerObj) <= 0)
             {
@@ -84,25 +102,13 @@ public static class Updater
         }
         catch (Exception ex)
         {
-            Logger.Error($"Error while checking for updates: {ex.Message}", true);
+            _logger.LogError(ex, $"Error while checking for updates");
             return null;
             //throw;
         }
 
         IsRunningChecking = false;
         return true;
-    }
-
-    static Updater()
-    {
-        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-        HttpClient =
-            new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip })
-            {
-                Timeout = TimeSpan.FromMilliseconds(Timeout)
-            };
-        HttpClient.DefaultRequestHeaders.Add("User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
     }
 
     private static async Task<string?> HttpGetAsync(string url)
@@ -126,7 +132,7 @@ public static class Updater
         return null;
     }
 
-    public static void OpenLastReleasePage()
+    public void OpenLastReleasePage()
     {
         if (NewRelease != null)
         {

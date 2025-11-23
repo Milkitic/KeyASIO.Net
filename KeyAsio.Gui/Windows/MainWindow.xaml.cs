@@ -18,7 +18,6 @@ using KeyAsio.Shared.Realtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
-using LogLevel = KeyAsio.MemoryReading.Logging.LogLevel;
 
 namespace KeyAsio.Gui.Windows;
 
@@ -29,32 +28,38 @@ public partial class MainWindow : DialogWindow
 {
     private bool _forceClose;
     private readonly ILogger<MainWindow> _logger;
+    private readonly IServiceProvider _serviceProvider;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly SharedViewModel _viewModel;
     private readonly KeyboardBindingInitializer _bindingInitializer;
+    private readonly Updater _updater;
     private Timer? _timer;
 
     public MainWindow(
         ILogger<MainWindow> logger,
+        IServiceProvider serviceProvider,
         AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
         RealtimeController realtimeController,
         AudioDeviceManager audioDeviceManager,
         SharedViewModel viewModel,
-        KeyboardBindingInitializer keyboardBindingInitializer)
+        KeyboardBindingInitializer keyboardBindingInitializer,
+        Updater updater)
     {
         InitializeComponent();
         DataContext = _viewModel = viewModel;
         AppSettings = appSettings;
         AudioEngine = audioEngine;
         _logger = logger;
+        _serviceProvider = serviceProvider;
         _audioCacheManager = audioCacheManager;
         RealtimeController = realtimeController;
         _audioDeviceManager = audioDeviceManager;
 
         _bindingInitializer = keyboardBindingInitializer;
+        _updater = updater;
         _bindingInitializer.Setup();
         BindOptions();
     }
@@ -65,7 +70,7 @@ public partial class MainWindow : DialogWindow
 
     private async Task SelectDevice()
     {
-        var window = ((App)Application.Current).Services.GetRequiredService<DeviceWindow>();
+        var window = _serviceProvider.GetRequiredService<DeviceWindow>();
         window.Owner = this;
         window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         if (window.ShowDialog() != true) return;
@@ -242,7 +247,7 @@ public partial class MainWindow : DialogWindow
 
     private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
-        var version = Updater.GetVersion();
+        var version = _updater.GetVersion();
         FixCommit(ref version);
         Title += $" {version}";
 
@@ -270,16 +275,16 @@ public partial class MainWindow : DialogWindow
                 });
         }
 
-        var result = await Updater.CheckUpdateAsync();
+        var result = await _updater.CheckUpdateAsync();
         if (result == true)
         {
-            Growl.Ask($"Found new version: {Updater.NewRelease!.NewVerString}. " +
+            Growl.Ask($"Found new version: {_updater.NewRelease!.NewVerString}. " +
                       $"Click yes to open the release page.",
                 dialogResult =>
                 {
                     if (dialogResult)
                     {
-                        Updater.OpenLastReleasePage();
+                        _updater.OpenLastReleasePage();
                     }
 
                     return true;
@@ -369,7 +374,7 @@ public partial class MainWindow : DialogWindow
     private void btnLatencyCheck_OnClick(object sender, RoutedEventArgs e)
     {
         _bindingInitializer.UnregisterAll();
-        var latencyGuideWindow = ((App)Application.Current).Services.GetRequiredService<LatencyGuideWindow>();
+        var latencyGuideWindow = _serviceProvider.GetRequiredService<LatencyGuideWindow>();
         latencyGuideWindow.Owner = this;
         latencyGuideWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         latencyGuideWindow.ShowDialog();
@@ -378,7 +383,7 @@ public partial class MainWindow : DialogWindow
 
     private void btnRealtimeOptions_OnClick(object sender, RoutedEventArgs e)
     {
-        var optionsWindow = ((App)Application.Current).Services.GetRequiredService<RealtimeOptionsWindow>();
+        var optionsWindow = _serviceProvider.GetRequiredService<RealtimeOptionsWindow>();
         optionsWindow.Owner = this;
         optionsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         optionsWindow.ShowDialog();

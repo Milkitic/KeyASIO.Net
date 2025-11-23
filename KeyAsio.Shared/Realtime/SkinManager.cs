@@ -16,17 +16,19 @@ public class SkinManager : IHostedService
     private readonly ILogger<SkinManager> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
+    private readonly MemoryScan _memoryScan;
     private readonly SharedViewModel _sharedViewModel;
     private CancellationTokenSource? _cts;
     private Task? _refreshTask;
     private bool _waiting;
 
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
-        SharedViewModel sharedViewModel)
+        MemoryScan memoryScan, SharedViewModel sharedViewModel)
     {
         _logger = logger;
         _appSettings = appSettings;
         _audioCacheManager = audioCacheManager;
+        _memoryScan = memoryScan;
         _sharedViewModel = sharedViewModel;
     }
 
@@ -54,7 +56,7 @@ public class SkinManager : IHostedService
 
     public void ListenToProcess()
     {
-        var memoryReadObject = MemoryScan.MemoryReadObject;
+        var memoryReadObject = _memoryScan.MemoryReadObject;
         memoryReadObject.OsuStatusChanged += (pre, current) =>
         {
             if (current is OsuMemoryStatus.NotRunning or OsuMemoryStatus.Unknown)

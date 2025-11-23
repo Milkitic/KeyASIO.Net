@@ -2,7 +2,7 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.Logging;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using NAudio.Wave;
 
@@ -10,8 +10,6 @@ namespace KeyAsio.Shared.Realtime.Tracks;
 
 public class SynchronizedMusicPlayer
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SynchronizedMusicPlayer));
-
     private readonly VariableSpeedOptions _sharedVariableSpeedOptions = new(true, false);
 
     private CachedAudioProvider? _bgmCachedAudioSampleProvider;
@@ -20,10 +18,12 @@ public class SynchronizedMusicPlayer
 
     private CachedAudio? _cachedAudio;
 
+    private readonly ILogger<SynchronizedMusicPlayer> _logger;
     private readonly AudioEngine _audioEngine;
 
-    public SynchronizedMusicPlayer(AudioEngine audioEngine)
+    public SynchronizedMusicPlayer(ILogger<SynchronizedMusicPlayer> logger, AudioEngine audioEngine)
     {
+        _logger = logger;
         _audioEngine = audioEngine;
     }
 
@@ -42,7 +42,7 @@ public class SynchronizedMusicPlayer
 
         if (cachedAudio is null)
         {
-            Logger.Warn("Fail to sync: CachedAudio is null");
+            _logger.LogWarning("Fail to sync: CachedAudio is null");
             return;
         }
 
@@ -105,8 +105,8 @@ public class SynchronizedMusicPlayer
         var diffMilliseconds = Math.Abs((currentPlayTime - timeSpan).TotalMilliseconds);
         if (diffMilliseconds > diffTolerance)
         {
-            Logger.Debug(
-                $"Music offset too large {diffMilliseconds:N2}ms for {diffTolerance:N0}ms, will force to seek.");
+            _logger.LogDebug("Music offset too large {Milliseconds:N2}ms for {Tolerance:N0}ms, will force to seek.",
+                diffMilliseconds, diffTolerance);
             sampleProvider.PlayTime = timeSpan;
         }
 

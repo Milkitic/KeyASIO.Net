@@ -3,7 +3,7 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.Utils;
 using KeyAsio.Audio.Wave;
-using KeyAsio.MemoryReading.Logging;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -12,17 +12,18 @@ namespace KeyAsio.Shared.Realtime.Tracks;
 
 public class SongPreviewPlayer
 {
-    private static readonly ILogger Logger = LogUtils.GetLogger(nameof(SongPreviewPlayer));
     private readonly Lock _instanceLock = new();
 
     private AudioFileReader? _audioFileReader;
     private EnhancedFadeInOutSampleProvider? _fadeInOutSampleProvider;
     private LowPassSampleProvider? _lowPassSampleProvider;
 
+    private readonly ILogger<SongPreviewPlayer> _logger;
     private readonly AudioEngine _audioEngine;
 
-    public SongPreviewPlayer(AudioEngine audioEngine)
+    public SongPreviewPlayer(ILogger<SongPreviewPlayer> logger, AudioEngine audioEngine)
     {
+        _logger = logger;
         _audioEngine = audioEngine;
     }
 
@@ -76,12 +77,12 @@ public class SongPreviewPlayer
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn(ex, $"Preview with warning: {ex.Message}");
+                    _logger.LogWarning(ex, $"Preview with warning: {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, $"Preview error: {osuFile}", true);
+                _logger.LogWarning(ex, $"Preview error: {osuFile}", true);
                 Mixer.RemoveMixerInput(fadeInOutSampleProvider);
                 return;
             }

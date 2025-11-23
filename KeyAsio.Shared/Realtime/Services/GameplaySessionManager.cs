@@ -90,7 +90,7 @@ public class GameplaySessionManager
             _realtimeSessionContext.IsStarted = false;
             _logger.LogError(ex, "Error while starting a beatmap. Filename: {BeatmapFilename}. FilenameReal: {OsuFile}",
                 beatmapFilename, OsuFile);
-            LogUtils.LogToSentry(MemoryReading.Logging.LogLevel.Error, "Error while starting a beatmap", ex, k =>
+            LogUtils.LogToSentry(LogLevel.Error, "Error while starting a beatmap", ex, k =>
             {
                 k.SetTag("osu.filename", beatmapFilename);
                 k.SetTag("osu.filename_real", OsuFile?.ToString() ?? "");
