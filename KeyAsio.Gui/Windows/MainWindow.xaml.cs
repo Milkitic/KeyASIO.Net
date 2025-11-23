@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,13 +128,7 @@ public partial class MainWindow : DialogWindow
                 }, null, 0, 100);
             }
 
-            var waveFormat = AudioEngine.EngineWaveFormat;
-            if (Path.Exists(AppSettings.HitsoundPath))
-            {
-                var (cachedAudio, result) =
-                    await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(AppSettings.HitsoundPath, waveFormat);
-                _bindingInitializer.CacheSound = cachedAudio;
-            }
+            await _bindingInitializer.InitializeKeyAudioAsync();
 
             _viewModel.DeviceDescription = actualDescription;
             if (saveToSettings)

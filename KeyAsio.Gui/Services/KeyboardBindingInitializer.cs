@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared;
@@ -15,6 +16,7 @@ public class KeyboardBindingInitializer
 {
     private readonly ILogger<KeyboardBindingInitializer> _logger;
     private readonly AppSettings _appSettings;
+    private readonly AudioCacheManager _audioCacheManager;
     private readonly AudioEngine _audioEngine;
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
@@ -23,21 +25,23 @@ public class KeyboardBindingInitializer
     private readonly List<Guid> _registerList = new();
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
+    private CachedAudio? _cacheSound;
+
     public KeyboardBindingInitializer(
         ILogger<KeyboardBindingInitializer> logger,
         AppSettings appSettings,
+        AudioCacheManager audioCacheManager,
         AudioEngine audioEngine,
         GameplaySessionManager gameplaySessionManager,
         SfxPlaybackService sfxPlaybackService)
     {
         _logger = logger;
         _appSettings = appSettings;
+        _audioCacheManager = audioCacheManager;
         _audioEngine = audioEngine;
         _gameplaySessionManager = gameplaySessionManager;
         _sfxPlaybackService = sfxPlaybackService;
     }
-
-    public CachedAudio? CacheSound { get; set; }
 
     public void Setup()
     {
@@ -45,6 +49,14 @@ public class KeyboardBindingInitializer
             ? KeyboardHookFactory.CreateRawInput()
             : KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
+    }
+
+    public async Task InitializeKeyAudioAsync()
+    {
+        var waveFormat = _audioEngine.EngineWaveFormat;
+        var (cachedAudio, result) =
+            await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(_appSettings.HitsoundPath, waveFormat);
+        _cacheSound = cachedAudio;
     }
 
     public void RegisterKeys(IEnumerable<HookKeys> keys)
@@ -113,9 +125,9 @@ public class KeyboardBindingInitializer
 
             if (!_appSettings.RealtimeOptions.RealtimeMode)
             {
-                if (CacheSound != null)
+                if (_cacheSound != null)
                 {
-                    _audioEngine.PlayAudio(CacheSound);
+                    _audioEngine.PlayAudio(_cacheSound);
                 }
                 else
                 {
