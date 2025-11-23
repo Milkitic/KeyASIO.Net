@@ -65,7 +65,9 @@ public partial class MainWindow : DialogWindow
         _gameplaySessionManager = gameplaySessionManager;
         _sfxPlaybackService = sfxPlaybackService;
 
-        _keyboardHook = KeyboardHookFactory.CreateGlobal();
+        _keyboardHook = appSettings.UseRawInput
+            ? KeyboardHookFactory.CreateRawInput()
+            : KeyboardHookFactory.CreateGlobal();
         CreateShortcuts();
         BindOptions();
     }
@@ -443,7 +445,7 @@ public partial class MainWindow : DialogWindow
 
         _registerList.Clear();
 
-        var window = new KeyBindWindow(AppSettings.Keys)
+        var window = new KeyBindWindow(AppSettings)
         {
             Owner = this,
             WindowStartupLocation = WindowStartupLocation.CenterOwner
