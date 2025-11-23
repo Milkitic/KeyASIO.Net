@@ -13,15 +13,11 @@ using System.Windows.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using KeyAsio.Audio;
-using KeyAsio.Audio.Caching;
 using KeyAsio.Gui.Utils;
-using KeyAsio.Gui.Services;
 using KeyAsio.Gui.Windows;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
-using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
-using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -140,7 +136,7 @@ public partial class App : Application
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         var exception = (Exception)e.ExceptionObject;
-        if (Application.Current?.MainWindow == null)
+        if (Current?.MainWindow == null)
         {
             MessageBox.Show(exception.ToFullTypeMessage(), "KeyASIO startup error ",
                 MessageBoxButton.OK, MessageBoxImage.Error);
@@ -160,37 +156,12 @@ public partial class App : Application
                 logging.ClearProviders();
                 logging.AddNLog("nlog.config");
             })
-            .ConfigureServices(services =>
-            {
-                services.AddHostedService<SkinManager>();
-                services.AddHostedService<StartupService>();
-
-                services.AddSingleton(provider =>
-                    ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, "."));
-
-                services.AddSingleton<AudioEngine>();
-                services.AddSingleton<AudioCacheManager>();
-                services.AddSingleton<AudioDeviceManager>();
-
-                services.AddSingleton<SkinManager>();
-                services.AddSingleton<AudioCacheService>();
-                services.AddSingleton<BeatmapHitsoundLoader>();
-                services.AddSingleton<BackgroundMusicManager>();
-                services.AddSingleton<SfxPlaybackService>();
-                services.AddSingleton<GameplaySessionManager>();
-                services.AddSingleton<RealtimeSessionContext>();
-                services.AddSingleton<RealtimeController>();
-
-                services.AddSingleton<KeyboardBindingInitializer>();
-
-                services.AddSingleton<SharedViewModel>();
-                services.AddTransient<DeviceWindowViewModel>();
-
-                services.AddTransient<MainWindow>();
-                services.AddTransient<DeviceWindow>();
-                services.AddTransient<LatencyGuideWindow>();
-                services.AddTransient<RealtimeOptionsWindow>();
-            })
+            .ConfigureServices(services => services
+                .AddAudioModule()
+                .AddRealtimeModule()
+                .AddGuiModule()
+                .AddSingleton(provider =>
+                    ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".")))
             .Build();
         await _host.StartAsync();
 
@@ -204,8 +175,7 @@ public partial class App : Application
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Dispatcher_UnhandledException(object sender,
-        System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+    private void Dispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         Logger.Error(e.Exception, "Unhandled Exception (Dispatcher): " + e.Exception.Message, true);
         e.Handled = true;
