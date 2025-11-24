@@ -5,9 +5,9 @@ namespace KeyAsio.Shared.Realtime;
 
 internal class ConfigManager
 {
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
 
-    private ConfigManager(YamlAppSettings appSettings)
+    private ConfigManager(AppSettings appSettings)
     {
         _appSettings = appSettings;
     }

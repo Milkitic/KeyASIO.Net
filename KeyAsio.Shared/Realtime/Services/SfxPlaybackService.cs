@@ -14,9 +14,9 @@ public class SfxPlaybackService
     private readonly LoopProviderManager _loopProviderManager = new();
     private readonly ILogger<SfxPlaybackService> _logger;
     private readonly AudioEngine _audioEngine;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
 
-    public SfxPlaybackService(ILogger<SfxPlaybackService> logger, AudioEngine audioEngine, YamlAppSettings appSettings)
+    public SfxPlaybackService(ILogger<SfxPlaybackService> logger, AudioEngine audioEngine, AppSettings appSettings)
     {
         _logger = logger;
         _audioEngine = audioEngine;

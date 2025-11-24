@@ -14,7 +14,7 @@ public class SkinManager : IHostedService
 {
     private static readonly Lock InstanceLock = new();
     private readonly ILogger<SkinManager> _logger;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly MemoryScan _memoryScan;
     private readonly SharedViewModel _sharedViewModel;
@@ -22,7 +22,7 @@ public class SkinManager : IHostedService
     private Task? _refreshTask;
     private bool _waiting;
 
-    public SkinManager(ILogger<SkinManager> logger, YamlAppSettings appSettings, AudioCacheManager audioCacheManager,
+    public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
         MemoryScan memoryScan, SharedViewModel sharedViewModel)
     {
         _logger = logger;
@@ -45,7 +45,7 @@ public class SkinManager : IHostedService
 
         _appSettings.Paths.PropertyChanged += (s, e) =>
         {
-            if (e.PropertyName == nameof(YamlAppSettings.Paths.OsuFolderPath))
+            if (e.PropertyName == nameof(AppSettings.Paths.OsuFolderPath))
             {
                 _ = RefreshSkinInBackground();
             }

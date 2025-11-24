@@ -23,7 +23,7 @@ public class AudioCacheService
 
     private readonly ILogger<AudioCacheService> _logger;
     private readonly RealtimeSessionContext _realtimeSessionContext;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
@@ -32,7 +32,7 @@ public class AudioCacheService
 
     public AudioCacheService(ILogger<AudioCacheService> logger,
         RealtimeSessionContext realtimeSessionContext,
-        YamlAppSettings appSettings,
+        AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel)

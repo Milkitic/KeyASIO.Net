@@ -18,10 +18,10 @@ public class SongPreviewPlayer
     private LowPassSampleProvider? _lowPassSampleProvider;
 
     private readonly ILogger<SongPreviewPlayer> _logger;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
 
-    public SongPreviewPlayer(ILogger<SongPreviewPlayer> logger, YamlAppSettings appSettings, AudioEngine audioEngine)
+    public SongPreviewPlayer(ILogger<SongPreviewPlayer> logger, AppSettings appSettings, AudioEngine audioEngine)
     {
         _logger = logger;
         _appSettings = appSettings;

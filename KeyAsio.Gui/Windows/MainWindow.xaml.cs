@@ -40,7 +40,7 @@ public partial class MainWindow : DialogWindow
     public MainWindow(
         ILogger<MainWindow> logger,
         IServiceProvider serviceProvider,
-        YamlAppSettings appSettings,
+        AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
         RealtimeController realtimeController,
@@ -65,7 +65,7 @@ public partial class MainWindow : DialogWindow
         BindOptions();
     }
 
-    public YamlAppSettings AppSettings { get; }
+    public AppSettings AppSettings { get; }
     public RealtimeController RealtimeController { get; }
     public AudioEngine AudioEngine { get; }
 

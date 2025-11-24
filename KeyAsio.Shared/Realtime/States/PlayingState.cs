@@ -11,7 +11,7 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class PlayingState : IGameState
 {
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly BackgroundMusicManager _backgroundMusicManager;
@@ -22,7 +22,7 @@ public class PlayingState : IGameState
     private readonly AudioCacheService _audioCacheService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
-    public PlayingState(YamlAppSettings appSettings,
+    public PlayingState(AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
         BackgroundMusicManager backgroundMusicManager,

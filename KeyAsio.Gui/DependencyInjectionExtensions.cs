@@ -18,7 +18,7 @@ public static class DependencyInjectionExtensions
 
         services.AddSingleton<KeyboardBindingInitializer>();
 
-        services.AddHostedService<StartupService>();
+        services.AddHostedService<GuiStartupService>();
         return services;
     }
 }

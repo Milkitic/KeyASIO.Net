@@ -26,7 +26,7 @@ static class Program
     [STAThread]
     public static async Task Main(string[] args)
     {
-        var appSettings = ConfigurationFactory.GetConfiguration<YamlAppSettings>();
+        var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
         appSettings.Logging.EnableDebugConsole = true;
         appSettings.Realtime.RealtimeEnableMusic = true;
         appSettings.Audio.MasterVolume = 5;

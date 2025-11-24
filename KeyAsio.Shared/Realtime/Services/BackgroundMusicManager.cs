@@ -22,7 +22,7 @@ public class BackgroundMusicManager
 
     public BackgroundMusicManager(ILogger<SynchronizedMusicPlayer> mLogger,
         ILogger<SongPreviewPlayer> pLogger,
-        YamlAppSettings appSettings,
+        AppSettings appSettings,
         AudioEngine audioEngine)
     {
         _synchronizedMusicPlayer = new SynchronizedMusicPlayer(mLogger, appSettings, audioEngine);

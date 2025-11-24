@@ -9,14 +9,14 @@ namespace KeyAsio.Shared.Realtime.Services;
 public class BeatmapHitsoundLoader
 {
     private readonly ILogger<BeatmapHitsoundLoader> _logger;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly AudioCacheService _audioCacheService;
 
     private readonly List<PlayableNode> _keyList = new();
     private readonly List<HitsoundNode> _playbackList = new();
     private int _nextCachingTime;
 
-    public BeatmapHitsoundLoader(ILogger<BeatmapHitsoundLoader> logger, YamlAppSettings appSettings,
+    public BeatmapHitsoundLoader(ILogger<BeatmapHitsoundLoader> logger, AppSettings appSettings,
         AudioCacheService audioCacheService)
     {
         _logger = logger;

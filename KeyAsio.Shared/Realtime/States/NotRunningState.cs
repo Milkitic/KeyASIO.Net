@@ -6,10 +6,10 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class NotRunningState : IGameState
 {
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly BackgroundMusicManager _backgroundMusicManager;
 
-    public NotRunningState(YamlAppSettings appSettings, BackgroundMusicManager backgroundMusicManager)
+    public NotRunningState(AppSettings appSettings, BackgroundMusicManager backgroundMusicManager)
     {
         _appSettings = appSettings;
         _backgroundMusicManager = backgroundMusicManager;

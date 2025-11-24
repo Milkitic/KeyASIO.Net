@@ -15,7 +15,7 @@ public class RealtimeSessionContext : ViewModelBase
     public Func<OsuMemoryStatus, OsuMemoryStatus, ValueTask>? OnStatusChanged;
     public Func<BeatmapIdentifier, BeatmapIdentifier, ValueTask>? OnBeatmapChanged;
 
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly Stopwatch _playTimeStopwatch = new();
 
     private int _playTime;
@@ -27,7 +27,7 @@ public class RealtimeSessionContext : ViewModelBase
     private OsuMemoryStatus _osuStatus;
     private BeatmapIdentifier _beatmap;
 
-    public RealtimeSessionContext(YamlAppSettings appSettings)
+    public RealtimeSessionContext(AppSettings appSettings)
     {
         _appSettings = appSettings;
     }

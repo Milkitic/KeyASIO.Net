@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
@@ -6,89 +6,136 @@ using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Shared;
 
-public sealed class AppSettings : ViewModelBase
+public class AppSettings : IConfigurationBase
 {
-    private List<HookKeys> _keys = [HookKeys.Z, HookKeys.X];
+    public AppSettingsInput Input { get => field ??= new(); init; }
+    public AppSettingsPaths Paths { get => field ??= new(); init; }
+    public AppSettingsAudio Audio { get => field ??= new(); init; }
+    public AppSettingsLogging Logging { get => field ??= new(); init; }
+    public AppSettingsPerformance Performance { get => field ??= new(); init; }
+    public AppSettingsRealtime Realtime { get => field ??= new(); init; }
+}
 
-    private RealtimeOptions? _realtimeOptions;
-    private int _volume = 100;
-    private bool _sendLogsToDeveloper = true;
-    private string? _osuFolder = "";
-    private bool _debugging = false;
-
+public partial class AppSettingsInput : INotifyPropertyChanged
+{
+    [Description("Use raw input for capturing keys; otherwise uses low‑level keyboard hook. " +
+                 "Switch only if you encounter issues.")]
     public bool UseRawInput { get; set; } = true;
 
-    [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
-    public List<HookKeys> Keys
-    {
-        get => _keys;
-        set => SetField(ref _keys, value);
-    }
+    [Description("Trigger keys. Refer to https://docs.microsoft.com/en-us/dotnet/api/System.Windows.Forms.Keys.")]
+    public List<HookKeys> Keys { get; set; } = [HookKeys.Z, HookKeys.X];
+}
 
-    [Description("Default hitsound path (relative or absolute) for playing.")]
-    public string HitsoundPath { get; set; } = "click.wav";
+public partial class AppSettingsPaths : INotifyPropertyChanged
+{
+    [Description("osu! folder. Usually auto-detected.")]
+    public string? OsuFolderPath { get; set; } = "";
 
-    [Description("Osu's folder. For the most of time this value is auto detected.")]
-    public string? OsuFolder
-    {
-        get => _osuFolder;
-        set => SetField(ref _osuFolder, value);
-    }
+    [Description("Default hitsound file path (relative or absolute).")]
+    public string? HitsoundPath { get; set; } = "./resources/default/normal-hitnormal.ogg";
 
-    [Description("The skin when `RealtimeMode` is true.")]
-    public string SelectedSkin { get; set; } = "";
+    [Description("Skin used when realtime mode is enabled.")]
+    public string? SelectedSkinName { get; set; }
+}
 
-    [Description("If true, the software will create a console window to show logs.")]
-    public bool Debugging
-    {
-        get => _debugging;
-        set => SetField(ref _debugging, value);
-    }
-
-    [Description("Device's sample rate (allow adjusting in GUI).")]
+public partial class AppSettingsAudio : INotifyPropertyChanged
+{
+    [Description("Output sample rate (adjustable in GUI).")]
     public int SampleRate { get; set; } = 48000;
-    //public int Bits { get; set; } = 16;
-    //public int Channels { get; set; } = 2;
 
-    [Description("Device configuration (Recommend to configure in GUI).")]
-    public DeviceDescription? Device { get; set; }
+    [Description("Playback device configuration (configure in GUI).")]
+    public DeviceDescription? PlaybackDevice { get; set; }
 
-    [Description("Enable limiter to prevent clipping or distortion; disable for an unprocessed signal. Especially effective when master volume is high.")]
+    [Description("Prevents distortion when multiple hitsounds stack (e.g. during streams). " +
+                 "Disable to preserve raw dynamic range.")]
     public bool EnableLimiter { get; set; } = true;
 
-    [Description("Configured device volume, range: 0~150")]
-    public float Volume
-    {
-        get => _volume;
-        set
-        {
-            if (value > 150) value = 150;
-            else if (value < 0) value = 0;
-            else if (value < 1) value *= 100; // Convert from old version
-            _volume = (int)Math.Round(value);
-        }
-    }
+    [Description("Master volume. Range: 0–150. " +
+                 "For values above 100, consider disabling the Limiter to avoid aggressive compression.")]
+    public int MasterVolume { get; set; } = 50;
 
-    [Description("Set whether the software can report logs/bugs to developer.")]
-    public bool SendLogsToDeveloper
-    {
-        get => _sendLogsToDeveloper;
-        set => SetField(ref _sendLogsToDeveloper, value);
-    }
+    [Description("Music track volume.")]
+    public int MusicVolume { get; set; } = 100;
 
-    public bool SendLogsToDeveloperConfirmed { get; set; }
+    [Description("Effect track volume.")]
+    public int EffectVolume { get; set; } = 100;
+}
 
-    public RealtimeOptions RealtimeOptions
-    {
-        get => _realtimeOptions ??= new();
-        set => _realtimeOptions = value;
-    }
+public partial class AppSettingsLogging : INotifyPropertyChanged
+{
+    [Description("Enable console window for logs.")]
+    public bool EnableDebugConsole { get; set; }
 
-    public string PlayerBase64 { get; set; } = "";
-    public int AudioCachingThreads { get; set; } = 2;
+    [Description("Enable error/bug reporting to developer.")]
+    public bool EnableErrorReporting { get; set; }
 
-    public void Save()
-    {
-        ConfigurationFactory.Save(this);
-    }
+    public bool ErrorReportingConfirmed { get; set; }
+
+    public string? PlayerBase64 { get; set; }
+}
+
+public partial class AppSettingsPerformance : INotifyPropertyChanged
+{
+    [Description("Number of threads for audio caching.")]
+    public int AudioCacheThreadCount { get; set; } = 2;
+
+    [Description("Accelerates processing using AVX-512. " + 
+                 "Disable on older Intel CPUs (pre-11th Gen) to avoid clock speed throttling.")]
+    public bool EnableAvx512 { get; set; } = true;
+}
+
+public partial class AppSettingsRealtime : INotifyPropertyChanged
+{
+    [Description("Enable memory scanning and correct hitsound playback.")]
+    public bool RealtimeMode { get; set; } = true;
+
+    [Description("[Experimental] Enable music‑related functions.")]
+    public bool RealtimeEnableMusic { get; set; }
+
+    public AppSettingsRealtimeScanning Scanning { get => field ??= new(); init; }
+    public AppSettingsRealtimePlayback Playback { get => field ??= new(); init; }
+    public AppSettingsRealtimeFilters Filters { get => field ??= new(); init; }
+}
+
+public partial class AppSettingsRealtimeScanning : INotifyPropertyChanged
+{
+    [Description("Lower values update generic fields more promptly. " +
+                 "Intended for delay-insensitive fields; increase to reduce CPU usage.")]
+    public int GeneralInterval { get; set; } = 50;
+
+    [Description("Lower values update timing fields more promptly. " +
+                 "Intended for delay‑sensitive fields; keep as low as possible. " +
+                 "Increase if audio cutting occurs.")]
+    public int TimingInterval { get; set; } = 15;
+}
+
+public partial class AppSettingsRealtimePlayback : INotifyPropertyChanged
+{
+    [Description("Slider‑tail playback behavior. " +
+                 "Normal: always play; KeepReverse: play only on multi‑reverse sliders; Ignore: never play.")]
+    public SliderTailPlaybackBehavior TailPlaybackBehavior { get; set; } = SliderTailPlaybackBehavior.Normal;
+
+    [Description("Force use of nightcore beats.")]
+    public bool NightcoreBeats { get; set; }
+
+    [Description("Balance factor.")]
+    public float BalanceFactor { get; set; } = 0.6666667f;
+}
+
+public partial class AppSettingsRealtimeFilters : INotifyPropertyChanged
+{
+    [Description("Ignore beatmap hitsounds and use user skin instead.")]
+    public bool DisableBeatmapHitsounds { get; set; }
+
+    [Description("Ignore beatmap storyboard samples.")]
+    public bool DisableStoryboardSamples { get; set; }
+
+    [Description("Ignore slider ticks and slides.")]
+    public bool DisableSliderTicksAndSlides { get; set; }
+
+    [Description("Ignore combo break sound.")]
+    public bool DisableComboBreakSfx { get; set; }
+
+    [Description("Ignore beatmap line volume changes.")]
+    public bool IgnoreLineVolumes { get; set; }
 }

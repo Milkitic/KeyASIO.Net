@@ -3,6 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Threading;
+using KeyAsio.Audio.SampleProviders.BalancePans;
+using KeyAsio.Audio.Utils;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using KeyAsio.MemoryReading;
@@ -21,13 +23,13 @@ public partial class App : Application
 {
     private readonly ILogger<App> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly MemoryScan _memoryScan;
     private readonly RealtimeSessionContext _realtimeSessionContext;
 
     public App(ILogger<App> logger,
         IServiceProvider serviceProvider,
-        YamlAppSettings appSettings,
+        AppSettings appSettings,
         MemoryScan memoryScan,
         RealtimeSessionContext realtimeSessionContext)
     {
@@ -40,6 +42,9 @@ public partial class App : Application
 
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
+        SimdAudioConverter.EnableAvx512 = _appSettings.Performance.EnableAvx512;
+        ProfessionalBalanceProvider.EnableAvx512 = _appSettings.Performance.EnableAvx512;
+
         StartMemoryScan();
 
         NLogDevice.RegisterDefault(_serviceProvider.GetRequiredService<ILogger<NLogDevice>>());

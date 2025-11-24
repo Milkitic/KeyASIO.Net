@@ -8,12 +8,12 @@ using Microsoft.Extensions.Hosting;
 
 namespace KeyAsio.Gui;
 
-internal class StartupService : IHostedService
+internal class GuiStartupService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
 
-    public StartupService(IServiceProvider serviceProvider, YamlAppSettings appSettings)
+    public GuiStartupService(IServiceProvider serviceProvider, AppSettings appSettings)
     {
         _serviceProvider = serviceProvider;
         _appSettings = appSettings;

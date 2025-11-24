@@ -11,7 +11,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     private const int AudioLatencyTolerance = 200;
 
     private readonly ILogger<StandardHitsoundSequencer> _logger;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheService _audioCacheService;
@@ -21,7 +21,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     private Queue<HitsoundNode> _playbackQueue = new();
 
     public StandardHitsoundSequencer(ILogger<StandardHitsoundSequencer> logger,
-        YamlAppSettings appSettings,
+        AppSettings appSettings,
         RealtimeSessionContext realtimeSessionContext,
         AudioEngine audioEngine,
         AudioCacheService audioCacheService,

@@ -27,7 +27,7 @@ public class KeyboardBindingInitializer
     ];
 
     private readonly ILogger<KeyboardBindingInitializer> _logger;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly AudioEngine _audioEngine;
     private readonly GameplaySessionManager _gameplaySessionManager;
@@ -41,7 +41,7 @@ public class KeyboardBindingInitializer
 
     public KeyboardBindingInitializer(
         ILogger<KeyboardBindingInitializer> logger,
-        YamlAppSettings appSettings,
+        AppSettings appSettings,
         AudioCacheManager audioCacheManager,
         AudioEngine audioEngine,
         GameplaySessionManager gameplaySessionManager,

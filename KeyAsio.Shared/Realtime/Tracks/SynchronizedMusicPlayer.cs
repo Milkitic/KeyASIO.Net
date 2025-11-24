@@ -18,10 +18,10 @@ public class SynchronizedMusicPlayer
     private CachedAudio? _cachedAudio;
 
     private readonly ILogger<SynchronizedMusicPlayer> _logger;
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
 
-    public SynchronizedMusicPlayer(ILogger<SynchronizedMusicPlayer> logger, YamlAppSettings appSettings, AudioEngine audioEngine)
+    public SynchronizedMusicPlayer(ILogger<SynchronizedMusicPlayer> logger, AppSettings appSettings, AudioEngine audioEngine)
     {
         _logger = logger;
         _appSettings = appSettings;

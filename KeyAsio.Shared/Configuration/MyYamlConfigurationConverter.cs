@@ -30,11 +30,11 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
 
     public override object DeserializeSettings(string content, Type type)
     {
-        if (type == typeof(YamlAppSettings))
+        if (type == typeof(AppSettings))
         {
             if (!LooksLikeNewYaml(content))
             {
-                return ToYaml((AppSettings)base.DeserializeSettings(content, typeof(AppSettings)));
+                return ToYaml((LegacyAppSettings)base.DeserializeSettings(content, typeof(LegacyAppSettings)));
             }
 
             var builder = new DeserializerBuilder()
@@ -43,7 +43,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 .IgnoreFields()
                 .WithTypeConverter(new BindKeysConverter());
             var deserializer = builder.Build();
-            var yamlModel = deserializer.Deserialize<YamlAppSettings>(content);
+            var yamlModel = deserializer.Deserialize<AppSettings>(content);
             return yamlModel;
         }
 
@@ -73,7 +73,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
 
     public override string SerializeSettings(object obj)
     {
-        if (obj is YamlAppSettings yamlModel)
+        if (obj is AppSettings yamlModel)
         {
             var builder = new SerializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
@@ -89,22 +89,22 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         return base.SerializeSettings(obj);
     }
 
-    private static YamlAppSettings ToYaml(AppSettings s)
+    private static AppSettings ToYaml(LegacyAppSettings s)
     {
-        return new YamlAppSettings
+        return new AppSettings
         {
-            Input = new YamlInput
+            Input = new AppSettingsInput
             {
                 UseRawInput = s.UseRawInput,
                 Keys = s.Keys
             },
-            Paths = new YamlPaths
+            Paths = new AppSettingsPaths
             {
                 OsuFolderPath = s.OsuFolder,
                 HitsoundPath = s.HitsoundPath,
                 SelectedSkinName = s.SelectedSkin
             },
-            Audio = new YamlAudio
+            Audio = new AppSettingsAudio
             {
                 SampleRate = s.SampleRate,
                 PlaybackDevice = s.Device,
@@ -113,33 +113,33 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 MusicVolume = s.RealtimeOptions.MusicTrackVolume,
                 EffectVolume = s.RealtimeOptions.EffectTrackVolume
             },
-            Logging = new YamlLogging
+            Logging = new AppSettingsLogging
             {
                 EnableDebugConsole = s.Debugging,
                 EnableErrorReporting = s.SendLogsToDeveloper,
                 ErrorReportingConfirmed = s.SendLogsToDeveloperConfirmed,
                 PlayerBase64 = s.PlayerBase64
             },
-            Performance = new YamlPerformance
+            Performance = new AppSettingsPerformance
             {
                 AudioCacheThreadCount = s.AudioCachingThreads
             },
-            Realtime = new YamlRealtime
+            Realtime = new AppSettingsRealtime
             {
                 RealtimeMode = s.RealtimeOptions.RealtimeMode,
                 RealtimeEnableMusic = s.RealtimeOptions.EnableMusicFunctions,
-                Scanning = new YamlRealtimeScanning
+                Scanning = new AppSettingsRealtimeScanning
                 {
                     GeneralInterval = s.RealtimeOptions.GeneralScanInterval,
                     TimingInterval = s.RealtimeOptions.TimingScanInterval
                 },
-                Playback = new YamlRealtimePlayback
+                Playback = new AppSettingsRealtimePlayback
                 {
                     TailPlaybackBehavior = s.RealtimeOptions.SliderTailPlaybackBehavior,
                     NightcoreBeats = s.RealtimeOptions.ForceNightcoreBeats,
                     BalanceFactor = s.RealtimeOptions.BalanceFactor,
                 },
-                Filters = new YamlRealtimeFilters
+                Filters = new AppSettingsRealtimeFilters
                 {
                     DisableBeatmapHitsounds = s.RealtimeOptions.IgnoreBeatmapHitsound,
                     DisableStoryboardSamples = s.RealtimeOptions.IgnoreStoryboardSamples,
@@ -151,9 +151,9 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         };
     }
 
-    private static AppSettings FromYaml(YamlAppSettings y)
+    private static LegacyAppSettings FromYaml(AppSettings y)
     {
-        var s = new AppSettings();
+        var s = new LegacyAppSettings();
         if (y.Input != null)
         {
             s.UseRawInput = y.Input.UseRawInput;

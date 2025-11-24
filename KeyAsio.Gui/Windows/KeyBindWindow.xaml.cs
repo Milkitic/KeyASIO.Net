@@ -27,7 +27,7 @@ public partial class KeyBindWindow : DialogWindow
     private readonly IKeyboardHook _keyboardHook;
     public KeyBindWindowViewModel ViewModel { get; }
 
-    public KeyBindWindow(YamlAppSettings appSettings)
+    public KeyBindWindow(AppSettings appSettings)
     {
         InitializeComponent();
         _keyboardHook = appSettings.Input.UseRawInput

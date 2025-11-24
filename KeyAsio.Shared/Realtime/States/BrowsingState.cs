@@ -7,11 +7,11 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class BrowsingState : IGameState
 {
-    private readonly YamlAppSettings _appSettings;
+    private readonly AppSettings _appSettings;
     private readonly BackgroundMusicManager _backgroundMusicManager;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
-    public BrowsingState(YamlAppSettings appSettings,
+    public BrowsingState(AppSettings appSettings,
         BackgroundMusicManager backgroundMusicManager,
         GameplaySessionManager gameplaySessionManager)
     {
