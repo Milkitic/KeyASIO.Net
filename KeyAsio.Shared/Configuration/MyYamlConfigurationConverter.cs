@@ -1,4 +1,5 @@
-﻿using KeyAsio.Audio;
+﻿using System.ComponentModel;
+using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration.Converters;
 using Milki.Extensions.MouseKeyHook;
@@ -78,6 +79,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             var yamlModel = ToYaml(s);
             var builder = new SerializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .WithEmissionPhaseObjectGraphVisitor(args => new DescriptionCommentsObjectGraphVisitor(args.InnerVisitor))
                 .DisableAliases()
                 .IgnoreFields()
                 .WithTypeConverter(new BindKeysConverter());
@@ -223,29 +225,42 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
     private class YamlInput
     {
         public bool UseRawInput { get; set; }
+
+        [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
         public IEnumerable<HookKeys>? Keys { get; set; }
     }
 
     private class YamlPaths
     {
+        [Description("Osu's folder. For the most of time this value is auto detected.")]
         public string? OsuFolderPath { get; set; }
+        [Description("Default hitsound path (relative or absolute) for playing.")]
         public string? HitsoundPath { get; set; }
+        [Description("The skin when `RealtimeMode` is true.")]
         public string? SelectedSkinName { get; set; }
     }
 
     private class YamlAudio
     {
+        [Description("Device's sample rate (allow adjusting in GUI).")]
         public int SampleRate { get; set; }
+        [Description("Device configuration (Recommend to configure in GUI).")]
         public DeviceDescription? PlaybackDevice { get; set; }
+        [Description("Enable limiter to prevent clipping or distortion; disable for an unprocessed signal. Especially effective when master volume is high.")]
         public bool EnableLimiter { get; set; }
+        [Description("Configured device volume, range: 0~150")]
         public int MasterVolume { get; set; }
+        [Description("Music track volume.")]
         public int MusicVolume { get; set; }
+        [Description("Effect track volume.")]
         public int EffectVolume { get; set; }
     }
 
     private class YamlLogging
     {
+        [Description("If true, the software will create a console window to show logs.")]
         public bool EnableDebugConsole { get; set; }
+        [Description("Set whether the software can report logs/bugs to developer.")]
         public bool EnableErrorReporting { get; set; }
         public bool ErrorReportingConfirmed { get; set; }
     }
@@ -257,6 +272,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
 
     private class YamlRealtime
     {
+        [Description("If enabled, the software will perform memory scanning and play the right hitsounds of beatmaps.")]
         public bool RealtimeMode { get; set; }
         public YamlRealtimeScanning? Scanning { get; set; }
         public YamlRealtimePlayback? Playback { get; set; }
@@ -265,24 +281,35 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
 
     private class YamlRealtimeScanning
     {
+        [Description("If the set value is lower, the generic fields will be updated more promptly.\r\nThis property is targeted at delay-insensitive fields and can be appropriately increased to reduce CPU usage.")]
         public int GeneralInterval { get; set; }
+        [Description("If the set value is lower, the timing fields will be updated more promptly.\r\nThis property is targeted at delay-sensitive field and best kept as low as possible.\r\nIf you experience audio cutting issues, please increase the value appropriately.")]
         public int TimingInterval { get; set; }
     }
 
     private class YamlRealtimePlayback
     {
+        [Description("Slider tail's playback behavior. Normal: Force to play slider tail's sounds; KeepReverse: Play only if a slider with multiple reverses; Ignore: Ignore slider tail's sounds.")]
         public SliderTailPlaybackBehavior TailPlaybackBehavior { get; set; }
+        [Description("Force to use nightcore beats.")]
         public bool NightcoreBeats { get; set; }
+        [Description("Balance factor.")]
         public float Balance { get; set; }
+        [Description("[EXPERIMENTAL] If enabled, the software will enable music related functions.")]
         public bool EnableMusicFunctions { get; set; }
     }
 
     private class YamlRealtimeFilters
     {
+        [Description("Ignore beatmap's hitsound and force using user skin instead.")]
         public bool DisableBeatmapHitsounds { get; set; }
+        [Description("Ignore beatmap's storyboard samples.")]
         public bool DisableStoryboardSamples { get; set; }
+        [Description("Ignore slider's ticks and slides.")]
         public bool DisableSliderTicksAndSlides { get; set; }
+        [Description("Ignore combo break sound.")]
         public bool DisableComboBreakSfx { get; set; }
+        [Description("Ignore combo break sound.")]
         public bool IgnoreLineVolumes { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
@@ -15,6 +15,8 @@ public sealed class AppSettings : ViewModelBase
     private bool _sendLogsToDeveloper = true;
     private string? _osuFolder = "";
     private bool _debugging = false;
+
+    public bool UseRawInput { get; set; } = true;
 
     [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
     public List<HookKeys> Keys
@@ -83,6 +85,7 @@ public sealed class AppSettings : ViewModelBase
     }
 
     public string PlayerBase64 { get; set; } = "";
+    public int AudioCachingThreads { get; set; } = 2;
 
     public void Save()
     {
