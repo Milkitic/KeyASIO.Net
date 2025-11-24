@@ -14,6 +14,18 @@ namespace KeyAsio.Gui.Services;
 
 public class KeyboardBindingInitializer
 {
+    private static readonly HookModifierKeys[] Modifiers =
+    [
+        HookModifierKeys.None,
+        HookModifierKeys.Control,
+        HookModifierKeys.Shift,
+        HookModifierKeys.Alt,
+        HookModifierKeys.Control | HookModifierKeys.Alt,
+        HookModifierKeys.Control | HookModifierKeys.Shift,
+        HookModifierKeys.Shift | HookModifierKeys.Alt,
+        HookModifierKeys.Control | HookModifierKeys.Shift | HookModifierKeys.Alt
+    ];
+
     private readonly ILogger<KeyboardBindingInitializer> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
@@ -146,13 +158,11 @@ public class KeyboardBindingInitializer
             }
         };
 
-        _registerList.Add(_keyboardHook.RegisterKey(key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Alt, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Alt, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
+        foreach (var modifier in Modifiers)
+        {
+            _registerList.Add(modifier == HookModifierKeys.None
+                ? _keyboardHook.RegisterKey(key, callback)
+                : _keyboardHook.RegisterHotkey(modifier, key, callback));
+        }
     }
 }
