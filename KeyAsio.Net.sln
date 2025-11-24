@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milki.Extensions.Threading"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milki.Extensions.Configuration", "dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj", "{6A04ABDE-621C-012C-CE02-E87BF3A13A0A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyAsio", "KeyAsio\KeyAsio.csproj", "{F85478F1-672D-4FA6-A426-7F35980FD985}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -273,6 +275,18 @@ Global
 		{6A04ABDE-621C-012C-CE02-E87BF3A13A0A}.Release|x64.Build.0 = Release|Any CPU
 		{6A04ABDE-621C-012C-CE02-E87BF3A13A0A}.Release|x86.ActiveCfg = Release|Any CPU
 		{6A04ABDE-621C-012C-CE02-E87BF3A13A0A}.Release|x86.Build.0 = Release|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Debug|x64.Build.0 = Debug|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Debug|x86.Build.0 = Debug|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Release|x64.ActiveCfg = Release|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Release|x64.Build.0 = Release|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Release|x86.ActiveCfg = Release|Any CPU
+		{F85478F1-672D-4FA6-A426-7F35980FD985}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
