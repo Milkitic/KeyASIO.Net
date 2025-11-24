@@ -85,6 +85,7 @@ public sealed class AppSettings : ViewModelBase
     }
 
     public string PlayerBase64 { get; set; } = "";
+    public int AudioCachingThreads { get; set; } = 2;
 
     public void Save()
     {
