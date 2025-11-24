@@ -224,31 +224,32 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
 
     private class YamlInput
     {
+        [Description("Use raw input for capturing keys; otherwise uses low‑level keyboard hook. Switch only if you encounter issues.")]
         public bool UseRawInput { get; set; }
 
-        [Description("Triggering keys. See https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.keys?view=windowsdesktop-6.0 for more inforamtion.")]
+        [Description("Trigger keys. Refer to https://docs.microsoft.com/en-us/dotnet/api/System.Windows.Forms.Keys.")]
         public IEnumerable<HookKeys>? Keys { get; set; }
     }
 
     private class YamlPaths
     {
-        [Description("Osu's folder. For the most of time this value is auto detected.")]
+        [Description("osu! folder. Usually auto-detected.")]
         public string? OsuFolderPath { get; set; }
-        [Description("Default hitsound path (relative or absolute) for playing.")]
+        [Description("Default hitsound file path (relative or absolute).")]
         public string? HitsoundPath { get; set; }
-        [Description("The skin when `RealtimeMode` is true.")]
+        [Description("Skin used when realtime mode is enabled.")]
         public string? SelectedSkinName { get; set; }
     }
 
     private class YamlAudio
     {
-        [Description("Device's sample rate (allow adjusting in GUI).")]
+        [Description("Output sample rate (adjustable in GUI).")]
         public int SampleRate { get; set; }
-        [Description("Device configuration (Recommend to configure in GUI).")]
+        [Description("Playback device configuration (configure in GUI).")]
         public DeviceDescription? PlaybackDevice { get; set; }
-        [Description("Enable limiter to prevent clipping or distortion; disable for an unprocessed signal. Especially effective when master volume is high.")]
+        [Description("Enable limiter to reduce clipping/distortion; disabling yields unprocessed signal. Useful at high master volume.")]
         public bool EnableLimiter { get; set; }
-        [Description("Configured device volume, range: 0~150")]
+        [Description("Master volume. Range: 0–150.")]
         public int MasterVolume { get; set; }
         [Description("Music track volume.")]
         public int MusicVolume { get; set; }
@@ -258,21 +259,22 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
 
     private class YamlLogging
     {
-        [Description("If true, the software will create a console window to show logs.")]
+        [Description("Enable console window for logs.")]
         public bool EnableDebugConsole { get; set; }
-        [Description("Set whether the software can report logs/bugs to developer.")]
+        [Description("Enable error/bug reporting to developer.")]
         public bool EnableErrorReporting { get; set; }
         public bool ErrorReportingConfirmed { get; set; }
     }
 
     private class YamlPerformance
     {
+        [Description("Number of threads for audio caching.")]
         public int AudioCacheThreadCount { get; set; }
     }
 
     private class YamlRealtime
     {
-        [Description("If enabled, the software will perform memory scanning and play the right hitsounds of beatmaps.")]
+        [Description("Enable memory scanning and correct hitsound playback.")]
         public bool RealtimeMode { get; set; }
         public YamlRealtimeScanning? Scanning { get; set; }
         public YamlRealtimePlayback? Playback { get; set; }
@@ -281,35 +283,35 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
 
     private class YamlRealtimeScanning
     {
-        [Description("If the set value is lower, the generic fields will be updated more promptly.\r\nThis property is targeted at delay-insensitive fields and can be appropriately increased to reduce CPU usage.")]
+        [Description("Lower values update generic fields more promptly. Intended for delay-insensitive fields; increase to reduce CPU usage.")]
         public int GeneralInterval { get; set; }
-        [Description("If the set value is lower, the timing fields will be updated more promptly.\r\nThis property is targeted at delay-sensitive field and best kept as low as possible.\r\nIf you experience audio cutting issues, please increase the value appropriately.")]
+        [Description("Lower values update timing fields more promptly. Intended for delay‑sensitive fields; keep as low as possible. Increase if audio cutting occurs.")]
         public int TimingInterval { get; set; }
     }
 
     private class YamlRealtimePlayback
     {
-        [Description("Slider tail's playback behavior. Normal: Force to play slider tail's sounds; KeepReverse: Play only if a slider with multiple reverses; Ignore: Ignore slider tail's sounds.")]
+        [Description("Slider‑tail playback behavior. Normal: always play; KeepReverse: play only on multi‑reverse sliders; Ignore: never play.")]
         public SliderTailPlaybackBehavior TailPlaybackBehavior { get; set; }
-        [Description("Force to use nightcore beats.")]
+        [Description("Force use of nightcore beats.")]
         public bool NightcoreBeats { get; set; }
         [Description("Balance factor.")]
         public float Balance { get; set; }
-        [Description("[EXPERIMENTAL] If enabled, the software will enable music related functions.")]
+        [Description("[Experimental] Enable music‑related functions.")]
         public bool EnableMusicFunctions { get; set; }
     }
 
     private class YamlRealtimeFilters
     {
-        [Description("Ignore beatmap's hitsound and force using user skin instead.")]
+        [Description("Ignore beatmap hitsounds and use user skin instead.")]
         public bool DisableBeatmapHitsounds { get; set; }
-        [Description("Ignore beatmap's storyboard samples.")]
+        [Description("Ignore beatmap storyboard samples.")]
         public bool DisableStoryboardSamples { get; set; }
-        [Description("Ignore slider's ticks and slides.")]
+        [Description("Ignore slider ticks and slides.")]
         public bool DisableSliderTicksAndSlides { get; set; }
         [Description("Ignore combo break sound.")]
         public bool DisableComboBreakSfx { get; set; }
-        [Description("Ignore combo break sound.")]
+        [Description("Ignore beatmap line volume changes.")]
         public bool IgnoreLineVolumes { get; set; }
     }
 }
