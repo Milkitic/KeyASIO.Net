@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,17 +9,15 @@ using HandyControl.Controls;
 using HandyControl.Data;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
+using KeyAsio.Gui.Services;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
-using KeyAsio.Shared.Realtime.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
-using LogLevel = KeyAsio.MemoryReading.Logging.LogLevel;
 
 namespace KeyAsio.Gui.Windows;
 
@@ -32,86 +28,49 @@ public partial class MainWindow : DialogWindow
 {
     private bool _forceClose;
     private readonly ILogger<MainWindow> _logger;
+    private readonly IServiceProvider _serviceProvider;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly AudioDeviceManager _audioDeviceManager;
-    private readonly AudioPlaybackService _audioPlaybackService;
     private readonly SharedViewModel _viewModel;
-    private CachedAudio? _cacheSound;
-    private readonly IKeyboardHook _keyboardHook;
-    private readonly List<Guid> _registerList = new();
+    private readonly KeyboardBindingInitializer _bindingInitializer;
+    private readonly Updater _updater;
     private Timer? _timer;
 
     public MainWindow(
         ILogger<MainWindow> logger,
+        IServiceProvider serviceProvider,
         AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
-        RealtimeModeManager realtimeModeManager,
+        RealtimeController realtimeController,
         AudioDeviceManager audioDeviceManager,
         SharedViewModel viewModel,
-        AudioPlaybackService audioPlaybackService)
+        KeyboardBindingInitializer keyboardBindingInitializer,
+        Updater updater)
     {
         InitializeComponent();
         DataContext = _viewModel = viewModel;
         AppSettings = appSettings;
         AudioEngine = audioEngine;
         _logger = logger;
+        _serviceProvider = serviceProvider;
         _audioCacheManager = audioCacheManager;
-        RealtimeModeManager = realtimeModeManager;
+        RealtimeController = realtimeController;
         _audioDeviceManager = audioDeviceManager;
-        _audioPlaybackService = audioPlaybackService;
 
-        _keyboardHook = KeyboardHookFactory.CreateGlobal();
-        CreateShortcuts();
+        _bindingInitializer = keyboardBindingInitializer;
+        _updater = updater;
+        _bindingInitializer.Setup();
         BindOptions();
     }
 
     public AppSettings AppSettings { get; }
-    public RealtimeModeManager RealtimeModeManager { get; }
+    public RealtimeController RealtimeController { get; }
     public AudioEngine AudioEngine { get; }
-
-    private void CreateShortcuts()
-    {
-        var ignoreBeatmapHitsound = AppSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
-        if (ignoreBeatmapHitsound?.Keys != null)
-        {
-            _keyboardHook.RegisterHotkey(ignoreBeatmapHitsound.ModifierKeys, ignoreBeatmapHitsound.Keys.Value,
-                (_, _, _) =>
-                {
-                    AppSettings.RealtimeOptions.IgnoreBeatmapHitsound =
-                        !AppSettings.RealtimeOptions.IgnoreBeatmapHitsound;
-                    AppSettings.Save();
-                });
-        }
-
-        var ignoreSliderTicksAndSlides = AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlidesBindKey;
-        if (ignoreSliderTicksAndSlides?.Keys != null)
-        {
-            _keyboardHook.RegisterHotkey(ignoreSliderTicksAndSlides.ModifierKeys, ignoreSliderTicksAndSlides.Keys.Value,
-                (_, _, _) =>
-                {
-                    AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides =
-                        !AppSettings.RealtimeOptions.IgnoreSliderTicksAndSlides;
-                    AppSettings.Save();
-                });
-        }
-
-        var ignoreStoryboardSamples = AppSettings.RealtimeOptions.IgnoreStoryboardSamplesBindKey;
-        if (ignoreStoryboardSamples?.Keys != null)
-        {
-            _keyboardHook.RegisterHotkey(ignoreStoryboardSamples.ModifierKeys, ignoreStoryboardSamples.Keys.Value,
-                (_, _, _) =>
-                {
-                    AppSettings.RealtimeOptions.IgnoreStoryboardSamples =
-                        !AppSettings.RealtimeOptions.IgnoreStoryboardSamples;
-                    AppSettings.Save();
-                });
-        }
-    }
 
     private async Task SelectDevice()
     {
-        var window = ((App)Application.Current).Services.GetRequiredService<DeviceWindow>();
+        var window = _serviceProvider.GetRequiredService<DeviceWindow>();
         window.Owner = this;
         window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         if (window.ShowDialog() != true) return;
@@ -174,13 +133,7 @@ public partial class MainWindow : DialogWindow
                 }, null, 0, 100);
             }
 
-            var waveFormat = AudioEngine.EngineWaveFormat;
-            if (Path.Exists(AppSettings.HitsoundPath))
-            {
-                var (cachedAudio, result) =
-                    await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(AppSettings.HitsoundPath, waveFormat);
-                _cacheSound = cachedAudio;
-            }
+            await _bindingInitializer.InitializeKeyAudioAsync();
 
             _viewModel.DeviceDescription = actualDescription;
             if (saveToSettings)
@@ -234,53 +187,6 @@ public partial class MainWindow : DialogWindow
         if (!saveToSettings) return;
         AppSettings.Device = null;
         AppSettings.Save();
-    }
-
-    private void RegisterKey(HookKeys key)
-    {
-        KeyboardCallback callback = (_, hookKey, action) =>
-        {
-            if (action != KeyAction.KeyDown) return;
-
-            _logger.LogDebug($"{hookKey} {action}");
-
-            if (!AppSettings.RealtimeOptions.RealtimeMode)
-            {
-                if (_cacheSound != null)
-                {
-                    if (AudioEngine != null)
-                    {
-                        AudioEngine.PlayAudio(_cacheSound);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("AudioEngine not ready.");
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("Hitsound is null. Please check your path.");
-                }
-
-                return;
-            }
-
-            var playbackInfos =
-                RealtimeModeManager.GetKeyAudio(AppSettings.Keys.IndexOf(hookKey), AppSettings.Keys.Count);
-            foreach (var playbackInfo in playbackInfos)
-            {
-                _audioPlaybackService.DispatchPlayback(playbackInfo);
-            }
-        };
-
-        _registerList.Add(_keyboardHook.RegisterKey(key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Alt, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Alt, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
-        _registerList.Add(_keyboardHook.RegisterHotkey(HookModifierKeys.Control | HookModifierKeys.Shift | HookModifierKeys.Alt, key, callback));
     }
 
     private void BindOptions()
@@ -341,7 +247,7 @@ public partial class MainWindow : DialogWindow
 
     private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
     {
-        var version = Updater.GetVersion();
+        var version = _updater.GetVersion();
         FixCommit(ref version);
         Title += $" {version}";
 
@@ -355,10 +261,7 @@ public partial class MainWindow : DialogWindow
             await LoadDevice(AppSettings.Device, false);
         }
 
-        foreach (var key in AppSettings.Keys)
-        {
-            RegisterKey(key);
-        }
+        _bindingInitializer.RegisterKeys(AppSettings.Keys);
 
         if (!AppSettings.SendLogsToDeveloperConfirmed)
         {
@@ -372,16 +275,16 @@ public partial class MainWindow : DialogWindow
                 });
         }
 
-        var result = await Updater.CheckUpdateAsync();
+        var result = await _updater.CheckUpdateAsync();
         if (result == true)
         {
-            Growl.Ask($"Found new version: {Updater.NewRelease!.NewVerString}. " +
+            Growl.Ask($"Found new version: {_updater.NewRelease!.NewVerString}. " +
                       $"Click yes to open the release page.",
                 dialogResult =>
                 {
                     if (dialogResult)
                     {
-                        Updater.OpenLastReleasePage();
+                        _updater.OpenLastReleasePage();
                     }
 
                     return true;
@@ -431,14 +334,9 @@ public partial class MainWindow : DialogWindow
 
     private void btnChangeKey_OnClick(object sender, RoutedEventArgs e)
     {
-        foreach (var guid in _registerList)
-        {
-            _keyboardHook.TryUnregister(guid);
-        }
+        _bindingInitializer.UnregisterAll();
 
-        _registerList.Clear();
-
-        var window = new KeyBindWindow(AppSettings.Keys)
+        var window = new KeyBindWindow(AppSettings)
         {
             Owner = this,
             WindowStartupLocation = WindowStartupLocation.CenterOwner
@@ -450,10 +348,7 @@ public partial class MainWindow : DialogWindow
             AppSettings.Save();
         }
 
-        foreach (var key in AppSettings.Keys)
-        {
-            RegisterKey(key);
-        }
+        _bindingInitializer.RegisterKeys(AppSettings.Keys);
     }
 
     private void btnAsioControlPanel_OnClick(object sender, RoutedEventArgs e)
@@ -478,26 +373,17 @@ public partial class MainWindow : DialogWindow
 
     private void btnLatencyCheck_OnClick(object sender, RoutedEventArgs e)
     {
-        foreach (var guid in _registerList)
-        {
-            _keyboardHook.TryUnregister(guid);
-        }
-
-        _registerList.Clear();
-        var latencyGuideWindow = ((App)Application.Current).Services.GetRequiredService<LatencyGuideWindow>();
+        _bindingInitializer.UnregisterAll();
+        var latencyGuideWindow = _serviceProvider.GetRequiredService<LatencyGuideWindow>();
         latencyGuideWindow.Owner = this;
         latencyGuideWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         latencyGuideWindow.ShowDialog();
-
-        foreach (var key in AppSettings.Keys)
-        {
-            RegisterKey(key);
-        }
+        _bindingInitializer.RegisterKeys(AppSettings.Keys);
     }
 
     private void btnRealtimeOptions_OnClick(object sender, RoutedEventArgs e)
     {
-        var optionsWindow = ((App)Application.Current).Services.GetRequiredService<RealtimeOptionsWindow>();
+        var optionsWindow = _serviceProvider.GetRequiredService<RealtimeOptionsWindow>();
         optionsWindow.Owner = this;
         optionsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         optionsWindow.ShowDialog();

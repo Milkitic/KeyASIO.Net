@@ -3,18 +3,19 @@ using System.Runtime.InteropServices;
 
 namespace KeyAsio.Gui.Utils;
 
-internal class ProcessUtils
+internal partial class ProcessUtils
 {
     public const int SW_HIDE = 0;
     public const int SW_SHOW = 5;
 
-    [DllImport("user32.dll")]
+    [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    public static partial bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-    [DllImport("user32.dll")]
-    public static extern bool SetForegroundWindow(IntPtr hWnd);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool SetForegroundWindow(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
-    private static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
+    [LibraryImport("user32.dll")]
+    private static partial void SwitchToThisWindow(IntPtr hWnd, [MarshalAs(UnmanagedType.Bool)] bool fAltTab);
 }

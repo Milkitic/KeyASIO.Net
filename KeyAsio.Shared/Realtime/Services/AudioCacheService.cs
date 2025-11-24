@@ -16,31 +16,37 @@ public class AudioCacheService
 {
     private static readonly string[] SkinAudioFiles = ["combobreak"];
 
-    private static readonly ParallelOptions ParallelOptions = new()
-    {
-        MaxDegreeOfParallelism = 2,
-    };
-
+    private readonly ParallelOptions _parallelOptions;
     private readonly HitsoundFileCache _hitsoundFileCache = new();
     private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedAudioMapping = new();
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
     private readonly ILogger<AudioCacheService> _logger;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
     private string? _beatmapFolder;
     private string? _audioFilename;
 
-    public AudioCacheService(ILogger<AudioCacheService> logger, IServiceProvider serviceProvider, AudioEngine audioEngine,
-        AudioCacheManager audioCacheManager, SharedViewModel sharedViewModel)
+    public AudioCacheService(ILogger<AudioCacheService> logger,
+        RealtimeSessionContext realtimeSessionContext,
+        AppSettings appSettings,
+        AudioEngine audioEngine,
+        AudioCacheManager audioCacheManager,
+        SharedViewModel sharedViewModel)
     {
         _logger = logger;
-        _serviceProvider = serviceProvider;
+        _realtimeSessionContext = realtimeSessionContext;
+        _appSettings = appSettings;
         _audioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
+        _parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = appSettings.AudioCachingThreads,
+        };
     }
 
     public void SetContext(string? beatmapFolder, string? audioFilename)
@@ -59,7 +65,7 @@ public class AudioCacheService
     public bool TryGetAudioByNode(HitsoundNode node, [NotNullWhen(true)] out CachedAudio? cachedAudio)
     {
         if (!_playNodeToCachedAudioMapping.TryGetValue(node, out cachedAudio)) return false;
-        return node is PlayableNode;
+        return true;
     }
 
     public bool TryGetCachedAudio(string filenameWithoutExt, out CachedAudio? cachedAudio)
@@ -109,7 +115,7 @@ public class AudioCacheService
 
             try
             {
-                await Parallel.ForEachAsync(SkinAudioFiles, ParallelOptions,
+                await Parallel.ForEachAsync(SkinAudioFiles, _parallelOptions,
                     async (skinAudioFile, _) =>
                     {
                         await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);
@@ -162,8 +168,10 @@ public class AudioCacheService
 
             try
             {
-                await Parallel.ForEachAsync(nodesToCache, ParallelOptions,
-                    async (node, _) => { await AddHitsoundCacheAsync(node, folder!, skinFolder, waveFormat); });
+                await Parallel.ForEachAsync(nodesToCache, _parallelOptions, async (node, _) =>
+                {
+                    await AddHitsoundCacheAsync(node, folder!, skinFolder, waveFormat);
+                });
             }
             catch (OperationCanceledException)
             {
@@ -227,8 +235,7 @@ public class AudioCacheService
         string skinFolder,
         WaveFormat waveFormat)
     {
-        var manager = (RealtimeModeManager)_serviceProvider.GetService(typeof(RealtimeModeManager))!;
-        if (!manager.IsStarted)
+        if (!_realtimeSessionContext.IsStarted)
         {
             _logger.LogWarning("Isn't started, stop adding cache.");
             return;

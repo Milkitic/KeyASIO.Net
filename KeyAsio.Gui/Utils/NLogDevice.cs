@@ -1,21 +1,20 @@
 ﻿using ATL.Logging;
-using KeyAsio.Shared;
-using ILogger = KeyAsio.MemoryReading.Logging.ILogger;
-using LogLevel = KeyAsio.MemoryReading.Logging.LogLevel;
+using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Gui.Utils;
 
 internal class NLogDevice : ILogDevice
 {
+    private static ILogger<NLogDevice> _logger;
     private static Log _logInstance = new();
 
-    private static readonly ILogger Logger = LogUtils.GetLogger("ATL");
     public static ILogDevice Instance { get; } = new NLogDevice();
 
-    public static void RegisterDefault()
+    public static void RegisterDefault(ILogger<NLogDevice> logger)
     {
         LogDelegator.SetLog(ref _logInstance);
         _logInstance.Register(Instance);
+        _logger = logger;
     }
 
     private NLogDevice()
@@ -26,7 +25,7 @@ internal class NLogDevice : ILogDevice
     public void DoLog(Log.LogItem anItem)
     {
         var level = GetLevel(anItem.Level);
-        Logger.Log(level, $"({anItem.Location}) {anItem.Message}");
+        _logger.Log(level, "({Location}) {Message}", anItem.Location, anItem.Message);
     }
 
     private static LogLevel GetLevel(int level)

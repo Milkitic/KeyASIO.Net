@@ -128,15 +128,28 @@ public sealed class AudioDeviceManager : IDisposable
 
         var device = new AsioOut(description.DeviceId);
 
-        if (description.ForceASIOBufferSize <= 0)
+        var driverExt = device.UnderlineDriver;
+        if (description.ForceASIOBufferSize > 0)
         {
-            return device;
+            var capability = driverExt.Capabilities;
+            capability.BufferPreferredSize = description.ForceASIOBufferSize;
+
+            _logger.LogDebug("Successfully forced ASIO buffer size to {BufferSize}", description.ForceASIOBufferSize);
         }
 
-        var capability = device.UnderlineDriver.Capabilities;
-        capability.BufferPreferredSize = description.ForceASIOBufferSize;
+        var driver = driverExt.Driver;
+        driver.GetBufferSize(out int minSize, out int maxSize, out int preferredSize, out int granularity);
+        var result = driver.GetLatencies(out int inputLatency, out var outputLatency);
 
-        _logger.LogDebug("Successfully forced ASIO buffer size to {BufferSize}", description.ForceASIOBufferSize);
+        int userBufferComponent = preferredSize * 2;
+        int totalRoundTrip = inputLatency + outputLatency;
+        int hiddenOverhead = totalRoundTrip - userBufferComponent;
+
+        // 计算毫秒数 (假设采样率为 44100，也可以通过 driver.GetSampleRate() 获取)
+        double sampleRate = driver.GetSampleRate();
+        double overheadMs = (hiddenOverhead / sampleRate) * 1000.0;
+        double totalMs = (totalRoundTrip / sampleRate) * 1000.0;
+
         return device;
     }
 

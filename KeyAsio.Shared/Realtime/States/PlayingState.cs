@@ -1,3 +1,5 @@
+using Coosu.Beatmap.Extensions.Playback;
+using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
@@ -7,33 +9,44 @@ using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
-public class PlayingState : IRealtimeState
+public class PlayingState : IGameState
 {
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
-    private readonly MusicTrackService _musicTrackService;
-    private readonly HitsoundNodeService _hitsoundNodeService;
-    private readonly AudioPlaybackService _audioPlaybackService;
+    private readonly BackgroundMusicManager _backgroundMusicManager;
+    private readonly BeatmapHitsoundLoader _beatmapHitsoundLoader;
+    private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SharedViewModel _sharedViewModel;
+    private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly AudioCacheService _audioCacheService;
+    private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
-    public PlayingState(AudioEngine audioEngine, AudioCacheManager audioCacheManager,
-        MusicTrackService musicTrackService, HitsoundNodeService hitsoundNodeService,
-        AudioPlaybackService audioPlaybackService, SharedViewModel sharedViewModel, AudioCacheService audioCacheService)
+    public PlayingState(AppSettings appSettings,
+        AudioEngine audioEngine,
+        AudioCacheManager audioCacheManager,
+        BackgroundMusicManager backgroundMusicManager,
+        BeatmapHitsoundLoader beatmapHitsoundLoader,
+        SfxPlaybackService sfxPlaybackService,
+        SharedViewModel sharedViewModel,
+        GameplaySessionManager gameplaySessionManager,
+        AudioCacheService audioCacheService)
     {
+        _appSettings = appSettings;
         _audioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
-        _musicTrackService = musicTrackService;
-        _hitsoundNodeService = hitsoundNodeService;
-        _audioPlaybackService = audioPlaybackService;
+        _backgroundMusicManager = backgroundMusicManager;
+        _beatmapHitsoundLoader = beatmapHitsoundLoader;
+        _sfxPlaybackService = sfxPlaybackService;
         _sharedViewModel = sharedViewModel;
+        _gameplaySessionManager = gameplaySessionManager;
         _audioCacheService = audioCacheService;
     }
 
-    public async Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
+    public async Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
     {
-        _musicTrackService.StartLowPass(200, 800);
-        ctx.SetResultFlag(false);
+        _backgroundMusicManager.StartLowPass(200, 800);
+        _backgroundMusicManager.SetResultFlag(false);
 
         if (ctx.Beatmap == default)
         {
@@ -41,46 +54,49 @@ public class PlayingState : IRealtimeState
             return;
         }
 
-        await ctx.StartAsync(ctx.Beatmap.FilenameFull, ctx.Beatmap.Filename);
+        await _gameplaySessionManager.StartAsync(ctx.Beatmap.FilenameFull, ctx.Beatmap.Filename);
     }
 
-    public void Exit(RealtimeModeManager ctx, OsuMemoryStatus to)
+    public void Exit(RealtimeSessionContext ctx, OsuMemoryStatus to)
     {
         // Exit behavior will be handled by the next state's Enter.
     }
 
-    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
-        _musicTrackService.UpdatePauseCount(paused);
+        _backgroundMusicManager.UpdatePauseCount(paused);
 
         if (!ctx.IsStarted) return;
 
         // Retry: song time moved backward during playing
         if (oldMs > newMs)
         {
-            _musicTrackService.SetPauseCount(0);
-            _musicTrackService.StopCurrentMusic();
-            _musicTrackService.StartLowPass(200, 16000);
-            ctx.SetFirstStartInitialized(true);
-            ctx.ClearMixerLoopsAndMainTrackAudio();
-            ctx.ResetNodesExternal();
+            _backgroundMusicManager.SetPauseCount(0);
+            _backgroundMusicManager.StopCurrentMusic();
+            _backgroundMusicManager.StartLowPass(200, 16000);
+            _backgroundMusicManager.SetFirstStartInitialized(true);
+            var mixer = _audioEngine.EffectMixer;
+            _sfxPlaybackService.ClearAllLoops(mixer);
+            _backgroundMusicManager.ClearMainTrackAudio();
+            mixer?.RemoveAllMixerInputs();
+            _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);
             return;
         }
 
-        if (ctx.GetEnableMusicFunctions())
+        if (_appSettings.RealtimeOptions.EnableMusicFunctions)
         {
-            if (ctx.GetFirstStartInitialized() && ctx.OsuFile != null &&
-                _musicTrackService.GetMainTrackPath() != null &&
+            if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
+                _backgroundMusicManager.GetMainTrackPath() != null &&
                 _audioEngine.CurrentDevice != null)
             {
-                if (_musicTrackService.GetPauseCount() >= playingPauseThreshold)
+                if (_backgroundMusicManager.GetPauseCount() >= playingPauseThreshold)
                 {
-                    _musicTrackService.ClearMainTrackAudio();
+                    _backgroundMusicManager.ClearMainTrackAudio();
                 }
                 else
                 {
-                    var musicPath = _musicTrackService.GetMainTrackPath();
+                    var musicPath = _backgroundMusicManager.GetMainTrackPath();
                     if (musicPath != null)
                     {
                         var cachedAudio = await _audioCacheManager.TryGetAsync(musicPath);
@@ -88,64 +104,73 @@ public class PlayingState : IRealtimeState
                         {
                             const int codeLatency = -1;
                             const int osuForceLatency = 15;
-                            var oldMapForceOffset = ctx.OsuFile.Version < 5 ? 24 : 0;
-                            _musicTrackService.SetMainTrackOffsetAndLeadIn(
+                            var oldMapForceOffset = _gameplaySessionManager.OsuFile.Version < 5 ? 24 : 0;
+                            _backgroundMusicManager.SetMainTrackOffsetAndLeadIn(
                                 osuForceLatency + codeLatency + oldMapForceOffset,
-                                ctx.OsuFile.General.AudioLeadIn);
-                            if (!ctx.IsResultFlag())
+                                _gameplaySessionManager.OsuFile.General.AudioLeadIn);
+                            if (!_backgroundMusicManager.IsResultFlag())
                             {
-                                _musicTrackService.SetSingleTrackPlayMods(ctx.PlayMods);
+                                _backgroundMusicManager.SetSingleTrackPlayMods(ctx.PlayMods);
                             }
 
-                            _musicTrackService.SyncMainTrackAudio(cachedAudio, newMs);
+                            _backgroundMusicManager.SyncMainTrackAudio(cachedAudio, newMs);
                         }
                     }
                 }
             }
         }
 
-        _hitsoundNodeService.AdvanceCachingWindow(newMs);
+        _beatmapHitsoundLoader.AdvanceCachingWindow(newMs);
         PlayAutoPlaybackIfNeeded(ctx);
         PlayManualPlaybackIfNeeded(ctx);
     }
 
-    public void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(RealtimeSessionContext ctx, int oldCombo, int newCombo)
     {
-        if (ctx.AppSettings.RealtimeOptions.IgnoreComboBreak) return;
+        if (_appSettings.RealtimeOptions.IgnoreComboBreak) return;
         if (!ctx.IsStarted) return;
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;
 
         if (_audioCacheService.TryGetCachedAudio("combobreak", out var cachedAudio))
         {
-            _audioPlaybackService.PlayEffectsAudio(cachedAudio, 1, 0);
+            _sfxPlaybackService.PlayEffectsAudio(cachedAudio, 1, 0);
         }
     }
 
-    public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(RealtimeSessionContext ctx, BeatmapIdentifier beatmap)
     {
     }
 
-    public void OnModsChanged(RealtimeModeManager ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(RealtimeSessionContext ctx, Mods oldMods, Mods newMods)
     {
     }
 
-    private void PlayAutoPlaybackIfNeeded(RealtimeModeManager ctx)
+    private void PlayAutoPlaybackIfNeeded(RealtimeSessionContext ctx)
     {
-        if (_sharedViewModel.AutoMode || (ctx.PlayMods & Mods.Autoplay) != 0 || ctx.IsReplay)
+        if (!_sharedViewModel.AutoMode && (ctx.PlayMods & Mods.Autoplay) == 0 && !ctx.IsReplay) return;
+        _playbackBuffer.Clear();
+        _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, false);
+        foreach (var playbackObject in _playbackBuffer)
         {
-            foreach (var playbackObject in ctx.GetPlaybackAudio(false))
+            _sfxPlaybackService.DispatchPlayback(playbackObject);
+        }
+    }
+
+    private void PlayManualPlaybackIfNeeded(RealtimeSessionContext ctx)
+    {
+        _playbackBuffer.Clear();
+        _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, true);
+        foreach (var playbackObject in _playbackBuffer)
+        {
+            if (_gameplaySessionManager.OsuFile.General.Mode == GameMode.Mania &&
+                playbackObject.HitsoundNode is PlayableNode { PlayablePriority: PlayablePriority.Sampling })
             {
-                _audioPlaybackService.DispatchPlayback(playbackObject);
+                _sfxPlaybackService.DispatchPlayback(playbackObject, playbackObject.HitsoundNode.Volume * 0.6666666f);
+                continue;
             }
-        }
-    }
 
-    private void PlayManualPlaybackIfNeeded(RealtimeModeManager ctx)
-    {
-        foreach (var playbackObject in ctx.GetPlaybackAudio(true))
-        {
-            _audioPlaybackService.DispatchPlayback(playbackObject);
+            _sfxPlaybackService.DispatchPlayback(playbackObject);
         }
     }
 }

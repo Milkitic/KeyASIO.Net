@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
-public class HitsoundNodeService
+public class BeatmapHitsoundLoader
 {
-    private readonly ILogger<HitsoundNodeService> _logger;
+    private readonly ILogger<BeatmapHitsoundLoader> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheService _audioCacheService;
 
@@ -16,7 +16,8 @@ public class HitsoundNodeService
     private readonly List<HitsoundNode> _playbackList = new();
     private int _nextCachingTime;
 
-    public HitsoundNodeService(ILogger<HitsoundNodeService> logger, AppSettings appSettings, AudioCacheService audioCacheService)
+    public BeatmapHitsoundLoader(ILogger<BeatmapHitsoundLoader> logger, AppSettings appSettings,
+        AudioCacheService audioCacheService)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -26,7 +27,8 @@ public class HitsoundNodeService
     public IReadOnlyList<HitsoundNode> PlaybackList => _playbackList;
     public List<PlayableNode> KeyList => _keyList;
 
-    public async Task<OsuFile?> InitializeNodeListsAsync(string folder, string diffFilename, IAudioProvider audioProvider, Mods playMods)
+    public async Task<OsuFile?> InitializeNodeListsAsync(string folder, string diffFilename,
+        IHitsoundSequencer hitsoundSequencer, Mods playMods)
     {
         _keyList.Clear();
         _playbackList.Clear();
@@ -40,8 +42,8 @@ public class HitsoundNodeService
 
         if (osuDir.OsuFiles.Count <= 0)
         {
-            Logger.Warn($"There is no available beatmaps after scanning. " +
-                        $"Directory: {folder}; File: {diffFilename}");
+            _logger.LogWarning("There is no available beatmaps after scanning. Directory: {Folder}; File: {Filename}",
+                folder, diffFilename);
             return null;
         }
 
@@ -56,7 +58,7 @@ public class HitsoundNodeService
         {
             if (isNightcore)
             {
-                Logger.Info("Current Mods:" + playMods);
+                _logger.LogInformation("Current Mods: {PlayMods}", playMods);
             }
 
             var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);
@@ -64,13 +66,13 @@ public class HitsoundNodeService
             hitsoundList = hitsoundList.OrderBy(k => k.Offset).ToList();
         }
 
-        audioProvider.FillAudioList(hitsoundList, _keyList, _playbackList);
+        hitsoundSequencer.FillAudioList(hitsoundList, _keyList, _playbackList);
         return osuFile;
     }
 
-    public void ResetNodes(IAudioProvider audioProvider, int playTime)
+    public void ResetNodes(IHitsoundSequencer hitsoundSequencer, int playTime)
     {
-        audioProvider.ResetNodes(playTime);
+        hitsoundSequencer.SeekTo(playTime);
         _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _keyList);
         _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _playbackList);
         _nextCachingTime = 10000;

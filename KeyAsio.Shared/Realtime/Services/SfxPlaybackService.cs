@@ -9,14 +9,14 @@ using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
-public class AudioPlaybackService
+public class SfxPlaybackService
 {
     private readonly LoopProviderManager _loopProviderManager = new();
-    private readonly ILogger<AudioPlaybackService> _logger;
+    private readonly ILogger<SfxPlaybackService> _logger;
     private readonly AudioEngine _audioEngine;
     private readonly AppSettings _appSettings;
 
-    public AudioPlaybackService(ILogger<AudioPlaybackService> logger, AudioEngine audioEngine, AppSettings appSettings)
+    public SfxPlaybackService(ILogger<SfxPlaybackService> logger, AudioEngine audioEngine, AppSettings appSettings)
     {
         _logger = logger;
         _audioEngine = audioEngine;
@@ -43,13 +43,13 @@ public class AudioPlaybackService
             var cachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
             var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(cachedAudioProvider, volume);
             var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
-                BalanceMode.MidSide, AntiClipStrategy.None); // �� MasterLimiterProvider ͳһ����������
+                BalanceMode.MidSide, AntiClipStrategy.None); // 削波处理交给MasterLimiterProvider
 
             _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurs while playing audio.", true);
+            _logger.LogError(ex, "Error occurs while playing audio.");
         }
 
         _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
@@ -73,7 +73,7 @@ public class AudioPlaybackService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurs while playing looped audio.", true);
+                _logger.LogError(ex, "Error occurs while playing looped audio.");
             }
         }
         else if (controlNode.ControlType == ControlType.StopSliding)
@@ -92,17 +92,27 @@ public class AudioPlaybackService
         _loopProviderManager.RemoveAll(mixingSampleProvider);
     }
 
-    public void DispatchPlayback(PlaybackInfo playbackInfo)
+    public void DispatchPlayback(PlaybackInfo playbackInfo, float? overrideVolume = null)
     {
         var cachedAudio = playbackInfo.CachedAudio;
         var hitsoundNode = playbackInfo.HitsoundNode;
         if (hitsoundNode is PlayableNode playableNode)
         {
-            var volume = _appSettings.RealtimeOptions.IgnoreLineVolumes
-                ? 1
-                : playableNode.PlayablePriority == PlayablePriority.Effects
-                    ? playableNode.Volume * 1.25f
-                    : playableNode.Volume;
+            float volume;
+            if (_appSettings.RealtimeOptions.IgnoreLineVolumes)
+            {
+                volume = 1;
+            }
+            else
+            {
+                if (overrideVolume != null)
+                    volume = overrideVolume.Value;
+                else if (playableNode.PlayablePriority == PlayablePriority.Effects)
+                    volume = playableNode.Volume * 1.25f;
+                else
+                    volume = playableNode.Volume;
+            }
+
             PlayEffectsAudio(cachedAudio, volume, playableNode.Balance);
         }
         else

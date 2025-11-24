@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 using KeyAsio.Gui.UserControls;
+using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.MouseKeyHook;
 
@@ -27,13 +27,15 @@ public partial class KeyBindWindow : DialogWindow
     private readonly IKeyboardHook _keyboardHook;
     public KeyBindWindowViewModel ViewModel { get; }
 
-    public KeyBindWindow(IEnumerable<HookKeys> hookKeys)
+    public KeyBindWindow(AppSettings appSettings)
     {
         InitializeComponent();
-        _keyboardHook = KeyboardHookFactory.CreateApplication();
+        _keyboardHook = appSettings.UseRawInput
+            ? KeyboardHookFactory.CreateRawInput()
+            : KeyboardHookFactory.CreateApplication();
         _keyboardHook.KeyPressed += keyboardHook_KeyPressed;
         DataContext = ViewModel = new KeyBindWindowViewModel();
-        ViewModel.Keys = new ObservableCollection<HookKeys>(hookKeys);
+        ViewModel.Keys = new ObservableCollection<HookKeys>(appSettings.Keys);
     }
 
     private void keyboardHook_KeyPressed(HookModifierKeys hookModifierKeys, HookKeys hookKey, KeyAction type)

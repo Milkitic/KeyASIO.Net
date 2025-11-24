@@ -4,16 +4,17 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Shared.Realtime.AudioProviders;
 
-public class ManiaAudioProvider : IAudioProvider
+public class ManiaHitsoundSequencer : IHitsoundSequencer
 {
-    private readonly ILogger<ManiaAudioProvider> _logger;
+    private readonly ILogger<ManiaHitsoundSequencer> _logger;
+    private readonly AppSettings _appSettings;
+    private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheService _audioCacheService;
-    private readonly RealtimeModeManager _realtimeModeManager;
+    private readonly GameplaySessionManager _gameplaySessionManager;
 
     private List<Queue<PlayableNode>> _hitQueue = new();
     private PlayableNode?[] _hitQueueCache = Array.Empty<PlayableNode>();
@@ -24,68 +25,70 @@ public class ManiaAudioProvider : IAudioProvider
     private HitsoundNode? _firstAutoNode;
     private HitsoundNode? _firstPlayNode;
 
-    public ManiaAudioProvider(ILogger<ManiaAudioProvider> logger, AudioEngine audioEngine,
-        AudioCacheService audioCacheService, RealtimeModeManager realtimeModeManager)
+    public ManiaHitsoundSequencer(ILogger<ManiaHitsoundSequencer> logger,
+        AppSettings appSettings,
+        RealtimeSessionContext realtimeSessionContext,
+        AudioEngine audioEngine,
+        AudioCacheService audioCacheService,
+        GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
+        _appSettings = appSettings;
+        _realtimeSessionContext = realtimeSessionContext;
         _audioEngine = audioEngine;
         _audioCacheService = audioCacheService;
-        _realtimeModeManager = realtimeModeManager;
+        _gameplaySessionManager = gameplaySessionManager;
     }
 
-    public bool IsStarted => _realtimeModeManager.IsStarted;
-    public int PlayTime => _realtimeModeManager.PlayTime;
-    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
-
-    public IEnumerable<PlaybackInfo> GetPlaybackAudio(bool includeKey)
+    public void ProcessAutoPlay(List<PlaybackInfo> buffer, bool processHitQueueAsAuto)
     {
-        var playTime = PlayTime;
-        var isStarted = IsStarted;
+        var playTime = _realtimeSessionContext.PlayTime;
+        var isStarted = _realtimeSessionContext.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready, return empty.");
-            return [];
+            return;
         }
 
         if (!isStarted)
         {
             _logger.LogWarning("Game hasn't started, return empty.");
-            return [];
+            return;
         }
 
-        var first = includeKey ? _firstPlayNode : _firstAutoNode;
+        var first = processHitQueueAsAuto ? _firstPlayNode : _firstAutoNode;
         if (first == null)
         {
-            return [];
+            return;
             _logger.LogWarning("First is null, no item returned.");
         }
 
         if (playTime < first.Offset)
         {
-            return [];
+            return;
             _logger.LogWarning("Haven't reached first, no item returned.");
         }
 
-        return GetNextPlaybackAudio(first, playTime, includeKey);
+        FillNextPlaybackAudio(buffer, first, playTime, processHitQueueAsAuto);
     }
 
-    public IEnumerable<PlaybackInfo> GetKeyAudio(int keyIndex, int keyTotal)
+    public void ProcessInteraction(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
-        var playTime = PlayTime;
-        var isStarted = IsStarted;
+        var playTime = _realtimeSessionContext.PlayTime;
+        var isStarted = _realtimeSessionContext.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready, return empty.");
-            return [];
+            return;
         }
 
         if (!isStarted)
         {
             _logger.LogWarning("Game hasn't started, return empty.");
-            return [];
+            return;
         }
 
         if (_hitQueue.Count - 1 < keyIndex || _hitQueueCache.Length - 1 < keyIndex)
@@ -93,7 +96,7 @@ public class ManiaAudioProvider : IAudioProvider
             _logger.LogWarning(
                 "Key index was out of range ({KeyIndex}). Please check your key configuration to match mania columns.",
                 keyIndex);
-            return [];
+            return;
         }
 
         var queue = _hitQueue[keyIndex];
@@ -136,13 +139,14 @@ public class ManiaAudioProvider : IAudioProvider
             _logger.LogDebug("Use cache");
         }
 
-        if (playableNode != null && _audioCacheService.TryGetAudioByNode(playableNode, out var cachedAudio))
+        if (playableNode == null || !_audioCacheService.TryGetAudioByNode(playableNode, out var cachedAudio))
         {
-            return new[] { new PlaybackInfo(cachedAudio, playableNode) };
+            _logger.LogWarning("No audio returned.");
         }
-
-        _logger.LogWarning("No audio returned.");
-        return [];
+        else
+        {
+            buffer.Add(new PlaybackInfo(cachedAudio, playableNode));
+        }
     }
 
     public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
@@ -154,7 +158,7 @@ public class ManiaAudioProvider : IAudioProvider
 
             if (playableNode.PlayablePriority is PlayablePriority.Sampling)
             {
-                if (!AppSettings.RealtimeOptions.IgnoreStoryboardSamples)
+                if (!_appSettings.RealtimeOptions.IgnoreStoryboardSamples)
                 {
                     playbackList.Add(playableNode);
                 }
@@ -166,23 +170,23 @@ public class ManiaAudioProvider : IAudioProvider
         }
     }
 
-    public void ResetNodes(int playTime)
+    public void SeekTo(int playTime)
     {
-        _hitQueue = GetHitQueue(_realtimeModeManager.KeyList, playTime);
+        _hitQueue = GetHitQueue(_gameplaySessionManager.KeyList, playTime);
         _hitQueueCache = new PlayableNode[_hitQueue.Count];
 
-        _autoPlayQueue = new Queue<HitsoundNode>(_realtimeModeManager.KeyList);
-        _playQueue = new Queue<HitsoundNode>(_realtimeModeManager.PlaybackList.Where(k => k.Offset >= playTime));
+        _autoPlayQueue = new Queue<HitsoundNode>(_gameplaySessionManager.KeyList);
+        _playQueue = new Queue<HitsoundNode>(_gameplaySessionManager.PlaybackList.Where(k => k.Offset >= playTime));
         _autoPlayQueue.TryDequeue(out _firstAutoNode);
         _playQueue.TryDequeue(out _firstPlayNode);
     }
 
     private List<Queue<PlayableNode>> GetHitQueue(IReadOnlyList<PlayableNode> keyList, int playTime)
     {
-        if (_realtimeModeManager.OsuFile == null)
+        if (_gameplaySessionManager.OsuFile == null)
             return new List<Queue<PlayableNode>>();
 
-        var keyCount = (int)_realtimeModeManager.OsuFile.Difficulty.CircleSize;
+        var keyCount = (int)_gameplaySessionManager.OsuFile.Difficulty.CircleSize;
         var list = new List<Queue<PlayableNode>>(keyCount);
         for (int i = 0; i < keyCount; i++)
         {
@@ -199,7 +203,7 @@ public class ManiaAudioProvider : IAudioProvider
         return list;
     }
 
-    private IEnumerable<PlaybackInfo> GetNextPlaybackAudio(HitsoundNode? firstNode, int playTime, bool includeKey)
+    private void FillNextPlaybackAudio(List<PlaybackInfo> buffer, HitsoundNode? firstNode, int playTime, bool includeKey)
     {
         while (firstNode != null)
         {
@@ -211,7 +215,7 @@ public class ManiaAudioProvider : IAudioProvider
             if (playTime < firstNode.Offset + 200 &&
                 _audioCacheService.TryGetAudioByNode(firstNode, out var cachedSound))
             {
-                yield return new PlaybackInfo(cachedSound, firstNode);
+                buffer.Add(new PlaybackInfo(cachedSound, firstNode));
             }
 
             if (includeKey)
