@@ -4,42 +4,44 @@ using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
-public class NotRunningState : IRealtimeState
+public class NotRunningState : IGameState
 {
-    private readonly MusicTrackService _musicTrackService;
+    private readonly AppSettings _appSettings;
+    private readonly BackgroundMusicManager _backgroundMusicManager;
 
-    public NotRunningState(MusicTrackService musicTrackService)
+    public NotRunningState(AppSettings appSettings, BackgroundMusicManager backgroundMusicManager)
     {
-        _musicTrackService = musicTrackService;
+        _appSettings = appSettings;
+        _backgroundMusicManager = backgroundMusicManager;
     }
 
-    public Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
+    public Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
     {
-        if (ctx.AppSettings.RealtimeOptions.EnableMusicFunctions)
+        if (_appSettings.RealtimeOptions.EnableMusicFunctions)
         {
-            _musicTrackService.StopCurrentMusic(2000);
+            _backgroundMusicManager.StopCurrentMusic(2000);
         }
 
         return Task.CompletedTask;
     }
 
-    public void Exit(RealtimeModeManager ctx, OsuMemoryStatus to)
+    public void Exit(RealtimeSessionContext ctx, OsuMemoryStatus to)
     {
     }
 
-    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeSessionContext ctx, int oldMs, int newMs, bool paused)
     {
     }
 
-    public void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(RealtimeSessionContext ctx, int oldCombo, int newCombo)
     {
     }
 
-    public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(RealtimeSessionContext ctx, BeatmapIdentifier beatmap)
     {
     }
 
-    public void OnModsChanged(RealtimeModeManager ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(RealtimeSessionContext ctx, Mods oldMods, Mods newMods)
     {
     }
 }

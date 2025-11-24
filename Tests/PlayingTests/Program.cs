@@ -44,12 +44,13 @@ static class Program
         }, context);
         var services = new ServiceCollection();
         services.AddSingleton(appSettings);
+        services.AddSingleton<GameplaySessionManager>();
         services.AddSingleton<SharedViewModel>();
         services.AddSingleton<AudioCacheService>();
-        services.AddSingleton<HitsoundNodeService>();
-        services.AddSingleton<MusicTrackService>();
-        services.AddSingleton<AudioPlaybackService>();
-        services.AddSingleton<RealtimeModeManager>();
+        services.AddSingleton<BeatmapHitsoundLoader>();
+        services.AddSingleton<BackgroundMusicManager>();
+        services.AddSingleton<SfxPlaybackService>();
+        services.AddSingleton<RealtimeSessionContext>();
         var provider = services.BuildServiceProvider();
         var sharedViewModel = provider.GetRequiredService<SharedViewModel>();
         sharedViewModel.AutoMode = true;
@@ -63,8 +64,8 @@ static class Program
             @"C:\Users\milkitic\Downloads\1680421 EBIMAYO - GOODTEK [no video]\EBIMAYO - GOODTEK (yf_bmp) [Maboyu's Another].osu";
         var filename = Path.GetFileName(filenameFull);
 
-        var realtimeModeManager = provider.GetRequiredService<RealtimeModeManager>();
-        realtimeModeManager.PlayTime = -1;
+        var realtimeModeManager = provider.GetRequiredService<RealtimeSessionContext>();
+        realtimeModeManager.BaseMemoryTime = -1;
         realtimeModeManager.PlayMods = Mods.None;
         realtimeModeManager.OsuStatus = OsuMemoryStatus.SongSelect;
         var files = Directory.EnumerateFiles(@"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\", "*.osu",
@@ -106,7 +107,7 @@ static class Program
         {
             while (true)
             {
-                realtimeModeManager.PlayTime = (int)sw.ElapsedMilliseconds - 1000;
+                realtimeModeManager.BaseMemoryTime = (int)sw.ElapsedMilliseconds - 1000;
                 Thread.Sleep(3);
             }
         });
@@ -114,8 +115,11 @@ static class Program
 
         await Task.Delay(3000);
         sw.Reset();
+
+        var playSessionService = provider.GetRequiredService<GameplaySessionManager>();
+
         //realtimeModeManager.Stop();
-        await realtimeModeManager.StartAsync(filenameFull, filename);
+        await playSessionService.StartAsync(filenameFull, filename);
         await Task.Delay(800);
         sw.Restart();
 

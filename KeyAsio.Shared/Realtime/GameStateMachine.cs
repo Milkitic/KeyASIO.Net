@@ -3,20 +3,20 @@ using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
-public class RealtimeStateMachine
+public class GameStateMachine
 {
-    private readonly Dictionary<OsuMemoryStatus, IRealtimeState> _states;
+    private readonly Dictionary<OsuMemoryStatus, IGameState> _states;
 
-    public IRealtimeState? Current { get; private set; }
+    public IGameState? Current { get; private set; }
     public OsuMemoryStatus CurrentStatus { get; private set; }
 
-    public RealtimeStateMachine(Dictionary<OsuMemoryStatus, IRealtimeState> states)
+    public GameStateMachine(Dictionary<OsuMemoryStatus, IGameState> states)
     {
         _states = states;
         CurrentStatus = OsuMemoryStatus.NotRunning;
     }
 
-    public async Task TransitionToAsync(RealtimeModeManager ctx, OsuMemoryStatus next)
+    public async Task TransitionToAsync(RealtimeSessionContext ctx, OsuMemoryStatus next)
     {
         var from = CurrentStatus;
         if (!_states.TryGetValue(next, out var target))

@@ -2,29 +2,36 @@
 using System.Reflection;
 using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.MemoryReading.OsuMemoryModels.Direct;
+using Microsoft.Extensions.Logging;
 using OsuMemoryDataProvider;
 using ProcessMemoryDataFinder;
 using ProcessMemoryDataFinder.API;
 
 namespace KeyAsio.MemoryReading;
 
-public static class MemoryScan
+public class MemoryScan
 {
+    private readonly ILogger<MemoryScan> _logger;
     private const string FieldMemoryReader1 = "_memoryReader";
     private const string FieldMemoryReader2 = "_memoryReader";
 
-    private static int _timingScanInterval;
-    private static int _generalScanInterval;
-    private static StructuredOsuMemoryReader? _reader;
-    private static Task? _readTask;
-    private static CancellationTokenSource? _cts;
-    private static bool _isStarted;
+    private int _timingScanInterval;
+    private int _generalScanInterval;
+    private StructuredOsuMemoryReader? _reader;
+    private Task? _readTask;
+    private CancellationTokenSource? _cts;
+    private bool _isStarted;
 
-    private static MemoryReader? _innerMemoryReader;
+    private MemoryReader? _innerMemoryReader;
 
-    public static MemoryReadObject MemoryReadObject { get; } = new();
+    public MemoryScan(ILogger<MemoryScan> logger)
+    {
+        _logger = logger;
+    }
 
-    public static void Start(int generalScanInterval, int timingScanInterval, int processInterval = 500)
+    public MemoryReadObject MemoryReadObject { get; } = new();
+
+    public void Start(int generalScanInterval, int timingScanInterval, int processInterval = 500)
     {
         if (_isStarted) return;
         _isStarted = true;
@@ -67,7 +74,7 @@ public static class MemoryScan
             TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
     }
 
-    public static async Task StopAsync()
+    public async Task StopAsync()
     {
         if (!_isStarted) return;
         await _cts!.CancelAsync();
@@ -90,7 +97,7 @@ public static class MemoryScan
         }
     }
 
-    private static void ReadImpl()
+    private void ReadImpl()
     {
         var generalScanLimiter = Stopwatch.StartNew();
         var timingScanLimiter = Stopwatch.StartNew();
@@ -217,8 +224,11 @@ public static class MemoryScan
         return 1;
     }
 
-    private static void Reader_InvalidRead(object? sender, (object readObject, string propPath) e)
+    private void Reader_InvalidRead(object? sender, (object readObject, string propPath) e)
     {
-        if (_reader is { CanRead: true }) Logger.Error($"Invalid reading {e.readObject?.GetType()}: {e.propPath}");
+        if (_reader is { CanRead: true })
+        {
+            _logger.LogError("Invalid reading {Type}: {PropPath}", e.readObject?.GetType(), e.propPath);
+        }
     }
 }

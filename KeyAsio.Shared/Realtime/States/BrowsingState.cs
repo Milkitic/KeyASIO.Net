@@ -5,54 +5,60 @@ using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
-public class BrowsingState : IRealtimeState
+public class BrowsingState : IGameState
 {
-    private readonly MusicTrackService _musicTrackService;
+    private readonly AppSettings _appSettings;
+    private readonly BackgroundMusicManager _backgroundMusicManager;
+    private readonly GameplaySessionManager _gameplaySessionManager;
 
-    public BrowsingState(MusicTrackService musicTrackService)
+    public BrowsingState(AppSettings appSettings,
+        BackgroundMusicManager backgroundMusicManager,
+        GameplaySessionManager gameplaySessionManager)
     {
-        _musicTrackService = musicTrackService;
+        _appSettings = appSettings;
+        _backgroundMusicManager = backgroundMusicManager;
+        _gameplaySessionManager = gameplaySessionManager;
     }
 
-    public Task EnterAsync(RealtimeModeManager ctx, OsuMemoryStatus from)
+    public Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
     {
-        _musicTrackService.StartLowPass(200, 16000);
-        ctx.SetResultFlag(false);
-        ctx.Stop();
+        _backgroundMusicManager.StartLowPass(200, 16000);
+        _backgroundMusicManager.SetResultFlag(false);
+        _gameplaySessionManager.Stop();
         return Task.CompletedTask;
     }
 
-    public void Exit(RealtimeModeManager ctx, OsuMemoryStatus to)
+    public void Exit(RealtimeSessionContext ctx, OsuMemoryStatus to)
     {
     }
 
-    public async Task OnPlayTimeChanged(RealtimeModeManager ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(RealtimeSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int selectSongPauseThreshold = 20;
-        if (!ctx.GetEnableMusicFunctions()) return;
+        if (!_appSettings.RealtimeOptions.EnableMusicFunctions) return;
 
         // Maintain pause state lifecycle for song-select preview
-        _musicTrackService.UpdatePauseCount(paused);
+        _backgroundMusicManager.UpdatePauseCount(paused);
 
-        if (_musicTrackService.GetPauseCount() >= selectSongPauseThreshold &&
-            _musicTrackService.GetPreviousSelectSongStatus())
+        if (_backgroundMusicManager.GetPauseCount() >= selectSongPauseThreshold &&
+            _backgroundMusicManager.GetPreviousSelectSongStatus())
         {
-            _musicTrackService.PauseCurrentMusic();
-            _musicTrackService.SetPreviousSelectSongStatus(false);
+            _backgroundMusicManager.PauseCurrentMusic();
+            _backgroundMusicManager.SetPreviousSelectSongStatus(false);
         }
-        else if (_musicTrackService.GetPauseCount() < selectSongPauseThreshold &&
-                 !_musicTrackService.GetPreviousSelectSongStatus())
+        else if (_backgroundMusicManager.GetPauseCount() < selectSongPauseThreshold &&
+                 !_backgroundMusicManager.GetPreviousSelectSongStatus())
         {
-            _musicTrackService.RecoverCurrentMusic();
-            _musicTrackService.SetPreviousSelectSongStatus(true);
+            _backgroundMusicManager.RecoverCurrentMusic();
+            _backgroundMusicManager.SetPreviousSelectSongStatus(true);
         }
     }
 
-    public void OnComboChanged(RealtimeModeManager ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(RealtimeSessionContext ctx, int oldCombo, int newCombo)
     {
     }
 
-    public void OnBeatmapChanged(RealtimeModeManager ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(RealtimeSessionContext ctx, BeatmapIdentifier beatmap)
     {
         if (beatmap == default)
         {
@@ -76,18 +82,18 @@ public class BrowsingState : IRealtimeState
             ? null
             : Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
 
-        if (audioFilePath == _musicTrackService.GetPreviewAudioFilePath())
+        if (audioFilePath == _backgroundMusicManager.GetPreviewAudioFilePath())
         {
             return;
         }
 
-        _musicTrackService.UpdatePreviewContext(beatmap.Folder, audioFilePath);
-        _musicTrackService.StopCurrentMusic(200);
-        _musicTrackService.PlaySingleAudioPreview(coosu, audioFilePath, coosu.General.PreviewTime);
-        _musicTrackService.ResetPauseState();
+        _backgroundMusicManager.UpdatePreviewContext(beatmap.Folder, audioFilePath);
+        _backgroundMusicManager.StopCurrentMusic(200);
+        _backgroundMusicManager.PlaySingleAudioPreview(coosu, audioFilePath, coosu.General.PreviewTime);
+        _backgroundMusicManager.ResetPauseState();
     }
 
-    public void OnModsChanged(RealtimeModeManager ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(RealtimeSessionContext ctx, Mods oldMods, Mods newMods)
     {
     }
 }

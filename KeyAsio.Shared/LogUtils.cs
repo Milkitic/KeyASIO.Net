@@ -1,24 +1,12 @@
 using System.Runtime.CompilerServices;
-using KeyAsio.MemoryReading.Logging;
 using KeyAsio.Shared.Configuration;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Shared;
 
 public static class LogUtils
 {
-    public static readonly ILoggerFactory LoggerFactory = WrapperLoggerFactory.CreateFromExtensions();
-
-    public static ILogger GetLogger(string name)
-    {
-        return LoggerFactory.CreateLogger(name);
-    }
-
-    public static ILogger<T> GetLogger<T>()
-    {
-        return LoggerFactory.CreateLogger<T>();
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void LogToSentry(LogLevel logLevel, string content, Exception? exception = null,
         Action<Scope>? configureScope = null)
@@ -67,68 +55,5 @@ public static class LogUtils
             // todo: BREAK: realtime dep
             configureScope?.Invoke(scope);
         }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Log(this ILogger logger, LogLevel logLevel, string content, bool toSentry)
-    {
-        logger.Log(logLevel, content);
-        if (toSentry) LogToSentry(logLevel, content);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Debug(this ILogger logger, string content, bool toSentry = false)
-    {
-        logger.LogDebug(content);
-        if (toSentry) LogToSentry(LogLevel.Debug, content);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Info(this ILogger logger, string content, bool toSentry = false)
-    {
-        logger.LogInformation(content);
-        if (toSentry) LogToSentry(LogLevel.Information, content);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Warn(this ILogger logger, string content, bool toSentry = false)
-    {
-        logger.LogWarning(content);
-        if (toSentry) LogToSentry(LogLevel.Warning, content);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Error(this ILogger logger, string content, bool toSentry = false)
-    {
-        logger.LogError(content);
-        if (toSentry) LogToSentry(LogLevel.Error, content);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Debug(this ILogger logger, Exception ex, string content, bool toSentry = false)
-    {
-        logger.LogDebug(ex, content);
-        if (toSentry) LogToSentry(LogLevel.Debug, content, ex);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Info(this ILogger logger, Exception ex, string content, bool toSentry = false)
-    {
-        logger.LogInformation(ex, content);
-        if (toSentry) LogToSentry(LogLevel.Information, content, ex);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Warn(this ILogger logger, Exception ex, string content, bool toSentry = false)
-    {
-        logger.LogWarning(ex, content);
-        if (toSentry) LogToSentry(LogLevel.Warning, content, ex);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Error(this ILogger logger, Exception ex, string content, bool toSentry = false)
-    {
-        logger.LogError(ex, content);
-        if (toSentry) LogToSentry(LogLevel.Error, content, ex);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Controls;
-using KeyAsio.MemoryReading;
 using KeyAsio.Shared.Models;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
@@ -38,7 +38,8 @@ public partial class PlayTimeChart : UserControl
         InitializeComponent();
         DataContext = _viewModel = new PlayTimeChartVm();
 
-        MemoryScan.MemoryReadObject.PlayingTimeChanged += MemoryReadObject_PlayingTimeChanged;
+        var app = (App)Application.Current;
+        app.MemoryScan.MemoryReadObject.PlayingTimeChanged += MemoryReadObject_PlayingTimeChanged;
     }
 
     private void MemoryReadObject_PlayingTimeChanged(int oldValue, int newValue)
