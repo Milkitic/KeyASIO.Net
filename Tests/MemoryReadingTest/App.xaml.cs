@@ -21,6 +21,7 @@ namespace MemoryReadingTest
             services.AddSingleton(new AppSettings());
             services.AddSingleton<SharedViewModel>();
             services.AddSingleton<AudioCacheService>();
+            services.AddSingleton<MemoryScan>();
             services.AddSingleton<BeatmapHitsoundLoader>();
             services.AddSingleton<BackgroundMusicManager>();
             services.AddSingleton<SfxPlaybackService>();
@@ -28,7 +29,10 @@ namespace MemoryReadingTest
             services.AddSingleton<RealtimeSessionContext>();
             var provider = services.BuildServiceProvider();
             _realtimeSessionContext = provider.GetRequiredService<RealtimeSessionContext>();
+            MemoryScan = provider.GetRequiredService<MemoryScan>();
         }
+
+        public MemoryScan MemoryScan { get; }
 
         private void App_OnStartup(object sender, StartupEventArgs e)
         {
