@@ -68,7 +68,7 @@ public static class Program
                 logging.AddNLog("nlog.config");
             })
             .ConfigureServices(services => services
-                .AddScoped<App>()
+                .AddSingleton<App>()
                 .AddSingleton<Updater>()
                 .AddSingleton<MemoryScan>()
                 .AddAudioModule()

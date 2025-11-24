@@ -88,8 +88,6 @@ public class RealtimeSessionContext : ViewModelBase
         set
         {
             if (SetField(ref _baseMemoryTime, value))
-
-
             {
                 _playTimeStopwatch.Restart();
             }
@@ -99,7 +97,6 @@ public class RealtimeSessionContext : ViewModelBase
             }
 
             PlayTime = value;
-
         }
     }
 

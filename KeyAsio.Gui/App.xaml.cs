@@ -38,8 +38,10 @@ public partial class App : Application
         _realtimeSessionContext = realtimeSessionContext;
     }
 
-    private async void App_OnStartup(object sender, StartupEventArgs e)
+    private void App_OnStartup(object sender, StartupEventArgs e)
     {
+        StartMemoryScan();
+
         NLogDevice.RegisterDefault(_serviceProvider.GetRequiredService<ILogger<NLogDevice>>());
 
         UiDispatcher.SetUiSynchronizationContext(new DispatcherSynchronizationContext());
@@ -48,8 +50,6 @@ public partial class App : Application
         MainWindow = Program.Host.Services.GetRequiredService<MainWindow>();
         MainWindow.Show();
     }
-
-
 
     private void StartMemoryScan()
     {
@@ -60,9 +60,9 @@ public partial class App : Application
             var player = EncodeUtils.FromBase64String(_appSettings.PlayerBase64, Encoding.ASCII);
             _realtimeSessionContext.Username = player;
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            _logger.LogWarning(ex, "Failed to decode PlayerBase64 string.");
         }
 
         var dispatcher = Current.Dispatcher;
@@ -88,7 +88,7 @@ public partial class App : Application
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Dispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        _logger.LogError(e.Exception, "Unhandled Exception (Dispatcher): " + e.Exception.Message, true);
+        _logger.LogError(e.Exception, "Unhandled Exception (Dispatcher)");
         e.Handled = true;
     }
 
