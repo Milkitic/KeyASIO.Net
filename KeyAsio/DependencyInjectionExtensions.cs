@@ -1,5 +1,6 @@
 using KeyAsio.Services;
 using KeyAsio.Shared.Models;
+using KeyAsio.ViewModels;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<SharedViewModel>();
 
         services.AddTransient<MainWindow>();
+        services.AddTransient<MainWindowViewModel>();
 
         services.AddHostedService<GuiStartupService>();
         return services;
