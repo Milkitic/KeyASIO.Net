@@ -16,7 +16,7 @@
     <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
     <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
     <PackageReference Include="System.Numerics.Tensors" Version="10.0.0" />
-    <PackageReference Include="z440.atl.core" Version="7.7.0" />
+    <PackageReference Include="z440.atl.core" Version="7.9.0" />
   </ItemGroup>
 
   <ItemGroup>
