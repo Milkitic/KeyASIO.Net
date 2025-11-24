@@ -17,6 +17,7 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Milki.Extensions.Configuration;
 using NAudio.Wave;
 
 namespace KeyAsio.Gui.Windows;
@@ -90,7 +91,7 @@ public partial class MainWindow : DialogWindow
             ForceASIOBufferSize = forceBufferSize
         };
 
-        AppSettings.SampleRate = window.ViewModel.SampleRate;
+        AppSettings.Audio.SampleRate = window.ViewModel.SampleRate;
 
         await LoadDevice(configuredDeviceDescription, true);
     }
@@ -100,10 +101,10 @@ public partial class MainWindow : DialogWindow
         try
         {
             var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
-            AudioEngine.EnableLimiter = AppSettings.EnableLimiter;
-            AudioEngine.MainVolume = AppSettings.Volume / 100f;
-            AudioEngine.MusicVolume = AppSettings.RealtimeOptions.MusicTrackVolume / 100f;
-            AudioEngine.EffectVolume = AppSettings.RealtimeOptions.EffectTrackVolume / 100f;
+            AudioEngine.EnableLimiter = AppSettings.Audio.EnableLimiter;
+            AudioEngine.MainVolume = AppSettings.Audio.MasterVolume / 100f;
+            AudioEngine.MusicVolume = AppSettings.Audio.MusicVolume / 100f;
+            AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
             AudioEngine.StartDevice(device);
 
             if (device is AsioOut asioOut)
@@ -138,7 +139,7 @@ public partial class MainWindow : DialogWindow
             _viewModel.DeviceDescription = actualDescription;
             if (saveToSettings)
             {
-                AppSettings.Device = actualDescription;
+                AppSettings.Audio.PlaybackDevice = actualDescription;
                 AppSettings.Save();
             }
         }
@@ -185,7 +186,7 @@ public partial class MainWindow : DialogWindow
         _audioCacheManager.Clear("internal");
 
         if (!saveToSettings) return;
-        AppSettings.Device = null;
+        AppSettings.Audio.PlaybackDevice = null;
         AppSettings.Save();
     }
 
@@ -199,11 +200,11 @@ public partial class MainWindow : DialogWindow
             Dispatcher.Invoke(ForceClose);
             Thread.Sleep(1000);
         });
-        AppSettings.PropertyChanged += (_, e) =>
+        AppSettings.Logging.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(AppSettings.Debugging))
+            if (e.PropertyName == nameof(AppSettings.Logging.EnableDebugConsole))
             {
-                if (AppSettings.Debugging)
+                if (AppSettings.Logging.EnableDebugConsole)
                 {
                     ConsoleManager.Show();
                 }
@@ -215,14 +216,14 @@ public partial class MainWindow : DialogWindow
                 AppSettings.Save();
             }
         };
-        AppSettings.RealtimeOptions.PropertyChanged += (_, e) =>
+        AppSettings.Realtime.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(AppSettings.RealtimeOptions.RealtimeMode))
+            if (e.PropertyName == nameof(AppSettings.Realtime.RealtimeMode))
             {
                 NotifyRestart(e.PropertyName);
                 AppSettings.Save();
             }
-            else if (e.PropertyName == nameof(AppSettings.RealtimeOptions.EnableMusicFunctions))
+            else if (e.PropertyName == nameof(AppSettings.Realtime.RealtimeEnableMusic))
             {
                 AppSettings.Save();
             }
@@ -251,26 +252,26 @@ public partial class MainWindow : DialogWindow
         FixCommit(ref version);
         Title += $" {version}";
 
-        if (AppSettings.Device == null)
+        if (AppSettings.Audio.PlaybackDevice == null)
         {
             await Task.Delay(100);
             await SelectDevice();
         }
         else
         {
-            await LoadDevice(AppSettings.Device, false);
+            await LoadDevice(AppSettings.Audio.PlaybackDevice, false);
         }
 
-        _bindingInitializer.RegisterKeys(AppSettings.Keys);
+        _bindingInitializer.RegisterKeys(AppSettings.Input.Keys);
 
-        if (!AppSettings.SendLogsToDeveloperConfirmed)
+        if (!AppSettings.Logging.ErrorReportingConfirmed)
         {
             Growl.Ask($"Send logs and errors to developer?\r\n" +
                       $"You can change option later in configuration file.",
                 dialogResult =>
                 {
-                    AppSettings.SendLogsToDeveloper = dialogResult;
-                    AppSettings.SendLogsToDeveloperConfirmed = true;
+                    AppSettings.Logging.EnableErrorReporting = dialogResult;
+                    AppSettings.Logging.ErrorReportingConfirmed = true;
                     return true;
                 });
         }
@@ -344,11 +345,11 @@ public partial class MainWindow : DialogWindow
 
         if (window.ShowDialog() == true)
         {
-            AppSettings.Keys = window.ViewModel.Keys.ToList();
+            AppSettings.Input.Keys = window.ViewModel.Keys.ToList();
             AppSettings.Save();
         }
 
-        _bindingInitializer.RegisterKeys(AppSettings.Keys);
+        _bindingInitializer.RegisterKeys(AppSettings.Input.Keys);
     }
 
     private void btnAsioControlPanel_OnClick(object sender, RoutedEventArgs e)
@@ -362,23 +363,13 @@ public partial class MainWindow : DialogWindow
     private void RangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         var slider = (Slider)sender;
-        AppSettings.Volume = (int)Math.Round(slider.Value * 100);
+        AppSettings.Audio.MasterVolume = (int)Math.Round(slider.Value * 100);
     }
 
     private void MusicRangeBase_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         var slider = (Slider)sender;
-        AppSettings.RealtimeOptions.MusicTrackVolume = (int)Math.Round(slider.Value * 100);
-    }
-
-    private void btnLatencyCheck_OnClick(object sender, RoutedEventArgs e)
-    {
-        _bindingInitializer.UnregisterAll();
-        var latencyGuideWindow = _serviceProvider.GetRequiredService<LatencyGuideWindow>();
-        latencyGuideWindow.Owner = this;
-        latencyGuideWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        latencyGuideWindow.ShowDialog();
-        _bindingInitializer.RegisterKeys(AppSettings.Keys);
+        AppSettings.Audio.MusicVolume = (int)Math.Round(slider.Value * 100);
     }
 
     private void btnRealtimeOptions_OnClick(object sender, RoutedEventArgs e)

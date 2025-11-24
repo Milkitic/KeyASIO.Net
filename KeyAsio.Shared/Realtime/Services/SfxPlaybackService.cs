@@ -31,12 +31,12 @@ public class SfxPlaybackService
             return;
         }
 
-        if (_appSettings.RealtimeOptions.IgnoreLineVolumes)
+        if (_appSettings.Realtime.Filters.IgnoreLineVolumes)
         {
             volume = 1;
         }
 
-        balance *= _appSettings.RealtimeOptions.BalanceFactor;
+        balance *= _appSettings.Realtime.Playback.BalanceFactor;
 
         try
         {
@@ -58,7 +58,7 @@ public class SfxPlaybackService
     public void PlayLoopAudio(CachedAudio cachedAudio, ControlNode controlNode)
     {
         var effectMixer = _audioEngine.EffectMixer;
-        var volume = _appSettings.RealtimeOptions.IgnoreLineVolumes ? 1 : controlNode.Volume;
+        var volume = _appSettings.Realtime.Filters.IgnoreLineVolumes ? 1 : controlNode.Volume;
 
         if (controlNode.ControlType == ControlType.StartSliding)
         {
@@ -99,7 +99,7 @@ public class SfxPlaybackService
         if (hitsoundNode is PlayableNode playableNode)
         {
             float volume;
-            if (_appSettings.RealtimeOptions.IgnoreLineVolumes)
+            if (_appSettings.Realtime.Filters.IgnoreLineVolumes)
             {
                 volume = 1;
             }

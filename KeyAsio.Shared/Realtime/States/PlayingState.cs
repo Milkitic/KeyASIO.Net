@@ -84,7 +84,7 @@ public class PlayingState : IGameState
             return;
         }
 
-        if (_appSettings.RealtimeOptions.EnableMusicFunctions)
+        if (_appSettings.Realtime.RealtimeEnableMusic)
         {
             if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
                 _backgroundMusicManager.GetMainTrackPath() != null &&
@@ -127,7 +127,7 @@ public class PlayingState : IGameState
 
     public void OnComboChanged(RealtimeSessionContext ctx, int oldCombo, int newCombo)
     {
-        if (_appSettings.RealtimeOptions.IgnoreComboBreak) return;
+        if (_appSettings.Realtime.Filters.DisableComboBreakSfx) return;
         if (!ctx.IsStarted) return;
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;

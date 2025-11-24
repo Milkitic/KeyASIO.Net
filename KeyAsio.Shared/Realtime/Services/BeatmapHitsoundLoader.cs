@@ -37,7 +37,7 @@ public class BeatmapHitsoundLoader
         using (DebugUtils.CreateTimer("InitFolder", _logger))
         {
             await osuDir.InitializeAsync(diffFilename,
-                ignoreWaveFiles: _appSettings.RealtimeOptions.IgnoreBeatmapHitsound);
+                ignoreWaveFiles: _appSettings.Realtime.Filters.DisableBeatmapHitsounds);
         }
 
         if (osuDir.OsuFiles.Count <= 0)
@@ -54,7 +54,7 @@ public class BeatmapHitsoundLoader
         await Task.Delay(100);
 
         var isNightcore = playMods != Mods.Unknown && (playMods & Mods.Nightcore) != 0;
-        if (isNightcore || _appSettings.RealtimeOptions.ForceNightcoreBeats)
+        if (isNightcore || _appSettings.Realtime.Playback.NightcoreBeats)
         {
             if (isNightcore)
             {

@@ -4,7 +4,6 @@ using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.Utils;
 using KeyAsio.Audio.Wave;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -19,11 +18,13 @@ public class SongPreviewPlayer
     private LowPassSampleProvider? _lowPassSampleProvider;
 
     private readonly ILogger<SongPreviewPlayer> _logger;
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
 
-    public SongPreviewPlayer(ILogger<SongPreviewPlayer> logger, AudioEngine audioEngine)
+    public SongPreviewPlayer(ILogger<SongPreviewPlayer> logger, AppSettings appSettings, AudioEngine audioEngine)
     {
         _logger = logger;
+        _appSettings = appSettings;
         _audioEngine = audioEngine;
     }
 
@@ -32,7 +33,7 @@ public class SongPreviewPlayer
 
     public async Task Play(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
     {
-        if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
+        if (!_appSettings.Realtime.RealtimeEnableMusic) return;
         if (Mixer is null || WaveFormat is null) return;
 
         AudioFileReader? audioFileReader;

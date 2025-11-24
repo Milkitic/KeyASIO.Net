@@ -11,8 +11,9 @@ public static class LogUtils
     public static void LogToSentry(LogLevel logLevel, string content, Exception? exception = null,
         Action<Scope>? configureScope = null)
     {
-        var settings = ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".");
-        if (!settings.SendLogsToDeveloper) return;
+        var settings = ConfigurationFactory.GetConfiguration<AppSettings>(
+            ".", "appsettings.yaml", MyYamlConfigurationConverter.Instance);
+        if (settings.Logging?.EnableErrorReporting != true) return;
         if (exception != null)
         {
             SentrySdk.CaptureException(exception, k =>

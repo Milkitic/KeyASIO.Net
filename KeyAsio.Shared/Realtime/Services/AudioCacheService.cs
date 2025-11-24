@@ -45,7 +45,7 @@ public class AudioCacheService
         _sharedViewModel = sharedViewModel;
         _parallelOptions = new ParallelOptions
         {
-            MaxDegreeOfParallelism = appSettings.AudioCachingThreads,
+            MaxDegreeOfParallelism = appSettings.Performance.AudioCacheThreadCount,
         };
     }
 

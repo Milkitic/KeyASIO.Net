@@ -44,7 +44,7 @@ public class RealtimeSessionContext : ViewModelBase
             _username = value;
             if (!string.IsNullOrEmpty(value))
             {
-                _appSettings.PlayerBase64 = EncodeUtils.GetBase64String(value, Encoding.ASCII);
+                _appSettings.Logging.PlayerBase64 = EncodeUtils.GetBase64String(value, Encoding.ASCII);
             }
 
             OnPropertyChanged();
@@ -69,7 +69,7 @@ public class RealtimeSessionContext : ViewModelBase
         get => _playTime;
         set
         {
-            value += _appSettings.RealtimeOptions.RealtimeModeAudioOffset + (int)_playTimeStopwatch.ElapsedMilliseconds;
+            value += (int)_playTimeStopwatch.ElapsedMilliseconds;
             var val = _playTime;
             if (SetField(ref _playTime, value))
             {

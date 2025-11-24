@@ -3,6 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Threading;
+using KeyAsio.Audio.SampleProviders.BalancePans;
+using KeyAsio.Audio.Utils;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using KeyAsio.MemoryReading;
@@ -40,6 +42,9 @@ public partial class App : Application
 
     private void App_OnStartup(object sender, StartupEventArgs e)
     {
+        SimdAudioConverter.EnableAvx512 = _appSettings.Performance.EnableAvx512;
+        ProfessionalBalanceProvider.EnableAvx512 = _appSettings.Performance.EnableAvx512;
+
         StartMemoryScan();
 
         NLogDevice.RegisterDefault(_serviceProvider.GetRequiredService<ILogger<NLogDevice>>());
@@ -53,11 +58,11 @@ public partial class App : Application
 
     private void StartMemoryScan()
     {
-        if (!_appSettings.RealtimeOptions.RealtimeMode) return;
+        if (!_appSettings.Realtime.RealtimeMode) return;
 
         try
         {
-            var player = EncodeUtils.FromBase64String(_appSettings.PlayerBase64, Encoding.ASCII);
+            var player = EncodeUtils.FromBase64String(_appSettings.Logging.PlayerBase64 ?? "", Encoding.ASCII);
             _realtimeSessionContext.Username = player;
         }
         catch (Exception ex)
@@ -82,7 +87,8 @@ public partial class App : Application
             dispatcher.InvokeAsync(() => _realtimeSessionContext.Beatmap = beatmap);
         _memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
             dispatcher.InvokeAsync(() => _realtimeSessionContext.OsuStatus = current);
-        _memoryScan.Start(_appSettings.RealtimeOptions.GeneralScanInterval, _appSettings.RealtimeOptions.TimingScanInterval);
+        _memoryScan.Start(_appSettings.Realtime.Scanning.GeneralInterval,
+            _appSettings.Realtime.Scanning.TimingInterval);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

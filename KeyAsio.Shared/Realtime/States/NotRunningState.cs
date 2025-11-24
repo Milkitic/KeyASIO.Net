@@ -17,7 +17,7 @@ public class NotRunningState : IGameState
 
     public Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
     {
-        if (_appSettings.RealtimeOptions.EnableMusicFunctions)
+        if (_appSettings.Realtime.RealtimeEnableMusic)
         {
             _backgroundMusicManager.StopCurrentMusic(2000);
         }

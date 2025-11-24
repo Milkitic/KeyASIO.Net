@@ -8,12 +8,12 @@ using Microsoft.Extensions.Hosting;
 
 namespace KeyAsio.Gui;
 
-internal class StartupService : IHostedService
+internal class GuiStartupService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly AppSettings _appSettings;
 
-    public StartupService(IServiceProvider serviceProvider, AppSettings appSettings)
+    public GuiStartupService(IServiceProvider serviceProvider, AppSettings appSettings)
     {
         _serviceProvider = serviceProvider;
         _appSettings = appSettings;
@@ -21,7 +21,7 @@ internal class StartupService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_appSettings.Debugging)
+        if (_appSettings.Logging.EnableDebugConsole)
         {
             ConsoleManager.Show();
         }

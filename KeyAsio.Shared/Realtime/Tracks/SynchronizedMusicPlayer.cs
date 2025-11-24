@@ -3,7 +3,6 @@ using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.MemoryReading;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
 using NAudio.Wave;
 
 namespace KeyAsio.Shared.Realtime.Tracks;
@@ -19,11 +18,13 @@ public class SynchronizedMusicPlayer
     private CachedAudio? _cachedAudio;
 
     private readonly ILogger<SynchronizedMusicPlayer> _logger;
+    private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
 
-    public SynchronizedMusicPlayer(ILogger<SynchronizedMusicPlayer> logger, AudioEngine audioEngine)
+    public SynchronizedMusicPlayer(ILogger<SynchronizedMusicPlayer> logger, AppSettings appSettings, AudioEngine audioEngine)
     {
         _logger = logger;
+        _appSettings = appSettings;
         _audioEngine = audioEngine;
     }
 
@@ -33,7 +34,7 @@ public class SynchronizedMusicPlayer
 
     public void SyncAudio(CachedAudio? cachedAudio, int playTime)
     {
-        if (!ConfigurationFactory.GetConfiguration<AppSettings>().RealtimeOptions.EnableMusicFunctions) return;
+        if (!_appSettings.Realtime.RealtimeEnableMusic) return;
         if (_cachedAudio?.SourceHash != cachedAudio?.SourceHash)
         {
             ClearAudio();

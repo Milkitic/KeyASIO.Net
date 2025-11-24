@@ -74,8 +74,8 @@ public static class Program
                 .AddAudioModule()
                 .AddRealtimeModule()
                 .AddGuiModule()
-                .AddSingleton(provider =>
-                    ConfigurationFactory.GetConfiguration<AppSettings>(MyYamlConfigurationConverter.Instance, ".")))
+                .AddSingleton(provider => ConfigurationFactory.GetConfiguration<AppSettings>(
+                    ".", "appsettings.yaml", MyYamlConfigurationConverter.Instance)))
             .Build();
         try
         {

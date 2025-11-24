@@ -20,10 +20,13 @@ public class BackgroundMusicManager
     private bool _firstStartInitialized;
     private bool _isResult;
 
-    public BackgroundMusicManager(ILogger<SynchronizedMusicPlayer> mLogger, ILogger<SongPreviewPlayer> pLogger, AudioEngine audioEngine)
+    public BackgroundMusicManager(ILogger<SynchronizedMusicPlayer> mLogger,
+        ILogger<SongPreviewPlayer> pLogger,
+        AppSettings appSettings,
+        AudioEngine audioEngine)
     {
-        _synchronizedMusicPlayer = new SynchronizedMusicPlayer(mLogger, audioEngine);
-        _songPreviewPlayer = new SongPreviewPlayer(pLogger, audioEngine);
+        _synchronizedMusicPlayer = new SynchronizedMusicPlayer(mLogger, appSettings, audioEngine);
+        _songPreviewPlayer = new SongPreviewPlayer(pLogger, appSettings, audioEngine);
     }
 
     public void StartLowPass(int lower, int upper)

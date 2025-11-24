@@ -158,7 +158,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
 
             if (playableNode.PlayablePriority is PlayablePriority.Sampling)
             {
-                if (!_appSettings.RealtimeOptions.IgnoreStoryboardSamples)
+                if (!_appSettings.Realtime.Filters.DisableStoryboardSamples)
                 {
                     playbackList.Add(playableNode);
                 }
