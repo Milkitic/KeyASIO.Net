@@ -66,7 +66,8 @@ public class RealtimeOptions : ViewModelBase
         get => _ignoreBeatmapHitsound;
         set => SetField(ref _ignoreBeatmapHitsound, value);
     }
-
+    
+    [YamlIgnore]
     public BindKeys? IgnoreBeatmapHitsoundBindKey { get; set; }
 
     [Description("Ignore beatmap's storyboard samples.")]
@@ -75,7 +76,8 @@ public class RealtimeOptions : ViewModelBase
         get => _ignoreStoryboardSamples;
         set => SetField(ref _ignoreStoryboardSamples, value);
     }
-
+    
+    [YamlIgnore]
     public BindKeys? IgnoreStoryboardSamplesBindKey { get; set; }
 
     [Description("Ignore slider's ticks and slides.")]
@@ -84,7 +86,8 @@ public class RealtimeOptions : ViewModelBase
         get => _ignoreSliderTicksAndSlides;
         set => SetField(ref _ignoreSliderTicksAndSlides, value);
     }
-
+    
+    [YamlIgnore]
     public BindKeys? IgnoreSliderTicksAndSlidesBindKey { get; set; }
 
     [Description("Slider tail's playback behavior. Normal: Force to play slider tail's sounds; KeepReverse: Play only if a slider with multiple reverses; Ignore: Ignore slider tail's sounds.")]
