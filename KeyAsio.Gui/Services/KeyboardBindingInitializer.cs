@@ -60,7 +60,6 @@ public class KeyboardBindingInitializer
         _keyboardHook = _appSettings.Input.UseRawInput
             ? KeyboardHookFactory.CreateRawInput()
             : KeyboardHookFactory.CreateGlobal();
-        //CreateShortcuts();
     }
 
     public async Task InitializeKeyAudioAsync()
@@ -89,45 +88,6 @@ public class KeyboardBindingInitializer
         _registerList.Clear();
     }
 
-    //private void CreateShortcuts()
-    //{
-    //    var ignoreBeatmapHitsound = _appSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
-    //    if (ignoreBeatmapHitsound?.Keys != null)
-    //    {
-    //        _keyboardHook.RegisterHotkey(ignoreBeatmapHitsound.ModifierKeys, ignoreBeatmapHitsound.Keys.Value,
-    //            (_, _, _) =>
-    //            {
-    //                _appSettings.RealtimeOptions.IgnoreBeatmapHitsound =
-    //                    !_appSettings.RealtimeOptions.IgnoreBeatmapHitsound;
-    //                _appSettings.Save();
-    //            });
-    //    }
-
-    //    var ignoreSliderTicksAndSlides = _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlidesBindKey;
-    //    if (ignoreSliderTicksAndSlides?.Keys != null)
-    //    {
-    //        _keyboardHook.RegisterHotkey(ignoreSliderTicksAndSlides.ModifierKeys, ignoreSliderTicksAndSlides.Keys.Value,
-    //            (_, _, _) =>
-    //            {
-    //                _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides =
-    //                    !_appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides;
-    //                _appSettings.Save();
-    //            });
-    //    }
-
-    //    var ignoreStoryboardSamples = _appSettings.RealtimeOptions.IgnoreStoryboardSamplesBindKey;
-    //    if (ignoreStoryboardSamples?.Keys != null)
-    //    {
-    //        _keyboardHook.RegisterHotkey(ignoreStoryboardSamples.ModifierKeys, ignoreStoryboardSamples.Keys.Value,
-    //            (_, _, _) =>
-    //            {
-    //                _appSettings.RealtimeOptions.IgnoreStoryboardSamples =
-    //                    !_appSettings.RealtimeOptions.IgnoreStoryboardSamples;
-    //                _appSettings.Save();
-    //            });
-    //    }
-    //}
-
     private void RegisterKey(HookKeys key)
     {
         KeyboardCallback callback = (_, hookKey, action) =>
@@ -150,8 +110,8 @@ public class KeyboardBindingInitializer
             }
 
             _playbackBuffer.Clear();
-            _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer, _appSettings.Input.Keys.IndexOf(hookKey),
-                _appSettings.Input.Keys.Count);
+            _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer,
+                _appSettings.Input.Keys.IndexOf(hookKey), _appSettings.Input.Keys.Count);
             foreach (var playbackInfo in _playbackBuffer)
             {
                 _sfxPlaybackService.DispatchPlayback(playbackInfo);
