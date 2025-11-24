@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 var services = new ServiceCollection();
-var appSettings = new AppSettings();
+var appSettings = new YamlAppSettings();
 services.AddSingleton(appSettings);
 services.AddSingleton<SharedViewModel>();
 services.AddSingleton<AudioCacheService>();

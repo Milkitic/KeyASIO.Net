@@ -27,15 +27,15 @@ public partial class KeyBindWindow : DialogWindow
     private readonly IKeyboardHook _keyboardHook;
     public KeyBindWindowViewModel ViewModel { get; }
 
-    public KeyBindWindow(AppSettings appSettings)
+    public KeyBindWindow(YamlAppSettings appSettings)
     {
         InitializeComponent();
-        _keyboardHook = appSettings.UseRawInput
+        _keyboardHook = appSettings.Input.UseRawInput
             ? KeyboardHookFactory.CreateRawInput()
             : KeyboardHookFactory.CreateApplication();
         _keyboardHook.KeyPressed += keyboardHook_KeyPressed;
         DataContext = ViewModel = new KeyBindWindowViewModel();
-        ViewModel.Keys = new ObservableCollection<HookKeys>(appSettings.Keys);
+        ViewModel.Keys = new ObservableCollection<HookKeys>(appSettings.Input.Keys);
     }
 
     private void keyboardHook_KeyPressed(HookModifierKeys hookModifierKeys, HookKeys hookKey, KeyAction type)

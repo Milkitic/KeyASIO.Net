@@ -11,7 +11,7 @@
     <Product>KeyAsio - Tool for low-latency playback experience.</Product>
     <Authors>Milki</Authors>
     <Company>Milki</Company>
-    <Copyright>Copyright © Milki 2022</Copyright>
+    <Copyright>Copyright © Milki 2022~2025</Copyright>
     <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <ApplicationManifest>app.manifest</ApplicationManifest>

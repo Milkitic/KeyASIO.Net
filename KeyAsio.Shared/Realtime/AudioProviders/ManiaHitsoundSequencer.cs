@@ -10,7 +10,7 @@ namespace KeyAsio.Shared.Realtime.AudioProviders;
 public class ManiaHitsoundSequencer : IHitsoundSequencer
 {
     private readonly ILogger<ManiaHitsoundSequencer> _logger;
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheService _audioCacheService;
@@ -26,7 +26,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
     private HitsoundNode? _firstPlayNode;
 
     public ManiaHitsoundSequencer(ILogger<ManiaHitsoundSequencer> logger,
-        AppSettings appSettings,
+        YamlAppSettings appSettings,
         RealtimeSessionContext realtimeSessionContext,
         AudioEngine audioEngine,
         AudioCacheService audioCacheService,
@@ -158,7 +158,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
 
             if (playableNode.PlayablePriority is PlayablePriority.Sampling)
             {
-                if (!_appSettings.RealtimeOptions.IgnoreStoryboardSamples)
+                if (!_appSettings.Realtime.Filters.DisableStoryboardSamples)
                 {
                     playbackList.Add(playableNode);
                 }

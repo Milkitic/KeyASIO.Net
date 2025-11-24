@@ -1,15 +1,15 @@
 using Coosu.Shared.IO;
-using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Shared.Realtime;
 
 internal class ConfigManager
 {
-    public static readonly ConfigManager Instance = new();
+    private readonly YamlAppSettings _appSettings;
 
-    private ConfigManager()
+    private ConfigManager(YamlAppSettings appSettings)
     {
+        _appSettings = appSettings;
     }
 
     public HookKeys KeyOsuLeft { get; private set; }
@@ -19,12 +19,10 @@ internal class ConfigManager
     public HookKeys KeyTaikoOuterLeft { get; private set; }
     public HookKeys KeyTaikoOuterRight { get; private set; }
 
-    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
-
     public void ReadConfigs()
     {
-        if (AppSettings.OsuFolder == null) return;
-        var cfgFile = Path.Combine(AppSettings.OsuFolder, GetUserConfigFilename(Environment.UserName));
+        if (_appSettings.Paths.OsuFolderPath == null) return;
+        var cfgFile = Path.Combine(_appSettings.Paths.OsuFolderPath, GetUserConfigFilename(Environment.UserName));
         using var fs = File.Open(cfgFile, FileMode.Open, FileAccess.Read, FileShare.Read);
         using var sr = new StreamReader(fs);
 

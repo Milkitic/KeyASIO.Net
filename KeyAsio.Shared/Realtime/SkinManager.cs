@@ -14,7 +14,7 @@ public class SkinManager : IHostedService
 {
     private static readonly Lock InstanceLock = new();
     private readonly ILogger<SkinManager> _logger;
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly MemoryScan _memoryScan;
     private readonly SharedViewModel _sharedViewModel;
@@ -22,7 +22,7 @@ public class SkinManager : IHostedService
     private Task? _refreshTask;
     private bool _waiting;
 
-    public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
+    public SkinManager(ILogger<SkinManager> logger, YamlAppSettings appSettings, AudioCacheManager audioCacheManager,
         MemoryScan memoryScan, SharedViewModel sharedViewModel)
     {
         _logger = logger;
@@ -32,22 +32,20 @@ public class SkinManager : IHostedService
         _sharedViewModel = sharedViewModel;
     }
 
-    public AppSettings AppSettings => ConfigurationFactory.GetConfiguration<AppSettings>();
-
     public void ListenPropertyChanging()
     {
         _sharedViewModel.PropertyChanged += (s, e) =>
         {
             if (e.PropertyName == nameof(_sharedViewModel.SelectedSkin))
             {
-                AppSettings.SelectedSkin = _sharedViewModel.SelectedSkin?.FolderName ?? "";
+                _appSettings.Paths.SelectedSkinName = _sharedViewModel.SelectedSkin?.FolderName ?? "";
                 _audioCacheManager.Clear("internal");
             }
         };
 
-        AppSettings.PropertyChanged += (s, e) =>
+        _appSettings.Paths.PropertyChanged += (s, e) =>
         {
-            if (e.PropertyName == nameof(AppSettings.OsuFolder))
+            if (e.PropertyName == nameof(YamlAppSettings.Paths.OsuFolderPath))
             {
                 _ = RefreshSkinInBackground();
             }
@@ -76,7 +74,7 @@ public class SkinManager : IHostedService
                 if (mainModule == null) continue;
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(mainModule);
                 if (fileVersionInfo.CompanyName != "ppy") continue;
-                AppSettings.OsuFolder = Path.GetDirectoryName(Path.GetFullPath(mainModule));
+                _appSettings.Paths.OsuFolderPath = Path.GetDirectoryName(Path.GetFullPath(mainModule));
                 break;
             }
         };
@@ -94,8 +92,8 @@ public class SkinManager : IHostedService
         _cts = new CancellationTokenSource();
         _refreshTask = new Task(() =>
         {
-            if (AppSettings.OsuFolder == null) return;
-            var skinsDir = Path.Combine(AppSettings.OsuFolder, "Skins");
+            if (_appSettings.Paths.OsuFolderPath == null) return;
+            var skinsDir = Path.Combine(_appSettings.Paths.OsuFolderPath, "Skins");
             if (!Directory.Exists(skinsDir)) return;
             UiDispatcher.Invoke(() => _sharedViewModel.Skins.Clear());
             var list = new List<SkinDescription> { SkinDescription.Default };
@@ -123,7 +121,7 @@ public class SkinManager : IHostedService
                     _sharedViewModel.Skins.Add(skinDescription);
                 }
 
-                var selected = AppSettings.SelectedSkin;
+                var selected = _appSettings.Paths.SelectedSkinName;
                 _sharedViewModel.SelectedSkin = _sharedViewModel.Skins.FirstOrDefault(k => k.FolderName == selected) ??
                                                 _sharedViewModel.Skins.FirstOrDefault();
             });
@@ -141,14 +139,13 @@ public class SkinManager : IHostedService
     {
         try
         {
-            var settings = AppSettings;
             using var reg = Registry.ClassesRoot.OpenSubKey(@"osu!\shell\open\command");
             var parameters = reg?.GetValue(null)?.ToString();
             if (parameters == null) return;
 
             var path = parameters.Replace(" \"%1\"", "").Trim(' ', '"');
-            settings.OsuFolder = Path.GetDirectoryName(Path.GetFullPath(path));
-            settings.Save();
+            _appSettings.Paths.OsuFolderPath = Path.GetDirectoryName(Path.GetFullPath(path));
+            _appSettings.Save();
         }
         catch (Exception ex)
         {
@@ -196,14 +193,14 @@ public class SkinManager : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_appSettings.OsuFolder))
+        if (string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
         {
             await CheckOsuRegistryAsync();
         }
 
         ListenPropertyChanging();
         _ = RefreshSkinInBackground();
-        if (_appSettings.RealtimeOptions.RealtimeMode)
+        if (_appSettings.Realtime.RealtimeMode)
         {
             ListenToProcess();
         }

@@ -7,11 +7,11 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class BrowsingState : IGameState
 {
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly BackgroundMusicManager _backgroundMusicManager;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
-    public BrowsingState(AppSettings appSettings,
+    public BrowsingState(YamlAppSettings appSettings,
         BackgroundMusicManager backgroundMusicManager,
         GameplaySessionManager gameplaySessionManager)
     {
@@ -35,7 +35,7 @@ public class BrowsingState : IGameState
     public async Task OnPlayTimeChanged(RealtimeSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int selectSongPauseThreshold = 20;
-        if (!_appSettings.RealtimeOptions.EnableMusicFunctions) return;
+        if (!_appSettings.Realtime.RealtimeEnableMusic) return;
 
         // Maintain pause state lifecycle for song-select preview
         _backgroundMusicManager.UpdatePauseCount(paused);

@@ -9,14 +9,14 @@ namespace KeyAsio.Shared.Realtime.Services;
 public class BeatmapHitsoundLoader
 {
     private readonly ILogger<BeatmapHitsoundLoader> _logger;
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly AudioCacheService _audioCacheService;
 
     private readonly List<PlayableNode> _keyList = new();
     private readonly List<HitsoundNode> _playbackList = new();
     private int _nextCachingTime;
 
-    public BeatmapHitsoundLoader(ILogger<BeatmapHitsoundLoader> logger, AppSettings appSettings,
+    public BeatmapHitsoundLoader(ILogger<BeatmapHitsoundLoader> logger, YamlAppSettings appSettings,
         AudioCacheService audioCacheService)
     {
         _logger = logger;
@@ -37,7 +37,7 @@ public class BeatmapHitsoundLoader
         using (DebugUtils.CreateTimer("InitFolder", _logger))
         {
             await osuDir.InitializeAsync(diffFilename,
-                ignoreWaveFiles: _appSettings.RealtimeOptions.IgnoreBeatmapHitsound);
+                ignoreWaveFiles: _appSettings.Realtime.Filters.DisableBeatmapHitsounds);
         }
 
         if (osuDir.OsuFiles.Count <= 0)
@@ -54,7 +54,7 @@ public class BeatmapHitsoundLoader
         await Task.Delay(100);
 
         var isNightcore = playMods != Mods.Unknown && (playMods & Mods.Nightcore) != 0;
-        if (isNightcore || _appSettings.RealtimeOptions.ForceNightcoreBeats)
+        if (isNightcore || _appSettings.Realtime.Playback.NightcoreBeats)
         {
             if (isNightcore)
             {

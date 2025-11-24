@@ -11,7 +11,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     private const int AudioLatencyTolerance = 200;
 
     private readonly ILogger<StandardHitsoundSequencer> _logger;
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheService _audioCacheService;
@@ -21,7 +21,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     private Queue<HitsoundNode> _playbackQueue = new();
 
     public StandardHitsoundSequencer(ILogger<StandardHitsoundSequencer> logger,
-        AppSettings appSettings,
+        YamlAppSettings appSettings,
         RealtimeSessionContext realtimeSessionContext,
         AudioEngine audioEngine,
         AudioCacheService audioCacheService,
@@ -166,7 +166,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         List<HitsoundNode> playbackList)
     {
         var secondaryCache = new List<PlayableNode>();
-        var options = _appSettings.RealtimeOptions;
+        var options = _appSettings.Realtime;
 
         foreach (var hitsoundNode in nodeList)
         {
@@ -175,7 +175,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
                 if (hitsoundNode is ControlNode controlNode &&
                     controlNode.ControlType != ControlType.ChangeBalance &&
                     controlNode.ControlType != ControlType.None &&
-                    !options.IgnoreSliderTicksAndSlides)
+                    !options.Filters.DisableSliderTicksAndSlides)
                 {
                     playbackList.Add(controlNode);
                 }
@@ -191,17 +191,17 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
                     keyList.Add(playableNode);
                     break;
                 case PlayablePriority.Secondary:
-                    if (options.SliderTailPlaybackBehavior == SliderTailPlaybackBehavior.Normal)
+                    if (options.Playback.TailPlaybackBehavior == SliderTailPlaybackBehavior.Normal)
                         playbackList.Add(playableNode);
-                    else if (options.SliderTailPlaybackBehavior == SliderTailPlaybackBehavior.KeepReverse)
+                    else if (options.Playback.TailPlaybackBehavior == SliderTailPlaybackBehavior.KeepReverse)
                         secondaryCache.Add(playableNode);
                     break;
                 case PlayablePriority.Effects:
-                    if (!options.IgnoreSliderTicksAndSlides)
+                    if (!options.Filters.DisableSliderTicksAndSlides)
                         playbackList.Add(playableNode);
                     break;
                 case PlayablePriority.Sampling:
-                    if (!options.IgnoreStoryboardSamples)
+                    if (!options.Filters.DisableStoryboardSamples)
                         playbackList.Add(playableNode);
                     break;
                 default:

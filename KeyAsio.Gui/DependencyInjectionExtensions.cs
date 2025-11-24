@@ -14,7 +14,6 @@ public static class DependencyInjectionExtensions
         services.AddTransient<DeviceWindowViewModel>();
         services.AddTransient<MainWindow>();
         services.AddTransient<DeviceWindow>();
-        services.AddTransient<LatencyGuideWindow>();
         services.AddTransient<RealtimeOptionsWindow>();
 
         services.AddSingleton<KeyboardBindingInitializer>();

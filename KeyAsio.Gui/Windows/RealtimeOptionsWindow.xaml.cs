@@ -1,6 +1,7 @@
 using System;
 using KeyAsio.Gui.UserControls;
 using KeyAsio.Shared.Models;
+using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Gui.Windows;
 

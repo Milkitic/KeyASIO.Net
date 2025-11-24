@@ -6,10 +6,10 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class NotRunningState : IGameState
 {
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly BackgroundMusicManager _backgroundMusicManager;
 
-    public NotRunningState(AppSettings appSettings, BackgroundMusicManager backgroundMusicManager)
+    public NotRunningState(YamlAppSettings appSettings, BackgroundMusicManager backgroundMusicManager)
     {
         _appSettings = appSettings;
         _backgroundMusicManager = backgroundMusicManager;
@@ -17,7 +17,7 @@ public class NotRunningState : IGameState
 
     public Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
     {
-        if (_appSettings.RealtimeOptions.EnableMusicFunctions)
+        if (_appSettings.Realtime.RealtimeEnableMusic)
         {
             _backgroundMusicManager.StopCurrentMusic(2000);
         }

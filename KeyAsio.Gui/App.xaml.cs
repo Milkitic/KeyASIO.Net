@@ -21,13 +21,13 @@ public partial class App : Application
 {
     private readonly ILogger<App> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly MemoryScan _memoryScan;
     private readonly RealtimeSessionContext _realtimeSessionContext;
 
     public App(ILogger<App> logger,
         IServiceProvider serviceProvider,
-        AppSettings appSettings,
+        YamlAppSettings appSettings,
         MemoryScan memoryScan,
         RealtimeSessionContext realtimeSessionContext)
     {
@@ -53,11 +53,11 @@ public partial class App : Application
 
     private void StartMemoryScan()
     {
-        if (!_appSettings.RealtimeOptions.RealtimeMode) return;
+        if (!_appSettings.Realtime.RealtimeMode) return;
 
         try
         {
-            var player = EncodeUtils.FromBase64String(_appSettings.PlayerBase64, Encoding.ASCII);
+            var player = EncodeUtils.FromBase64String(_appSettings.Logging.PlayerBase64 ?? "", Encoding.ASCII);
             _realtimeSessionContext.Username = player;
         }
         catch (Exception ex)
@@ -82,7 +82,8 @@ public partial class App : Application
             dispatcher.InvokeAsync(() => _realtimeSessionContext.Beatmap = beatmap);
         _memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
             dispatcher.InvokeAsync(() => _realtimeSessionContext.OsuStatus = current);
-        _memoryScan.Start(_appSettings.RealtimeOptions.GeneralScanInterval, _appSettings.RealtimeOptions.TimingScanInterval);
+        _memoryScan.Start(_appSettings.Realtime.Scanning.GeneralInterval,
+            _appSettings.Realtime.Scanning.TimingInterval);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

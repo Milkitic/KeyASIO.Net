@@ -27,7 +27,7 @@ public class KeyboardBindingInitializer
     ];
 
     private readonly ILogger<KeyboardBindingInitializer> _logger;
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly AudioEngine _audioEngine;
     private readonly GameplaySessionManager _gameplaySessionManager;
@@ -41,7 +41,7 @@ public class KeyboardBindingInitializer
 
     public KeyboardBindingInitializer(
         ILogger<KeyboardBindingInitializer> logger,
-        AppSettings appSettings,
+        YamlAppSettings appSettings,
         AudioCacheManager audioCacheManager,
         AudioEngine audioEngine,
         GameplaySessionManager gameplaySessionManager,
@@ -57,17 +57,17 @@ public class KeyboardBindingInitializer
 
     public void Setup()
     {
-        _keyboardHook = _appSettings.UseRawInput
+        _keyboardHook = _appSettings.Input.UseRawInput
             ? KeyboardHookFactory.CreateRawInput()
             : KeyboardHookFactory.CreateGlobal();
-        CreateShortcuts();
+        //CreateShortcuts();
     }
 
     public async Task InitializeKeyAudioAsync()
     {
         var waveFormat = _audioEngine.EngineWaveFormat;
         var (cachedAudio, result) =
-            await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(_appSettings.HitsoundPath, waveFormat);
+            await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(_appSettings.Paths.HitsoundPath ?? "", waveFormat);
         _cacheSound = cachedAudio;
     }
 
@@ -89,44 +89,44 @@ public class KeyboardBindingInitializer
         _registerList.Clear();
     }
 
-    private void CreateShortcuts()
-    {
-        var ignoreBeatmapHitsound = _appSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
-        if (ignoreBeatmapHitsound?.Keys != null)
-        {
-            _keyboardHook.RegisterHotkey(ignoreBeatmapHitsound.ModifierKeys, ignoreBeatmapHitsound.Keys.Value,
-                (_, _, _) =>
-                {
-                    _appSettings.RealtimeOptions.IgnoreBeatmapHitsound =
-                        !_appSettings.RealtimeOptions.IgnoreBeatmapHitsound;
-                    _appSettings.Save();
-                });
-        }
+    //private void CreateShortcuts()
+    //{
+    //    var ignoreBeatmapHitsound = _appSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
+    //    if (ignoreBeatmapHitsound?.Keys != null)
+    //    {
+    //        _keyboardHook.RegisterHotkey(ignoreBeatmapHitsound.ModifierKeys, ignoreBeatmapHitsound.Keys.Value,
+    //            (_, _, _) =>
+    //            {
+    //                _appSettings.RealtimeOptions.IgnoreBeatmapHitsound =
+    //                    !_appSettings.RealtimeOptions.IgnoreBeatmapHitsound;
+    //                _appSettings.Save();
+    //            });
+    //    }
 
-        var ignoreSliderTicksAndSlides = _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlidesBindKey;
-        if (ignoreSliderTicksAndSlides?.Keys != null)
-        {
-            _keyboardHook.RegisterHotkey(ignoreSliderTicksAndSlides.ModifierKeys, ignoreSliderTicksAndSlides.Keys.Value,
-                (_, _, _) =>
-                {
-                    _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides =
-                        !_appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides;
-                    _appSettings.Save();
-                });
-        }
+    //    var ignoreSliderTicksAndSlides = _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlidesBindKey;
+    //    if (ignoreSliderTicksAndSlides?.Keys != null)
+    //    {
+    //        _keyboardHook.RegisterHotkey(ignoreSliderTicksAndSlides.ModifierKeys, ignoreSliderTicksAndSlides.Keys.Value,
+    //            (_, _, _) =>
+    //            {
+    //                _appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides =
+    //                    !_appSettings.RealtimeOptions.IgnoreSliderTicksAndSlides;
+    //                _appSettings.Save();
+    //            });
+    //    }
 
-        var ignoreStoryboardSamples = _appSettings.RealtimeOptions.IgnoreStoryboardSamplesBindKey;
-        if (ignoreStoryboardSamples?.Keys != null)
-        {
-            _keyboardHook.RegisterHotkey(ignoreStoryboardSamples.ModifierKeys, ignoreStoryboardSamples.Keys.Value,
-                (_, _, _) =>
-                {
-                    _appSettings.RealtimeOptions.IgnoreStoryboardSamples =
-                        !_appSettings.RealtimeOptions.IgnoreStoryboardSamples;
-                    _appSettings.Save();
-                });
-        }
-    }
+    //    var ignoreStoryboardSamples = _appSettings.RealtimeOptions.IgnoreStoryboardSamplesBindKey;
+    //    if (ignoreStoryboardSamples?.Keys != null)
+    //    {
+    //        _keyboardHook.RegisterHotkey(ignoreStoryboardSamples.ModifierKeys, ignoreStoryboardSamples.Keys.Value,
+    //            (_, _, _) =>
+    //            {
+    //                _appSettings.RealtimeOptions.IgnoreStoryboardSamples =
+    //                    !_appSettings.RealtimeOptions.IgnoreStoryboardSamples;
+    //                _appSettings.Save();
+    //            });
+    //    }
+    //}
 
     private void RegisterKey(HookKeys key)
     {
@@ -135,7 +135,7 @@ public class KeyboardBindingInitializer
             if (action != KeyAction.KeyDown) return;
             _logger.LogDebug($"{hookKey} {action}");
 
-            if (!_appSettings.RealtimeOptions.RealtimeMode)
+            if (!_appSettings.Realtime.RealtimeMode)
             {
                 if (_cacheSound != null)
                 {
@@ -150,8 +150,8 @@ public class KeyboardBindingInitializer
             }
 
             _playbackBuffer.Clear();
-            _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer, _appSettings.Keys.IndexOf(hookKey),
-                _appSettings.Keys.Count);
+            _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer, _appSettings.Input.Keys.IndexOf(hookKey),
+                _appSettings.Input.Keys.Count);
             foreach (var playbackInfo in _playbackBuffer)
             {
                 _sfxPlaybackService.DispatchPlayback(playbackInfo);

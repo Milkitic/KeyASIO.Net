@@ -10,7 +10,7 @@ public class SharedViewModel : ViewModelBase
     private int _playbackLatency;
     private SkinDescription? _selectedSkin;
 
-    public SharedViewModel(AppSettings appSettings)
+    public SharedViewModel(YamlAppSettings appSettings)
     {
         AppSettings = appSettings;
     }
@@ -42,5 +42,5 @@ public class SharedViewModel : ViewModelBase
     public bool AutoMode { get; set; }
 
     public string DefaultFolder { get; } = Path.Combine(Environment.CurrentDirectory, "resources", "default");
-    public AppSettings AppSettings { get; }
+    public YamlAppSettings AppSettings { get; }
 }

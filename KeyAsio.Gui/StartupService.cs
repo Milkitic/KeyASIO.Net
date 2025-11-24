@@ -11,9 +11,9 @@ namespace KeyAsio.Gui;
 internal class StartupService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
 
-    public StartupService(IServiceProvider serviceProvider, AppSettings appSettings)
+    public StartupService(IServiceProvider serviceProvider, YamlAppSettings appSettings)
     {
         _serviceProvider = serviceProvider;
         _appSettings = appSettings;
@@ -21,7 +21,7 @@ internal class StartupService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_appSettings.Debugging)
+        if (_appSettings.Logging.EnableDebugConsole)
         {
             ConsoleManager.Show();
         }

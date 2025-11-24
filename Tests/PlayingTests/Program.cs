@@ -26,10 +26,10 @@ static class Program
     [STAThread]
     public static async Task Main(string[] args)
     {
-        var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
-        appSettings.Debugging = true;
-        appSettings.RealtimeOptions.EnableMusicFunctions = true;
-        appSettings.Volume = 5;
+        var appSettings = ConfigurationFactory.GetConfiguration<YamlAppSettings>();
+        appSettings.Logging.EnableDebugConsole = true;
+        appSettings.Realtime.RealtimeEnableMusic = true;
+        appSettings.Audio.MasterVolume = 5;
         var context = new SingleSynchronizationContext("AudioPlaybackEngine_STA", true,
             ThreadPriority.AboveNormal);
         var logFactory = LoggerFactory.Create(k => k.AddSimpleConsole());
@@ -56,9 +56,9 @@ static class Program
         sharedViewModel.AutoMode = true;
 
         var audioEngine = provider.GetRequiredService<AudioEngine>();
-        audioEngine.EffectVolume = appSettings.Volume / 100;
+        audioEngine.EffectVolume = appSettings.Audio.MasterVolume / 100f;
         audioEngine.StartDevice(device);
-        appSettings.RealtimeOptions.BalanceFactor = 0.5f;
+        appSettings.Realtime.Playback.BalanceFactor = 0.5f;
 
         var filenameFull =
             @"C:\Users\milkitic\Downloads\1680421 EBIMAYO - GOODTEK [no video]\EBIMAYO - GOODTEK (yf_bmp) [Maboyu's Another].osu";

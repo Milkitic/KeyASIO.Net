@@ -18,7 +18,7 @@ namespace MemoryReadingTest
         public App()
         {
             var services = new ServiceCollection();
-            services.AddSingleton(new AppSettings());
+            services.AddSingleton(new YamlAppSettings());
             services.AddSingleton<SharedViewModel>();
             services.AddSingleton<AudioCacheService>();
             services.AddSingleton<MemoryScan>();

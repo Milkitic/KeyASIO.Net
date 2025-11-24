@@ -11,7 +11,7 @@ namespace KeyAsio.Shared.Realtime.States;
 
 public class PlayingState : IGameState
 {
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly BackgroundMusicManager _backgroundMusicManager;
@@ -22,7 +22,7 @@ public class PlayingState : IGameState
     private readonly AudioCacheService _audioCacheService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
-    public PlayingState(AppSettings appSettings,
+    public PlayingState(YamlAppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
         BackgroundMusicManager backgroundMusicManager,
@@ -84,7 +84,7 @@ public class PlayingState : IGameState
             return;
         }
 
-        if (_appSettings.RealtimeOptions.EnableMusicFunctions)
+        if (_appSettings.Realtime.RealtimeEnableMusic)
         {
             if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
                 _backgroundMusicManager.GetMainTrackPath() != null &&
@@ -127,7 +127,7 @@ public class PlayingState : IGameState
 
     public void OnComboChanged(RealtimeSessionContext ctx, int oldCombo, int newCombo)
     {
-        if (_appSettings.RealtimeOptions.IgnoreComboBreak) return;
+        if (_appSettings.Realtime.Filters.DisableComboBreakSfx) return;
         if (!ctx.IsStarted) return;
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;

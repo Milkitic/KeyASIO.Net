@@ -18,7 +18,7 @@ public class RealtimeController
     private readonly GameStateMachine _stateMachine;
 
     public RealtimeController(IServiceProvider serviceProvider,
-        AppSettings appSettings,
+        YamlAppSettings appSettings,
         AudioEngine audioEngine,
         SharedViewModel sharedViewModel,
         AudioCacheService audioCacheService,

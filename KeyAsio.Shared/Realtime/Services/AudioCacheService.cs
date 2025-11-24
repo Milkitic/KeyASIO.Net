@@ -23,7 +23,7 @@ public class AudioCacheService
 
     private readonly ILogger<AudioCacheService> _logger;
     private readonly RealtimeSessionContext _realtimeSessionContext;
-    private readonly AppSettings _appSettings;
+    private readonly YamlAppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
@@ -32,7 +32,7 @@ public class AudioCacheService
 
     public AudioCacheService(ILogger<AudioCacheService> logger,
         RealtimeSessionContext realtimeSessionContext,
-        AppSettings appSettings,
+        YamlAppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel)
@@ -45,7 +45,7 @@ public class AudioCacheService
         _sharedViewModel = sharedViewModel;
         _parallelOptions = new ParallelOptions
         {
-            MaxDegreeOfParallelism = appSettings.AudioCachingThreads,
+            MaxDegreeOfParallelism = appSettings.Performance.AudioCacheThreadCount,
         };
     }
 
