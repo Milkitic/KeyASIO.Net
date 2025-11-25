@@ -1,20 +1,25 @@
-using Avalonia.Controls;
 using KeyAsio.ViewModels;
+using SukiUI.Controls;
 
 namespace KeyAsio.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow : SukiWindow
 {
     private readonly MainWindowViewModel _viewModel;
 
-    public MainWindow()
-    {
-        InitializeComponent();
-    }
 
     public MainWindow(MainWindowViewModel mainWindowViewModel)
     {
         InitializeComponent();
         DataContext = _viewModel = mainWindowViewModel;
     }
+
+    #region For Designer
+
+    public MainWindow()
+    {
+        InitializeComponent();
+    }
+
+    #endregion
 }

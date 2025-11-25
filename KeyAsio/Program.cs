@@ -1,20 +1,20 @@
 ﻿using System.Diagnostics;
 using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
+using KeyAsio.Audio;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
+using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Utils;
+using KeyAsio.Utils;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
+using NLog.Extensions.Logging;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
-using KeyAsio.Audio;
-using KeyAsio.Shared.Realtime;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using NLog.Extensions.Logging;
 
 namespace KeyAsio;
 
@@ -79,14 +79,13 @@ internal sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .WithInterFont()
+            //.WithInterFont()
             .LogToTrace();
 
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         var exception = (Exception)e.ExceptionObject;
-        MessageBox.Error(
-            ((IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime)?.MainWindow == null
+        MessageBox.Error(AppExtensions.CurrentDesktop?.MainWindow == null
                 ? "Unhandled error occurs while starting KeyASIO..."
                 : "Unhandled error occurs while KeyASIO is running...", "Program critical error",
             title: "KeyASIO.Net", detail: exception.ToFullTypeMessage());
