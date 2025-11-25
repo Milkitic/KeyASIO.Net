@@ -4,7 +4,7 @@
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:suki="https://github.com/kikipoulet/SukiUI"
-                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                 mc:Ignorable="d" Width="800" Height="550"
                  x:Class="KeyAsio.Views.MainWindow"
                  x:DataType="vm:MainWindowViewModel"
                  Icon="/Assets/avalonia-logo.ico"
@@ -15,7 +15,40 @@
     to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <vm:MainWindowViewModel />
   </Design.DataContext>
+  <suki:SukiSideMenu IsSearchEnabled="False" IsToggleButtonVisible="True" IsSelectedItemContentMovable="False">
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <suki:SukiSideMenu.Items>
+      <suki:SukiSideMenuItem Header="Dashboard" Classes="Compact">
+        <suki:SukiSideMenuItem.Icon>
+          <!-- Icon -->
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <Border>
+            <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
 
+      <suki:SukiSideMenuItem Header="Devices" Classes="Compact">
+        <suki:SukiSideMenuItem.Icon>
+          <!-- Icon -->
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <Border>
+            <TextBlock Text="Hey" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
+    </suki:SukiSideMenu.Items>
+
+    <suki:SukiSideMenu.HeaderContent>
+      <TextBlock Text="aaasdga" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </suki:SukiSideMenu.HeaderContent>
+
+    <suki:SukiSideMenu.FooterContent>
+      <!-- Footer Content --> 
+      <TextBlock Text="aaasdga" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </suki:SukiSideMenu.FooterContent>
+  </suki:SukiSideMenu>
 </suki:SukiWindow>
