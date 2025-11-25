@@ -40,6 +40,28 @@
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 
+      <suki:SukiSideMenuItem Header="Game Link" Classes="Compact">
+        <suki:SukiSideMenuItem.Icon>
+          <!-- Icon -->
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <Border>
+            <TextBlock Text="Hey" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
+      <suki:SukiSideMenuItem Header="Settings" Classes="Compact">
+        <suki:SukiSideMenuItem.Icon>
+          <!-- Icon -->
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <Border>
+            <TextBlock Text="Hey" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
     </suki:SukiSideMenu.Items>
 
     <suki:SukiSideMenu.HeaderContent>
@@ -48,7 +70,7 @@
 
     <suki:SukiSideMenu.FooterContent>
       <!-- Footer Content --> 
-      <TextBlock Text="aaasdga" HorizontalAlignment="Center" VerticalAlignment="Center" />
+      <Button Content="Settings" Classes="Basic"></Button>
     </suki:SukiSideMenu.FooterContent>
   </suki:SukiSideMenu>
 </suki:SukiWindow>
