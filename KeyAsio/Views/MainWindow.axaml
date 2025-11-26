@@ -4,11 +4,17 @@
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+                 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
                  mc:Ignorable="d" Width="800" Height="550"
-                 x:Class="KeyAsio.Views.MainWindow"
+                 x:Class="KeyAsio.Views.MainWindow" 
                  x:DataType="vm:MainWindowViewModel"
-                 Icon="/Assets/avalonia-logo.ico"
-                 Title="KeyAsio">
+                 BackgroundStyle="GradientSoft"
+                 BackgroundTransitionsEnabled="False"
+                 BackgroundAnimationEnabled="False"
+                 TitleBarAnimationEnabled="False"
+                 Icon="/Assets/KeyAsio.ico"
+                 Title="KeyAsio"
+                 Loaded="Control_OnLoaded">
 
   <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
@@ -16,22 +22,29 @@
     <vm:MainWindowViewModel />
   </Design.DataContext>
   <suki:SukiSideMenu IsSearchEnabled="False" IsToggleButtonVisible="True" IsSelectedItemContentMovable="False">
-
     <suki:SukiSideMenu.Items>
       <suki:SukiSideMenuItem Header="Dashboard" Classes="Compact">
         <suki:SukiSideMenuItem.Icon>
-          <!-- Icon -->
+          <materialIcons:MaterialIcon Kind="CircleSlice1" />
         </suki:SukiSideMenuItem.Icon>
         <suki:SukiSideMenuItem.PageContent>
-          <Border>
-            <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
+          <Grid>
+            <suki:GlassCard IsAnimated="False" Margin="15">
+              <Grid RowDefinitions="Auto,*">
+                <ToggleSwitch HorizontalAlignment="Right"
+                              Foreground="{DynamicResource SukiText}"
+                              OffContent="Manual"
+                              OnContent="Game-Link" />
+                <!--<suki:WaveProgress Grid.Row="1" Value="90" IsTextVisible="False" />-->
+              </Grid>
+            </suki:GlassCard>
+          </Grid>
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 
       <suki:SukiSideMenuItem Header="Devices" Classes="Compact">
         <suki:SukiSideMenuItem.Icon>
-          <!-- Icon -->
+          <materialIcons:MaterialIcon Kind="VolumeHigh" />
         </suki:SukiSideMenuItem.Icon>
         <suki:SukiSideMenuItem.PageContent>
           <Border>
@@ -42,7 +55,7 @@
 
       <suki:SukiSideMenuItem Header="Game Link" Classes="Compact">
         <suki:SukiSideMenuItem.Icon>
-          <!-- Icon -->
+          <materialIcons:MaterialIcon Kind="Link" />
         </suki:SukiSideMenuItem.Icon>
         <suki:SukiSideMenuItem.PageContent>
           <Border>
@@ -53,7 +66,7 @@
 
       <suki:SukiSideMenuItem Header="Settings" Classes="Compact">
         <suki:SukiSideMenuItem.Icon>
-          <!-- Icon -->
+          <materialIcons:MaterialIcon Kind="Cog" />
         </suki:SukiSideMenuItem.Icon>
         <suki:SukiSideMenuItem.PageContent>
           <Border>
@@ -65,12 +78,14 @@
     </suki:SukiSideMenu.Items>
 
     <suki:SukiSideMenu.HeaderContent>
-      <TextBlock Text="aaasdga" HorizontalAlignment="Center" VerticalAlignment="Center" />
+      <Image Source="/Assets/KeyAsio.ico"
+             Width="96"
+             Height="96"
+             Margin="30,10,30,30" />
     </suki:SukiSideMenu.HeaderContent>
 
     <suki:SukiSideMenu.FooterContent>
-      <!-- Footer Content --> 
-      <Button Content="Settings" Classes="Basic"></Button>
+      <!-- Footer Content -->
     </suki:SukiSideMenu.FooterContent>
   </suki:SukiSideMenu>
 </suki:SukiWindow>

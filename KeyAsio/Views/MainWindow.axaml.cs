@@ -1,5 +1,8 @@
+using Avalonia.Interactivity;
 using KeyAsio.ViewModels;
+using SukiUI;
 using SukiUI.Controls;
+using SukiUI.Enums;
 
 namespace KeyAsio.Views;
 
@@ -22,4 +25,10 @@ public partial class MainWindow : SukiWindow
     }
 
     #endregion
+
+    private void Control_OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        var theme = SukiTheme.GetInstance();
+        //theme.ChangeColorTheme(SukiColor.Green);
+    }
 }
