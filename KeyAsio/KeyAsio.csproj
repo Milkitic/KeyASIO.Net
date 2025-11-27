@@ -9,6 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PublishTrimmed>true</PublishTrimmed>
     <PublishReadyToRun>true</PublishReadyToRun>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

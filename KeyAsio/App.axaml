@@ -10,5 +10,11 @@
       <suki:SukiTheme ThemeColor="Blue"  />
         <!--<FluentTheme />-->
       <materialIcons:MaterialIconStyles />
+      <Style Selector="suki|GlassCard">
+        <Setter Property="IsAnimated" Value="False"></Setter>
+      </Style> 
+      <Style Selector="ToggleSwitch">
+        <Setter Property="Foreground" Value="{DynamicResource SukiText}"></Setter>
+      </Style>
     </Application.Styles>
 </Application>
