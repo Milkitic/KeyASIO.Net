@@ -122,37 +122,32 @@
               Margin="0,20,0,0"
               ColumnDefinitions="*,*">
               <!--  Stats  -->
-              <StackPanel
-                Margin="0,0,10,0"
-                VerticalAlignment="Center"
-                Spacing="5">
-                <suki:GlassCard Padding="15">
-                  <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel>
-                      <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock FontWeight="Bold" Text="Audio Latency" />
-                        <materialIcons:MaterialIcon
-                          Width="14"
-                          Height="14"
-                          VerticalAlignment="Center"
-                          Kind="HelpCircleOutline"
-                          Opacity="0.5"
-                          ToolTip.Tip="Place holder" />
-                      </StackPanel>
-                      <TextBlock
-                        Classes="h4"
-                        Foreground="{DynamicResource SukiPrimaryColor}"
-                        Text="0.4 ms" />
+              <suki:GlassCard Margin="0,0,10,0" Padding="15">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <TextBlock FontWeight="Bold" Text="Audio Latency" />
+                      <materialIcons:MaterialIcon
+                        Width="14"
+                        Height="14"
+                        VerticalAlignment="Center"
+                        Kind="HelpCircleOutline"
+                        Opacity="0.5"
+                        ToolTip.Tip="Place holder" />
                     </StackPanel>
-                    <materialIcons:MaterialIcon
-                      Grid.Column="1"
-                      Width="24"
-                      Height="24"
-                      Kind="Speedometer"
-                      Opacity="0.3" />
-                  </Grid>
-                </suki:GlassCard>
-              </StackPanel>
+                    <TextBlock
+                      Classes="h4"
+                      Foreground="{DynamicResource SukiPrimaryColor}"
+                      Text="0.4 ms" />
+                  </StackPanel>
+                  <materialIcons:MaterialIcon
+                    Grid.Column="1"
+                    Width="24"
+                    Height="24"
+                    Kind="Speedometer"
+                    Opacity="0.3" />
+                </Grid>
+              </suki:GlassCard>
 
               <!--  Key Bindings  -->
               <suki:GlassCard
