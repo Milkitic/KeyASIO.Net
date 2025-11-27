@@ -129,10 +129,16 @@
                 <suki:GlassCard Padding="15">
                   <Grid ColumnDefinitions="*,Auto">
                     <StackPanel>
-                      <TextBlock
-                        Classes="Caption"
-                        Opacity="0.6"
-                        Text="Input Latency" />
+                      <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock FontWeight="Bold" Text="Audio Latency" />
+                        <materialIcons:MaterialIcon
+                          Width="14"
+                          Height="14"
+                          VerticalAlignment="Center"
+                          Kind="HelpCircleOutline"
+                          Opacity="0.5"
+                          ToolTip.Tip="Place holder" />
+                      </StackPanel>
                       <TextBlock
                         Classes="h4"
                         Foreground="{DynamicResource SukiPrimaryColor}"
