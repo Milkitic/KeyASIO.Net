@@ -57,8 +57,8 @@
                 <ToggleSwitch
                   Grid.Column="1"
                   IsChecked="{Binding RealtimeMode}"
-                  OffContent="Key Only (Manual)"
-                  OnContent="Sync Mode (Realtime)" />
+                  OffContent="Key Only"
+                  OnContent="Sync Mode" />
               </Grid>
             </suki:GlassCard>
 
@@ -82,8 +82,8 @@
 
               <!--  Main Sphere  -->
               <suki:GlassCard
-                Width="180"
-                Height="180"
+                Width="200"
+                Height="200"
                 BorderThickness="0"
                 CornerRadius="100">
                 <Grid>
@@ -95,7 +95,6 @@
                     <materialIcons:MaterialIcon
                       Width="48"
                       Height="48"
-                      Margin="0,0,0,10"
                       Foreground="{DynamicResource SukiPrimaryColor}"
                       Kind="LinkVariant" />
                     <TextBlock
@@ -105,7 +104,6 @@
                       Foreground="{DynamicResource SukiText}"
                       Text="SYNCED" />
                     <TextBlock
-                      Margin="0,5,0,0"
                       HorizontalAlignment="Center"
                       Classes="Caption"
                       Opacity="0.6"
@@ -164,32 +162,119 @@
                       IsChecked="True" />
                   </DockPanel>
 
-                  <ItemsControl Grid.Row="1" Margin="0,10,0,0">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <StackPanel
-                          HorizontalAlignment="Left"
-                          Orientation="Horizontal"
-                          Spacing="10" />
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <!--  Mock Items  -->
-                    <suki:GlassCard Padding="15,10" CornerRadius="8">
-                      <TextBlock
-                        FontSize="16"
-                        FontWeight="Bold"
-                        Text="Z" />
-                    </suki:GlassCard>
-                    <suki:GlassCard Padding="15,10" CornerRadius="8">
-                      <TextBlock
-                        FontSize="16"
-                        FontWeight="Bold"
-                        Text="X" />
-                    </suki:GlassCard>
-                    <Button Padding="10" Classes="Flat">
+                  <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+                    <ScrollViewer
+                      Margin="0,10,0,0"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Disabled">
+                      <ItemsControl>
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel
+                              HorizontalAlignment="Left"
+                              Orientation="Horizontal"
+                              Spacing="10" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <!--  Mock Items  -->
+                        <suki:GlassCard
+                          Width="42"
+                          Height="42"
+                          Padding="0"
+                          CornerRadius="8">
+                          <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Text="Z" />
+                        </suki:GlassCard>
+                        <suki:GlassCard
+                          Width="42"
+                          Height="42"
+                          Padding="0"
+                          CornerRadius="8">
+                          <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Text="X" />
+                        </suki:GlassCard>
+                        <suki:GlassCard
+                          Width="42"
+                          Height="42"
+                          Padding="0"
+                          CornerRadius="8">
+                          <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Text="C" />
+                        </suki:GlassCard>
+                        <suki:GlassCard
+                          Width="42"
+                          Height="42"
+                          Padding="0"
+                          CornerRadius="8">
+                          <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Text="V" />
+                        </suki:GlassCard>
+                        <suki:GlassCard
+                          Width="42"
+                          Height="42"
+                          Padding="0"
+                          CornerRadius="8">
+                          <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Text="B" />
+                        </suki:GlassCard>
+                        <suki:GlassCard
+                          Width="42"
+                          Height="42"
+                          Padding="0"
+                          CornerRadius="8">
+                          <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Text="N" />
+                        </suki:GlassCard>
+                        <suki:GlassCard
+                          Width="42"
+                          Height="42"
+                          Padding="0"
+                          CornerRadius="8">
+                          <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Text="M" />
+                        </suki:GlassCard>
+                      </ItemsControl>
+                    </ScrollViewer>
+
+                    <Button
+                      Grid.Column="1"
+                      Width="42"
+                      Height="42"
+                      Margin="10,10,0,0"
+                      Padding="0"
+                      VerticalAlignment="Top"
+                      Classes="Flat">
                       <materialIcons:MaterialIcon Kind="Plus" />
                     </Button>
-                  </ItemsControl>
+                  </Grid>
                 </Grid>
               </suki:GlassCard>
             </Grid>
@@ -203,109 +288,145 @@
           <materialIcons:MaterialIcon Kind="Speaker" />
         </suki:SukiSideMenuItem.Icon>
         <suki:SukiSideMenuItem.PageContent>
-          <ScrollViewer>
-            <StackPanel Margin="20" Spacing="20">
-              <TextBlock
-                Classes="h3"
-                FontWeight="Bold"
-                Text="Driver Configuration" />
+          <Grid>
+            <ScrollViewer>
+              <StackPanel Margin="20" Spacing="20">
+                <TextBlock
+                  Classes="h3"
+                  FontWeight="Bold"
+                  Text="Driver Configuration" />
 
-              <suki:GlassCard>
-                <suki:GroupBox Header="Backend Selection">
-                  <StackPanel Spacing="15">
-                    <Grid ColumnDefinitions="120,*">
+                <suki:GlassCard>
+                  <suki:GroupBox Header="Backend Selection">
+                    <StackPanel Spacing="15">
+                      <Grid ColumnDefinitions="120,*">
+                        <TextBlock
+                          VerticalAlignment="Center"
+                          Opacity="0.7"
+                          Text="Driver Type" />
+                        <ComboBox
+                          Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          SelectedIndex="0">
+                          <ComboBoxItem>WASAPI Exclusive</ComboBoxItem>
+                          <ComboBoxItem>ASIO</ComboBoxItem>
+                          <ComboBoxItem>DirectSound</ComboBoxItem>
+                        </ComboBox>
+                      </Grid>
+                      <Grid ColumnDefinitions="120,*">
+                        <TextBlock
+                          VerticalAlignment="Center"
+                          Opacity="0.7"
+                          Text="Output Device" />
+                        <ComboBox
+                          Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          SelectedIndex="0">
+                          <ComboBoxItem>Focusrite USB Audio</ComboBoxItem>
+                          <ComboBoxItem>Realtek HD Audio</ComboBoxItem>
+                        </ComboBox>
+                      </Grid>
+                      <Grid ColumnDefinitions="120,*">
+                        <TextBlock
+                          VerticalAlignment="Center"
+                          Opacity="0.7"
+                          Text="Sample Rate" />
+                        <ComboBox
+                          Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          SelectedIndex="3">
+                          <ComboBoxItem>44100 Hz</ComboBoxItem>
+                          <ComboBoxItem>48000 Hz</ComboBoxItem>
+                          <ComboBoxItem>96000 Hz</ComboBoxItem>
+                          <ComboBoxItem>192000 Hz</ComboBoxItem>
+                        </ComboBox>
+                      </Grid>
+                    </StackPanel>
+                  </suki:GroupBox>
+                </suki:GlassCard>
+
+                <TextBlock
+                  Margin="0,10,0,0"
+                  Classes="h3"
+                  FontWeight="Bold"
+                  Text="Latency &amp; Buffer" />
+
+                <suki:GlassCard>
+                  <StackPanel Spacing="20">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock VerticalAlignment="Center" Text="Target Buffer Size" />
                       <TextBlock
-                        VerticalAlignment="Center"
-                        Opacity="0.7"
-                        Text="Driver Type" />
-                      <ComboBox
                         Grid.Column="1"
-                        HorizontalAlignment="Stretch"
-                        SelectedIndex="0">
-                        <ComboBoxItem>WASAPI Exclusive</ComboBoxItem>
-                        <ComboBoxItem>ASIO</ComboBoxItem>
-                        <ComboBoxItem>DirectSound</ComboBoxItem>
-                      </ComboBox>
+                        FontWeight="Bold"
+                        Foreground="{DynamicResource SukiPrimaryColor}"
+                        Text="{Binding TargetBufferSize, StringFormat='{}{0} ms'}" />
                     </Grid>
-                    <Grid ColumnDefinitions="120,*">
-                      <TextBlock
-                        VerticalAlignment="Center"
-                        Opacity="0.7"
-                        Text="Output Device" />
-                      <ComboBox
-                        Grid.Column="1"
-                        HorizontalAlignment="Stretch"
-                        SelectedIndex="0">
-                        <ComboBoxItem>Focusrite USB Audio</ComboBoxItem>
-                        <ComboBoxItem>Realtek HD Audio</ComboBoxItem>
-                      </ComboBox>
-                    </Grid>
-                    <Grid ColumnDefinitions="120,*">
-                      <TextBlock
-                        VerticalAlignment="Center"
-                        Opacity="0.7"
-                        Text="Sample Rate" />
-                      <ComboBox
-                        Grid.Column="1"
-                        HorizontalAlignment="Stretch"
-                        SelectedIndex="3">
-                        <ComboBoxItem>44100 Hz</ComboBoxItem>
-                        <ComboBoxItem>48000 Hz</ComboBoxItem>
-                        <ComboBoxItem>96000 Hz</ComboBoxItem>
-                        <ComboBoxItem>192000 Hz</ComboBoxItem>
-                      </ComboBox>
+                    <Slider
+                      IsSnapToTickEnabled="True"
+                      Maximum="50"
+                      Minimum="1"
+                      TickFrequency="1"
+                      Value="{Binding TargetBufferSize}" />
+
+                    <Separator Opacity="0.1" />
+
+                    <Grid ColumnDefinitions="*,*">
+                      <StackPanel Spacing="5">
+                        <TextBlock Text="Exclusive Mode" />
+                        <ToggleSwitch
+                          IsChecked="{Binding IsExclusiveMode}"
+                          OffContent="Shared"
+                          OnContent="Exclusive" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Spacing="5">
+                        <TextBlock Text="Audio Limiter" />
+                        <ToggleSwitch
+                          IsChecked="{Binding IsLimiterEnabled}"
+                          OffContent="Raw"
+                          OnContent="Active" />
+                      </StackPanel>
                     </Grid>
                   </StackPanel>
-                </suki:GroupBox>
-              </suki:GlassCard>
+                </suki:GlassCard>
 
-              <TextBlock
-                Margin="0,10,0,0"
-                Classes="h3"
-                FontWeight="Bold"
-                Text="Latency &amp; Buffer" />
+                <!--  Spacer for Floating Bar  -->
+                <Border Height="80" />
+              </StackPanel>
+            </ScrollViewer>
 
-              <suki:GlassCard>
-                <StackPanel Spacing="20">
-                  <DockPanel>
-                    <TextBlock VerticalAlignment="Center" Text="Target Buffer Size" />
-                    <TextBlock
-                      DockPanel.Dock="Right"
-                      FontWeight="Bold"
-                      Foreground="{DynamicResource SukiPrimaryColor}"
-                      Text="3 ms" />
-                  </DockPanel>
-                  <Slider
-                    IsSnapToTickEnabled="True"
-                    Maximum="50"
-                    Minimum="1"
-                    TickFrequency="1"
-                    Value="3" />
-
-                  <Separator Opacity="0.1" />
-
-                  <Grid ColumnDefinitions="*,*">
-                    <ToggleSwitch
-                      Content="Exclusive Mode"
-                      IsChecked="True"
-                      OffContent="Shared"
-                      OnContent="Exclusive" />
-                    <ToggleSwitch
-                      Grid.Column="1"
-                      Content="Audio Limiter"
-                      IsChecked="True"
-                      OffContent="Raw"
-                      OnContent="Active" />
-                  </Grid>
+            <!--  Floating Action Bar  -->
+            <suki:GlassCard
+              Margin="20"
+              Padding="15"
+              VerticalAlignment="Bottom">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel
+                  VerticalAlignment="Center"
+                  Orientation="Horizontal"
+                  Spacing="10">
+                  <materialIcons:MaterialIcon
+                    Width="20"
+                    Height="20"
+                    Kind="InformationOutline"
+                    Opacity="0.5" />
+                  <TextBlock
+                    VerticalAlignment="Center"
+                    Opacity="0.7"
+                    Text="Changes require application to take effect" />
                 </StackPanel>
-              </suki:GlassCard>
-            </StackPanel>
-          </ScrollViewer>
+                <Button
+                  Grid.Column="1"
+                  Classes="Flat"
+                  Command="{Binding ApplyAudioSettingsCommand}"
+                  Content="Apply Settings" />
+              </Grid>
+            </suki:GlassCard>
+          </Grid>
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 
-      <!--  PAGE 3: GAME LINK  -->
-      <suki:SukiSideMenuItem Classes="Compact" Header="Game Link">
+      <!--  PAGE 3: SYNC MODE  -->
+      <suki:SukiSideMenuItem Classes="Compact" Header="Sync Mode">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Link" />
         </suki:SukiSideMenuItem.Icon>
@@ -315,8 +436,10 @@
               <!--  Skin  -->
               <suki:GlassCard>
                 <suki:GroupBox Header="Skin Resources">
-                  <Grid ColumnDefinitions="60, *">
+                  <Grid ColumnDefinitions="Auto, *">
                     <Border
+                      Width="48"
+                      Height="48"
                       Margin="0,0,15,0"
                       Background="#22000000"
                       CornerRadius="8">
@@ -334,17 +457,42 @@
                 </suki:GroupBox>
               </suki:GlassCard>
 
+              <!--  Music Override  -->
+              <suki:GlassCard>
+                <suki:GroupBox Header="Music Control">
+                  <StackPanel Spacing="10">
+                    <Grid ColumnDefinitions="*, Auto">
+                      <StackPanel Spacing="0">
+                        <TextBlock FontWeight="DemiBold" Text="Override Game Music" />
+                        <TextBlock
+                          FontSize="11"
+                          Opacity="0.6"
+                          Text="Experimental feature" />
+                      </StackPanel>
+                      <ToggleSwitch
+                        Grid.Column="1"
+                        Margin="0,0,8,0"
+                        OffContent="Off"
+                        OnContent="On" />
+                    </Grid>
+                    <Separator Opacity="0.1" />
+                    <CheckBox Content="Force Nightcore Beats" />
+                  </StackPanel>
+                </suki:GroupBox>
+              </suki:GlassCard>
+
               <!--  Sync & Balance  -->
               <suki:GlassCard>
-                <suki:GroupBox Header="Playback Control">
+                <suki:GroupBox Header="Audio Field">
                   <StackPanel Spacing="15">
-                    <DockPanel>
-                      <TextBlock VerticalAlignment="Center" Text="Object Balance (Panning)" />
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock VerticalAlignment="Center" Text="Stereo Width" />
                       <TextBlock
-                        DockPanel.Dock="Right"
-                        FontFamily="Consolas"
+                        Grid.Column="1"
+                        FontWeight="Bold"
+                        Foreground="{DynamicResource SukiPrimaryColor}"
                         Text="0.66" />
-                    </DockPanel>
+                    </Grid>
                     <Slider
                       Maximum="1"
                       Minimum="-1"
@@ -354,27 +502,19 @@
                       <TextBlock
                         FontSize="10"
                         Opacity="0.5"
-                        Text="Left" />
+                        Text="Narrow" />
                       <TextBlock
                         Grid.Column="1"
                         HorizontalAlignment="Center"
                         FontSize="10"
                         Opacity="0.5"
-                        Text="Center" />
+                        Text="Normal" />
                       <TextBlock
                         Grid.Column="2"
                         FontSize="10"
                         Opacity="0.5"
-                        Text="Right" />
+                        Text="Wide" />
                     </Grid>
-
-                    <StackPanel
-                      Margin="0,10,0,0"
-                      Orientation="Horizontal"
-                      Spacing="20">
-                      <CheckBox Content="Force Nightcore Beats" />
-                      <CheckBox Content="Override Music (Exp.)" />
-                    </StackPanel>
                   </StackPanel>
                 </suki:GroupBox>
               </suki:GlassCard>
@@ -402,58 +542,122 @@
           <materialIcons:MaterialIcon Kind="Cog" />
         </suki:SukiSideMenuItem.Icon>
         <suki:SukiSideMenuItem.PageContent>
-          <StackPanel Margin="20" Spacing="20">
-            <TextBlock
-              Classes="h3"
-              FontWeight="Bold"
-              Text="System Configuration" />
+          <ScrollViewer>
+            <StackPanel Margin="20" Spacing="20">
+              <TextBlock
+                Classes="h3"
+                FontWeight="Bold"
+                Text="System Configuration" />
 
-            <suki:GlassCard>
-              <StackPanel Spacing="15">
-                <TextBlock Text="osu! Folder Path" />
-                <Grid ColumnDefinitions="*, Auto">
-                  <TextBox
-                    Margin="0,0,10,0"
-                    IsReadOnly="True"
-                    Text="E:\Games\osu!" />
-                  <Button Grid.Column="1" Classes="Flat">
-                    <materialIcons:MaterialIcon Kind="FolderOpen" />
-                  </Button>
-                </Grid>
+              <suki:GlassCard>
+                <StackPanel Spacing="15">
+                  <TextBlock Text="osu! Folder Path" />
+                  <Grid ColumnDefinitions="*, Auto">
+                    <TextBox
+                      Margin="0,0,10,0"
+                      IsReadOnly="True"
+                      Text="E:\Games\osu!" />
+                    <Button
+                      Grid.Column="1"
+                      Width="35"
+                      Height="35"
+                      Padding="0"
+                      Classes="Flat">
+                      <materialIcons:MaterialIcon Kind="FolderOpen" />
+                    </Button>
+                  </Grid>
 
-                <Separator Opacity="0.1" />
+                  <Separator Opacity="0.1" />
 
-                <Grid ColumnDefinitions="*,Auto">
-                  <StackPanel>
-                    <TextBlock Text="Audio Cache Threads" />
-                    <TextBlock
-                      FontSize="10"
-                      Opacity="0.5"
-                      Text="Restart required" />
-                  </StackPanel>
-                  <NumericUpDown
-                    Grid.Column="1"
-                    Width="100"
-                    Maximum="16"
-                    Minimum="1"
-                    Value="2" />
-                </Grid>
-              </StackPanel>
-            </suki:GlassCard>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel>
+                      <TextBlock Text="Audio Cache Threads" />
+                      <TextBlock
+                        FontSize="10"
+                        Opacity="0.5"
+                        Text="Restart required" />
+                    </StackPanel>
+                    <NumericUpDown
+                      Grid.Column="1"
+                      Width="60"
+                      Maximum="16"
+                      Minimum="1"
+                      Value="2" />
+                  </Grid>
+                </StackPanel>
+              </suki:GlassCard>
 
-            <suki:GlassCard>
-              <StackPanel>
-                <ToggleSwitch
-                  Content="Debug Console"
-                  OffContent="Hidden"
-                  OnContent="Visible" />
-                <ToggleSwitch
-                  Margin="0,10,0,0"
-                  Content="Error Reporting"
-                  IsChecked="True" />
-              </StackPanel>
-            </suki:GlassCard>
-          </StackPanel>
+              <suki:GlassCard>
+                <StackPanel Spacing="10">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Debug Console" />
+                    <ToggleSwitch
+                      Grid.Column="1"
+                      OffContent="Off"
+                      OnContent="On" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Error Reporting" />
+                    <ToggleSwitch
+                      Grid.Column="1"
+                      IsChecked="True"
+                      OffContent="Off"
+                      OnContent="On" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="Enable AVX-512" />
+                      <TextBlock
+                        FontSize="10"
+                        Opacity="0.5"
+                        Text="Performance Boost" />
+                    </StackPanel>
+                    <ToggleSwitch
+                      Grid.Column="1"
+                      OffContent="Off"
+                      OnContent="On" />
+                  </Grid>
+                </StackPanel>
+              </suki:GlassCard>
+
+              <suki:GlassCard>
+                <StackPanel Spacing="15">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock FontWeight="DemiBold" Text="Updates" />
+                      <TextBlock
+                        FontSize="11"
+                        Opacity="0.6"
+                        Text="Current Version: v2.0.1" />
+                    </StackPanel>
+                    <Button
+                      Grid.Column="1"
+                      Classes="Flat"
+                      Content="Check for Updates" />
+                  </Grid>
+                  <Separator Opacity="0.1" />
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="Copyright © 2025 KeyAsio" />
+                      <TextBlock
+                        FontSize="11"
+                        Opacity="0.6"
+                        Text="Licensed under MIT" />
+                    </StackPanel>
+                    <Button
+                      Grid.Column="1"
+                      Padding="8"
+                      Classes="Flat">
+                      <materialIcons:MaterialIcon
+                        Width="24"
+                        Height="24"
+                        Kind="Github" />
+                    </Button>
+                  </Grid>
+                </StackPanel>
+              </suki:GlassCard>
+            </StackPanel>
+          </ScrollViewer>
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 
