@@ -130,11 +130,15 @@
         <Grid RowDefinitions="Auto,*">
           <DockPanel LastChildFill="False">
             <TextBlock FontWeight="Bold" Text="Quick Bindings" />
-            <CheckBox
-              Margin="0,-5,0,0"
-              Content="Raw Input"
-              DockPanel.Dock="Right"
-              IsChecked="True" />
+            <Button
+              Width="24"
+              Height="24"
+              Margin="0,-6"
+              Padding="0"
+              Classes="Flat"
+              DockPanel.Dock="Right">
+              <materialIcons:MaterialIcon Kind="Plus" />
+            </Button>
           </DockPanel>
 
           <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
@@ -238,17 +242,6 @@
                 </suki:GlassCard>
               </ItemsControl>
             </ScrollViewer>
-
-            <Button
-              Grid.Column="1"
-              Width="42"
-              Height="42"
-              Margin="10,10,0,0"
-              Padding="0"
-              VerticalAlignment="Top"
-              Classes="Flat">
-              <materialIcons:MaterialIcon Kind="Plus" />
-            </Button>
           </Grid>
         </Grid>
       </suki:GlassCard>

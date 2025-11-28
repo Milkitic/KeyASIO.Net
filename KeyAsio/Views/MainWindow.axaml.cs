@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using KeyAsio.Services;
 using KeyAsio.ViewModels;
 using SukiUI;
 using SukiUI.Controls;
@@ -11,14 +10,11 @@ namespace KeyAsio.Views;
 
 public partial class MainWindow : SukiWindow
 {
-    private readonly UpdateService _updateService;
     private readonly MainWindowViewModel _viewModel;
-
     private readonly ISukiToastManager _mainWindowManager = new SukiToastManager();
 
-    public MainWindow(MainWindowViewModel mainWindowViewModel, UpdateService updateService)
+    public MainWindow(MainWindowViewModel mainWindowViewModel)
     {
-        _updateService = updateService;
         DataContext = _viewModel = mainWindowViewModel;
         InitializeComponent();
         ToastHost.Manager = _mainWindowManager;
@@ -40,14 +36,15 @@ public partial class MainWindow : SukiWindow
         if (Design.IsDesignMode) return;
 
         var theme = SukiTheme.GetInstance();
-        var result = await _updateService.CheckUpdateAsync();
+        var updateService = _viewModel.UpdateService;
+        var result = await updateService.CheckUpdateAsync();
         if (result == true)
         {
             _mainWindowManager.CreateToast()
                 .WithTitle("Update Available")
-                .WithContent($"Update {_updateService.NewVersion} is Now Available.")
+                .WithContent($"Update {updateService.NewVersion} is Now Available.")
                 .WithActionButton("Later", _ => { }, true, SukiButtonStyles.Basic)
-                .WithActionButton("Update", _ => _updateService.OpenLastReleasePage(), true)
+                .WithActionButton("Update", _ => updateService.OpenLastReleasePage(), true)
                 .Queue();
         }
     }

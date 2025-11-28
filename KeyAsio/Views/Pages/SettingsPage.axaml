@@ -63,17 +63,16 @@
       <suki:GlassCard>
         <StackPanel Spacing="10">
           <Grid ColumnDefinitions="*,Auto">
-            <TextBlock VerticalAlignment="Center" Text="Debug Console" />
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Raw Input" />
+              <TextBlock
+                FontSize="10"
+                Opacity="0.5"
+                Text="Low latency input mode" />
+            </StackPanel>
             <ToggleSwitch
               Grid.Column="1"
-              OffContent="Off"
-              OnContent="On" />
-          </Grid>
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock VerticalAlignment="Center" Text="Error Reporting" />
-            <ToggleSwitch
-              Grid.Column="1"
-              IsChecked="True"
+              IsChecked="{Binding AppSettings.Input.UseRawInput}"
               OffContent="Off"
               OnContent="On" />
           </Grid>
@@ -87,6 +86,21 @@
             </StackPanel>
             <ToggleSwitch
               Grid.Column="1"
+              OffContent="Off"
+              OnContent="On" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock VerticalAlignment="Center" Text="Debug Console" />
+            <ToggleSwitch
+              Grid.Column="1"
+              OffContent="Off"
+              OnContent="On" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock VerticalAlignment="Center" Text="Error Reporting" />
+            <ToggleSwitch
+              Grid.Column="1"
+              IsChecked="True"
               OffContent="Off"
               OnContent="On" />
           </Grid>

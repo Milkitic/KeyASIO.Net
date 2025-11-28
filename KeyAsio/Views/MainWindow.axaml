@@ -29,7 +29,7 @@
   </Design.DataContext>
 
   <suki:SukiWindow.Hosts>
-    <suki:SukiToastHost Name="ToastHost" Position="BottomLeft"/>
+    <suki:SukiToastHost Name="ToastHost" Position="BottomLeft" />
   </suki:SukiWindow.Hosts>
 
   <suki:SukiSideMenu
@@ -93,10 +93,9 @@
           Classes="h4"
           FontWeight="Black"
           Text="KeyAsio" />
-        <TextBlock
-          HorizontalAlignment="Center"
-          Opacity="0.5"
-          Text="v2.0.1" />
+        <TextBlock HorizontalAlignment="Center" Opacity="0.5">
+          <Run Text="v" /><Run Text="{Binding UpdateService.Version}" />
+        </TextBlock>
       </StackPanel>
     </suki:SukiSideMenu.HeaderContent>
 

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Semver;
@@ -7,7 +8,8 @@ using ProductHeaderValue = Octokit.ProductHeaderValue;
 
 namespace KeyAsio.Services;
 
-public class UpdateService
+[ObservableObject]
+public partial class UpdateService
 {
     private const string RepoOwner = "Milkitic";
     private const string RepoName = "KeyAsio.Net";
@@ -22,15 +24,23 @@ public class UpdateService
         InitializeVersion();
     }
 
-    public Release? NewRelease { get; private set; }
-    public bool IsRunningChecking { get; private set; }
+    [ObservableProperty]
+    public partial bool IsRunningChecking { get; private set; }
 
+    [ObservableProperty]
+    public partial Release? NewRelease { get; private set; }
 
-    public SemVersion? SemVersion { get; private set; }
-    public string? Version { get; private set; }
+    [ObservableProperty]
+    public partial SemVersion? SemVersion { get; private set; }
 
-    public SemVersion? NewSemVersion { get; private set; }
-    public string? NewVersion { get; private set; }
+    [ObservableProperty]
+    public partial string? Version { get; private set; }
+
+    [ObservableProperty]
+    public partial SemVersion? NewSemVersion { get; private set; }
+
+    [ObservableProperty]
+    public partial string? NewVersion { get; private set; }
 
     public async Task<bool?> CheckUpdateAsync()
     {
@@ -63,7 +73,8 @@ public class UpdateService
                 return null;
             }
 
-            _logger.LogDebug("Current version: {NowVerObj}; Got version info: {LatestVerObj}", SemVersion, remoteSemVersion);
+            _logger.LogDebug("Current version: {NowVerObj}; Got version info: {LatestVerObj}", SemVersion,
+                remoteSemVersion);
 
             if (remoteSemVersion.ComparePrecedenceTo(SemVersion) <= 0)
             {

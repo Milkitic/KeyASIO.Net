@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 
@@ -21,12 +22,14 @@ public partial class MainWindowViewModel
         }
     }
 
-    public MainWindowViewModel(AppSettings appSettings)
+    public MainWindowViewModel(AppSettings appSettings, UpdateService updateService)
     {
         AppSettings = appSettings;
+        UpdateService = updateService;
     }
 
     public AppSettings AppSettings { get; }
+    public UpdateService UpdateService { get; }
 
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
 
