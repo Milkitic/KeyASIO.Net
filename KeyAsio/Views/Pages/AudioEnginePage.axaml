@@ -17,11 +17,6 @@
   <Grid>
     <ScrollViewer>
       <StackPanel Margin="20" Spacing="20">
-        <TextBlock
-          Classes="h3"
-          FontWeight="Bold"
-          Text="Driver Configuration" />
-
         <suki:GlassCard>
           <suki:GroupBox Header="Backend Selection">
             <StackPanel Spacing="15">
@@ -95,63 +90,59 @@
           </suki:GroupBox>
         </suki:GlassCard>
 
-        <TextBlock
-          Margin="0,10,0,0"
-          Classes="h3"
-          FontWeight="Bold"
-          Text="Latency &amp; Buffer" />
-
         <suki:GlassCard>
-          <StackPanel Spacing="20">
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="TimerSand"
-                Opacity="0.6" />
-              <TextBlock
-                Grid.Column="1"
-                VerticalAlignment="Center"
-                Text="Target Buffer Size" />
-              <TextBlock
-                Grid.Column="2"
-                FontWeight="Bold"
-                Foreground="{DynamicResource SukiPrimaryColor}"
-                Text="{Binding TargetBufferSize, StringFormat='{}{0} ms'}" />
-            </Grid>
-            <Slider
-              IsSnapToTickEnabled="True"
-              Maximum="50"
-              Minimum="1"
-              TickFrequency="1"
-              Value="{Binding TargetBufferSize}" />
-
-            <Separator Opacity="0.1" />
-
-            <Grid ColumnDefinitions="*,*">
-              <StackPanel Orientation="Horizontal" Spacing="10">
+          <suki:GroupBox Header="Latency &amp; Buffer">
+            <StackPanel Spacing="20">
+              <Grid ColumnDefinitions="Auto,*,Auto">
                 <materialIcons:MaterialIcon
-                  Width="20"
-                  Height="20"
-                  Kind="Lock"
+                  Width="24"
+                  Height="24"
+                  Margin="0,0,15,0"
+                  Foreground="{DynamicResource SukiText}"
+                  Kind="TimerSand"
                   Opacity="0.6" />
-                <CheckBox Content="Exclusive Mode" IsChecked="{Binding IsExclusiveMode}" />
-              </StackPanel>
-              <StackPanel
-                Grid.Column="1"
-                Orientation="Horizontal"
-                Spacing="10">
-                <materialIcons:MaterialIcon
-                  Width="20"
-                  Height="20"
-                  Kind="Equalizer"
-                  Opacity="0.6" />
-                <CheckBox Content="Audio Limiter" IsChecked="{Binding IsLimiterEnabled}" />
-              </StackPanel>
-            </Grid>
-          </StackPanel>
+                <TextBlock
+                  Grid.Column="1"
+                  VerticalAlignment="Center"
+                  Text="Target Buffer Size" />
+                <TextBlock
+                  Grid.Column="2"
+                  FontWeight="Bold"
+                  Foreground="{DynamicResource SukiPrimaryColor}"
+                  Text="{Binding TargetBufferSize, StringFormat='{}{0} ms'}" />
+              </Grid>
+              <Slider
+                IsSnapToTickEnabled="True"
+                Maximum="50"
+                Minimum="1"
+                TickFrequency="1"
+                Value="{Binding TargetBufferSize}" />
+
+              <Separator Opacity="0.1" />
+
+              <Grid ColumnDefinitions="*,*">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <materialIcons:MaterialIcon
+                    Width="20"
+                    Height="20"
+                    Kind="Lock"
+                    Opacity="0.6" />
+                  <CheckBox Content="Exclusive Mode" IsChecked="{Binding IsExclusiveMode}" />
+                </StackPanel>
+                <StackPanel
+                  Grid.Column="1"
+                  Orientation="Horizontal"
+                  Spacing="10">
+                  <materialIcons:MaterialIcon
+                    Width="20"
+                    Height="20"
+                    Kind="Equalizer"
+                    Opacity="0.6" />
+                  <CheckBox Content="Audio Limiter" IsChecked="{Binding IsLimiterEnabled}" />
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </suki:GroupBox>
         </suki:GlassCard>
 
         <!--  Spacer for Floating Bar  -->
