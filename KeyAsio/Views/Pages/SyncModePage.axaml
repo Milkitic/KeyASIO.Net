@@ -57,13 +57,21 @@
                 OffContent="Off"
                 OnContent="On" />
             </Grid>
-            <Separator Opacity="0.1" />
+            <Separator Opacity="0.3" />
             <Grid ColumnDefinitions="*, Auto">
               <TextBlock VerticalAlignment="Center" Text="Force Nightcore Beats" />
               <ToggleSwitch
                 Grid.Column="1"
                 OffContent="Off"
                 OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="*, Auto">
+              <TextBlock VerticalAlignment="Center" Text="Slider Tail Behavior" />
+              <ComboBox
+                Grid.Column="1"
+                MinWidth="120"
+                ItemsSource="{Binding SliderTailBehaviors}"
+                SelectedItem="{Binding AppSettings.Realtime.Playback.TailPlaybackBehavior}" />
             </Grid>
           </StackPanel>
         </suki:GroupBox>
@@ -145,6 +153,46 @@
                 Grid.Column="1"
                 OffContent="Off"
                 OnContent="On" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <!--  Advanced Settings  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Advanced Settings">
+          <StackPanel Margin="0,0,8,0" Spacing="10">
+            <!--  General Interval  -->
+            <Grid ColumnDefinitions="*, Auto">
+              <StackPanel Spacing="0">
+                <TextBlock Text="General Scan Interval (ms)" />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Lower values update generic fields more promptly. Increase to reduce CPU usage."
+                  TextWrapping="Wrap" />
+              </StackPanel>
+              <NumericUpDown
+                Grid.Column="1"
+                Maximum="1000"
+                Minimum="1"
+                Value="{Binding AppSettings.Realtime.Scanning.GeneralInterval}" />
+            </Grid>
+            <!--  Timing Interval  -->
+            <Grid ColumnDefinitions="*, Auto">
+              <StackPanel Spacing="0">
+                <TextBlock Text="Timing Scan Interval (ms)" />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Lower values update timing fields more promptly. Increase if audio cutting occurs."
+                  TextWrapping="Wrap" />
+              </StackPanel>
+              <NumericUpDown
+                Grid.Column="1"
+                Maximum="1000"
+                Minimum="1"
+                Value="{Binding AppSettings.Realtime.Scanning.TimingInterval}" />
             </Grid>
           </StackPanel>
         </suki:GroupBox>
