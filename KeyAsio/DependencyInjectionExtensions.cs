@@ -14,6 +14,7 @@ public static class DependencyInjectionExtensions
 
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<AudioSettingsViewModel>();
 
         services.AddHostedService<GuiStartupService>();
         return services;

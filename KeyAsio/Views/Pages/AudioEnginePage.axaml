@@ -36,8 +36,8 @@
                 <ComboBox
                   Grid.Column="2"
                   HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding AvailableDriverTypes}"
-                  SelectedItem="{Binding SelectedDriverType}" />
+                  ItemsSource="{Binding AudioSettings.AvailableDriverTypes}"
+                  SelectedItem="{Binding AudioSettings.SelectedDriverType}" />
               </Grid>
               <Grid ColumnDefinitions="Auto,120,*">
                 <materialIcons:MaterialIcon
@@ -55,8 +55,8 @@
                 <ComboBox
                   Grid.Column="2"
                   HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding AvailableAudioDevices}"
-                  SelectedItem="{Binding SelectedAudioDevice}">
+                  ItemsSource="{Binding AudioSettings.AvailableAudioDevices}"
+                  SelectedItem="{Binding AudioSettings.SelectedAudioDevice}">
                   <ComboBox.ItemTemplate>
                     <DataTemplate>
                       <TextBlock Text="{Binding FriendlyName}" />
@@ -80,8 +80,8 @@
                 <ComboBox
                   Grid.Column="2"
                   HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding SupportedSampleRates}"
-                  SelectedItem="{Binding SelectedSampleRate}" />
+                  ItemsSource="{Binding AudioSettings.SupportedSampleRates}"
+                  SelectedItem="{Binding AudioSettings.SelectedSampleRate}" />
               </Grid>
             </StackPanel>
           </suki:GroupBox>
@@ -106,14 +106,14 @@
                   Grid.Column="2"
                   FontWeight="Bold"
                   Foreground="{DynamicResource SukiPrimaryColor}"
-                  Text="{Binding TargetBufferSize, StringFormat='{}{0} ms'}" />
+                  Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
               </Grid>
               <Slider
                 IsSnapToTickEnabled="True"
                 Maximum="50"
                 Minimum="1"
                 TickFrequency="1"
-                Value="{Binding TargetBufferSize}" />
+                Value="{Binding AudioSettings.TargetBufferSize}" />
 
               <Separator Opacity="0.1" />
 
@@ -124,7 +124,7 @@
                     Height="20"
                     Kind="Lock"
                     Opacity="0.6" />
-                  <CheckBox Content="Exclusive Mode" IsChecked="{Binding IsExclusiveMode}" />
+                  <CheckBox Content="Exclusive Mode" IsChecked="{Binding AudioSettings.IsExclusiveMode}" />
                 </StackPanel>
                 <StackPanel
                   Grid.Column="1"
@@ -135,7 +135,7 @@
                     Height="20"
                     Kind="Equalizer"
                     Opacity="0.6" />
-                  <CheckBox Content="Audio Limiter" IsChecked="{Binding IsLimiterEnabled}" />
+                  <CheckBox Content="Audio Limiter" IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
                 </StackPanel>
               </Grid>
             </StackPanel>
@@ -152,7 +152,7 @@
       Margin="20"
       Padding="15"
       VerticalAlignment="Bottom"
-      IsVisible="{Binding HasUnsavedAudioChanges}">
+      IsVisible="{Binding AudioSettings.HasUnsavedAudioChanges}">
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel
           VerticalAlignment="Center"
@@ -173,11 +173,11 @@
           Orientation="Horizontal"
           Spacing="10">
           <Button
-            Command="{Binding DiscardAudioSettingsCommand}"
+            Command="{Binding AudioSettings.DiscardAudioSettingsCommand}"
             Content="Discard" />
           <Button
             Classes="Flat"
-            Command="{Binding ApplyAudioSettingsCommand}"
+            Command="{Binding AudioSettings.ApplyAudioSettingsCommand}"
             Content="Apply Settings" />
         </StackPanel>
       </Grid>
