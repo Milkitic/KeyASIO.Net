@@ -34,7 +34,7 @@
     IsToggleButtonVisible="True">
     <suki:SukiSideMenu.Items>
 
-     <!--  PAGE 1: DASHBOARD  -->
+      <!--  PAGE 1: DASHBOARD  -->
       <suki:SukiSideMenuItem Classes="Compact" Header="Dashboard">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="ViewDashboard" />

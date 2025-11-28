@@ -97,20 +97,11 @@
             <Separator Opacity="0.1" />
 
             <Grid ColumnDefinitions="*,*">
-              <StackPanel Spacing="5">
-                <TextBlock Text="Exclusive Mode" />
-                <ToggleSwitch
-                  IsChecked="{Binding IsExclusiveMode}"
-                  OffContent="Shared"
-                  OnContent="Exclusive" />
-              </StackPanel>
-              <StackPanel Grid.Column="1" Spacing="5">
-                <TextBlock Text="Audio Limiter" />
-                <ToggleSwitch
-                  IsChecked="{Binding IsLimiterEnabled}"
-                  OffContent="Raw"
-                  OnContent="Active" />
-              </StackPanel>
+              <CheckBox Content="Exclusive Mode" IsChecked="{Binding IsExclusiveMode}" />
+              <CheckBox
+                Grid.Column="1"
+                Content="Audio Limiter"
+                IsChecked="{Binding IsLimiterEnabled}" />
             </Grid>
           </StackPanel>
         </suki:GlassCard>

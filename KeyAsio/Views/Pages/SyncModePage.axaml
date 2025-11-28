@@ -43,7 +43,7 @@
       <!--  Music Override  -->
       <suki:GlassCard>
         <suki:GroupBox Header="Music Control">
-          <StackPanel Spacing="10">
+          <StackPanel Margin="0,0,8,0" Spacing="10">
             <Grid ColumnDefinitions="*, Auto">
               <StackPanel Spacing="0">
                 <TextBlock FontWeight="DemiBold" Text="Override Game Music" />
@@ -54,12 +54,17 @@
               </StackPanel>
               <ToggleSwitch
                 Grid.Column="1"
-                Margin="0,0,8,0"
                 OffContent="Off"
                 OnContent="On" />
             </Grid>
             <Separator Opacity="0.1" />
-            <CheckBox Content="Force Nightcore Beats" />
+            <Grid ColumnDefinitions="*, Auto">
+              <TextBlock VerticalAlignment="Center" Text="Force Nightcore Beats" />
+              <ToggleSwitch
+                Grid.Column="1"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
@@ -105,13 +110,43 @@
       <!--  Filters  -->
       <suki:GlassCard>
         <suki:GroupBox Header="Audio Filters">
-          <UniformGrid Columns="2">
-            <CheckBox Margin="0,5" Content="Disable Map Hitsounds" />
-            <CheckBox Margin="0,5" Content="Disable Storyboard" />
-            <CheckBox Margin="0,5" Content="Disable Slider Ticks" />
-            <CheckBox Margin="0,5" Content="Disable Combo Break" />
-            <CheckBox Margin="0,5" Content="Ignore Volume Changes" />
-          </UniformGrid>
+          <StackPanel Margin="0,0,8,0" Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock VerticalAlignment="Center" Text="Disable Map Hitsounds" />
+              <ToggleSwitch
+                Grid.Column="1"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock VerticalAlignment="Center" Text="Disable Storyboard" />
+              <ToggleSwitch
+                Grid.Column="1"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock VerticalAlignment="Center" Text="Disable Slider Ticks" />
+              <ToggleSwitch
+                Grid.Column="1"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock VerticalAlignment="Center" Text="Disable Combo Break" />
+              <ToggleSwitch
+                Grid.Column="1"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock VerticalAlignment="Center" Text="Ignore Volume Changes" />
+              <ToggleSwitch
+                Grid.Column="1"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+          </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
     </StackPanel>
