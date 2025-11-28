@@ -1,11 +1,16 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
 using SukiUI.Dialogs;
+using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
+using Milki.Extensions.Configuration;
 
 namespace KeyAsio.ViewModels;
 
@@ -20,6 +25,7 @@ public partial class MainWindowViewModel
     private object? _selectedMenuItem;
 
     private bool _isNavigating;
+    private CancellationTokenSource? _saveDebounceCts;
 
     partial void OnSelectedMenuItemChanging(object? oldValue, object? newValue)
     {
@@ -79,6 +85,8 @@ public partial class MainWindowViewModel
         UpdateService = updateService;
         _logger = logger;
         AudioSettings = audioSettingsViewModel;
+
+        SubscribeToSettingsChanges();
     }
 
     public AppSettings AppSettings { get; }
@@ -86,4 +94,64 @@ public partial class MainWindowViewModel
     public AudioSettingsViewModel AudioSettings { get; }
 
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
+
+    private void SubscribeToSettingsChanges()
+    {
+        void Subscribe(INotifyPropertyChanged? obj)
+        {
+            if (obj != null)
+            {
+                obj.PropertyChanged += OnSettingsChanged;
+            }
+        }
+
+        Subscribe(AppSettings.General);
+        Subscribe(AppSettings.Input);
+        Subscribe(AppSettings.Paths);
+        Subscribe(AppSettings.Audio);
+        Subscribe(AppSettings.Logging);
+        Subscribe(AppSettings.Performance);
+        Subscribe(AppSettings.Realtime);
+        Subscribe(AppSettings.Realtime.Scanning);
+        Subscribe(AppSettings.Realtime.Playback);
+        Subscribe(AppSettings.Realtime.Filters);
+    }
+
+    private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume) ||
+            e.PropertyName == nameof(AppSettingsAudio.MusicVolume) ||
+            e.PropertyName == nameof(AppSettingsAudio.EffectVolume) ||
+            e.PropertyName == nameof(AppSettingsRealtimePlayback.BalanceFactor))
+        {
+            DebounceSave();
+        }
+        else
+        {
+            AppSettings.Save();
+        }
+    }
+
+    private void DebounceSave()
+    {
+        _saveDebounceCts?.Cancel();
+        _saveDebounceCts = new CancellationTokenSource();
+        var token = _saveDebounceCts.Token;
+
+        Task.Delay(500, token).ContinueWith(t =>
+        {
+            if (t.IsCanceled) return;
+            Dispatcher.UIThread.Post(() =>
+            {
+                try
+                {
+                    AppSettings.Save();
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Failed to save settings");
+                }
+            });
+        });
+    }
 }
