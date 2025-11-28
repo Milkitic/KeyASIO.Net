@@ -51,7 +51,8 @@
             </StackPanel>
             <NumericUpDown
               Grid.Column="1"
-              Width="60"
+              Classes="SettingItem"
+              FormatString="#"
               Maximum="16"
               Minimum="1"
               Value="2" />

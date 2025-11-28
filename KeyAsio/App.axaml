@@ -16,5 +16,6 @@
       <Style Selector="ToggleSwitch">
         <Setter Property="Foreground" Value="{DynamicResource SukiText}"></Setter>
       </Style>
+      <StyleInclude Source="/Styles/Controls.axaml" />
     </Application.Styles>
 </Application>

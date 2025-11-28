@@ -174,6 +174,7 @@
               </StackPanel>
               <NumericUpDown
                 Grid.Column="1"
+                Classes="SettingItem"
                 Maximum="1000"
                 Minimum="1"
                 Value="{Binding AppSettings.Realtime.Scanning.GeneralInterval}" />
@@ -190,6 +191,7 @@
               </StackPanel>
               <NumericUpDown
                 Grid.Column="1"
+                Classes="SettingItem"
                 Maximum="1000"
                 Minimum="1"
                 Value="{Binding AppSettings.Realtime.Scanning.TimingInterval}" />
