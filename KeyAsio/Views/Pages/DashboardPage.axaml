@@ -1,0 +1,257 @@
+<UserControl
+  x:Class="KeyAsio.Views.Pages.DashboardPage"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  x:DataType="vm:MainWindowViewModel"
+  mc:Ignorable="d">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+
+  <Grid Margin="20" RowDefinitions="Auto,*,Auto">
+
+    <!--  Top: Switcher  -->
+    <suki:GlassCard Margin="0,0,0,15" Classes="Surface">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel
+          VerticalAlignment="Center"
+          Orientation="Horizontal"
+          Spacing="10">
+          <materialIcons:MaterialIcon Foreground="{DynamicResource SukiPrimaryColor}" Kind="LightningBolt" />
+          <TextBlock
+            VerticalAlignment="Center"
+            FontWeight="DemiBold"
+            Text="Engine Status" />
+        </StackPanel>
+        <ToggleSwitch
+          Grid.Column="1"
+          IsChecked="{Binding RealtimeMode}"
+          OffContent="Key Only"
+          OnContent="Sync Mode" />
+      </Grid>
+    </suki:GlassCard>
+
+    <!--  Center: The Core (Sphere visualization)  -->
+    <Grid
+      Grid.Row="1"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center">
+      <!--  Outer Glow Ring (Simulated with Border/Shadow)  -->
+      <Border
+        Width="220"
+        Height="220"
+        BorderBrush="{DynamicResource SukiPrimaryColor}"
+        BorderThickness="2"
+        CornerRadius="150"
+        Opacity="0.2">
+        <Border.Effect>
+          <BlurEffect Radius="20" />
+        </Border.Effect>
+      </Border>
+
+      <!--  Main Sphere  -->
+      <suki:GlassCard
+        Width="200"
+        Height="200"
+        BorderThickness="0"
+        CornerRadius="100">
+        <Grid>
+          <Border
+            Background="{DynamicResource SukiPrimaryColor}"
+            CornerRadius="100"
+            Opacity="0.1" />
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <materialIcons:MaterialIcon
+              Width="48"
+              Height="48"
+              Foreground="{DynamicResource SukiPrimaryColor}"
+              Kind="LinkVariant" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="h2"
+              FontWeight="Bold"
+              Foreground="{DynamicResource SukiText}"
+              Text="SYNCED" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="Caption"
+              Opacity="0.6"
+              Text="ID: 14022" />
+          </StackPanel>
+        </Grid>
+      </suki:GlassCard>
+    </Grid>
+
+    <!--  Bottom: Stats & Quick Keys  -->
+    <Grid
+      Grid.Row="2"
+      Grid.ColumnSpan="2"
+      Margin="0,20,0,0"
+      ColumnDefinitions="*,*">
+      <!--  Stats  -->
+      <suki:GlassCard Margin="0,0,10,0" Padding="15">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <TextBlock FontWeight="Bold" Text="Audio Latency" />
+              <materialIcons:MaterialIcon
+                Width="14"
+                Height="14"
+                VerticalAlignment="Center"
+                Kind="HelpCircleOutline"
+                Opacity="0.5"
+                ToolTip.Tip="Place holder" />
+            </StackPanel>
+            <TextBlock
+              Classes="h4"
+              Foreground="{DynamicResource SukiPrimaryColor}"
+              Text="0.4 ms" />
+          </StackPanel>
+          <materialIcons:MaterialIcon
+            Grid.Column="1"
+            Width="24"
+            Height="24"
+            Kind="Speedometer"
+            Opacity="0.3" />
+        </Grid>
+      </suki:GlassCard>
+
+      <!--  Key Bindings  -->
+      <suki:GlassCard
+        Grid.Column="1"
+        Margin="10,0,0,0"
+        Padding="15">
+        <Grid RowDefinitions="Auto,*">
+          <DockPanel LastChildFill="False">
+            <TextBlock FontWeight="Bold" Text="Quick Bindings" />
+            <CheckBox
+              Margin="0,-5,0,0"
+              Content="Raw Input"
+              DockPanel.Dock="Right"
+              IsChecked="True" />
+          </DockPanel>
+
+          <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+            <ScrollViewer
+              Margin="0,10,0,0"
+              HorizontalScrollBarVisibility="Auto"
+              VerticalScrollBarVisibility="Disabled">
+              <ItemsControl>
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel
+                      HorizontalAlignment="Left"
+                      Orientation="Horizontal"
+                      Spacing="10" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <!--  Mock Items  -->
+                <suki:GlassCard
+                  Width="42"
+                  Height="42"
+                  Padding="0"
+                  CornerRadius="8">
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="Z" />
+                </suki:GlassCard>
+                <suki:GlassCard
+                  Width="42"
+                  Height="42"
+                  Padding="0"
+                  CornerRadius="8">
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="X" />
+                </suki:GlassCard>
+                <suki:GlassCard
+                  Width="42"
+                  Height="42"
+                  Padding="0"
+                  CornerRadius="8">
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="C" />
+                </suki:GlassCard>
+                <suki:GlassCard
+                  Width="42"
+                  Height="42"
+                  Padding="0"
+                  CornerRadius="8">
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="V" />
+                </suki:GlassCard>
+                <suki:GlassCard
+                  Width="42"
+                  Height="42"
+                  Padding="0"
+                  CornerRadius="8">
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="B" />
+                </suki:GlassCard>
+                <suki:GlassCard
+                  Width="42"
+                  Height="42"
+                  Padding="0"
+                  CornerRadius="8">
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="N" />
+                </suki:GlassCard>
+                <suki:GlassCard
+                  Width="42"
+                  Height="42"
+                  Padding="0"
+                  CornerRadius="8">
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="M" />
+                </suki:GlassCard>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <Button
+              Grid.Column="1"
+              Width="42"
+              Height="42"
+              Margin="10,10,0,0"
+              Padding="0"
+              VerticalAlignment="Top"
+              Classes="Flat">
+              <materialIcons:MaterialIcon Kind="Plus" />
+            </Button>
+          </Grid>
+        </Grid>
+      </suki:GlassCard>
+    </Grid>
+  </Grid>
+</UserControl>

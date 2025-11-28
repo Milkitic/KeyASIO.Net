@@ -1,0 +1,119 @@
+<UserControl
+  x:Class="KeyAsio.Views.Pages.SyncModePage"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  x:DataType="vm:MainWindowViewModel"
+  mc:Ignorable="d">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="20">
+      <!--  Skin  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Skin Resources">
+          <Grid ColumnDefinitions="Auto, *">
+            <Border
+              Width="48"
+              Height="48"
+              Margin="0,0,15,0"
+              Background="#22000000"
+              CornerRadius="8">
+              <materialIcons:MaterialIcon Kind="ImageBroken" Opacity="0.3" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="5">
+              <TextBlock Text="Selected Skin" />
+              <ComboBox HorizontalAlignment="Stretch" SelectedIndex="0">
+                <ComboBoxItem>WhiteCat 2.0 (CK)</ComboBoxItem>
+                <ComboBoxItem>Yugen</ComboBoxItem>
+                <ComboBoxItem>Default</ComboBoxItem>
+              </ComboBox>
+            </StackPanel>
+          </Grid>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <!--  Music Override  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Music Control">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*, Auto">
+              <StackPanel Spacing="0">
+                <TextBlock FontWeight="DemiBold" Text="Override Game Music" />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Experimental feature" />
+              </StackPanel>
+              <ToggleSwitch
+                Grid.Column="1"
+                Margin="0,0,8,0"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Separator Opacity="0.1" />
+            <CheckBox Content="Force Nightcore Beats" />
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <!--  Sync & Balance  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Audio Field">
+          <StackPanel Spacing="15">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock VerticalAlignment="Center" Text="Stereo Width" />
+              <TextBlock
+                Grid.Column="1"
+                FontWeight="Bold"
+                Foreground="{DynamicResource SukiPrimaryColor}"
+                Text="0.66" />
+            </Grid>
+            <Slider
+              Maximum="1"
+              Minimum="-1"
+              TickFrequency="0.1"
+              Value="0.666667" />
+            <Grid Margin="0,-10,0,0" ColumnDefinitions="Auto,*,Auto">
+              <TextBlock
+                FontSize="10"
+                Opacity="0.5"
+                Text="Narrow" />
+              <TextBlock
+                Grid.Column="1"
+                HorizontalAlignment="Center"
+                FontSize="10"
+                Opacity="0.5"
+                Text="Normal" />
+              <TextBlock
+                Grid.Column="2"
+                FontSize="10"
+                Opacity="0.5"
+                Text="Wide" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <!--  Filters  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Audio Filters">
+          <UniformGrid Columns="2">
+            <CheckBox Margin="0,5" Content="Disable Map Hitsounds" />
+            <CheckBox Margin="0,5" Content="Disable Storyboard" />
+            <CheckBox Margin="0,5" Content="Disable Slider Ticks" />
+            <CheckBox Margin="0,5" Content="Disable Combo Break" />
+            <CheckBox Margin="0,5" Content="Ignore Volume Changes" />
+          </UniformGrid>
+        </suki:GroupBox>
+      </suki:GlassCard>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
