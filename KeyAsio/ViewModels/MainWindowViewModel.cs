@@ -1,14 +1,16 @@
 using System.Collections.ObjectModel;
-using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Audio;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
+using KeyAsio.Views.Pages;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
+using SukiUI.Dialogs;
 
 namespace KeyAsio.ViewModels;
 
@@ -17,6 +19,52 @@ public partial class MainWindowViewModel
 {
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly AudioDeviceManager _audioDeviceManager;
+
+    public ISukiDialogManager DialogManager { get; } = new SukiDialogManager();
+
+    [ObservableProperty]
+    private object? _selectedMenuItem;
+
+    private bool _isNavigating;
+
+    partial void OnSelectedMenuItemChanging(object? oldValue, object? newValue)
+    {
+        if (_isNavigating) return;
+
+        // If we have unsaved changes and we are navigating away (newValue is different)
+        // We assume we are navigating away from AudioEnginePage because that's the only place modifying these settings.
+        if (!HasUnsavedAudioChanges || newValue == null || oldValue == newValue) return;
+        _isNavigating = true;
+        SelectedMenuItem = oldValue;
+        _isNavigating = false;
+
+        DialogManager.CreateDialog()
+            .WithTitle("Unsaved Changes")
+            .WithContent("You have unsaved changes in Audio Engine settings.\nDo you want to save them before leaving?")
+            .OfType(NotificationType.Warning)
+            .WithActionButton("Save", _ =>
+            {
+                ApplyAudioSettings();
+                NavigateTo(newValue);
+            }, true, classes: "")
+            .WithActionButton("Don't Save", _ =>
+            {
+                DiscardAudioSettings();
+                NavigateTo(newValue);
+            }, true, classes: "")
+            .WithActionButton("Cancel", _ =>
+            {
+                NavigateTo(oldValue);
+            }, true)
+            .TryShow();
+    }
+
+    private void NavigateTo(object? page)
+    {
+        _isNavigating = true;
+        SelectedMenuItem = page;
+        _isNavigating = false;
+    }
 
     private bool _isInitializing;
     private (DeviceDescription? PlaybackDevice, int SampleRate, bool EnableLimiter) _originalAudioSettings;

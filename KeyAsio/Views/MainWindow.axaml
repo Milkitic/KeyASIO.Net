@@ -30,12 +30,14 @@
 
   <suki:SukiWindow.Hosts>
     <suki:SukiToastHost Name="ToastHost" Position="BottomLeft" />
+    <suki:SukiDialogHost Manager="{Binding DialogManager}" />
   </suki:SukiWindow.Hosts>
 
   <suki:SukiSideMenu
     IsSearchEnabled="False"
     IsSelectedItemContentMovable="False"
-    IsToggleButtonVisible="True">
+    IsToggleButtonVisible="True" 
+    SelectedItem="{Binding SelectedMenuItem}">
     <suki:SukiSideMenu.Items>
 
       <!--  PAGE 1: DASHBOARD  -->

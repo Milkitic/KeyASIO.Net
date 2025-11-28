@@ -18,7 +18,7 @@
     <StackPanel Margin="20" Spacing="20">
       <suki:GlassCard>
         <suki:GroupBox Header="General">
-          <StackPanel Spacing="10">
+          <StackPanel Spacing="10" Margin="0,0,8,0">
             <Grid ColumnDefinitions="Auto,*,Auto">
               <materialIcons:MaterialIcon
                 Width="24"
@@ -94,7 +94,7 @@
 
       <suki:GlassCard>
         <suki:GroupBox Header="Input &amp; Performance">
-          <StackPanel Spacing="10">
+          <StackPanel Spacing="10" Margin="0,0,8,0">
             <Grid ColumnDefinitions="Auto,*,Auto">
               <materialIcons:MaterialIcon
                 Width="24"
