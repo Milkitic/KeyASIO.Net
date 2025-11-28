@@ -81,7 +81,7 @@
                   Grid.Column="2"
                   HorizontalAlignment="Stretch"
                   ItemsSource="{Binding SupportedSampleRates}"
-                  SelectedItem="{Binding AppSettings.Audio.SampleRate}" />
+                  SelectedItem="{Binding SelectedSampleRate}" />
               </Grid>
             </StackPanel>
           </suki:GroupBox>
@@ -135,7 +135,7 @@
                     Height="20"
                     Kind="Equalizer"
                     Opacity="0.6" />
-                  <CheckBox Content="Audio Limiter" IsChecked="{Binding AppSettings.Audio.EnableLimiter}" />
+                  <CheckBox Content="Audio Limiter" IsChecked="{Binding IsLimiterEnabled}" />
                 </StackPanel>
               </Grid>
             </StackPanel>
@@ -151,7 +151,8 @@
     <suki:GlassCard
       Margin="20"
       Padding="15"
-      VerticalAlignment="Bottom">
+      VerticalAlignment="Bottom"
+      IsVisible="{Binding HasUnsavedAudioChanges}">
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel
           VerticalAlignment="Center"
