@@ -36,11 +36,8 @@
                 <ComboBox
                   Grid.Column="2"
                   HorizontalAlignment="Stretch"
-                  SelectedIndex="0">
-                  <ComboBoxItem>WASAPI Exclusive</ComboBoxItem>
-                  <ComboBoxItem>ASIO</ComboBoxItem>
-                  <ComboBoxItem>DirectSound</ComboBoxItem>
-                </ComboBox>
+                  ItemsSource="{Binding AvailableDriverTypes}"
+                  SelectedItem="{Binding SelectedDriverType}" />
               </Grid>
               <Grid ColumnDefinitions="Auto,120,*">
                 <materialIcons:MaterialIcon
@@ -58,9 +55,13 @@
                 <ComboBox
                   Grid.Column="2"
                   HorizontalAlignment="Stretch"
-                  SelectedIndex="0">
-                  <ComboBoxItem>Focusrite USB Audio</ComboBoxItem>
-                  <ComboBoxItem>Realtek HD Audio</ComboBoxItem>
+                  ItemsSource="{Binding AvailableAudioDevices}"
+                  SelectedItem="{Binding SelectedAudioDevice}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding FriendlyName}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
                 </ComboBox>
               </Grid>
               <Grid ColumnDefinitions="Auto,120,*">
@@ -79,12 +80,8 @@
                 <ComboBox
                   Grid.Column="2"
                   HorizontalAlignment="Stretch"
-                  SelectedIndex="3">
-                  <ComboBoxItem>44100 Hz</ComboBoxItem>
-                  <ComboBoxItem>48000 Hz</ComboBoxItem>
-                  <ComboBoxItem>96000 Hz</ComboBoxItem>
-                  <ComboBoxItem>192000 Hz</ComboBoxItem>
-                </ComboBox>
+                  ItemsSource="{Binding SupportedSampleRates}"
+                  SelectedItem="{Binding AppSettings.Audio.SampleRate}" />
               </Grid>
             </StackPanel>
           </suki:GroupBox>
@@ -138,7 +135,7 @@
                     Height="20"
                     Kind="Equalizer"
                     Opacity="0.6" />
-                  <CheckBox Content="Audio Limiter" IsChecked="{Binding IsLimiterEnabled}" />
+                  <CheckBox Content="Audio Limiter" IsChecked="{Binding AppSettings.Audio.EnableLimiter}" />
                 </StackPanel>
               </Grid>
             </StackPanel>
@@ -175,7 +172,6 @@
           Orientation="Horizontal"
           Spacing="10">
           <Button
-            Classes="Flat"
             Command="{Binding DiscardAudioSettingsCommand}"
             Content="Discard" />
           <Button

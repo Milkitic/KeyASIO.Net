@@ -52,7 +52,7 @@
               <TextBox
                 Margin="0,0,10,0"
                 IsReadOnly="True"
-                Text="E:\Games\osu!" />
+                Text="{Binding AppSettings.Paths.OsuFolderPath}" />
               <Button
                 Grid.Column="1"
                 Width="35"
@@ -86,7 +86,7 @@
                 FormatString="#"
                 Maximum="16"
                 Minimum="1"
-                Value="2" />
+                Value="{Binding AppSettings.Performance.AudioCacheThreadCount}" />
             </Grid>
           </StackPanel>
         </suki:GroupBox>
@@ -133,6 +133,7 @@
               </StackPanel>
               <ToggleSwitch
                 Grid.Column="2"
+                IsChecked="{Binding AppSettings.Performance.EnableAvx512}"
                 OffContent="Off"
                 OnContent="On" />
             </Grid>
@@ -150,6 +151,7 @@
                 Text="Debug Console" />
               <ToggleSwitch
                 Grid.Column="2"
+                IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}"
                 OffContent="Off"
                 OnContent="On" />
             </Grid>
@@ -167,7 +169,7 @@
                 Text="Error Reporting" />
               <ToggleSwitch
                 Grid.Column="2"
-                IsChecked="True"
+                IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}"
                 OffContent="Off"
                 OnContent="On" />
             </Grid>

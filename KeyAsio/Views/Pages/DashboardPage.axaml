@@ -31,7 +31,7 @@
         </StackPanel>
         <ToggleSwitch
           Grid.Column="1"
-          IsChecked="{Binding RealtimeMode}"
+          IsChecked="{Binding AppSettings.Realtime.RealtimeMode}"
           OffContent="Key Only"
           OnContent="Sync Mode" />
       </Grid>
