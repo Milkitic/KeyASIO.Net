@@ -131,11 +131,19 @@
             Opacity="0.7"
             Text="Changes require application to take effect" />
         </StackPanel>
-        <Button
+        <StackPanel
           Grid.Column="1"
-          Classes="Flat"
-          Command="{Binding ApplyAudioSettingsCommand}"
-          Content="Apply Settings" />
+          Orientation="Horizontal"
+          Spacing="10">
+          <Button
+            Classes="Flat"
+            Command="{Binding DiscardAudioSettingsCommand}"
+            Content="Discard" />
+          <Button
+            Classes="Flat"
+            Command="{Binding ApplyAudioSettingsCommand}"
+            Content="Apply Settings" />
+        </StackPanel>
       </Grid>
     </suki:GlassCard>
   </Grid>

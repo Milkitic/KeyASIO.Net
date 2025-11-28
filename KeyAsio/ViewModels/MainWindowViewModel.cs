@@ -52,4 +52,10 @@ public partial class MainWindowViewModel
     {
         // TODO: Apply settings to the audio engine
     }
+
+    [RelayCommand]
+    private void DiscardAudioSettings()
+    {
+        // TODO: Discard changes and revert to current settings
+    }
 }

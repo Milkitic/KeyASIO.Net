@@ -10,7 +10,7 @@
   xmlns:vm="using:KeyAsio.ViewModels"
   Title="KeyAsio"
   Width="900"
-  Height="650"
+  Height="697"
   x:DataType="vm:MainWindowViewModel"
   BackgroundAnimationEnabled="False"
   BackgroundStyle="GradientSoft"
@@ -91,7 +91,7 @@
         <TextBlock
           HorizontalAlignment="Center"
           Classes="h4"
-          FontWeight="Black"
+          FontWeight="SemiBold"
           Text="KeyAsio" />
         <TextBlock HorizontalAlignment="Center" Opacity="0.5">
           <Run Text="v" /><Run Text="{Binding UpdateService.Version}" />
@@ -103,6 +103,12 @@
     <suki:SukiSideMenu.FooterContent>
       <StackPanel Margin="15">
         <Separator Margin="0,0,0,10" Opacity="0.1" />
+
+        <TextBlock
+          Margin="0,0,0,5"
+          FontSize="12"
+          FontWeight="SemiBold"
+          Text="Master" />
         <Grid ColumnDefinitions="Auto,*,Auto">
           <materialIcons:MaterialIcon
             Margin="0,0,10,0"
@@ -110,14 +116,60 @@
             Opacity="0.7" />
           <Slider
             Grid.Column="1"
-            Maximum="100"
-            Value="35" />
+            Maximum="150"
+            Value="{Binding AppSettings.Audio.MasterVolume}" />
           <TextBlock
             Grid.Column="2"
             Width="35"
             Margin="10,0,0,0"
             VerticalAlignment="Center"
-            Text="35%"
+            Text="{Binding AppSettings.Audio.MasterVolume, StringFormat='{}{0}%'}"
+            TextAlignment="Right" />
+        </Grid>
+
+        <TextBlock
+          Margin="0,10,0,5"
+          FontSize="12"
+          FontWeight="SemiBold"
+          Text="Music" />
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <materialIcons:MaterialIcon
+            Margin="0,0,10,0"
+            Kind="MusicNote"
+            Opacity="0.7" />
+          <Slider
+            Grid.Column="1"
+            Maximum="100"
+            Value="{Binding AppSettings.Audio.MusicVolume}" />
+          <TextBlock
+            Grid.Column="2"
+            Width="35"
+            Margin="10,0,0,0"
+            VerticalAlignment="Center"
+            Text="{Binding AppSettings.Audio.MusicVolume, StringFormat='{}{0}%'}"
+            TextAlignment="Right" />
+        </Grid>
+
+        <TextBlock
+          Margin="0,10,0,5"
+          FontSize="12"
+          FontWeight="SemiBold"
+          Text="Effect" />
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <materialIcons:MaterialIcon
+            Margin="0,0,10,0"
+            Kind="Flash"
+            Opacity="0.7" />
+          <Slider
+            Grid.Column="1"
+            Maximum="100"
+            Value="{Binding AppSettings.Audio.EffectVolume}" />
+          <TextBlock
+            Grid.Column="2"
+            Width="35"
+            Margin="10,0,0,0"
+            VerticalAlignment="Center"
+            Text="{Binding AppSettings.Audio.EffectVolume, StringFormat='{}{0}%'}"
             TextAlignment="Right" />
         </Grid>
       </StackPanel>
