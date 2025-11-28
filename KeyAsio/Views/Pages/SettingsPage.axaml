@@ -16,140 +16,190 @@
 
   <ScrollViewer>
     <StackPanel Margin="20" Spacing="20">
-      <TextBlock
-        Classes="h3"
-        FontWeight="Bold"
-        Text="System Configuration" />
-
       <suki:GlassCard>
-        <StackPanel Spacing="10">
-          <Grid ColumnDefinitions="*,Auto">
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="Allow Multiple Instances" />
-              <TextBlock
-                FontSize="10"
-                Opacity="0.5"
-                Text="Restart required" />
-            </StackPanel>
-            <ToggleSwitch
-              Grid.Column="1"
-              IsChecked="{Binding AppSettings.General.AllowMultipleInstance}"
-              OffContent="Off"
-              OnContent="On" />
-          </Grid>
-        </StackPanel>
+        <suki:GroupBox Header="General">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="LayersTriple"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Allow Multiple Instances" />
+                <TextBlock
+                  FontSize="10"
+                  Opacity="0.5"
+                  Text="Restart required" />
+              </StackPanel>
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.General.AllowMultipleInstance}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
       </suki:GlassCard>
 
       <suki:GlassCard>
-        <StackPanel Spacing="15">
-          <TextBlock Text="osu! Folder Path" />
-          <Grid ColumnDefinitions="*, Auto">
-            <TextBox
-              Margin="0,0,10,0"
-              IsReadOnly="True"
-              Text="E:\Games\osu!" />
-            <Button
-              Grid.Column="1"
-              Width="35"
-              Height="35"
-              Padding="0"
-              Classes="Flat">
-              <materialIcons:MaterialIcon Kind="FolderOpen" />
-            </Button>
-          </Grid>
+        <suki:GroupBox Header="Environment">
+          <StackPanel Spacing="15">
+            <TextBlock Text="osu! Folder Path" />
+            <Grid ColumnDefinitions="*, Auto">
+              <TextBox
+                Margin="0,0,10,0"
+                IsReadOnly="True"
+                Text="E:\Games\osu!" />
+              <Button
+                Grid.Column="1"
+                Width="35"
+                Height="35"
+                Padding="0"
+                Classes="Flat">
+                <materialIcons:MaterialIcon Kind="FolderOpen" />
+              </Button>
+            </Grid>
 
-          <Separator Opacity="0.1" />
+            <Separator Opacity="0.1" />
 
-          <Grid ColumnDefinitions="*,Auto">
-            <StackPanel>
-              <TextBlock Text="Audio Cache Threads" />
-              <TextBlock
-                FontSize="10"
-                Opacity="0.5"
-                Text="Restart required" />
-            </StackPanel>
-            <NumericUpDown
-              Grid.Column="1"
-              Classes="SettingItem"
-              FormatString="#"
-              Maximum="16"
-              Minimum="1"
-              Value="2" />
-          </Grid>
-        </StackPanel>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Cpu64Bit"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="Audio Cache Threads" />
+                <TextBlock
+                  FontSize="10"
+                  Opacity="0.5"
+                  Text="Restart required" />
+              </StackPanel>
+              <NumericUpDown
+                Grid.Column="2"
+                Classes="SettingItem"
+                FormatString="#"
+                Maximum="16"
+                Minimum="1"
+                Value="2" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
       </suki:GlassCard>
 
       <suki:GlassCard>
-        <StackPanel Spacing="10">
-          <Grid ColumnDefinitions="*,Auto">
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="Raw Input" />
+        <suki:GroupBox Header="Input &amp; Performance">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="KeyboardVariant"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Raw Input" />
+                <TextBlock
+                  FontSize="10"
+                  Opacity="0.5"
+                  Text="Low latency input mode" />
+              </StackPanel>
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Input.UseRawInput}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="RocketLaunch"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Enable AVX-512" />
+                <TextBlock
+                  FontSize="10"
+                  Opacity="0.5"
+                  Text="Performance Boost" />
+              </StackPanel>
+              <ToggleSwitch
+                Grid.Column="2"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Console"
+                Opacity="0.6" />
               <TextBlock
-                FontSize="10"
-                Opacity="0.5"
-                Text="Low latency input mode" />
-            </StackPanel>
-            <ToggleSwitch
-              Grid.Column="1"
-              IsChecked="{Binding AppSettings.Input.UseRawInput}"
-              OffContent="Off"
-              OnContent="On" />
-          </Grid>
-          <Grid ColumnDefinitions="*,Auto">
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="Enable AVX-512" />
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Debug Console" />
+              <ToggleSwitch
+                Grid.Column="2"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Bug"
+                Opacity="0.6" />
               <TextBlock
-                FontSize="10"
-                Opacity="0.5"
-                Text="Performance Boost" />
-            </StackPanel>
-            <ToggleSwitch
-              Grid.Column="1"
-              OffContent="Off"
-              OnContent="On" />
-          </Grid>
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock VerticalAlignment="Center" Text="Debug Console" />
-            <ToggleSwitch
-              Grid.Column="1"
-              OffContent="Off"
-              OnContent="On" />
-          </Grid>
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock VerticalAlignment="Center" Text="Error Reporting" />
-            <ToggleSwitch
-              Grid.Column="1"
-              IsChecked="True"
-              OffContent="Off"
-              OnContent="On" />
-          </Grid>
-        </StackPanel>
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Error Reporting" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="True"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
       </suki:GlassCard>
 
       <suki:GlassCard>
-        <StackPanel Spacing="15">
-          <Grid ColumnDefinitions="*,Auto">
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock FontWeight="DemiBold" Text="Updates" />
-              <TextBlock
-                FontSize="11"
-                IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                Opacity="0.6">
-                <Run Text="Update available: v" /><Run Text="{Binding UpdateService.NewVersion}" />
-              </TextBlock>
-              <TextBlock
-                FontSize="11"
-                IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                Opacity="0.6"
-                Text="No updates available." />
-            </StackPanel>
-            <Button
-              Grid.Column="1"
-              Classes="Flat"
-              Content="Check for Updates" />
-          </Grid>
-          <Separator Opacity="0.1" />
-          <Grid ColumnDefinitions="*,Auto">
+        <suki:GroupBox Header="About">
+          <StackPanel Spacing="15">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock FontWeight="DemiBold" Text="Updates" />
+                <TextBlock
+                  FontSize="11"
+                  IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                  Opacity="0.6">
+                  <Run Text="Update available: v" /><Run Text="{Binding UpdateService.NewVersion}" />
+                </TextBlock>
+                <TextBlock
+                  FontSize="11"
+                  IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                  Opacity="0.6"
+                  Text="No updates available." />
+              </StackPanel>
+              <Button
+                Grid.Column="1"
+                Classes="Flat"
+                Content="Check for Updates" />
+            </Grid>
+            <Separator Opacity="0.1" />
+            <Grid ColumnDefinitions="*,Auto">
             <StackPanel VerticalAlignment="Center">
               <TextBlock Text="Copyright © 2022-2025 Milkitic (aka. yf_bmp)." />
               <TextBlock
@@ -158,7 +208,7 @@
                 Text="Licensed under GPL-3.0" />
             </StackPanel>
             <Button
-              Grid.Column="1" 
+              Grid.Column="1"
               Padding="8"
               Classes="Flat">
               <materialIcons:MaterialIcon

@@ -25,13 +25,21 @@
         <suki:GlassCard>
           <suki:GroupBox Header="Backend Selection">
             <StackPanel Spacing="15">
-              <Grid ColumnDefinitions="120,*">
+              <Grid ColumnDefinitions="Auto,120,*">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Margin="0,0,10,0"
+                  Foreground="{DynamicResource SukiText}"
+                  Kind="DeveloperBoard"
+                  Opacity="0.6" />
                 <TextBlock
+                  Grid.Column="1"
                   VerticalAlignment="Center"
                   Opacity="0.7"
                   Text="Driver Type" />
                 <ComboBox
-                  Grid.Column="1"
+                  Grid.Column="2"
                   HorizontalAlignment="Stretch"
                   SelectedIndex="0">
                   <ComboBoxItem>WASAPI Exclusive</ComboBoxItem>
@@ -39,26 +47,42 @@
                   <ComboBoxItem>DirectSound</ComboBoxItem>
                 </ComboBox>
               </Grid>
-              <Grid ColumnDefinitions="120,*">
+              <Grid ColumnDefinitions="Auto,120,*">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Margin="0,0,10,0"
+                  Foreground="{DynamicResource SukiText}"
+                  Kind="Speaker"
+                  Opacity="0.6" />
                 <TextBlock
+                  Grid.Column="1"
                   VerticalAlignment="Center"
                   Opacity="0.7"
                   Text="Output Device" />
                 <ComboBox
-                  Grid.Column="1"
+                  Grid.Column="2"
                   HorizontalAlignment="Stretch"
                   SelectedIndex="0">
                   <ComboBoxItem>Focusrite USB Audio</ComboBoxItem>
                   <ComboBoxItem>Realtek HD Audio</ComboBoxItem>
                 </ComboBox>
               </Grid>
-              <Grid ColumnDefinitions="120,*">
+              <Grid ColumnDefinitions="Auto,120,*">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Margin="0,0,10,0"
+                  Foreground="{DynamicResource SukiText}"
+                  Kind="Waveform"
+                  Opacity="0.6" />
                 <TextBlock
+                  Grid.Column="1"
                   VerticalAlignment="Center"
                   Opacity="0.7"
                   Text="Sample Rate" />
                 <ComboBox
-                  Grid.Column="1"
+                  Grid.Column="2"
                   HorizontalAlignment="Stretch"
                   SelectedIndex="3">
                   <ComboBoxItem>44100 Hz</ComboBoxItem>
@@ -79,10 +103,20 @@
 
         <suki:GlassCard>
           <StackPanel Spacing="20">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock VerticalAlignment="Center" Text="Target Buffer Size" />
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="TimerSand"
+                Opacity="0.6" />
               <TextBlock
                 Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Target Buffer Size" />
+              <TextBlock
+                Grid.Column="2"
                 FontWeight="Bold"
                 Foreground="{DynamicResource SukiPrimaryColor}"
                 Text="{Binding TargetBufferSize, StringFormat='{}{0} ms'}" />
@@ -97,11 +131,25 @@
             <Separator Opacity="0.1" />
 
             <Grid ColumnDefinitions="*,*">
-              <CheckBox Content="Exclusive Mode" IsChecked="{Binding IsExclusiveMode}" />
-              <CheckBox
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Kind="Lock"
+                  Opacity="0.6" />
+                <CheckBox Content="Exclusive Mode" IsChecked="{Binding IsExclusiveMode}" />
+              </StackPanel>
+              <StackPanel
                 Grid.Column="1"
-                Content="Audio Limiter"
-                IsChecked="{Binding IsLimiterEnabled}" />
+                Orientation="Horizontal"
+                Spacing="10">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Kind="Equalizer"
+                  Opacity="0.6" />
+                <CheckBox Content="Audio Limiter" IsChecked="{Binding IsLimiterEnabled}" />
+              </StackPanel>
             </Grid>
           </StackPanel>
         </suki:GlassCard>
