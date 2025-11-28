@@ -28,6 +28,10 @@
     <vm:MainWindowViewModel />
   </Design.DataContext>
 
+  <suki:SukiWindow.Hosts>
+    <suki:SukiToastHost Name="ToastHost" Position="BottomLeft"/>
+  </suki:SukiWindow.Hosts>
+
   <suki:SukiSideMenu
     IsSearchEnabled="False"
     IsSelectedItemContentMovable="False"

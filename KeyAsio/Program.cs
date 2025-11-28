@@ -2,6 +2,7 @@
 using Avalonia;
 using KeyAsio.Audio;
 using KeyAsio.MemoryReading;
+using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
 using KeyAsio.Shared.Realtime;
@@ -57,7 +58,7 @@ internal sealed class Program
             })
             .ConfigureServices(services => services
                 .AddSingleton<App>()
-                //.AddSingleton<Updater>()
+                .AddSingleton<UpdateService>()
                 .AddSingleton<MemoryScan>()
                 .AddAudioModule()
                 .AddRealtimeModule()
