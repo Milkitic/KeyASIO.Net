@@ -42,6 +42,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Octokit" Version="14.0.0" />
+    <PackageReference Include="Semver" Version="3.0.0" />
     <PackageReference Include="SukiUI" Version="6.0.3" />
   </ItemGroup>
 
