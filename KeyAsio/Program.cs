@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Avalonia;
 using KeyAsio.Audio;
 using KeyAsio.MemoryReading;
@@ -31,16 +31,24 @@ internal sealed class Program
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-        using var mutex = new Mutex(true, "KeyAsio.Net", out bool createNew);
-        if (!createNew)
+        var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>(
+            ".", "appsettings.yaml", MyYamlConfigurationConverter.Instance);
+
+        Mutex? mutex = null;
+
+        if (!appSettings.General.AllowMultipleInstance)
         {
-            var process = Process
-                .GetProcessesByName(Process.GetCurrentProcess().ProcessName)
-                .FirstOrDefault(k => k.Id != Environment.ProcessId && k.MainWindowHandle != IntPtr.Zero);
-            if (process == null || !OperatingSystem.IsWindowsVersionAtLeast(5)) return;
-            PInvoke.ShowWindow((HWND)process.MainWindowHandle, SHOW_WINDOW_CMD.SW_SHOW);
-            PInvoke.SetForegroundWindow((HWND)process.MainWindowHandle);
-            return;
+            mutex = new Mutex(true, "KeyAsio.Net", out bool createNew);
+            if (!createNew)
+            {
+                var process = Process
+                    .GetProcessesByName(Process.GetCurrentProcess().ProcessName)
+                    .FirstOrDefault(k => k.Id != Environment.ProcessId && k.MainWindowHandle != IntPtr.Zero);
+                if (process == null || !OperatingSystem.IsWindowsVersionAtLeast(5)) return;
+                PInvoke.ShowWindow((HWND)process.MainWindowHandle, SHOW_WINDOW_CMD.SW_SHOW);
+                PInvoke.SetForegroundWindow((HWND)process.MainWindowHandle);
+                return;
+            }
         }
 
         if (!OperatingSystem.IsWindowsVersionAtLeast(6))
@@ -63,8 +71,7 @@ internal sealed class Program
                 .AddAudioModule()
                 .AddRealtimeModule()
                 .AddGuiModule()
-                .AddSingleton(provider => ConfigurationFactory.GetConfiguration<AppSettings>(
-                    ".", "appsettings.yaml", MyYamlConfigurationConverter.Instance)))
+                .AddSingleton(appSettings))
             .Build();
         try
         {
@@ -73,6 +80,7 @@ internal sealed class Program
         finally
         {
             Host?.Dispose();
+            mutex?.Dispose();
         }
     }
 

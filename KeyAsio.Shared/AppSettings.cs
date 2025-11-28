@@ -8,12 +8,19 @@ namespace KeyAsio.Shared;
 
 public class AppSettings : IConfigurationBase
 {
+    public AppSettingsGeneral General { get => field ??= new(); init; }
     public AppSettingsInput Input { get => field ??= new(); init; }
     public AppSettingsPaths Paths { get => field ??= new(); init; }
     public AppSettingsAudio Audio { get => field ??= new(); init; }
     public AppSettingsLogging Logging { get => field ??= new(); init; }
     public AppSettingsPerformance Performance { get => field ??= new(); init; }
     public AppSettingsRealtime Realtime { get => field ??= new(); init; }
+}
+
+public partial class AppSettingsGeneral : INotifyPropertyChanged
+{
+    [Description("Allow multiple instances of the application to run simultaneously.")]
+    public bool AllowMultipleInstance { get; set; }
 }
 
 public partial class AppSettingsInput : INotifyPropertyChanged

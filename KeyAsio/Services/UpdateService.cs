@@ -79,6 +79,8 @@ public partial class UpdateService
             if (remoteSemVersion.ComparePrecedenceTo(SemVersion) <= 0)
             {
                 NewRelease = null;
+                NewVersion = null;
+                NewSemVersion = null;
                 return false;
             }
 
