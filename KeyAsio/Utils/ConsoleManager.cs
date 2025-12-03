@@ -1,144 +1,149 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.Console;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace KeyAsio.Utils;
 
 [SuppressUnmanagedCodeSecurity]
+[SupportedOSPlatform("windows5.0")]
 public static class ConsoleManager
 {
-    // ReSharper disable InconsistentNaming
-    [Flags]
-    public enum CharacterAttributes
+    private static PHANDLER_ROUTINE? _handler;
+
+    private static readonly IntPtr OriginalConsoleWindow;
+    private static readonly bool IsOriginalConsoleApp;
+
+    static ConsoleManager()
     {
-        FOREGROUND_BLUE = 0x0001,
-        FOREGROUND_GREEN = 0x0002,
-        FOREGROUND_RED = 0x0004,
-        FOREGROUND_INTENSITY = 0x0008,
-        BACKGROUND_BLUE = 0x0010,
-        BACKGROUND_GREEN = 0x0020,
-        BACKGROUND_RED = 0x0040,
-        BACKGROUND_INTENSITY = 0x0080,
-        COMMON_LVB_LEADING_BYTE = 0x0100,
-        COMMON_LVB_TRAILING_BYTE = 0x0200,
-        COMMON_LVB_GRID_HORIZONTAL = 0x0400,
-        COMMON_LVB_GRID_LVERTICAL = 0x0800,
-        COMMON_LVB_GRID_RVERTICAL = 0x1000,
-        COMMON_LVB_REVERSE_VIDEO = 0x4000,
-        COMMON_LVB_UNDERSCORE = 0x8000
+        OriginalConsoleWindow = PInvoke.GetConsoleWindow();
+        IsOriginalConsoleApp = OriginalConsoleWindow != IntPtr.Zero;
     }
 
-    private static ConsoleEventDelegate? _handler;
-    private delegate bool ConsoleEventDelegate(int eventType);
-    public static bool HasConsole => GetConsoleWindow() != IntPtr.Zero;
+    public static string? Title { get; set; } = Assembly.GetExecutingAssembly().GetName().Name + " Debugging Console";
+    public static ConsoleColor? PromptForeground { get; set; } = ConsoleColor.DarkYellow;
+    public static ConsoleColor? PromptBackground { get; set; }
+    public static string OpenPrompt { get; set; } = "Note: Closing this window will lead to program exiting.";
+    public static string ClosePrompt { get; set; } = "User manually closes debug window. Program will now exit.";
 
-    private const string Kernel32_DllName = "kernel32.dll";
-    // ReSharper restore InconsistentNaming
+    public static bool HasConsole
+    {
+        get
+        {
+            if (IsOriginalConsoleApp)
+            {
+                return PInvoke.IsWindowVisible((HWND)OriginalConsoleWindow);
+            }
 
-    [DllImport(Kernel32_DllName)]
-    private static extern bool AllocConsole();
+            var consoleWindow = PInvoke.GetConsoleWindow();
+            return consoleWindow != IntPtr.Zero;
+        }
+    }
 
-    [DllImport(Kernel32_DllName)]
-    private static extern bool FreeConsole();
-
-    [DllImport(Kernel32_DllName)]
-    private static extern IntPtr GetConsoleWindow();
-
-    [DllImport(Kernel32_DllName)]
-    private static extern int GetConsoleOutputCP();
-    [DllImport(Kernel32_DllName)]
-    private static extern int SetConsoleTextAttribute(IntPtr hConsoleOutput,
-        CharacterAttributes wAttributes);
-    [DllImport(Kernel32_DllName, SetLastError = true)]
-    private static extern bool SetConsoleCtrlHandler(ConsoleEventDelegate callback, bool add);
-
-    private const int MF_BYCOMMAND = 0x00000000;
-    public const int SC_CLOSE = 0xF060;
-
-    [DllImport("user32.dll")]
-    public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
-
-    /// <summary>
-    /// Creates a new console instance if the process is not attached to a console already.
-    /// </summary>
     public static void Show()
     {
         if (HasConsole) return;
-        AllocConsole();
-        InvalidateOutAndError();
-        Console.Title = "KeyASIO Debugging Console";
-        Console.ForegroundColor = ConsoleColor.DarkYellow;
-        Console.WriteLine("Note: Closing this window will lead to program exiting.");
+        if (IsOriginalConsoleApp)
+        {
+            PInvoke.ShowWindow((HWND)OriginalConsoleWindow, SHOW_WINDOW_CMD.SW_SHOW);
+        }
+        else
+        {
+            CheckSuccess(PInvoke.AllocConsole(), "Failed to alloc console.");
+        }
+
+        RebindConsoleStreams();
+
+        if (Title != null) Console.Title = Title;
+        if (PromptForeground is { } foreground)
+            Console.ForegroundColor = foreground;
+        if (PromptBackground is { } background)
+            Console.BackgroundColor = background;
+        Console.WriteLine(OpenPrompt);
         Console.ResetColor();
-        var hMenu = GetSystemMenu(GetConsoleWindow(), false);
-        DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
+        PInvoke.DeleteMenu(
+            PInvoke.GetSystemMenu(PInvoke.GetConsoleWindow(), false),
+            PInvoke.SC_CLOSE,
+            MENU_ITEM_FLAGS.MF_BYCOMMAND);
+    }
+
+    public static void Hide()
+    {
+        if (!HasConsole) return;
+
+        SetOutAndErrorNull();
+
+        if (IsOriginalConsoleApp)
+        {
+            PInvoke.ShowWindow((HWND)OriginalConsoleWindow, SHOW_WINDOW_CMD.SW_HIDE);
+        }
+        else
+        {
+            CheckSuccess(PInvoke.FreeConsole(), "Failed to destroy console.");
+        }
+    }
+
+    public static void Toggle()
+    {
+        if (HasConsole)
+            Hide();
+        else
+            Show();
     }
 
     public static void BindExitAction(Action? exitAction)
     {
         if (exitAction == null || _handler != null) return;
-        _handler = eventType =>
+        _handler = dwCtrlType =>
         {
-            if (eventType != 2) return false;
+            if (dwCtrlType is not (PInvoke.CTRL_C_EVENT or PInvoke.CTRL_BREAK_EVENT or PInvoke.CTRL_CLOSE_EVENT))
+                return false;
+            if (PromptForeground is { } foreground)
+                Console.ForegroundColor = foreground;
+            if (PromptBackground is { } background)
+                Console.BackgroundColor = background;
+            Console.WriteLine(ClosePrompt);
+            Console.ResetColor();
             exitAction();
             return true;
         };
-
-        SetConsoleCtrlHandler(_handler, true);
+        CheckSuccess(PInvoke.SetConsoleCtrlHandler(_handler, true),
+            "Failed to set console control handler.");
     }
 
-    /// <summary>
-    /// If the process has a console attached to it, it will be detached and no longer visible. Writing to the System.Console is still possible, but no output will be shown.
-    /// </summary>
-    public static void Hide()
+    private static void RebindConsoleStreams()
     {
-        if (!HasConsole) return;
-        SetOutAndErrorNull();
-        FreeConsole();
-    }
+        var stdOut = new StreamWriter(Console.OpenStandardOutput(), Console.OutputEncoding)
+        {
+            AutoFlush = true
+        };
+        Console.SetOut(stdOut);
 
-    private static void InvalidateOutAndError()
-    {
-        var type = typeof(Console);
-        var fieldOut = type.GetField(
-#if NETCOREAPP3_1_OR_GREATER
-                "s_out",
-#else
-            "_out",
-#endif
-
-            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-
-        var fieldError = type.GetField(
-#if NETCOREAPP3_1_OR_GREATER
-                "s_error",
-#else
-            "_error",
-#endif
-            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-
-        //System.Reflection.MethodInfo? _InitializeStdOutError = type.GetMethod("InitializeStdOutError",
-        //    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-
-        Debug.Assert(fieldOut != null);
-        Debug.Assert(fieldError != null);
-
-        //Debug.Assert(_InitializeStdOutError != null);
-
-        fieldOut.SetValue(null, null);
-        fieldError.SetValue(null, null);
-
-        _ = Console.Out;
-        _ = Console.Error;
-        //_InitializeStdOutError.Invoke(null, new object[] { true });
+        var stdErr = new StreamWriter(Console.OpenStandardError(), Console.OutputEncoding)
+        {
+            AutoFlush = true
+        };
+        Console.SetError(stdErr);
     }
 
     private static void SetOutAndErrorNull()
     {
+        Console.Out.Dispose();
+        Console.Error.Dispose();
+
         Console.SetOut(TextWriter.Null);
         Console.SetError(TextWriter.Null);
+    }
+
+    private static void CheckSuccess(BOOL success, string error)
+    {
+        if (success) return;
+        var errorCode = Marshal.GetLastWin32Error();
+        if (errorCode != 0) throw new InvalidOperationException(error, new Win32Exception(errorCode));
     }
 }

@@ -18,6 +18,7 @@
   Icon="/Assets/KeyAsio.ico"
   Loaded="Control_OnLoaded"
   TitleBarAnimationEnabled="False"
+  WindowStartupLocation="CenterScreen"
   mc:Ignorable="d">
 
   <Design.DataContext>
@@ -36,7 +37,7 @@
   <suki:SukiSideMenu
     IsSearchEnabled="False"
     IsSelectedItemContentMovable="False"
-    IsToggleButtonVisible="True" 
+    IsToggleButtonVisible="True"
     SelectedItem="{Binding SelectedMenuItem}">
     <suki:SukiSideMenu.Items>
 

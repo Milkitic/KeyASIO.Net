@@ -1,7 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
+using KeyAsio.Shared;
+using KeyAsio.Utils;
 using KeyAsio.ViewModels;
 using Microsoft.Extensions.Logging;
+using Milki.Extensions.Configuration;
 using SukiUI.Controls;
 using SukiUI.Enums;
 using SukiUI.Toasts;
@@ -20,6 +24,34 @@ public partial class MainWindow : SukiWindow
         DataContext = _viewModel = mainWindowViewModel;
         InitializeComponent();
         ToastHost.Manager = _mainWindowManager;
+        BindOptions();
+    }
+
+    private void BindOptions()
+    {
+        ConsoleManager.BindExitAction(() =>
+        {
+            Dispatcher.UIThread.Invoke(Close);
+            Thread.Sleep(1000);
+        });
+
+        var appSettings = _viewModel.AppSettings;
+        appSettings.Logging.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppSettingsLogging.EnableDebugConsole))
+            {
+                if (appSettings.Logging.EnableDebugConsole)
+                {
+                    ConsoleManager.Show();
+                }
+                else
+                {
+                    ConsoleManager.Hide();
+                }
+
+                appSettings.Save();
+            }
+        };
     }
 
     #region For Designer

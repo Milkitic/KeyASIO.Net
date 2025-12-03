@@ -6,3 +6,18 @@ TD_ERROR_ICON
 
 ShowWindow
 SetForegroundWindow
+
+AllocConsole
+FreeConsole
+GetConsoleWindow
+GetConsoleOutputCP
+SetConsoleTextAttribute
+SetConsoleCtrlHandler
+SC_CLOSE
+IsWindowVisible
+DeleteMenu
+GetSystemMenu
+
+CTRL_C_EVENT
+CTRL_BREAK_EVENT
+CTRL_CLOSE_EVENT
