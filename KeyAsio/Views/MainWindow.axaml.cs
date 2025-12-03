@@ -3,6 +3,8 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using KeyAsio.Audio.SampleProviders.BalancePans;
+using KeyAsio.Audio.Utils;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Utils;
@@ -51,8 +53,14 @@ public partial class MainWindow : SukiWindow
                 {
                     ConsoleManager.Hide();
                 }
-
-                appSettings.Save();
+            }
+        }; 
+        appSettings.Performance.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppSettingsPerformance.EnableAvx512))
+            {
+                SimdAudioConverter.EnableAvx512 = appSettings.Performance.EnableAvx512;
+                ProfessionalBalanceProvider.EnableAvx512 = appSettings.Performance.EnableAvx512;
             }
         };
     }
