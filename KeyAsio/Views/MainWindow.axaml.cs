@@ -71,6 +71,26 @@ public partial class MainWindow : SukiWindow
         {
             if (Design.IsDesignMode) return;
 
+            if (!_viewModel.AppSettings.Logging.ErrorReportingConfirmed)
+            {
+                _mainWindowManager.CreateToast()
+                    .WithTitle("Enable Error Reporting")
+                    .WithContent("Send logs and errors to developer?\r\nYou can change option later.")
+                    .WithActionButton("No", _ =>
+                    {
+                        _viewModel.AppSettings.Logging.EnableErrorReporting = false;
+                        _viewModel.AppSettings.Logging.ErrorReportingConfirmed = true;
+                        _viewModel.AppSettings.Save();
+                    }, true, SukiButtonStyles.Basic)
+                    .WithActionButton("Yes", _ =>
+                    {
+                        _viewModel.AppSettings.Logging.EnableErrorReporting = true;
+                        _viewModel.AppSettings.Logging.ErrorReportingConfirmed = true;
+                        _viewModel.AppSettings.Save();
+                    }, true)
+                    .Queue();
+            }
+
             //var theme = SukiTheme.GetInstance();
             var updateService = _viewModel.UpdateService;
             var result = await updateService.CheckUpdateAsync();
