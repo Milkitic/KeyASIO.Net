@@ -23,8 +23,13 @@ public class KeyAsioSentryEventProcessor : ISentryEventProcessor
         _appSettings = appSettings;
     }
 
-    public SentryEvent Process(SentryEvent @event)
+    public SentryEvent? Process(SentryEvent @event)
     {
+        if (!_appSettings.Logging.EnableErrorReporting)
+        {
+            return null;
+        }
+
         @event.SetTag("osu.filename_real", _gameplaySessionManager.OsuFile?.ToString() ?? "");
         @event.SetTag("osu.status", _realtimeSessionContext.OsuStatus.ToString());
 
