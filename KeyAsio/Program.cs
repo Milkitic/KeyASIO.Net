@@ -13,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using NLog.Extensions.Logging;
-using Sentry;
+using Sentry.Extensibility;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -55,8 +55,8 @@ internal sealed class Program
         if (!OperatingSystem.IsWindowsVersionAtLeast(6))
         {
             throw new PlatformNotSupportedException(
-            $"Current OS version {Environment.OSVersion.Version} is not supported. " +
-            $"Requires Windows Vista or later.");
+                $"Current OS version {Environment.OSVersion.Version} is not supported. " +
+                $"Requires Windows Vista or later.");
         }
 
         Host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
@@ -76,6 +76,7 @@ internal sealed class Program
                 .AddSingleton<App>()
                 .AddSingleton<UpdateService>()
                 .AddSingleton<MemoryScan>()
+                .AddSingleton<ISentryEventProcessor, KeyAsioSentryEventProcessor>()
                 .AddAudioModule()
                 .AddRealtimeModule()
                 .AddGuiModule()
