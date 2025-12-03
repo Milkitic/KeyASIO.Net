@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using NLog.Extensions.Logging;
+using Sentry;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -63,6 +64,13 @@ internal sealed class Program
             {
                 logging.ClearProviders();
                 logging.AddNLog("nlog.config");
+                logging.AddSentry(options =>
+                {
+                    EmbeddedSentryConfiguration.Configure(options);
+                    options.MinimumEventLevel = LogLevel.Error;
+                    options.HttpProxy = HttpClient.DefaultProxy;
+                    options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+                });
             })
             .ConfigureServices(services => services
                 .AddSingleton<App>()

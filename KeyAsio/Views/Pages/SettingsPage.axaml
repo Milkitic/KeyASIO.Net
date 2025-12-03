@@ -27,13 +27,10 @@
                 Foreground="{DynamicResource SukiText}"
                 Kind="LayersTriple"
                 Opacity="0.6" />
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Allow Multiple Instances" />
-                <TextBlock
-                  FontSize="10"
-                  Opacity="0.5"
-                  Text="Restart required" />
-              </StackPanel>
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Allow Multiple Instances" />
               <ToggleSwitch
                 Grid.Column="2"
                 IsChecked="{Binding AppSettings.General.AllowMultipleInstance}"
