@@ -29,6 +29,20 @@
     <vm:MainWindowViewModel />
   </Design.DataContext>
 
+  <suki:SukiWindow.RightWindowTitleBarControls>
+    <Button 
+      Padding="0" 
+      Classes="Basic"
+      Command="{Binding UpdateService.TriggerUpdateCommand}"
+      IsVisible="{Binding UpdateService.NewRelease, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+      ToolTip.Tip="Click to Update">
+      <StackPanel Orientation="Horizontal" Spacing="5">
+        <materialIcons:MaterialIcon Kind="Update" />
+        <TextBlock FontSize="12" Text="Click to Update" VerticalAlignment="Center" />
+      </StackPanel>
+    </Button>
+  </suki:SukiWindow.RightWindowTitleBarControls>
+
   <suki:SukiWindow.Hosts>
     <suki:SukiToastHost Name="ToastHost" Position="BottomLeft" />
     <suki:SukiDialogHost Manager="{Binding DialogManager}" />

@@ -1,14 +1,13 @@
 using System.Diagnostics;
 using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Semver;
-using ProductHeaderValue = Octokit.ProductHeaderValue;
 using SharpCompress.Archives;
 using SharpCompress.Common;
-using System.Net.Http;
-using System.IO;
+using ProductHeaderValue = Octokit.ProductHeaderValue;
 
 namespace KeyAsio.Services;
 
@@ -51,6 +50,21 @@ public partial class UpdateService
 
     [ObservableProperty]
     public partial string? StatusMessage { get; private set; }
+
+    public Action? UpdateAction { get; set; }
+
+    [RelayCommand]
+    public void TriggerUpdate()
+    {
+        UpdateAction?.Invoke();
+    }
+
+    private CancellationTokenSource? _updateCts;
+
+    public void CancelUpdate()
+    {
+        _updateCts?.Cancel();
+    }
 
     public async Task<bool?> CheckUpdateAsync()
     {
@@ -120,22 +134,25 @@ public partial class UpdateService
     {
         if (NewRelease == null) return;
 
+        _updateCts = new CancellationTokenSource();
+        var token = _updateCts.Token;
+
         // 1. Find Asset
         // Prioritize win64/x64 if running on 64-bit
         var is64Bit = Environment.Is64BitOperatingSystem;
         var asset = NewRelease.Assets.FirstOrDefault(a => a.Name.Contains(is64Bit ? "win64" : "win32", StringComparison.OrdinalIgnoreCase) && (a.Name.EndsWith(".zip") || a.Name.EndsWith(".7z")));
-        
+
         if (asset == null)
         {
             // Fallback to first zip/7z
-             asset = NewRelease.Assets.FirstOrDefault(a => a.Name.EndsWith(".zip") || a.Name.EndsWith(".7z"));
+            asset = NewRelease.Assets.FirstOrDefault(a => a.Name.EndsWith(".zip") || a.Name.EndsWith(".7z"));
         }
 
         if (asset == null)
         {
-             _logger.LogError("No suitable asset found for release {Version}", NewRelease.TagName);
-             StatusMessage = "No suitable download found.";
-             return;
+            _logger.LogError("No suitable asset found for release {Version}", NewRelease.TagName);
+            StatusMessage = "No suitable download found.";
+            return;
         }
 
         try
@@ -143,22 +160,22 @@ public partial class UpdateService
             StatusMessage = "Downloading...";
             DownloadProgress = 0;
             var tempFile = Path.GetTempFileName();
-            
+
             using (var client = new HttpClient())
             {
-                using (var response = await client.GetAsync(asset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead))
+                using (var response = await client.GetAsync(asset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead, token))
                 {
                     response.EnsureSuccessStatusCode();
                     var totalBytes = response.Content.Headers.ContentLength ?? 1L;
-                    using (var stream = await response.Content.ReadAsStreamAsync())
-                    using (var fileStream = File.Create(tempFile))
+                    await using (var stream = await response.Content.ReadAsStreamAsync(token))
+                    await using (var fileStream = File.Create(tempFile))
                     {
                         var buffer = new byte[8192];
                         long totalRead = 0;
                         int read;
-                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
                         {
-                            await fileStream.WriteAsync(buffer, 0, read);
+                            await fileStream.WriteAsync(buffer, 0, read, token);
                             totalRead += read;
                             DownloadProgress = (double)totalRead / totalBytes * 100;
                         }
@@ -166,27 +183,30 @@ public partial class UpdateService
                 }
             }
 
+            token.ThrowIfCancellationRequested();
             StatusMessage = "Extracting...";
             var updateDir = Path.Combine(Path.GetTempPath(), "KeyAsioUpdate_" + Path.GetRandomFileName());
             Directory.CreateDirectory(updateDir);
 
             using (var archive = ArchiveFactory.Open(tempFile))
             {
-                 foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
-                 {
-                     await entry.WriteToDirectoryAsync(updateDir, new ExtractionOptions()
-                     {
-                         ExtractFullPath = true,
-                         Overwrite = true
-                     });
-                 }
+                foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
+                {
+                    token.ThrowIfCancellationRequested();
+                    await entry.WriteToDirectoryAsync(updateDir, new ExtractionOptions()
+                    {
+                        ExtractFullPath = true,
+                        Overwrite = true
+                    }, token);
+                }
             }
-            
+
+            token.ThrowIfCancellationRequested();
             // Handle nested folder structure if present
             var subDirs = Directory.GetDirectories(updateDir);
             var files = Directory.GetFiles(updateDir);
             string sourceDir = updateDir;
-            
+
             // If there's only one directory and no files, assume it's a wrapper folder
             if (files.Length == 0 && subDirs.Length == 1)
             {
@@ -194,15 +214,15 @@ public partial class UpdateService
             }
 
             StatusMessage = "Restarting...";
-            
+
             // Create Updater Script
             var currentProcess = Process.GetCurrentProcess();
             var appPath = AppContext.BaseDirectory;
             var exeName = Path.GetFileName(currentProcess.MainModule?.FileName ?? "KeyAsio.exe");
-            
+
             var pid = currentProcess.Id;
             var scriptPath = Path.Combine(Path.GetTempPath(), "update_script.ps1");
-            
+
             // PowerShell script to wait, copy, and restart
             var script = $@"
 $procId = {pid}
@@ -221,23 +241,33 @@ Copy-Item -Path ""$source\*"" -Destination ""$dest"" -Recurse -Force
 Write-Host 'Starting KeyAsio...'
 Start-Process -FilePath ""$exe""
 ";
-            await File.WriteAllTextAsync(scriptPath, script);
+            await File.WriteAllTextAsync(scriptPath, script, token);
 
             var startInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
                 Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"",
                 UseShellExecute = true,
-                WindowStyle = ProcessWindowStyle.Hidden 
+                WindowStyle = ProcessWindowStyle.Hidden
             };
-            
+
             Process.Start(startInfo);
             Environment.Exit(0);
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Canceled.";
+            _logger.LogInformation("Update canceled by user.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Update failed");
             StatusMessage = "Update Failed: " + ex.Message;
+        }
+        finally
+        {
+            _updateCts?.Dispose();
+            _updateCts = null;
         }
     }
 

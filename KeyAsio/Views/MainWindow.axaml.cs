@@ -2,8 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using KeyAsio.Shared;
 using KeyAsio.Services;
+using KeyAsio.Shared;
 using KeyAsio.Utils;
 using KeyAsio.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -96,6 +96,7 @@ public partial class MainWindow : SukiWindow
 
             //var theme = SukiTheme.GetInstance();
             var updateService = _viewModel.UpdateService;
+            updateService.UpdateAction = () => StartUpdate(updateService);
             var result = await updateService.CheckUpdateAsync();
             if (result == true)
             {
@@ -113,7 +114,7 @@ public partial class MainWindow : SukiWindow
         }
     }
 
-    private void StartUpdate(UpdateService updateService)
+    public void StartUpdate(UpdateService updateService)
     {
         var progressBar = new ProgressBar { Minimum = 0, Maximum = 100 };
         var statusText = new TextBlock { Text = "Starting..." };
@@ -132,7 +133,9 @@ public partial class MainWindow : SukiWindow
         _viewModel.DialogManager.CreateDialog()
             .WithTitle("Updating")
             .WithContent(stackPanel)
+            .WithActionButton("Cancel", _ => updateService.CancelUpdate(), true)
             .TryShow();
+
         return;
         _ = updateService.DownloadAndInstallAsync();
     }
