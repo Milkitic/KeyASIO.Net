@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
@@ -6,11 +9,9 @@ using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
-using SukiUI.Dialogs;
-using System.ComponentModel;
-using System.Threading;
-using System.Threading.Tasks;
 using Milki.Extensions.Configuration;
+using SukiUI.Dialogs;
+using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
 
@@ -89,6 +90,7 @@ public partial class MainWindowViewModel
         SubscribeToSettingsChanges();
     }
 
+    public ISukiToastManager MainToastManager { get; } = new SukiToastManager();
     public AppSettings AppSettings { get; }
     public UpdateService UpdateService { get; }
     public AudioSettingsViewModel AudioSettings { get; }

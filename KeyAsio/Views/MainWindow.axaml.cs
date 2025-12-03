@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -19,14 +20,13 @@ public partial class MainWindow : SukiWindow
 {
     private readonly ILogger<MainWindow> _logger;
     private readonly MainWindowViewModel _viewModel;
-    private readonly ISukiToastManager _mainWindowManager = new SukiToastManager();
 
     public MainWindow(ILogger<MainWindow> logger, MainWindowViewModel mainWindowViewModel)
     {
         _logger = logger;
         DataContext = _viewModel = mainWindowViewModel;
         InitializeComponent();
-        ToastHost.Manager = _mainWindowManager;
+        ToastHost.Manager = _viewModel.MainToastManager;
         BindOptions();
     }
 
@@ -76,7 +76,7 @@ public partial class MainWindow : SukiWindow
 
             if (!_viewModel.AppSettings.Logging.ErrorReportingConfirmed)
             {
-                _mainWindowManager.CreateToast()
+                _viewModel.MainToastManager.CreateToast()
                     .WithTitle("Enable Error Reporting")
                     .WithContent("Send logs and errors to developer?\r\nYou can change option later.")
                     .WithActionButton("No", _ =>
@@ -97,15 +97,25 @@ public partial class MainWindow : SukiWindow
             //var theme = SukiTheme.GetInstance();
             var updateService = _viewModel.UpdateService;
             updateService.UpdateAction = () => StartUpdate(updateService);
+            updateService.CheckUpdateCallback = (res) =>
+            {
+                if (res == true)
+                {
+                    ShowUpdateToast(updateService);
+                }
+                else
+                {
+                    _viewModel.MainToastManager.CreateSimpleInfoToast()
+                        .WithTitle("Check for Updates")
+                        .WithContent("You are using the latest version.")
+                        .Queue();
+                }
+            };
+
             var result = await updateService.CheckUpdateAsync();
             if (result == true)
             {
-                _mainWindowManager.CreateToast()
-                    .WithTitle("Update Available")
-                    .WithContent($"Update {updateService.NewVersion} is Now Available.")
-                    .WithActionButton("Later", _ => { }, true, SukiButtonStyles.Basic)
-                    .WithActionButton("Update", _ => StartUpdate(updateService), true)
-                    .Queue();
+                ShowUpdateToast(updateService);
             }
         }
         catch (Exception ex)
@@ -114,7 +124,17 @@ public partial class MainWindow : SukiWindow
         }
     }
 
-    public void StartUpdate(UpdateService updateService)
+    private void ShowUpdateToast(UpdateService updateService)
+    {
+        _viewModel.MainToastManager.CreateToast()
+            .WithTitle("Update Available")
+            .WithContent($"Update {updateService.NewVersion} is Now Available.")
+            .WithActionButton("Later", _ => { }, true, SukiButtonStyles.Basic)
+            .WithActionButton("Update", _ => StartUpdate(updateService), true)
+            .Queue();
+    }
+
+    private void StartUpdate(UpdateService updateService)
     {
         var progressBar = new ProgressBar { Minimum = 0, Maximum = 100 };
         var statusText = new TextBlock { Text = "Starting..." };
@@ -125,7 +145,7 @@ public partial class MainWindow : SukiWindow
         };
 
         var progressBinding = new Binding(nameof(UpdateService.DownloadProgress)) { Source = updateService };
-        progressBar.Bind(ProgressBar.ValueProperty, progressBinding);
+        progressBar.Bind(RangeBase.ValueProperty, progressBinding);
 
         var statusBinding = new Binding(nameof(UpdateService.StatusMessage)) { Source = updateService };
         statusText.Bind(TextBlock.TextProperty, statusBinding);
@@ -136,7 +156,6 @@ public partial class MainWindow : SukiWindow
             .WithActionButton("Cancel", _ => updateService.CancelUpdate(), true)
             .TryShow();
 
-        return;
         _ = updateService.DownloadAndInstallAsync();
     }
 }

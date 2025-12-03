@@ -52,6 +52,14 @@ public partial class UpdateService
     public partial string? StatusMessage { get; private set; }
 
     public Action? UpdateAction { get; set; }
+    public Action<bool?>? CheckUpdateCallback { get; set; }
+
+    [RelayCommand]
+    public async Task CheckForUpdates()
+    {
+        var result = await CheckUpdateAsync();
+        CheckUpdateCallback?.Invoke(result);
+    }
 
     [RelayCommand]
     public void TriggerUpdate()
@@ -100,13 +108,13 @@ public partial class UpdateService
             _logger.LogDebug("Current version: {NowVerObj}; Got version info: {LatestVerObj}", SemVersion,
                 remoteSemVersion);
 
-            //if (remoteSemVersion.ComparePrecedenceTo(SemVersion) <= 0)
-            //{
-            //    NewRelease = null;
-            //    NewVersion = null;
-            //    NewSemVersion = null;
-            //    return false;
-            //}
+            if (remoteSemVersion.ComparePrecedenceTo(SemVersion) <= 0)
+            {
+                NewRelease = null;
+                NewVersion = null;
+                NewSemVersion = null;
+                return false;
+            }
 
             // Map Octokit Release to UpdateUtils.GithubRelease to maintain compatibility
             NewRelease = latest;
