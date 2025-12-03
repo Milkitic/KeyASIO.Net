@@ -5,6 +5,10 @@ using Microsoft.Extensions.Logging;
 using Octokit;
 using Semver;
 using ProductHeaderValue = Octokit.ProductHeaderValue;
+using SharpCompress.Archives;
+using SharpCompress.Common;
+using System.Net.Http;
+using System.IO;
 
 namespace KeyAsio.Services;
 
@@ -42,6 +46,12 @@ public partial class UpdateService
     [ObservableProperty]
     public partial string? NewVersion { get; private set; }
 
+    [ObservableProperty]
+    public partial double DownloadProgress { get; private set; }
+
+    [ObservableProperty]
+    public partial string? StatusMessage { get; private set; }
+
     public async Task<bool?> CheckUpdateAsync()
     {
         if (IsRunningChecking) return null;
@@ -76,13 +86,13 @@ public partial class UpdateService
             _logger.LogDebug("Current version: {NowVerObj}; Got version info: {LatestVerObj}", SemVersion,
                 remoteSemVersion);
 
-            if (remoteSemVersion.ComparePrecedenceTo(SemVersion) <= 0)
-            {
-                NewRelease = null;
-                NewVersion = null;
-                NewSemVersion = null;
-                return false;
-            }
+            //if (remoteSemVersion.ComparePrecedenceTo(SemVersion) <= 0)
+            //{
+            //    NewRelease = null;
+            //    NewVersion = null;
+            //    NewSemVersion = null;
+            //    return false;
+            //}
 
             // Map Octokit Release to UpdateUtils.GithubRelease to maintain compatibility
             NewRelease = latest;
@@ -103,6 +113,131 @@ public partial class UpdateService
         finally
         {
             IsRunningChecking = false;
+        }
+    }
+
+    public async Task DownloadAndInstallAsync()
+    {
+        if (NewRelease == null) return;
+
+        // 1. Find Asset
+        // Prioritize win64/x64 if running on 64-bit
+        var is64Bit = Environment.Is64BitOperatingSystem;
+        var asset = NewRelease.Assets.FirstOrDefault(a => a.Name.Contains(is64Bit ? "win64" : "win32", StringComparison.OrdinalIgnoreCase) && (a.Name.EndsWith(".zip") || a.Name.EndsWith(".7z")));
+        
+        if (asset == null)
+        {
+            // Fallback to first zip/7z
+             asset = NewRelease.Assets.FirstOrDefault(a => a.Name.EndsWith(".zip") || a.Name.EndsWith(".7z"));
+        }
+
+        if (asset == null)
+        {
+             _logger.LogError("No suitable asset found for release {Version}", NewRelease.TagName);
+             StatusMessage = "No suitable download found.";
+             return;
+        }
+
+        try
+        {
+            StatusMessage = "Downloading...";
+            DownloadProgress = 0;
+            var tempFile = Path.GetTempFileName();
+            
+            using (var client = new HttpClient())
+            {
+                using (var response = await client.GetAsync(asset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+                    var totalBytes = response.Content.Headers.ContentLength ?? 1L;
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var fileStream = File.Create(tempFile))
+                    {
+                        var buffer = new byte[8192];
+                        long totalRead = 0;
+                        int read;
+                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            await fileStream.WriteAsync(buffer, 0, read);
+                            totalRead += read;
+                            DownloadProgress = (double)totalRead / totalBytes * 100;
+                        }
+                    }
+                }
+            }
+
+            StatusMessage = "Extracting...";
+            var updateDir = Path.Combine(Path.GetTempPath(), "KeyAsioUpdate_" + Path.GetRandomFileName());
+            Directory.CreateDirectory(updateDir);
+
+            using (var archive = ArchiveFactory.Open(tempFile))
+            {
+                 foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
+                 {
+                     await entry.WriteToDirectoryAsync(updateDir, new ExtractionOptions()
+                     {
+                         ExtractFullPath = true,
+                         Overwrite = true
+                     });
+                 }
+            }
+            
+            // Handle nested folder structure if present
+            var subDirs = Directory.GetDirectories(updateDir);
+            var files = Directory.GetFiles(updateDir);
+            string sourceDir = updateDir;
+            
+            // If there's only one directory and no files, assume it's a wrapper folder
+            if (files.Length == 0 && subDirs.Length == 1)
+            {
+                sourceDir = subDirs[0];
+            }
+
+            StatusMessage = "Restarting...";
+            
+            // Create Updater Script
+            var currentProcess = Process.GetCurrentProcess();
+            var appPath = AppContext.BaseDirectory;
+            var exeName = Path.GetFileName(currentProcess.MainModule?.FileName ?? "KeyAsio.exe");
+            
+            var pid = currentProcess.Id;
+            var scriptPath = Path.Combine(Path.GetTempPath(), "update_script.ps1");
+            
+            // PowerShell script to wait, copy, and restart
+            var script = $@"
+$procId = {pid}
+$source = '{sourceDir}'
+$dest = '{appPath}'
+$exe = '{Path.Combine(appPath, exeName)}'
+
+Write-Host 'Waiting for KeyAsio to exit...'
+try {{
+    Wait-Process -Id $procId -Timeout 10 -ErrorAction SilentlyContinue
+}} catch {{}}
+
+Write-Host 'Updating files...'
+Copy-Item -Path ""$source\*"" -Destination ""$dest"" -Recurse -Force
+
+Write-Host 'Starting KeyAsio...'
+Start-Process -FilePath ""$exe""
+";
+            await File.WriteAllTextAsync(scriptPath, script);
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"",
+                UseShellExecute = true,
+                WindowStyle = ProcessWindowStyle.Hidden 
+            };
+            
+            Process.Start(startInfo);
+            Environment.Exit(0);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Update failed");
+            StatusMessage = "Update Failed: " + ex.Message;
         }
     }
 

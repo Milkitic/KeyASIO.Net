@@ -54,6 +54,7 @@
     </PackageReference>
     <PackageReference Include="Octokit" Version="14.0.0" />
     <PackageReference Include="Semver" Version="3.0.0" />
+    <PackageReference Include="SharpCompress" Version="0.42.0" />
     <PackageReference Include="SukiUI" Version="6.0.3" />
   </ItemGroup>
 

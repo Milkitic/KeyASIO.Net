@@ -1,12 +1,15 @@
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using KeyAsio.Shared;
+using KeyAsio.Services;
 using KeyAsio.Utils;
 using KeyAsio.ViewModels;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using SukiUI.Controls;
+using SukiUI.Dialogs;
 using SukiUI.Enums;
 using SukiUI.Toasts;
 
@@ -100,7 +103,7 @@ public partial class MainWindow : SukiWindow
                     .WithTitle("Update Available")
                     .WithContent($"Update {updateService.NewVersion} is Now Available.")
                     .WithActionButton("Later", _ => { }, true, SukiButtonStyles.Basic)
-                    .WithActionButton("Update", _ => updateService.OpenLastReleasePage(), true)
+                    .WithActionButton("Update", _ => StartUpdate(updateService), true)
                     .Queue();
             }
         }
@@ -108,5 +111,29 @@ public partial class MainWindow : SukiWindow
         {
             _logger.LogError(ex, "Error while checking for updates.");
         }
+    }
+
+    private void StartUpdate(UpdateService updateService)
+    {
+        var progressBar = new ProgressBar { Minimum = 0, Maximum = 100 };
+        var statusText = new TextBlock { Text = "Starting..." };
+        var stackPanel = new StackPanel
+        {
+            Spacing = 10,
+            Children = { statusText, progressBar }
+        };
+
+        var progressBinding = new Binding(nameof(UpdateService.DownloadProgress)) { Source = updateService };
+        progressBar.Bind(ProgressBar.ValueProperty, progressBinding);
+
+        var statusBinding = new Binding(nameof(UpdateService.StatusMessage)) { Source = updateService };
+        statusText.Bind(TextBlock.TextProperty, statusBinding);
+
+        _viewModel.DialogManager.CreateDialog()
+            .WithTitle("Updating")
+            .WithContent(stackPanel)
+            .TryShow();
+        return;
+        _ = updateService.DownloadAndInstallAsync();
     }
 }
