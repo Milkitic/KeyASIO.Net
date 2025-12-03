@@ -1,10 +1,12 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
@@ -155,5 +157,22 @@ public partial class MainWindowViewModel
                 }
             });
         });
+    }
+
+    [RelayCommand]
+    public void OpenUrl(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to open URL: {Url}", url);
+        }
     }
 }

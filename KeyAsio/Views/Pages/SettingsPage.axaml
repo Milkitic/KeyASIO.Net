@@ -49,16 +49,14 @@
           <StackPanel Spacing="15">
             <TextBlock Text="osu! Folder Path" />
             <Grid ColumnDefinitions="*, Auto">
-              <TextBox
-                Margin="0,0,10,0"
-                IsReadOnly="True"
-                Text="{Binding AppSettings.Paths.OsuFolderPath}" />
+              <TextBox Margin="0,0,10,0" Text="{Binding AppSettings.Paths.OsuFolderPath, UpdateSourceTrigger=LostFocus}" />
               <Button
                 Grid.Column="1"
                 Width="35"
                 Height="35"
                 Padding="0"
-                Classes="Flat">
+                Classes="Flat"
+                Click="OnBrowseOsuFolderClick">
                 <materialIcons:MaterialIcon Kind="FolderOpen" />
               </Button>
             </Grid>
@@ -213,7 +211,9 @@
               <Button
                 Grid.Column="1"
                 Padding="8"
-                Classes="Flat">
+                Classes="Flat"
+                Command="{Binding OpenUrlCommand}"
+                CommandParameter="https://github.com/Milkitic/KeyASIO.Net">
                 <materialIcons:MaterialIcon
                   Width="24"
                   Height="24"
