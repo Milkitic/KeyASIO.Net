@@ -103,7 +103,7 @@
                 <TextBlock
                   FontSize="10"
                   Opacity="0.5"
-                  Text="Low latency input mode" />
+                  Text="Uses low-latency key hooks when disabled" />
               </StackPanel>
               <ToggleSwitch
                 Grid.Column="2"
