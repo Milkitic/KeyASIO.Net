@@ -71,13 +71,10 @@
                 Foreground="{DynamicResource SukiText}"
                 Kind="Cpu64Bit"
                 Opacity="0.6" />
-              <StackPanel Grid.Column="1">
-                <TextBlock Text="Audio Cache Threads" />
-                <TextBlock
-                  FontSize="10"
-                  Opacity="0.5"
-                  Text="Restart required" />
-              </StackPanel>
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Audio Cache Threads" />
               <NumericUpDown
                 Grid.Column="2"
                 Classes="SettingItem"

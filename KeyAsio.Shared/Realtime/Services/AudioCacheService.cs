@@ -115,6 +115,7 @@ public class AudioCacheService
 
             try
             {
+                _parallelOptions.MaxDegreeOfParallelism = _appSettings.Performance.AudioCacheThreadCount;
                 await Parallel.ForEachAsync(SkinAudioFiles, _parallelOptions,
                     async (skinAudioFile, _) =>
                     {
@@ -168,6 +169,7 @@ public class AudioCacheService
 
             try
             {
+                _parallelOptions.MaxDegreeOfParallelism = _appSettings.Performance.AudioCacheThreadCount;
                 await Parallel.ForEachAsync(nodesToCache, _parallelOptions, async (node, _) =>
                 {
                     await AddHitsoundCacheAsync(node, folder!, skinFolder, waveFormat);

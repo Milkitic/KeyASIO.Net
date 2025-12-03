@@ -123,10 +123,10 @@ public partial class MainWindowViewModel
 
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume) ||
-            e.PropertyName == nameof(AppSettingsAudio.MusicVolume) ||
-            e.PropertyName == nameof(AppSettingsAudio.EffectVolume) ||
-            e.PropertyName == nameof(AppSettingsRealtimePlayback.BalanceFactor))
+        if (e.PropertyName is nameof(AppSettingsAudio.MasterVolume)
+            or nameof(AppSettingsAudio.MusicVolume)
+            or nameof(AppSettingsAudio.EffectVolume)
+            or nameof(AppSettingsRealtimePlayback.BalanceFactor))
         {
             DebounceSave();
         }
