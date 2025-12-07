@@ -168,8 +168,17 @@
                 Width="20"
                 Height="20"
                 Kind="Equalizer"
-                Opacity="0.6" />
-              <CheckBox Content="Audio Limiter" IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
+                Opacity="0.6"
+                VerticalAlignment="Top"
+                Margin="0,5,0,0" />
+              <StackPanel>
+                <CheckBox Content="Audio Limiter" IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
+                <TextBlock
+                  FontSize="12"
+                  Opacity="0.6"
+                  Text="Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio."
+                  TextWrapping="Wrap" />
+              </StackPanel>
             </StackPanel>
           </suki:GroupBox>
         </suki:GlassCard>
