@@ -61,9 +61,9 @@ public partial class AudioSettingsViewModel : ObservableObject
     public AudioEngine AudioEngine => _audioEngine;
     public ISukiToastManager? ToastManager { get; set; }
 
-    public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO;
-    public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI;
-    public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound;
+    public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO && SelectedAudioDevice != null;
+    public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI && SelectedAudioDevice != null;
+    public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound && SelectedAudioDevice != null;
 
     [ObservableProperty]
     public partial bool HasUnsavedAudioChanges { get; set; }
@@ -72,6 +72,9 @@ public partial class AudioSettingsViewModel : ObservableObject
     public partial ObservableCollection<DeviceDescription> AvailableAudioDevices { get; set; } = new();
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsAsio))]
+    [NotifyPropertyChangedFor(nameof(IsWasapi))]
+    [NotifyPropertyChangedFor(nameof(IsDirectSound))]
     public partial DeviceDescription? SelectedAudioDevice { get; set; }
 
     [ObservableProperty]
@@ -191,7 +194,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         {
             await DisposeDeviceAsync();
             await InitializeDevice();
-            
+
             if (ActiveDeviceDescription != null)
             {
                 ToastManager?.CreateSimpleInfoToast()
@@ -220,7 +223,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         _appSettings.Audio.PlaybackDevice = null;
         _appSettings.Save();
         await DisposeDeviceAsync();
-        
+
         // Also update UI selection if we are on settings page
         SelectedAudioDevice = null;
         _originalAudioSettings = (null, _appSettings.Audio.SampleRate, _appSettings.Audio.EnableLimiter);
