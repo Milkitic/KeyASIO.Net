@@ -45,6 +45,7 @@ public partial class MainWindowViewModel
         UpdateService = updateService;
         _logger = logger;
         AudioSettings = audioSettingsViewModel;
+        AudioSettings.ToastManager = MainToastManager;
 
         SubscribeToSettingsChanges();
     }

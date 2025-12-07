@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Audio;
@@ -8,6 +9,7 @@ using KeyAsio.Shared;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using NAudio.Wave;
+using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
 
@@ -57,6 +59,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     public WavePlayerType[] AvailableDriverTypes { get; } = Enum.GetValues<WavePlayerType>();
 
     public AudioEngine AudioEngine => _audioEngine;
+    public ISukiToastManager? ToastManager { get; set; }
 
     public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO;
     public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI;
@@ -143,6 +146,17 @@ public partial class AudioSettingsViewModel : ObservableObject
             {
                 await DisposeDeviceAsync();
                 await InitializeDevice();
+
+                if (DeviceErrorMessage != null)
+                {
+                    ToastManager?.CreateToast()
+                        .WithTitle("Error Applying Settings")
+                        .WithContent(DeviceErrorMessage)
+                        .OfType(NotificationType.Error)
+                        .Dismiss().After(TimeSpan.FromSeconds(3))
+                        .Dismiss().ByClicking()
+                        .Queue();
+                }
             }
             else
             {
@@ -159,6 +173,58 @@ public partial class AudioSettingsViewModel : ObservableObject
     public void DiscardAudioSettings()
     {
         _ = InitializeAudioSettingsAsync();
+    }
+
+    [RelayCommand]
+    public void OpenAsioPanel()
+    {
+        if (_audioEngine.CurrentDevice is AsioOut asioOut)
+        {
+            asioOut.ShowControlPanel();
+        }
+    }
+
+    [RelayCommand]
+    public async Task ReloadAudioDevice()
+    {
+        if (_appSettings.Audio.PlaybackDevice != null)
+        {
+            await DisposeDeviceAsync();
+            await InitializeDevice();
+            
+            if (ActiveDeviceDescription != null)
+            {
+                ToastManager?.CreateSimpleInfoToast()
+                    .WithTitle("Device Reloaded")
+                    .WithContent($"Successfully reloaded device: {ActiveDeviceDescription.FriendlyName}")
+                    .Queue();
+            }
+            else if (DeviceErrorMessage != null)
+            {
+                ToastManager?.CreateToast()
+                    .WithTitle("Device Reload Failed")
+                    .WithContent(DeviceErrorMessage)
+                    .OfType(NotificationType.Error)
+                    .Dismiss().After(TimeSpan.FromSeconds(3))
+                    .Dismiss().ByClicking()
+                    .Queue();
+            }
+        }
+    }
+
+    [RelayCommand]
+    public async Task ClearAudioDevice()
+    {
+        DeviceErrorMessage = null;
+        DeviceFullErrorMessage = null;
+        _appSettings.Audio.PlaybackDevice = null;
+        _appSettings.Save();
+        await DisposeDeviceAsync();
+        
+        // Also update UI selection if we are on settings page
+        SelectedAudioDevice = null;
+        _originalAudioSettings = (null, _appSettings.Audio.SampleRate, _appSettings.Audio.EnableLimiter);
+        CheckAudioChanges();
     }
 
     async partial void OnSelectedDriverTypeChanged(WavePlayerType value)
@@ -317,6 +383,17 @@ public partial class AudioSettingsViewModel : ObservableObject
             {
                 await DisposeDeviceAsync();
                 await LoadDevice(deviceDescription);
+
+                if (DeviceErrorMessage != null)
+                {
+                    ToastManager?.CreateToast()
+                        .WithTitle("Device Reset Failed")
+                        .WithContent(DeviceErrorMessage)
+                        .OfType(NotificationType.Error)
+                        .Dismiss().After(TimeSpan.FromSeconds(3))
+                        .Dismiss().ByClicking()
+                        .Queue();
+                }
             });
         }
         catch (Exception ex)
@@ -348,7 +425,6 @@ public partial class AudioSettingsViewModel : ObservableObject
 
         _audioEngine.StopDevice();
         ActiveDeviceDescription = null;
-        // _viewModel.DeviceDescription = null;
         _audioCacheManager.Clear();
         _audioCacheManager.Clear("internal");
     }
