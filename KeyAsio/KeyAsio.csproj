@@ -63,4 +63,10 @@
     <ProjectReference Include="..\KeyAsio.Shared\KeyAsio.Shared.csproj" />
     <ProjectReference Include="..\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="nlog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -54,7 +54,7 @@ public partial class MainWindow : SukiWindow
                     ConsoleManager.Hide();
                 }
             }
-        }; 
+        };
         appSettings.Performance.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(AppSettingsPerformance.EnableAvx512))
@@ -125,10 +125,12 @@ public partial class MainWindow : SukiWindow
             {
                 ShowUpdateToast(updateService);
             }
+
+            await _viewModel.AudioSettings.InitializeDevice();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error while checking for updates.");
+            _logger.LogError(ex, "Error while checking for updates or initializing audio.");
         }
     }
 

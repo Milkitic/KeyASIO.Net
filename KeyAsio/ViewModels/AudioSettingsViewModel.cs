@@ -3,9 +3,11 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Audio;
+using KeyAsio.Audio.Caching;
 using KeyAsio.Shared;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
+using NAudio.Wave;
 
 namespace KeyAsio.ViewModels;
 
@@ -14,17 +16,24 @@ public partial class AudioSettingsViewModel : ObservableObject
     private readonly ILogger<AudioSettingsViewModel> _logger;
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly AppSettings _appSettings;
+    private readonly AudioEngine _audioEngine;
+    private readonly AudioCacheManager _audioCacheManager;
 
     private bool _isInitializing;
     private (DeviceDescription? PlaybackDevice, int SampleRate, bool EnableLimiter) _originalAudioSettings;
+    private Timer? _timer;
 
     public AudioSettingsViewModel(ILogger<AudioSettingsViewModel> logger,
         AppSettings appSettings,
-        AudioDeviceManager audioDeviceManager)
+        AudioDeviceManager audioDeviceManager,
+        AudioEngine audioEngine,
+        AudioCacheManager audioCacheManager)
     {
         _logger = logger;
         _appSettings = appSettings;
         _audioDeviceManager = audioDeviceManager;
+        _audioEngine = audioEngine;
+        _audioCacheManager = audioCacheManager;
 
         _ = InitializeAudioSettingsAsync();
     }
@@ -40,6 +49,8 @@ public partial class AudioSettingsViewModel : ObservableObject
             _appSettings = new AppSettings();
             _audioDeviceManager = null!;
             _logger = null!;
+            _audioEngine = null!;
+            _audioCacheManager = null!;
         }
     }
 
@@ -180,34 +191,130 @@ public partial class AudioSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void ApplyAudioSettings()
+    public async Task ApplyAudioSettings()
     {
-        if (SelectedAudioDevice != null)
+        try
         {
-            _appSettings.Audio.PlaybackDevice = SelectedAudioDevice with
+            if (SelectedAudioDevice != null)
             {
-                Latency = (int)TargetBufferSize,
-                IsExclusive = IsExclusiveMode
-            };
+                _appSettings.Audio.PlaybackDevice = SelectedAudioDevice with
+                {
+                    Latency = (int)TargetBufferSize,
+                    IsExclusive = IsExclusiveMode
+                };
+            }
+            else
+            {
+                _appSettings.Audio.PlaybackDevice = null;
+            }
+
+            _appSettings.Audio.SampleRate = SelectedSampleRate;
+            _appSettings.Audio.EnableLimiter = IsLimiterEnabled;
+
+            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate,
+                _appSettings.Audio.EnableLimiter);
+            _appSettings.Save();
+            CheckAudioChanges();
+
+            if (SelectedAudioDevice != null)
+            {
+                await DisposeDeviceAsync();
+                await InitializeDevice();
+            }
+            else
+            {
+                await DisposeDeviceAsync();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _appSettings.Audio.PlaybackDevice = null;
+            _logger.LogError(ex, "Error occurs while applying audio settings.");
         }
-
-        _appSettings.Audio.SampleRate = SelectedSampleRate;
-        _appSettings.Audio.EnableLimiter = IsLimiterEnabled;
-
-        _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate,
-            _appSettings.Audio.EnableLimiter);
-        _appSettings.Save();
-        CheckAudioChanges();
     }
 
     [RelayCommand]
     public void DiscardAudioSettings()
     {
         _ = InitializeAudioSettingsAsync();
+    }
+
+    public async Task InitializeDevice()
+    {
+        if (_appSettings.Audio.PlaybackDevice == null) return;
+        await LoadDevice(_appSettings.Audio.PlaybackDevice);
+    }
+
+    private async Task LoadDevice(DeviceDescription deviceDescription)
+    {
+        try
+        {
+            var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
+            _audioEngine.EnableLimiter = _appSettings.Audio.EnableLimiter;
+            _audioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
+            _audioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
+            _audioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
+            _audioEngine.StartDevice(device);
+
+            if (device is AsioOut asioOut)
+            {
+                asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
+                // _viewModel.FramesPerBuffer = asioOut.FramesPerBuffer;
+                // Timer logic for latency if needed
+            }
+
+            // await _bindingInitializer.InitializeKeyAudioAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurs while creating device.");
+        }
+    }
+
+    private async void AsioOut_DriverResetRequest(object? sender, EventArgs e)
+    {
+        try
+        {
+            var deviceDescription = _appSettings.Audio.PlaybackDevice;
+            if (deviceDescription == null) return;
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                await DisposeDeviceAsync();
+                await LoadDevice(deviceDescription);
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while resetting ASIO driver.");
+        }
+    }
+
+    private async ValueTask DisposeDeviceAsync()
+    {
+        if (_audioEngine.CurrentDevice is AsioOut asioOut)
+        {
+            asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
+            if (_timer != null) await _timer.DisposeAsync();
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            try
+            {
+                _audioEngine.CurrentDevice?.Dispose();
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while disposing device.");
+                await Task.Delay(100);
+            }
+        }
+
+        _audioEngine.StopDevice();
+        // _viewModel.DeviceDescription = null;
+        _audioCacheManager.Clear();
+        _audioCacheManager.Clear("internal");
     }
 
     private static bool AreDevicesEqual(DeviceDescription? d1, DeviceDescription? d2)
