@@ -90,54 +90,86 @@
         <suki:GlassCard>
           <suki:GroupBox Header="Latency &amp; Buffer">
             <StackPanel Spacing="20">
-              <Grid ColumnDefinitions="Auto,*,Auto">
+              <StackPanel IsVisible="{Binding !AudioSettings.IsAsio}" Spacing="20">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <materialIcons:MaterialIcon
+                    Width="24"
+                    Height="24"
+                    Margin="0,0,15,0"
+                    Foreground="{DynamicResource SukiText}"
+                    Kind="TimerSand"
+                    Opacity="0.6" />
+                  <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Text="Target Latency" />
+                  <TextBlock
+                    Grid.Column="2"
+                    FontWeight="Bold"
+                    Foreground="{DynamicResource SukiPrimaryColor}"
+                    Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
+                </Grid>
+                <Slider
+                  IsSnapToTickEnabled="True"
+                  Maximum="200"
+                  Minimum="1"
+                  TickFrequency="1"
+                  Value="{Binding AudioSettings.TargetBufferSize}" />
+              </StackPanel>
+
+              <StackPanel IsVisible="{Binding AudioSettings.IsAsio}" Spacing="20">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <materialIcons:MaterialIcon
+                    Width="24"
+                    Height="24"
+                    Margin="0,0,15,0"
+                    Foreground="{DynamicResource SukiText}"
+                    Kind="TimerSand"
+                    Opacity="0.6" />
+                  <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Text="Force Buffer Size" />
+                  <TextBlock
+                    Grid.Column="2"
+                    FontWeight="Bold"
+                    Foreground="{DynamicResource SukiPrimaryColor}"
+                    Text="{Binding AudioSettings.ForceAsioBufferSize, StringFormat='{}{0} samples'}" />
+                </Grid>
+                <Slider
+                  IsSnapToTickEnabled="True"
+                  Maximum="2048"
+                  Minimum="0"
+                  TickFrequency="1"
+                  Value="{Binding AudioSettings.ForceAsioBufferSize}" />
+              </StackPanel>
+
+              <Separator IsVisible="{Binding AudioSettings.IsWasapi}" Opacity="0.1" />
+
+              <StackPanel
+                IsVisible="{Binding AudioSettings.IsWasapi}"
+                Orientation="Horizontal"
+                Spacing="10">
                 <materialIcons:MaterialIcon
-                  Width="24"
-                  Height="24"
-                  Margin="0,0,15,0"
-                  Foreground="{DynamicResource SukiText}"
-                  Kind="TimerSand"
+                  Width="20"
+                  Height="20"
+                  Kind="Lock"
                   Opacity="0.6" />
-                <TextBlock
-                  Grid.Column="1"
-                  VerticalAlignment="Center"
-                  Text="Target Buffer Size" />
-                <TextBlock
-                  Grid.Column="2"
-                  FontWeight="Bold"
-                  Foreground="{DynamicResource SukiPrimaryColor}"
-                  Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
-              </Grid>
-              <Slider
-                IsSnapToTickEnabled="True"
-                Maximum="50"
-                Minimum="1"
-                TickFrequency="1"
-                Value="{Binding AudioSettings.TargetBufferSize}" />
+                <CheckBox Content="Exclusive Mode" IsChecked="{Binding AudioSettings.IsExclusiveMode}" />
+              </StackPanel>
+            </StackPanel>
+          </suki:GroupBox>
+        </suki:GlassCard>
 
-              <Separator Opacity="0.1" />
-
-              <Grid ColumnDefinitions="*,*">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                  <materialIcons:MaterialIcon
-                    Width="20"
-                    Height="20"
-                    Kind="Lock"
-                    Opacity="0.6" />
-                  <CheckBox Content="Exclusive Mode" IsChecked="{Binding AudioSettings.IsExclusiveMode}" />
-                </StackPanel>
-                <StackPanel
-                  Grid.Column="1"
-                  Orientation="Horizontal"
-                  Spacing="10">
-                  <materialIcons:MaterialIcon
-                    Width="20"
-                    Height="20"
-                    Kind="Equalizer"
-                    Opacity="0.6" />
-                  <CheckBox Content="Audio Limiter" IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
-                </StackPanel>
-              </Grid>
+        <suki:GlassCard>
+          <suki:GroupBox Header="Audio Processing">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <materialIcons:MaterialIcon
+                Width="20"
+                Height="20"
+                Kind="Equalizer"
+                Opacity="0.6" />
+              <CheckBox Content="Audio Limiter" IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
             </StackPanel>
           </suki:GroupBox>
         </suki:GlassCard>
@@ -152,6 +184,7 @@
       Margin="20"
       Padding="15"
       VerticalAlignment="Bottom"
+      IsOpaque="True"
       IsVisible="{Binding AudioSettings.HasUnsavedAudioChanges}">
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel

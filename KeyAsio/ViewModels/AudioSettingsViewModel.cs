@@ -67,10 +67,20 @@ public partial class AudioSettingsViewModel : ObservableObject
     public partial DeviceDescription? SelectedAudioDevice { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsAsio))]
+    [NotifyPropertyChangedFor(nameof(IsWasapi))]
+    [NotifyPropertyChangedFor(nameof(IsDirectSound))]
     public partial WavePlayerType SelectedDriverType { get; set; }
+
+    public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO;
+    public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI;
+    public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound;
 
     [ObservableProperty]
     public partial double TargetBufferSize { get; set; } = 10;
+
+    [ObservableProperty]
+    public partial int ForceAsioBufferSize { get; set; } = 0;
 
     [ObservableProperty]
     public partial bool IsExclusiveMode { get; set; } = true;
@@ -110,6 +120,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         {
             TargetBufferSize = value.Latency;
             IsExclusiveMode = value.IsExclusive;
+            ForceAsioBufferSize = value.ForceASIOBufferSize;
         }
 
         CheckAudioChanges();
@@ -120,6 +131,8 @@ public partial class AudioSettingsViewModel : ObservableObject
     partial void OnIsLimiterEnabledChanged(bool value) => CheckAudioChanges();
 
     partial void OnTargetBufferSizeChanged(double value) => CheckAudioChanges();
+
+    partial void OnForceAsioBufferSizeChanged(int value) => CheckAudioChanges();
 
     partial void OnIsExclusiveModeChanged(bool value) => CheckAudioChanges();
 
@@ -146,6 +159,7 @@ public partial class AudioSettingsViewModel : ObservableObject
 
                 TargetBufferSize = _appSettings.Audio.PlaybackDevice.Latency;
                 IsExclusiveMode = _appSettings.Audio.PlaybackDevice.IsExclusive;
+                ForceAsioBufferSize = _appSettings.Audio.PlaybackDevice.ForceASIOBufferSize;
             }
             else
             {
@@ -180,7 +194,8 @@ public partial class AudioSettingsViewModel : ObservableObject
             potentialDevice = SelectedAudioDevice with
             {
                 Latency = (int)TargetBufferSize,
-                IsExclusive = IsExclusiveMode
+                IsExclusive = IsExclusiveMode,
+                ForceASIOBufferSize = (ushort)ForceAsioBufferSize
             };
         }
 
@@ -200,7 +215,8 @@ public partial class AudioSettingsViewModel : ObservableObject
                 _appSettings.Audio.PlaybackDevice = SelectedAudioDevice with
                 {
                     Latency = (int)TargetBufferSize,
-                    IsExclusive = IsExclusiveMode
+                    IsExclusive = IsExclusiveMode,
+                    ForceASIOBufferSize = (ushort)ForceAsioBufferSize
                 };
             }
             else
@@ -321,11 +337,23 @@ public partial class AudioSettingsViewModel : ObservableObject
     {
         if (d1 == null && d2 == null) return true;
         if (d1 == null || d2 == null) return false;
+        if (d1.WavePlayerType == WavePlayerType.ASIO)
+        {
+            return d1.WavePlayerType == d2.WavePlayerType &&
+                   d1.DeviceId == d2.DeviceId &&
+                   d1.ForceASIOBufferSize == d2.ForceASIOBufferSize;
+        }
+
+        if (d1.WavePlayerType == WavePlayerType.WASAPI)
+        {
+            return d1.WavePlayerType == d2.WavePlayerType &&
+                   d1.DeviceId == d2.DeviceId &&
+                   d1.Latency == d2.Latency &&
+                   d1.IsExclusive == d2.IsExclusive;
+        }
 
         return d1.WavePlayerType == d2.WavePlayerType &&
                d1.DeviceId == d2.DeviceId &&
-               d1.Latency == d2.Latency &&
-               d1.ForceASIOBufferSize == d2.ForceASIOBufferSize &&
-               d1.IsExclusive == d2.IsExclusive;
+               d1.Latency == d2.Latency;
     }
 }

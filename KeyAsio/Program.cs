@@ -82,6 +82,13 @@ internal sealed class Program
                 .AddGuiModule()
                 .AddSingleton(appSettings))
             .Build();
+
+        var processors = Host.Services.GetServices<ISentryEventProcessor>();
+        foreach (var processor in processors)
+        {
+            SentrySdk.ConfigureScope(scope => scope.AddEventProcessor(processor));
+        }
+
         try
         {
             await Host.RunAsync();
