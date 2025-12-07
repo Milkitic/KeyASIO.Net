@@ -16,6 +16,15 @@
     <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
   </UserControl.Resources>
 
+  <UserControl.Styles>
+    <Style Selector="Button.DashboardHeaderButton">
+      <Setter Property="Width" Value="24" />
+      <Setter Property="Height" Value="24" />
+      <Setter Property="Margin" Value="0,-6,0,-6" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
@@ -101,12 +110,47 @@
       Margin="0,20,0,0"
       ColumnDefinitions="*,*">
       <!--  Stats  -->
-      <suki:GlassCard Margin="0,0,10,0" Padding="15">
+      <suki:GlassCard
+        Margin="0,0,10,0"
+        Padding="15"
+        Command="{Binding ShowDeviceErrorCommand}"
+        IsInteractive="{Binding AudioSettings.DeviceErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <suki:GlassCard.Styles>
+            <Style Selector="suki|GlassCard[IsInteractive=True]">
+                <Setter Property="Cursor" Value="Hand" />
+                <!--<Setter Property="BorderThickness" Value="2" />-->
+            </Style>
+         <!--   <Style Selector="suki|GlassCard[IsInteractive=True]:pointerover">
+                <Setter Property="BorderBrush" Value="{DynamicResource SukiDangerColor}" />
+            </Style>-->
+        </suki:GlassCard.Styles>
         <StackPanel Spacing="10">
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <materialIcons:MaterialIcon Foreground="{DynamicResource SukiPrimaryColor}" Kind="Speaker" />
-            <TextBlock FontWeight="Bold" Text="Audio Device" />
-          </StackPanel>
+          <DockPanel LastChildFill="False">
+             <StackPanel Orientation="Horizontal" Spacing="10">
+                <materialIcons:MaterialIcon Foreground="{DynamicResource SukiPrimaryColor}" Kind="Speaker" />
+                <TextBlock FontWeight="Bold" Text="Audio Device" />
+             </StackPanel>
+             
+             <!-- Action Buttons -->
+             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="5">
+                 <!-- ASIO Settings -->
+                 <Button Classes="DashboardHeaderButton Flat"
+                         IsVisible="{Binding AudioSettings.IsAsio}"
+                         ToolTip.Tip="Driver Panel">
+                     <materialIcons:MaterialIcon Kind="Tune" Width="16" Height="16" Opacity="0.7" />
+                 </Button>
+                 
+                 <!-- Refresh -->
+                 <Button Classes="DashboardHeaderButton" ToolTip.Tip="Reload Device">
+                     <materialIcons:MaterialIcon Kind="Refresh" Width="16" Height="16" Opacity="0.7" />
+                 </Button>
+
+                 <!-- Delete/Clear -->
+                 <Button Classes="DashboardHeaderButton Danger" ToolTip.Tip="Clear Device">
+                     <materialIcons:MaterialIcon Kind="Close" Width="16" Height="16" Opacity="0.7" />
+                 </Button>
+             </StackPanel>
+          </DockPanel>
 
           <!--  No Device  -->
           <TextBlock
@@ -116,34 +160,24 @@
             Text="No device selected." />
 
           <!--  Device Fault  -->
-          <Button
+          <Border
             Padding="0"
             HorizontalAlignment="Stretch"
-            HorizontalContentAlignment="Left"
             Classes="Basic"
-            Command="{Binding ShowDeviceErrorCommand}"
             IsVisible="{Binding AudioSettings.DeviceErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
             <StackPanel Spacing="5">
               <StackPanel Orientation="Horizontal" Spacing="5">
                 <materialIcons:MaterialIcon Foreground="{DynamicResource SukiDangerColor}" Kind="AlertCircle" />
-                <TextBlock
-                  FontWeight="Bold"
-                  Foreground="{DynamicResource SukiDangerColor}"
-                  Text="Device Fault" />
+                <TextBlock FontWeight="Bold" Foreground="{DynamicResource SukiDangerColor}">
+                  <!--<Run Text="Device Fault: " />--><Run Text="{Binding AudioSettings.DeviceErrorMessage}" />
+                </TextBlock>
               </StackPanel>
 
-              <TextBlock
-                Foreground="{DynamicResource SukiDangerColor}"
-                Opacity="0.8"
-                Text="{Binding AppSettings.Audio.PlaybackDevice.FriendlyName}"
-                TextTrimming="CharacterEllipsis" />
-
-              <TextBlock
-                Foreground="{DynamicResource SukiDangerColor}"
-                Opacity="0.8"
-                Text="{Binding AppSettings.Audio.PlaybackDevice.WavePlayerType}" />
+              <TextBlock Foreground="{DynamicResource SukiDangerColor}" TextTrimming="CharacterEllipsis">
+                <Run Text="{Binding AppSettings.Audio.PlaybackDevice.FriendlyName}" /><Run Text=" (" /><Run Text="{Binding AppSettings.Audio.PlaybackDevice.WavePlayerType}" /><Run Text=")" />
+              </TextBlock>
             </StackPanel>
-          </Button>
+          </Border>
 
           <!--  Device Info  -->
           <Grid
@@ -275,11 +309,7 @@
           <DockPanel LastChildFill="False">
             <TextBlock FontWeight="Bold" Text="Quick Bindings" />
             <Button
-              Width="24"
-              Height="24"
-              Margin="0,-6"
-              Padding="0"
-              Classes="Flat"
+              Classes="DashboardHeaderButton Flat"
               DockPanel.Dock="Right">
               <materialIcons:MaterialIcon Kind="Plus" />
             </Button>
