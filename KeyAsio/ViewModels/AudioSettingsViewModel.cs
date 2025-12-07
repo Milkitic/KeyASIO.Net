@@ -21,7 +21,6 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     private bool _isInitializing;
     private (DeviceDescription? PlaybackDevice, int SampleRate, bool EnableLimiter) _originalAudioSettings;
-    private Timer? _timer;
 
     public AudioSettingsViewModel(ILogger<AudioSettingsViewModel> logger,
         AppSettings appSettings,
@@ -93,9 +92,6 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial int FramesPerBuffer { get; set; }
-
-    [ObservableProperty]
-    public partial int PlaybackLatency { get; set; }
 
     [ObservableProperty]
     public partial DeviceDescription? ActiveDeviceDescription { get; set; }
@@ -287,27 +283,6 @@ public partial class AudioSettingsViewModel : ObservableObject
             {
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 FramesPerBuffer = asioOut.FramesPerBuffer;
-                _timer = new Timer(_ =>
-                {
-                    try
-                    {
-                        Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
-                        {
-                            try
-                            {
-                                PlaybackLatency = asioOut.PlaybackLatency;
-                            }
-                            catch
-                            {
-                                // ignored
-                            }
-                        });
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-                }, null, 0, 100);
             }
 
             // await _bindingInitializer.InitializeKeyAudioAsync();
@@ -315,6 +290,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurs while creating device.");
+            await DisposeDeviceAsync();
         }
     }
 
@@ -342,7 +318,6 @@ public partial class AudioSettingsViewModel : ObservableObject
         if (_audioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
-            if (_timer != null) await _timer.DisposeAsync();
         }
 
         for (int i = 0; i < 3; i++)

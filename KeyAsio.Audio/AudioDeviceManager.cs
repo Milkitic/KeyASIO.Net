@@ -70,14 +70,20 @@ public sealed class AudioDeviceManager : IDisposable
         description ??= _mmDeviceEnumerator.HasDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia)
             ? DeviceDescription.WasapiDefault
             : DeviceDescription.DirectSoundDefault;
-        IWavePlayer device = description.WavePlayerType switch
+
+        if (description.WavePlayerType == WavePlayerType.ASIO)
+        {
+            var (device, desc) = CreateAsio(description);
+            return (device, desc);
+        }
+
+        IWavePlayer wavePlayer = description.WavePlayerType switch
         {
             WavePlayerType.DirectSound => CreateDirectSound(description),
             WavePlayerType.WASAPI => CreateWasapi(description),
-            WavePlayerType.ASIO => CreateAsio(description),
             _ => throw new ArgumentOutOfRangeException()
         };
-        return (device, description);
+        return (wavePlayer, description);
     }
 
     private DirectSoundOut CreateDirectSound(DeviceDescription description)
@@ -119,7 +125,7 @@ public sealed class AudioDeviceManager : IDisposable
             description.Latency);
     }
 
-    private AsioOut CreateAsio(DeviceDescription description)
+    private (AsioOut Device, DeviceDescription Description) CreateAsio(DeviceDescription description)
     {
         if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
         {
@@ -137,20 +143,22 @@ public sealed class AudioDeviceManager : IDisposable
             _logger.LogDebug("Successfully forced ASIO buffer size to {BufferSize}", description.ForceASIOBufferSize);
         }
 
-        var driver = driverExt.Driver;
-        driver.GetBufferSize(out int minSize, out int maxSize, out int preferredSize, out int granularity);
-        var result = driver.GetLatencies(out int inputLatency, out var outputLatency);
+        var inputLatency = driverExt.Capabilities.InputLatency;
+        var outputLatency = driverExt.Capabilities.OutputLatency;
+        var preferredSize = driverExt.Capabilities.BufferPreferredSize;
+        //driverExt.Driver.GetBufferSize(out int minSize, out int maxSize, out int preferredSize, out int granularity);
+        //var error = driverExt.Driver.GetLatencies(out int inputLatency, out var outputLatency);
 
         int userBufferComponent = preferredSize * 2;
         int totalRoundTrip = inputLatency + outputLatency;
         int hiddenOverhead = totalRoundTrip - userBufferComponent;
 
         // 计算毫秒数 (假设采样率为 44100，也可以通过 driver.GetSampleRate() 获取)
-        double sampleRate = driver.GetSampleRate();
+        double sampleRate = driverExt.Driver.GetSampleRate();
         double overheadMs = (hiddenOverhead / sampleRate) * 1000.0;
         double totalMs = (totalRoundTrip / sampleRate) * 1000.0;
 
-        return device;
+        return (device, description with { AsioLatencyMs = totalMs });
     }
 
     private IEnumerable<DeviceDescription> EnumerateAllDevices()

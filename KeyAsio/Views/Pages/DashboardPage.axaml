@@ -13,7 +13,6 @@
   mc:Ignorable="d">
 
   <UserControl.Resources>
-      <converters:Multi_LatencySampleRate2LatencyConverter x:Key="Multi_LatencySampleRate2LatencyConverter" />
       <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
   </UserControl.Resources>
 
@@ -154,20 +153,8 @@
                 <!-- ASIO Latency -->
                 <TextBlock Grid.Row="5" Grid.Column="0" Text="Latency: " Opacity="0.6" Margin="0,0,10,5"
                            IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}" />
-                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="0,0,0,5"
-                            IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}">
-                    <TextBlock Text="{Binding AudioSettings.PlaybackLatency}" />
-                    <TextBlock Text="(" />
-                    <TextBlock>
-                        <TextBlock.Text>
-                            <MultiBinding Converter="{StaticResource Multi_LatencySampleRate2LatencyConverter}" StringFormat="{}{0:F2} ms">
-                                <Binding Path="AudioSettings.PlaybackLatency" />
-                                <Binding Path="AudioSettings.AudioEngine.EngineWaveFormat.SampleRate" />
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
-                    <TextBlock Text=")" />
-                </StackPanel>
+                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding AudioSettings.ActiveDeviceDescription.AsioLatencyMs, StringFormat='{}{0:F2} ms'}" Margin="0,0,0,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}" />
             </Grid>
         </StackPanel>
       </suki:GlassCard>
