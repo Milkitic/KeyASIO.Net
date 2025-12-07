@@ -7,8 +7,15 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
+  xmlns:audio="clr-namespace:KeyAsio.Audio;assembly=KeyAsio.Audio"
+  xmlns:converters="using:KeyAsio.Converters"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
+
+  <UserControl.Resources>
+      <converters:Multi_LatencySampleRate2LatencyConverter x:Key="Multi_LatencySampleRate2LatencyConverter" />
+      <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
+  </UserControl.Resources>
 
   <Design.DataContext>
     <vm:MainWindowViewModel />
@@ -96,30 +103,73 @@
       ColumnDefinitions="*,*">
       <!--  Stats  -->
       <suki:GlassCard Margin="0,0,10,0" Padding="15">
-        <Grid ColumnDefinitions="*,Auto">
-          <StackPanel VerticalAlignment="Center">
-            <StackPanel Orientation="Horizontal" Spacing="5">
-              <TextBlock FontWeight="Bold" Text="Audio Latency" />
-              <materialIcons:MaterialIcon
-                Width="14"
-                Height="14"
-                VerticalAlignment="Center"
-                Kind="HelpCircleOutline"
-                Opacity="0.5"
-                ToolTip.Tip="Place holder" />
+        <StackPanel Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <materialIcons:MaterialIcon Kind="Speaker" Foreground="{DynamicResource SukiPrimaryColor}" />
+                <TextBlock Text="Audio Device" FontWeight="Bold" />
             </StackPanel>
-            <TextBlock
-              Classes="h4"
-              Foreground="{DynamicResource SukiPrimaryColor}"
-              Text="0.4 ms" />
-          </StackPanel>
-          <materialIcons:MaterialIcon
-            Grid.Column="1"
-            Width="24"
-            Height="24"
-            Kind="Speedometer"
-            Opacity="0.3" />
-        </Grid>
+          
+            <!-- No Device -->
+            <TextBlock Text="No device selected." 
+                       IsVisible="{Binding AudioSettings.ActiveDeviceDescription, Converter={x:Static ObjectConverters.IsNull}}"
+                       Foreground="{DynamicResource SukiText}" Opacity="0.6"/>
+
+            <!-- Device Info -->
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" 
+                  IsVisible="{Binding AudioSettings.ActiveDeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}">
+                
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name: " Opacity="0.6" Margin="0,0,10,5" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AudioSettings.ActiveDeviceDescription.FriendlyName}" TextTrimming="CharacterEllipsis" Margin="0,0,0,5" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Backend: " Opacity="0.6" Margin="0,0,10,5" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType}" Margin="0,0,0,5" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Sample Rate: " Opacity="0.6" Margin="0,0,10,5" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AudioSettings.AudioEngine.EngineWaveFormat.SampleRate, StringFormat='{}{0} Hz', FallbackValue='-'}" Margin="0,0,0,5" />
+
+                <!-- WASAPI Exclusive -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Exclusive: " Opacity="0.6" Margin="0,0,10,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AudioSettings.ActiveDeviceDescription.IsExclusive}" Margin="0,0,0,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}" />
+
+                 <!-- Latency (WASAPI) -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Latency: " Opacity="0.6" Margin="0,0,10,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AudioSettings.ActiveDeviceDescription.Latency, StringFormat='{}{0} ms'}" Margin="0,0,0,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}" />
+
+                <!-- Latency (DirectSound) -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Latency: " Opacity="0.6" Margin="0,0,10,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.DirectSound}}" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AudioSettings.ActiveDeviceDescription.Latency, StringFormat='{}{0} ms'}" Margin="0,0,0,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.DirectSound}}" />
+
+                <!-- ASIO Frames -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Buffer: " Opacity="0.6" Margin="0,0,10,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AudioSettings.FramesPerBuffer, StringFormat='{}{0} samples'}" Margin="0,0,0,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}" />
+
+                <!-- ASIO Latency -->
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Latency: " Opacity="0.6" Margin="0,0,10,5"
+                           IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}" />
+                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="0,0,0,5"
+                            IsVisible="{Binding AudioSettings.ActiveDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}">
+                    <TextBlock Text="{Binding AudioSettings.PlaybackLatency}" />
+                    <TextBlock Text="(" />
+                    <TextBlock>
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource Multi_LatencySampleRate2LatencyConverter}" StringFormat="{}{0:F2} ms">
+                                <Binding Path="AudioSettings.PlaybackLatency" />
+                                <Binding Path="AudioSettings.AudioEngine.EngineWaveFormat.SampleRate" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <TextBlock Text=")" />
+                </StackPanel>
+            </Grid>
+        </StackPanel>
       </suki:GlassCard>
 
       <!--  Key Bindings  -->

@@ -91,6 +91,17 @@ public partial class AudioSettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsLimiterEnabled { get; set; }
 
+    [ObservableProperty]
+    public partial int FramesPerBuffer { get; set; }
+
+    [ObservableProperty]
+    public partial int PlaybackLatency { get; set; }
+
+    [ObservableProperty]
+    public partial DeviceDescription? ActiveDeviceDescription { get; set; }
+
+    public AudioEngine AudioEngine => _audioEngine;
+
     async partial void OnSelectedDriverTypeChanged(WavePlayerType value)
     {
         try
@@ -265,6 +276,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         try
         {
             var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
+            ActiveDeviceDescription = actualDescription;
             _audioEngine.EnableLimiter = _appSettings.Audio.EnableLimiter;
             _audioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
             _audioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
@@ -274,8 +286,28 @@ public partial class AudioSettingsViewModel : ObservableObject
             if (device is AsioOut asioOut)
             {
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
-                // _viewModel.FramesPerBuffer = asioOut.FramesPerBuffer;
-                // Timer logic for latency if needed
+                FramesPerBuffer = asioOut.FramesPerBuffer;
+                _timer = new Timer(_ =>
+                {
+                    try
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
+                        {
+                            try
+                            {
+                                PlaybackLatency = asioOut.PlaybackLatency;
+                            }
+                            catch
+                            {
+                                // ignored
+                            }
+                        });
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+                }, null, 0, 100);
             }
 
             // await _bindingInitializer.InitializeKeyAudioAsync();
@@ -328,6 +360,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
 
         _audioEngine.StopDevice();
+        ActiveDeviceDescription = null;
         // _viewModel.DeviceDescription = null;
         _audioCacheManager.Clear();
         _audioCacheManager.Clear("internal");

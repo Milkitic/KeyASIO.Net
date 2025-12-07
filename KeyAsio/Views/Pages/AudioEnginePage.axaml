@@ -184,7 +184,6 @@
       Margin="20"
       Padding="15"
       VerticalAlignment="Bottom"
-      IsOpaque="True"
       IsVisible="{Binding AudioSettings.HasUnsavedAudioChanges}">
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel

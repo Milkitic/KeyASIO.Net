@@ -11,7 +11,7 @@ public class AudioEngine
 {
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly AudioCacheManager _audioCacheManager;
-    private readonly SynchronizationContext _context;
+    private SynchronizationContext? _context;
 
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null) { ExcludeFromPool = true };
     private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null) { ExcludeFromPool = true };
@@ -23,8 +23,6 @@ public class AudioEngine
     {
         _audioDeviceManager = audioDeviceManager;
         _audioCacheManager = audioCacheManager;
-        _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
-            staThread: true, threadPriority: ThreadPriority.AboveNormal);
     }
 
     public bool EnableLimiter
@@ -65,12 +63,18 @@ public class AudioEngine
 
     public void StartDevice(DeviceDescription? deviceDescription, WaveFormat? waveFormat = null)
     {
+        _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
+            staThread: true, threadPriority: ThreadPriority.AboveNormal);
+
         var (outputDevice, _) = _audioDeviceManager.CreateDevice(deviceDescription, _context);
         StartDevice(outputDevice, waveFormat);
     }
 
     public void StartDevice(IWavePlayer? outputDevice, WaveFormat? waveFormat = null)
     {
+        _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
+            staThread: true, threadPriority: ThreadPriority.AboveNormal);
+
         waveFormat ??= new WaveFormat(44100, 2);
         EngineWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
         SourceWaveFormat = waveFormat;
