@@ -22,21 +22,6 @@ public partial class AudioSettingsViewModel : ObservableObject
     private bool _isInitializing;
     private (DeviceDescription? PlaybackDevice, int SampleRate, bool EnableLimiter) _originalAudioSettings;
 
-    public AudioSettingsViewModel(ILogger<AudioSettingsViewModel> logger,
-        AppSettings appSettings,
-        AudioDeviceManager audioDeviceManager,
-        AudioEngine audioEngine,
-        AudioCacheManager audioCacheManager)
-    {
-        _logger = logger;
-        _appSettings = appSettings;
-        _audioDeviceManager = audioDeviceManager;
-        _audioEngine = audioEngine;
-        _audioCacheManager = audioCacheManager;
-
-        _ = InitializeAudioSettingsAsync();
-    }
-
     public AudioSettingsViewModel()
     {
         if (!Design.IsDesignMode)
@@ -53,8 +38,29 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
     }
 
+    public AudioSettingsViewModel(ILogger<AudioSettingsViewModel> logger,
+        AppSettings appSettings,
+        AudioDeviceManager audioDeviceManager,
+        AudioEngine audioEngine,
+        AudioCacheManager audioCacheManager)
+    {
+        _logger = logger;
+        _appSettings = appSettings;
+        _audioDeviceManager = audioDeviceManager;
+        _audioEngine = audioEngine;
+        _audioCacheManager = audioCacheManager;
+
+        _ = InitializeAudioSettingsAsync();
+    }
+
     public int[] SupportedSampleRates { get; } = [44100, 48000, 96000, 192000];
     public WavePlayerType[] AvailableDriverTypes { get; } = Enum.GetValues<WavePlayerType>();
+
+    public AudioEngine AudioEngine => _audioEngine;
+
+    public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO;
+    public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI;
+    public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound;
 
     [ObservableProperty]
     public partial bool HasUnsavedAudioChanges { get; set; }
@@ -70,10 +76,6 @@ public partial class AudioSettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsWasapi))]
     [NotifyPropertyChangedFor(nameof(IsDirectSound))]
     public partial WavePlayerType SelectedDriverType { get; set; }
-
-    public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO;
-    public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI;
-    public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound;
 
     [ObservableProperty]
     public partial double TargetBufferSize { get; set; } = 10;
@@ -96,7 +98,68 @@ public partial class AudioSettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial DeviceDescription? ActiveDeviceDescription { get; set; }
 
-    public AudioEngine AudioEngine => _audioEngine;
+    [ObservableProperty]
+    public partial string? DeviceErrorMessage { get; set; }
+
+    [ObservableProperty]
+    public partial string? DeviceFullErrorMessage { get; set; }
+
+    public async Task InitializeDevice()
+    {
+        if (_appSettings.Audio.PlaybackDevice == null) return;
+        await LoadDevice(_appSettings.Audio.PlaybackDevice);
+    }
+
+    [RelayCommand]
+    public async Task ApplyAudioSettings()
+    {
+        DeviceErrorMessage = null;
+        DeviceFullErrorMessage = null;
+        try
+        {
+            if (SelectedAudioDevice != null)
+            {
+                _appSettings.Audio.PlaybackDevice = SelectedAudioDevice with
+                {
+                    Latency = (int)TargetBufferSize,
+                    IsExclusive = IsExclusiveMode,
+                    ForceASIOBufferSize = (ushort)ForceAsioBufferSize
+                };
+            }
+            else
+            {
+                _appSettings.Audio.PlaybackDevice = null;
+            }
+
+            _appSettings.Audio.SampleRate = SelectedSampleRate;
+            _appSettings.Audio.EnableLimiter = IsLimiterEnabled;
+
+            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate,
+                _appSettings.Audio.EnableLimiter);
+            _appSettings.Save();
+            CheckAudioChanges();
+
+            if (SelectedAudioDevice != null)
+            {
+                await DisposeDeviceAsync();
+                await InitializeDevice();
+            }
+            else
+            {
+                await DisposeDeviceAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurs while applying audio settings.");
+        }
+    }
+
+    [RelayCommand]
+    public void DiscardAudioSettings()
+    {
+        _ = InitializeAudioSettingsAsync();
+    }
 
     async partial void OnSelectedDriverTypeChanged(WavePlayerType value)
     {
@@ -212,63 +275,10 @@ public partial class AudioSettingsViewModel : ObservableObject
             IsLimiterEnabled != _originalAudioSettings.EnableLimiter;
     }
 
-    [RelayCommand]
-    public async Task ApplyAudioSettings()
-    {
-        try
-        {
-            if (SelectedAudioDevice != null)
-            {
-                _appSettings.Audio.PlaybackDevice = SelectedAudioDevice with
-                {
-                    Latency = (int)TargetBufferSize,
-                    IsExclusive = IsExclusiveMode,
-                    ForceASIOBufferSize = (ushort)ForceAsioBufferSize
-                };
-            }
-            else
-            {
-                _appSettings.Audio.PlaybackDevice = null;
-            }
-
-            _appSettings.Audio.SampleRate = SelectedSampleRate;
-            _appSettings.Audio.EnableLimiter = IsLimiterEnabled;
-
-            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate,
-                _appSettings.Audio.EnableLimiter);
-            _appSettings.Save();
-            CheckAudioChanges();
-
-            if (SelectedAudioDevice != null)
-            {
-                await DisposeDeviceAsync();
-                await InitializeDevice();
-            }
-            else
-            {
-                await DisposeDeviceAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurs while applying audio settings.");
-        }
-    }
-
-    [RelayCommand]
-    public void DiscardAudioSettings()
-    {
-        _ = InitializeAudioSettingsAsync();
-    }
-
-    public async Task InitializeDevice()
-    {
-        if (_appSettings.Audio.PlaybackDevice == null) return;
-        await LoadDevice(_appSettings.Audio.PlaybackDevice);
-    }
-
     private async Task LoadDevice(DeviceDescription deviceDescription)
     {
+        DeviceErrorMessage = null;
+        DeviceFullErrorMessage = null;
         try
         {
             var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
@@ -289,6 +299,8 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            DeviceErrorMessage = ex.Message;
+            DeviceFullErrorMessage = ex.ToString();
             _logger.LogError(ex, "Error occurs while creating device.");
             await DisposeDeviceAsync();
         }

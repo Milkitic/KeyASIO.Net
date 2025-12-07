@@ -110,8 +110,32 @@
           
             <!-- No Device -->
             <TextBlock Text="No device selected." 
-                       IsVisible="{Binding AudioSettings.ActiveDeviceDescription, Converter={x:Static ObjectConverters.IsNull}}"
+                       IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNull}}"
                        Foreground="{DynamicResource SukiText}" Opacity="0.6"/>
+
+            <!-- Device Fault -->
+            <Button Command="{Binding ShowDeviceErrorCommand}"
+                    IsVisible="{Binding AudioSettings.DeviceErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Classes="Basic"
+                    Padding="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left">
+                <StackPanel Spacing="5">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <materialIcons:MaterialIcon Kind="AlertCircle" Foreground="{DynamicResource SukiDangerColor}" />
+                        <TextBlock Text="Device Fault" FontWeight="Bold" Foreground="{DynamicResource SukiDangerColor}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding AppSettings.Audio.PlaybackDevice.FriendlyName}"
+                               Foreground="{DynamicResource SukiDangerColor}"
+                               Opacity="0.8"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <TextBlock Text="{Binding AppSettings.Audio.PlaybackDevice.WavePlayerType}"
+                               Foreground="{DynamicResource SukiDangerColor}"
+                               Opacity="0.8" />
+                </StackPanel>
+            </Button>
 
             <!-- Device Info -->
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" 

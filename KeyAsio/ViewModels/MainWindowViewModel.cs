@@ -1,9 +1,8 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
+using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -21,50 +20,8 @@ namespace KeyAsio.ViewModels;
 public partial class MainWindowViewModel
 {
     private readonly ILogger<MainWindowViewModel> _logger;
-
-    public ISukiDialogManager DialogManager { get; } = new SukiDialogManager();
-
-    [ObservableProperty]
-    private object? _selectedMenuItem;
-
     private bool _isNavigating;
     private CancellationTokenSource? _saveDebounceCts;
-
-    partial void OnSelectedMenuItemChanging(object? oldValue, object? newValue)
-    {
-        if (_isNavigating) return;
-
-        // If we have unsaved changes and we are navigating away (newValue is different)
-        // We assume we are navigating away from AudioEnginePage because that's the only place modifying these settings.
-        if (!AudioSettings.HasUnsavedAudioChanges || newValue == null || oldValue == newValue) return;
-        _isNavigating = true;
-        SelectedMenuItem = oldValue;
-        _isNavigating = false;
-
-        DialogManager.CreateDialog()
-            .WithTitle("Unsaved Changes")
-            .WithContent("You have unsaved changes in Audio Engine settings.\nDo you want to save them before leaving?")
-            .OfType(NotificationType.Warning)
-            .WithActionButton("Save", _ =>
-            {
-                AudioSettings.ApplyAudioSettings();
-                NavigateTo(newValue);
-            }, true, classes: "")
-            .WithActionButton("Don't Save", _ =>
-            {
-                AudioSettings.DiscardAudioSettings();
-                NavigateTo(newValue);
-            }, true, classes: "")
-            .WithActionButton("Cancel", _ => { NavigateTo(oldValue); }, true)
-            .TryShow();
-    }
-
-    private void NavigateTo(object? page)
-    {
-        _isNavigating = true;
-        SelectedMenuItem = page;
-        _isNavigating = false;
-    }
 
     public MainWindowViewModel()
     {
@@ -92,12 +49,92 @@ public partial class MainWindowViewModel
         SubscribeToSettingsChanges();
     }
 
+    public ISukiDialogManager DialogManager { get; } = new SukiDialogManager();
     public ISukiToastManager MainToastManager { get; } = new SukiToastManager();
     public AppSettings AppSettings { get; }
     public UpdateService UpdateService { get; }
     public AudioSettingsViewModel AudioSettings { get; }
-
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
+
+    [ObservableProperty]
+    public partial object? SelectedMenuItem { get; set; }
+
+    [RelayCommand]
+    public void ShowDeviceError()
+    {
+        if (AudioSettings.DeviceErrorMessage == null) return;
+
+        DialogManager.CreateDialog()
+            .WithTitle("Device Fault")
+            .WithContent(new ScrollViewer
+            {
+                Content = new SelectableTextBlock
+                {
+                    Text = AudioSettings.DeviceFullErrorMessage ?? AudioSettings.DeviceErrorMessage,
+                    TextWrapping = TextWrapping.Wrap,
+                    FontFamily = new FontFamily("Consolas")
+                },
+                MaxHeight = 300
+            })
+            .WithActionButton("OK", _ => { }, true)
+            .TryShow();
+    }
+
+    [RelayCommand]
+    public void OpenUrl(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to open URL: {Url}", url);
+        }
+    }
+
+    partial void OnSelectedMenuItemChanging(object? oldValue, object? newValue)
+    {
+        if (_isNavigating) return;
+
+        // If we have unsaved changes and we are navigating away (newValue is different)
+        // We assume we are navigating away from AudioEnginePage because that's the only place modifying these settings.
+        if (!AudioSettings.HasUnsavedAudioChanges || newValue == null || oldValue == newValue) return;
+        _isNavigating = true;
+        SelectedMenuItem = oldValue;
+        _isNavigating = false;
+
+        DialogManager.CreateDialog()
+            .WithTitle("Unsaved Changes")
+            .WithContent("You have unsaved changes in Audio Engine settings.\nDo you want to save them before leaving?")
+            .OfType(NotificationType.Warning)
+            .WithActionButton("Save", async _ =>
+            {
+                await AudioSettings.ApplyAudioSettings();
+                NavigateTo(newValue);
+            }, true, classes: "")
+            .WithActionButton("Don't Save", _ =>
+            {
+                AudioSettings.DiscardAudioSettings();
+                NavigateTo(newValue);
+            }, true, classes: "")
+            .WithActionButton("Cancel", _ =>
+            {
+                NavigateTo(oldValue);
+            }, true)
+            .TryShow();
+    }
+
+    private void NavigateTo(object? page)
+    {
+        _isNavigating = true;
+        SelectedMenuItem = page;
+        _isNavigating = false;
+    }
 
     private void SubscribeToSettingsChanges()
     {
@@ -157,22 +194,5 @@ public partial class MainWindowViewModel
                 }
             });
         });
-    }
-
-    [RelayCommand]
-    public void OpenUrl(string url)
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to open URL: {Url}", url);
-        }
     }
 }
