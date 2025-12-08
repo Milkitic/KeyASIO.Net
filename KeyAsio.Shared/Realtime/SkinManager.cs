@@ -1,12 +1,11 @@
 using System.Diagnostics;
+using System.Management;
 using KeyAsio.Audio.Caching;
-using KeyAsio.MemoryReading;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Milki.Extensions.Configuration;
-using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
@@ -16,20 +15,39 @@ public class SkinManager : IHostedService
     private readonly ILogger<SkinManager> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
-    private readonly MemoryScan _memoryScan;
     private readonly SharedViewModel _sharedViewModel;
     private CancellationTokenSource? _cts;
     private Task? _refreshTask;
     private bool _waiting;
 
+    private ManagementEventWatcher? _processWatcher;
+
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
-        MemoryScan memoryScan, SharedViewModel sharedViewModel)
+        SharedViewModel sharedViewModel)
     {
         _logger = logger;
         _appSettings = appSettings;
         _audioCacheManager = audioCacheManager;
-        _memoryScan = memoryScan;
         _sharedViewModel = sharedViewModel;
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
+        {
+            await CheckOsuRegistryAsync();
+        }
+
+        ListenPropertyChanging();
+        _ = RefreshSkinInBackground();
+
+        StartProcessListener();
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        StopProcessListener();
+        return Task.CompletedTask;
     }
 
     public void ListenPropertyChanging()
@@ -52,32 +70,97 @@ public class SkinManager : IHostedService
         };
     }
 
-    public void ListenToProcess()
+    public void StartProcessListener()
     {
-        var memoryReadObject = _memoryScan.MemoryReadObject;
-        memoryReadObject.OsuStatusChanged += (pre, current) =>
+        CheckAndSetOsuPath();
+
+        try
         {
-            if (current is OsuMemoryStatus.NotRunning or OsuMemoryStatus.Unknown)
-            {
-                return;
-            }
+            // WMI 查询：监听 Win32_Process 的创建事件，且进程名为 osu!.exe
+            // WITHIN 1 表示轮询间隔为 1 秒（WMI 内部机制，非代码循环）
+            var query = new WqlEventQuery(
+                "SELECT * FROM __InstanceCreationEvent WITHIN 3 WHERE TargetInstance ISA 'Win32_Process' AND TargetInstance.Name = 'osu!.exe'");
 
-            if (pre is not (OsuMemoryStatus.NotRunning or OsuMemoryStatus.Unknown))
+            _processWatcher = new ManagementEventWatcher(query);
+            _processWatcher.EventArrived += (s, e) =>
             {
-                return;
-            }
+                _logger.LogInformation("Detected osu! process start via WMI.");
+                CheckAndSetOsuPath();
+            };
 
-            var process = Process.GetProcessesByName("osu!");
-            foreach (var proc in process)
+            _processWatcher.Start();
+            _logger.LogInformation("Osu process listener started.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to start WMI process watcher. Process detection may rely on restart.");
+        }
+    }
+
+    private void StopProcessListener()
+    {
+        try
+        {
+            _processWatcher?.Stop();
+            _processWatcher?.Dispose();
+            _processWatcher = null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error stopping process watcher.");
+        }
+    }
+
+    /// <summary>
+    /// 核心逻辑：查找 osu! 进程并设置路径
+    /// </summary>
+    private void CheckAndSetOsuPath()
+    {
+        try
+        {
+            var processes = Process.GetProcessesByName("osu!");
+            foreach (var proc in processes)
             {
-                var mainModule = proc.MainModule?.FileName;
-                if (mainModule == null) continue;
-                var fileVersionInfo = FileVersionInfo.GetVersionInfo(mainModule);
-                if (fileVersionInfo.CompanyName != "ppy") continue;
-                _appSettings.Paths.OsuFolderPath = Path.GetDirectoryName(Path.GetFullPath(mainModule));
-                break;
+                try
+                {
+                    if (proc.MainModule is not { } module) continue;
+
+                    var fileName = module.FileName;
+                    if (string.IsNullOrEmpty(fileName)) continue;
+
+                    var fileVersionInfo = FileVersionInfo.GetVersionInfo(fileName);
+                    if (fileVersionInfo.CompanyName == "ppy")
+                    {
+                        var detectedPath = Path.GetDirectoryName(Path.GetFullPath(fileName));
+
+                        if (_appSettings.Paths.OsuFolderPath != detectedPath)
+                        {
+                            _logger.LogInformation("Auto-detected osu! path: {Path}", detectedPath);
+                            UiDispatcher.Invoke(() => { _appSettings.Paths.OsuFolderPath = detectedPath; });
+                        }
+
+                        break;
+                    }
+
+                    if (fileVersionInfo.CompanyName == "ppy Pty Ltd")
+                    {
+                        // lazer wip
+                    }
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    // 忽略无权访问的进程
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error inspecting osu! process module.");
+                }
             }
-        };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in CheckAndSetOsuPath.");
+        }
     }
 
     public async Task RefreshSkinInBackground()
@@ -189,25 +272,5 @@ public class SkinManager : IHostedService
         {
             await _refreshTask;
         }
-    }
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
-        {
-            await CheckOsuRegistryAsync();
-        }
-
-        ListenPropertyChanging();
-        _ = RefreshSkinInBackground();
-        if (_appSettings.Realtime.RealtimeMode)
-        {
-            ListenToProcess();
-        }
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
     }
 }
