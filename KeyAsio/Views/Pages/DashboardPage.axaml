@@ -357,7 +357,10 @@
         <Grid RowDefinitions="Auto,*">
           <DockPanel LastChildFill="False">
             <TextBlock FontWeight="Bold" Text="Quick Bindings" />
-            <Button Classes="DashboardHeaderButton Flat" DockPanel.Dock="Right">
+            <Button
+              Classes="DashboardHeaderButton Flat"
+              Command="{Binding AddKeyCommand}"
+              DockPanel.Dock="Right">
               <materialIcons:MaterialIcon Kind="Plus" />
             </Button>
           </DockPanel>
@@ -367,7 +370,7 @@
               Margin="0,10,0,0"
               HorizontalScrollBarVisibility="Auto"
               VerticalScrollBarVisibility="Disabled">
-              <ItemsControl>
+              <ItemsControl ItemsSource="{Binding BoundKeys}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <StackPanel
@@ -376,91 +379,31 @@
                       Spacing="10" />
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                <!--  Mock Items  -->
-                <suki:GlassCard
-                  Width="42"
-                  Height="42"
-                  Padding="0"
-                  CornerRadius="8">
-                  <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="Z" />
-                </suki:GlassCard>
-                <suki:GlassCard
-                  Width="42"
-                  Height="42"
-                  Padding="0"
-                  CornerRadius="8">
-                  <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="X" />
-                </suki:GlassCard>
-                <suki:GlassCard
-                  Width="42"
-                  Height="42"
-                  Padding="0"
-                  CornerRadius="8">
-                  <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="C" />
-                </suki:GlassCard>
-                <suki:GlassCard
-                  Width="42"
-                  Height="42"
-                  Padding="0"
-                  CornerRadius="8">
-                  <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="V" />
-                </suki:GlassCard>
-                <suki:GlassCard
-                  Width="42"
-                  Height="42"
-                  Padding="0"
-                  CornerRadius="8">
-                  <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="B" />
-                </suki:GlassCard>
-                <suki:GlassCard
-                  Width="42"
-                  Height="42"
-                  Padding="0"
-                  CornerRadius="8">
-                  <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="N" />
-                </suki:GlassCard>
-                <suki:GlassCard
-                  Width="42"
-                  Height="42"
-                  Padding="0"
-                  CornerRadius="8">
-                  <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="M" />
-                </suki:GlassCard>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <suki:GlassCard
+                      Width="42"
+                      Height="42"
+                      Padding="0"
+                      CornerRadius="8"
+                      ToolTip.Tip="Right Click to Remove">
+                      <suki:GlassCard.ContextFlyout>
+                        <Flyout>
+                          <Button
+                            Command="{Binding $parent[UserControl].DataContext.RemoveKeyCommand}"
+                            CommandParameter="{Binding}"
+                            Content="Remove" />
+                        </Flyout>
+                      </suki:GlassCard.ContextFlyout>
+                      <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Text="{Binding}" />
+                    </suki:GlassCard>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
               </ItemsControl>
             </ScrollViewer>
           </Grid>
