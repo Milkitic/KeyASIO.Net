@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Views.Dialogs;
 using Milki.Extensions.Configuration;
@@ -23,6 +24,15 @@ public partial class MainWindowViewModel
             };
             return field;
         }
+    }
+
+    [ObservableProperty]
+    public partial bool IsEditingKeys { get; set; }
+
+    [RelayCommand]
+    public void ToggleEditKeys()
+    {
+        IsEditingKeys = !IsEditingKeys;
     }
 
     [RelayCommand]
