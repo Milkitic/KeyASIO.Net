@@ -35,13 +35,7 @@ static class Program
         var logFactory = LoggerFactory.Create(k => k.AddSimpleConsole());
         var deviceCreationHelper = new AudioDeviceManager(logFactory.CreateLogger<AudioDeviceManager>());
         var cachedAudioFactory = new AudioCacheManager(logFactory.CreateLogger<AudioCacheManager>());
-        var (device, actualDescription) = deviceCreationHelper.CreateDevice(new DeviceDescription()
-        {
-            DeviceId = "ASIO4ALL V2",
-            FriendlyName = "ASIO4ALL V2",
-            WavePlayerType = WavePlayerType.ASIO,
-            Latency = 1
-        }, context);
+        //var (device, actualDescription) = deviceCreationHelper.CreateDevice(, context);
         var services = new ServiceCollection();
         services.AddSingleton(appSettings);
         services.AddSingleton<GameplaySessionManager>();
@@ -57,7 +51,13 @@ static class Program
 
         var audioEngine = provider.GetRequiredService<AudioEngine>();
         audioEngine.EffectVolume = appSettings.Audio.MasterVolume / 100f;
-        audioEngine.StartDevice(device);
+        audioEngine.StartDevice(new DeviceDescription()
+        {
+            DeviceId = "ASIO4ALL V2",
+            FriendlyName = "ASIO4ALL V2",
+            WavePlayerType = WavePlayerType.ASIO,
+            Latency = 1
+        });
         appSettings.Realtime.Playback.BalanceFactor = 0.5f;
 
         var filenameFull =
@@ -124,6 +124,6 @@ static class Program
         sw.Restart();
 
         Console.ReadKey();
-        device.Dispose();
+        audioEngine.Dispose();
     }
 }

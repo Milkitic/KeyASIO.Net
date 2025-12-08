@@ -1,4 +1,6 @@
-﻿using KeyAsio.Audio.Caching;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.SampleProviders.Limiters;
 using KeyAsio.Audio.Wave;
@@ -7,7 +9,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio;
 
-public class AudioEngine
+public class AudioEngine : IDisposable, INotifyPropertyChanged
 {
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly AudioCacheManager _audioCacheManager;
@@ -36,6 +38,13 @@ public class AudioEngine
     }
 
     public IWavePlayer? CurrentDevice { get; private set; }
+
+    public DeviceDescription? CurrentDeviceDescription
+    {
+        get;
+        private set => SetField(ref field, value);
+    }
+
     public WaveFormat SourceWaveFormat { get; private set; } = null!;
     public WaveFormat EngineWaveFormat { get; private set; } = null!;
     public EnhancedMixingSampleProvider EffectMixer { get; private set; } = null!;
@@ -66,11 +75,12 @@ public class AudioEngine
         _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
             staThread: true, threadPriority: ThreadPriority.AboveNormal);
 
-        var (outputDevice, _) = _audioDeviceManager.CreateDevice(deviceDescription, _context);
+        var (outputDevice, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription, _context);
+        CurrentDeviceDescription = actualDescription;
         StartDevice(outputDevice, waveFormat);
     }
 
-    public void StartDevice(IWavePlayer? outputDevice, WaveFormat? waveFormat = null)
+    private void StartDevice(IWavePlayer? outputDevice, WaveFormat? waveFormat = null)
     {
         _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
             staThread: true, threadPriority: ThreadPriority.AboveNormal);
@@ -133,6 +143,7 @@ public class AudioEngine
         _musicVolumeSampleProvider.Source = null;
         _mainVolumeSampleProvider.Source = null;
         CurrentDevice = null;
+        CurrentDeviceDescription = null;
     }
 
     [Obsolete]
@@ -161,5 +172,25 @@ public class AudioEngine
     {
         var rootSample = await RootMixer.PlayAudio(_audioCacheManager, path, balance, volume).ConfigureAwait(false);
         return rootSample;
+    }
+
+    public void Dispose()
+    {
+        CurrentDevice?.Dispose();
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }

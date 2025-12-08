@@ -100,12 +100,13 @@ public partial class MainWindow : DialogWindow
     {
         try
         {
-            var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
             AudioEngine.EnableLimiter = AppSettings.Audio.EnableLimiter;
             AudioEngine.MainVolume = AppSettings.Audio.MasterVolume / 100f;
             AudioEngine.MusicVolume = AppSettings.Audio.MusicVolume / 100f;
             AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
-            AudioEngine.StartDevice(device);
+            AudioEngine.StartDevice(deviceDescription);
+            var device = AudioEngine.CurrentDevice;
+            var actualDescription = AudioEngine.CurrentDeviceDescription;
 
             if (device is AsioOut asioOut)
             {

@@ -84,13 +84,13 @@ public partial class AudioSettingsViewModel : ObservableObject
     public partial WavePlayerType SelectedDriverType { get; set; }
 
     [ObservableProperty]
-    public partial double TargetBufferSize { get; set; } = 10;
+    public partial double TargetBufferSize { get; set; }
 
     [ObservableProperty]
-    public partial int ForceAsioBufferSize { get; set; } = 0;
+    public partial int ForceAsioBufferSize { get; set; }
 
     [ObservableProperty]
-    public partial bool IsExclusiveMode { get; set; } = true;
+    public partial bool IsExclusiveMode { get; set; }
 
     [ObservableProperty]
     public partial int SelectedSampleRate { get; set; }
@@ -100,9 +100,6 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial int FramesPerBuffer { get; set; }
-
-    [ObservableProperty]
-    public partial DeviceDescription? ActiveDeviceDescription { get; set; }
 
     [ObservableProperty]
     public partial string? DeviceErrorMessage { get; set; }
@@ -195,11 +192,11 @@ public partial class AudioSettingsViewModel : ObservableObject
             await DisposeDeviceAsync();
             await InitializeDevice();
 
-            if (ActiveDeviceDescription != null)
+            if (_audioEngine.CurrentDeviceDescription != null)
             {
                 ToastManager?.CreateSimpleInfoToast()
                     .WithTitle("Device Reloaded")
-                    .WithContent($"Successfully reloaded device: {ActiveDeviceDescription.FriendlyName}")
+                    .WithContent($"Successfully reloaded device: {_audioEngine.CurrentDeviceDescription.FriendlyName}")
                     .Queue();
             }
             else if (DeviceErrorMessage != null)
@@ -350,21 +347,17 @@ public partial class AudioSettingsViewModel : ObservableObject
         DeviceFullErrorMessage = null;
         try
         {
-            var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
-            ActiveDeviceDescription = actualDescription;
             _audioEngine.EnableLimiter = _appSettings.Audio.EnableLimiter;
             _audioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
             _audioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
             _audioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
-            _audioEngine.StartDevice(device);
+            _audioEngine.StartDevice(deviceDescription);
 
-            if (device is AsioOut asioOut)
+            if (_audioEngine.CurrentDevice is AsioOut asioOut)
             {
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 FramesPerBuffer = asioOut.FramesPerBuffer;
             }
-
-            // await _bindingInitializer.InitializeKeyAudioAsync();
         }
         catch (Exception ex)
         {
@@ -427,7 +420,6 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
 
         _audioEngine.StopDevice();
-        ActiveDeviceDescription = null;
         _audioCacheManager.Clear();
         _audioCacheManager.Clear("internal");
     }
