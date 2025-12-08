@@ -119,11 +119,7 @@
         <suki:GlassCard.Styles>
           <Style Selector="suki|GlassCard[IsInteractive=True]">
             <Setter Property="Cursor" Value="Hand" />
-            <!--<Setter Property="BorderThickness" Value="2" />-->
           </Style>
-          <!--   <Style Selector="suki|GlassCard[IsInteractive=True]:pointerover">
-          <Setter Property="BorderBrush" Value="{DynamicResource SukiDangerColor}" />
-          </Style>-->
         </suki:GlassCard.Styles>
 
         <Grid RowDefinitions="Auto,*">
@@ -245,7 +241,7 @@
 
               <TextBlock
                 Margin="0,10"
-                FontSize="17"
+                FontSize="15"
                 FontWeight="DemiBold"
                 Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.FriendlyName}"
                 TextWrapping="Wrap" />

@@ -112,7 +112,7 @@
                 <Slider
                   IsSnapToTickEnabled="True"
                   Maximum="200"
-                  Minimum="1"
+                  Minimum="0"
                   TickFrequency="1"
                   Value="{Binding AudioSettings.TargetBufferSize}" />
               </StackPanel>

@@ -45,8 +45,14 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
         private set => SetField(ref field, value);
     }
 
+    public WaveFormat EngineWaveFormat
+    {
+        get;
+        private set => SetField(ref field, value);
+    } = null!;
+
     public WaveFormat SourceWaveFormat { get; private set; } = null!;
-    public WaveFormat EngineWaveFormat { get; private set; } = null!;
+
     public EnhancedMixingSampleProvider EffectMixer { get; private set; } = null!;
     public EnhancedMixingSampleProvider MusicMixer { get; private set; } = null!;
     public EnhancedMixingSampleProvider RootMixer { get; private set; } = null!;
@@ -76,18 +82,10 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
             staThread: true, threadPriority: ThreadPriority.AboveNormal);
 
         var (outputDevice, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription, _context);
-        CurrentDeviceDescription = actualDescription;
-        StartDevice(outputDevice, waveFormat);
-    }
-
-    private void StartDevice(IWavePlayer? outputDevice, WaveFormat? waveFormat = null)
-    {
-        _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
-            staThread: true, threadPriority: ThreadPriority.AboveNormal);
 
         waveFormat ??= new WaveFormat(44100, 2);
-        EngineWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
         SourceWaveFormat = waveFormat;
+        EngineWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
 
         RootMixer = new EnhancedMixingSampleProvider(EngineWaveFormat)
         {
@@ -111,26 +109,25 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
         _limiterProvider = MasterLimiterProvider.UltraLowLatencyPreset(_mainVolumeSampleProvider);
         _limiterProvider.IsEnabled = _enableLimiter;
         ISampleProvider root = _limiterProvider;
-        if (outputDevice != null)
-        {
-            Exception? ex = null;
-            _context.Send(_ =>
-            {
-                try
-                {
-                    outputDevice.Init(new PerfSampleToWaveProvider(root));
-                }
-                catch (Exception e)
-                {
-                    ex = e;
-                }
-            }, null);
 
-            if (ex != null) throw ex;
-            outputDevice.Play();
-        }
+        Exception? ex = null;
+        _context.Send(_ =>
+        {
+            try
+            {
+                outputDevice.Init(new PerfSampleToWaveProvider(root));
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+        }, null);
+
+        if (ex != null) throw ex;
+        outputDevice.Play();
 
         CurrentDevice = outputDevice;
+        CurrentDeviceDescription = actualDescription;
         RootSampleProvider = root;
     }
 

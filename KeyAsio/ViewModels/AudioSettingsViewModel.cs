@@ -18,7 +18,6 @@ public partial class AudioSettingsViewModel : ObservableObject
     private readonly ILogger<AudioSettingsViewModel> _logger;
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly AppSettings _appSettings;
-    private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
 
     private bool _isInitializing;
@@ -35,7 +34,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             _appSettings = new AppSettings();
             _audioDeviceManager = null!;
             _logger = null!;
-            _audioEngine = null!;
+            AudioEngine = null!;
             _audioCacheManager = null!;
         }
     }
@@ -49,8 +48,8 @@ public partial class AudioSettingsViewModel : ObservableObject
         _logger = logger;
         _appSettings = appSettings;
         _audioDeviceManager = audioDeviceManager;
-        _audioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
+        AudioEngine = audioEngine;
 
         _ = InitializeAudioSettingsAsync();
     }
@@ -58,12 +57,8 @@ public partial class AudioSettingsViewModel : ObservableObject
     public int[] SupportedSampleRates { get; } = [44100, 48000, 96000, 192000];
     public WavePlayerType[] AvailableDriverTypes { get; } = Enum.GetValues<WavePlayerType>();
 
-    public AudioEngine AudioEngine => _audioEngine;
+    public AudioEngine AudioEngine { get; }
     public ISukiToastManager? ToastManager { get; set; }
-
-    public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO && SelectedAudioDevice != null;
-    public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI && SelectedAudioDevice != null;
-    public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound && SelectedAudioDevice != null;
 
     [ObservableProperty]
     public partial bool HasUnsavedAudioChanges { get; set; }
@@ -82,6 +77,9 @@ public partial class AudioSettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsWasapi))]
     [NotifyPropertyChangedFor(nameof(IsDirectSound))]
     public partial WavePlayerType SelectedDriverType { get; set; }
+    public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO && SelectedAudioDevice != null;
+    public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI && SelectedAudioDevice != null;
+    public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound && SelectedAudioDevice != null;
 
     [ObservableProperty]
     public partial double TargetBufferSize { get; set; }
@@ -178,7 +176,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     [RelayCommand]
     public void OpenAsioPanel()
     {
-        if (_audioEngine.CurrentDevice is AsioOut asioOut)
+        if (AudioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.ShowControlPanel();
         }
@@ -192,11 +190,11 @@ public partial class AudioSettingsViewModel : ObservableObject
             await DisposeDeviceAsync();
             await InitializeDevice();
 
-            if (_audioEngine.CurrentDeviceDescription != null)
+            if (AudioEngine.CurrentDeviceDescription != null)
             {
                 ToastManager?.CreateSimpleInfoToast()
                     .WithTitle("Device Reloaded")
-                    .WithContent($"Successfully reloaded device: {_audioEngine.CurrentDeviceDescription.FriendlyName}")
+                    .WithContent($"Successfully reloaded device: {AudioEngine.CurrentDeviceDescription.FriendlyName}")
                     .Queue();
             }
             else if (DeviceErrorMessage != null)
@@ -347,13 +345,13 @@ public partial class AudioSettingsViewModel : ObservableObject
         DeviceFullErrorMessage = null;
         try
         {
-            _audioEngine.EnableLimiter = _appSettings.Audio.EnableLimiter;
-            _audioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
-            _audioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
-            _audioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
-            _audioEngine.StartDevice(deviceDescription);
+            AudioEngine.EnableLimiter = _appSettings.Audio.EnableLimiter;
+            AudioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
+            AudioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
+            AudioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
+            AudioEngine.StartDevice(deviceDescription, new WaveFormat(SelectedSampleRate, 2));
 
-            if (_audioEngine.CurrentDevice is AsioOut asioOut)
+            if (AudioEngine.CurrentDevice is AsioOut asioOut)
             {
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 FramesPerBuffer = asioOut.FramesPerBuffer;
@@ -400,7 +398,7 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     private async ValueTask DisposeDeviceAsync()
     {
-        if (_audioEngine.CurrentDevice is AsioOut asioOut)
+        if (AudioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
         }
@@ -409,7 +407,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         {
             try
             {
-                _audioEngine.CurrentDevice?.Dispose();
+                AudioEngine.CurrentDevice?.Dispose();
                 break;
             }
             catch (Exception ex)
@@ -419,7 +417,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             }
         }
 
-        _audioEngine.StopDevice();
+        AudioEngine.StopDevice();
         _audioCacheManager.Clear();
         _audioCacheManager.Clear("internal");
     }
