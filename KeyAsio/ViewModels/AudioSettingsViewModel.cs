@@ -155,6 +155,13 @@ public partial class AudioSettingsViewModel : ObservableObject
                         .Dismiss().ByClicking()
                         .Queue();
                 }
+                else
+                {
+                    ToastManager?.CreateSimpleInfoToast()
+                        .WithTitle("Audio Settings Applied")
+                        .WithContent($"Successfully applied new device: {AudioEngine.CurrentDeviceDescription?.FriendlyName}")
+                        .Queue();
+                }
             }
             else
             {
