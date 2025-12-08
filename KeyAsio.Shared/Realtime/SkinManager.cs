@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Management;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
@@ -20,7 +21,10 @@ public class SkinManager : IHostedService
     private Task? _refreshTask;
     private bool _waiting;
 
+    private readonly AsyncLock _asyncLock = new();
+
     private ManagementEventWatcher? _processWatcher;
+    private CancellationTokenSource? _skinLoadCts;
 
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel)
@@ -39,7 +43,7 @@ public class SkinManager : IHostedService
         }
 
         ListenPropertyChanging();
-        _ = RefreshSkinInBackground();
+        _ = RefreshSkinsAsync();
 
         StartProcessListener();
     }
@@ -65,7 +69,7 @@ public class SkinManager : IHostedService
         {
             if (e.PropertyName == nameof(AppSettings.Paths.OsuFolderPath))
             {
-                _ = RefreshSkinInBackground();
+                _ = RefreshSkinsAsync();
             }
         };
     }
@@ -163,59 +167,20 @@ public class SkinManager : IHostedService
         }
     }
 
-    public async Task RefreshSkinInBackground()
+    public async Task RefreshSkinsAsync()
     {
-        lock (InstanceLock)
+        using var @lock = await _asyncLock.LockAsync();
+
+        if (_skinLoadCts != null) await _skinLoadCts.CancelAsync();
+        _skinLoadCts = new CancellationTokenSource();
+        var token = _skinLoadCts.Token;
+
+        _ = Task.Run(async () =>
         {
-            if (_waiting) return;
-            _waiting = true;
-        }
-
-        await StopRefreshTask();
-        _cts = new CancellationTokenSource();
-        _refreshTask = new Task(() =>
-        {
-            if (_appSettings.Paths.OsuFolderPath == null) return;
-            var skinsDir = Path.Combine(_appSettings.Paths.OsuFolderPath, "Skins");
-            if (!Directory.Exists(skinsDir)) return;
-            UiDispatcher.Invoke(() => _sharedViewModel.Skins.Clear());
-            var list = new List<SkinDescription> { SkinDescription.Default };
-            foreach (var directory in Directory.EnumerateDirectories(skinsDir, "*", SearchOption.TopDirectoryOnly))
-            {
-                if (_cts.IsCancellationRequested) return;
-                string? name = null;
-                string? author = null;
-                var iniFile = Path.Combine(directory, "skin.ini");
-                if (File.Exists(iniFile))
-                {
-                    (name, author) = ReadIniFile(iniFile);
-                }
-
-                var skinDescription = new SkinDescription(Path.GetFileName(directory), directory, name, author);
-                list.Add(skinDescription);
-                _logger.LogDebug("Find skin: {SkinDescription}", skinDescription);
-                if (_cts.IsCancellationRequested) return;
-            }
-
-            UiDispatcher.Invoke(() =>
-            {
-                foreach (var skinDescription in list)
-                {
-                    _sharedViewModel.Skins.Add(skinDescription);
-                }
-
-                var selected = _appSettings.Paths.SelectedSkinName;
-                _sharedViewModel.SelectedSkin = _sharedViewModel.Skins.FirstOrDefault(k => k.FolderName == selected) ??
-                                                _sharedViewModel.Skins.FirstOrDefault();
-            });
-        });
-
-        lock (InstanceLock)
-        {
-            _waiting = false;
-        }
-
-        _refreshTask.Start();
+            //wip: wait mainwindow loaded?
+            await Task.Delay(3000, token);
+            LoadSkinsInternal(token);
+        }, token);
     }
 
     public async Task CheckOsuRegistryAsync()
@@ -234,6 +199,53 @@ public class SkinManager : IHostedService
         {
             _logger.LogError(ex, "Error occurs while finding registry");
         }
+    }
+
+    private void LoadSkinsInternal(CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(_appSettings.Paths.OsuFolderPath)) return;
+        var skinsDir = Path.Combine(_appSettings.Paths.OsuFolderPath, "Skins");
+        if (!Directory.Exists(skinsDir)) return;
+
+        var newSkinList = new List<SkinDescription> { SkinDescription.Default };
+
+        var directories = Directory.EnumerateDirectories(skinsDir);
+        var loadedSkins = directories.AsParallel()
+            .WithDegreeOfParallelism(2)
+            .Select(dir =>
+            {
+                if (token.IsCancellationRequested) return null;
+                var iniPath = Path.Combine(dir, "skin.ini");
+                string? name = null;
+                string? author = null;
+                if (File.Exists(iniPath))
+                {
+                    (name, author) = ReadIniFile(iniPath);
+                }
+
+                var skinDescription = new SkinDescription(Path.GetFileName(dir), dir, name, author);
+                _logger.LogDebug("Find skin: {SkinDescription}", skinDescription);
+                return skinDescription;
+            })
+            .Where(x => x != null)
+            .ToList();
+
+        if (token.IsCancellationRequested) return;
+
+        newSkinList.AddRange(loadedSkins!);
+
+        UiDispatcher.Invoke(() =>
+        {
+            if (token.IsCancellationRequested) return;
+
+            _sharedViewModel.Skins.Clear();
+            foreach (var s in newSkinList) _sharedViewModel.Skins.Add(s);
+
+            var selectedName = _appSettings.Paths.SelectedSkinName;
+            _sharedViewModel.SelectedSkin = _sharedViewModel.Skins
+                                                .FirstOrDefault(k => k.FolderName == selectedName)
+                                            ?? _sharedViewModel.Skins.FirstOrDefault();
+        });
     }
 
     private static (string?, string?) ReadIniFile(string iniFile)
