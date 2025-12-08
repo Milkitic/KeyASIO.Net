@@ -153,10 +153,10 @@ public partial class AudioSettingsViewModel : ObservableObject
                 if (DeviceErrorMessage != null)
                 {
                     ToastManager?.CreateToast()
-                        .WithTitle("Error Applying Settings")
+                        .WithTitle("Device Initialization Failed")
                         .WithContent(DeviceErrorMessage)
                         .OfType(NotificationType.Error)
-                        .Dismiss().After(TimeSpan.FromSeconds(3))
+                        .Dismiss().After(TimeSpan.FromSeconds(5))
                         .Dismiss().ByClicking()
                         .Queue();
                 }
@@ -208,7 +208,7 @@ public partial class AudioSettingsViewModel : ObservableObject
                     .WithTitle("Device Reload Failed")
                     .WithContent(DeviceErrorMessage)
                     .OfType(NotificationType.Error)
-                    .Dismiss().After(TimeSpan.FromSeconds(3))
+                    .Dismiss().After(TimeSpan.FromSeconds(8))
                     .Dismiss().ByClicking()
                     .Queue();
             }

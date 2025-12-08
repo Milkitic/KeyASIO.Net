@@ -70,6 +70,15 @@ internal sealed class Program
                     options.MinimumEventLevel = LogLevel.Error;
                     options.HttpProxy = HttpClient.DefaultProxy;
                     options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+#if !RELEASE
+                    var diagnosticLoggerFactory = LoggerFactory.Create(builder =>
+                    {
+                        builder.AddNLog("nlog.config");
+                        builder.SetMinimumLevel(LogLevel.Debug);
+                    });
+                    options.DiagnosticLogger =
+                        new MicrosoftDiagnosticLogger(diagnosticLoggerFactory.CreateLogger("SentryDiagnostic"));
+#endif
                 });
             })
             .ConfigureServices(services => services
@@ -84,10 +93,13 @@ internal sealed class Program
             .Build();
 
         var processors = Host.Services.GetServices<ISentryEventProcessor>();
-        foreach (var processor in processors)
+        SentrySdk.ConfigureScope(scope =>
         {
-            SentrySdk.ConfigureScope(scope => scope.AddEventProcessor(processor));
-        }
+            foreach (var processor in processors)
+            {
+                scope.AddEventProcessor(processor);
+            }
+        });
 
         try
         {

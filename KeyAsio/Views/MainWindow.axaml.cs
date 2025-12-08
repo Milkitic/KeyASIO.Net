@@ -135,7 +135,7 @@ public partial class MainWindow : SukiWindow
                     .WithTitle("Device Initialization Failed")
                     .WithContent(_viewModel.AudioSettings.DeviceErrorMessage)
                     .OfType(NotificationType.Error)
-                    .Dismiss().After(TimeSpan.FromSeconds(5))
+                    .Dismiss().After(TimeSpan.FromSeconds(8))
                     .Dismiss().ByClicking()
                     .Queue();
             }

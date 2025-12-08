@@ -154,6 +154,7 @@
               <Button
                 Classes="DashboardHeaderButton"
                 Command="{Binding AudioSettings.ReloadAudioDeviceCommand}"
+                Cursor="Arrow"
                 IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNotNull}}"
                 ToolTip.Tip="Reload Device">
                 <materialIcons:MaterialIcon
@@ -167,6 +168,7 @@
               <Button
                 Classes="DashboardHeaderButton Danger"
                 Command="{Binding AudioSettings.ClearAudioDeviceCommand}"
+                Cursor="Arrow"
                 IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNotNull}}"
                 ToolTip.Tip="Clear Device">
                 <materialIcons:MaterialIcon
