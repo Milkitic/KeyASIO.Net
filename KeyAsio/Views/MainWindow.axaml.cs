@@ -83,6 +83,9 @@ public partial class MainWindow : SukiWindow
         {
             if (Design.IsDesignMode) return;
 
+            _viewModel.SettingsPageItem = SettingsMenuItem;
+            _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
+
             if (!_viewModel.AppSettings.Logging.ErrorReportingConfirmed)
             {
                 _viewModel.MainToastManager.CreateToast()

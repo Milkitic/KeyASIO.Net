@@ -70,7 +70,7 @@
       </suki:SukiSideMenuItem>
 
       <!--  PAGE 2: AUDIO ENGINE  -->
-      <suki:SukiSideMenuItem Classes="Compact" Header="Audio Engine">
+      <suki:SukiSideMenuItem x:Name="AudioEngineMenuItem" Classes="Compact" Header="Audio Engine">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Speaker" />
         </suki:SukiSideMenuItem.Icon>
@@ -90,7 +90,7 @@
       </suki:SukiSideMenuItem>
 
       <!--  PAGE 4: SETTINGS  -->
-      <suki:SukiSideMenuItem Classes="Compact" Header="Settings">
+      <suki:SukiSideMenuItem x:Name="SettingsMenuItem" Classes="Compact" Header="Settings">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Cog" />
         </suki:SukiSideMenuItem.Icon>

@@ -60,6 +60,27 @@ public partial class MainWindowViewModel
     [ObservableProperty]
     public partial object? SelectedMenuItem { get; set; }
 
+    public object? SettingsPageItem { get; set; }
+    public object? AudioEnginePageItem { get; set; }
+
+    [RelayCommand]
+    public void NavigateToSettings()
+    {
+        if (SettingsPageItem != null)
+        {
+            NavigateTo(SettingsPageItem);
+        }
+    }
+
+    [RelayCommand]
+    public void NavigateToAudioEngine()
+    {
+        if (AudioEnginePageItem != null)
+        {
+            NavigateTo(AudioEnginePageItem);
+        }
+    }
+
     [RelayCommand]
     public void ShowDeviceError()
     {
@@ -123,10 +144,7 @@ public partial class MainWindowViewModel
                 AudioSettings.DiscardAudioSettings();
                 NavigateTo(newValue);
             }, true, classes: "")
-            .WithActionButton("Cancel", _ =>
-            {
-                NavigateTo(oldValue);
-            }, true)
+            .WithActionButton("Cancel", _ => { NavigateTo(oldValue); }, true)
             .TryShow();
     }
 

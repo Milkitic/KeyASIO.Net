@@ -182,11 +182,18 @@
           <StackPanel Grid.Row="1" VerticalAlignment="Center">
 
             <!--  No Device  -->
-            <TextBlock
-              Foreground="{DynamicResource SukiText}"
-              IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNull}}"
-              Opacity="0.6"
-              Text="No device selected." />
+            <StackPanel IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNull}}">
+              <TextBlock Foreground="{DynamicResource SukiText}" Text="No device selected. " />
+              <HyperlinkButton Command="{Binding NavigateToAudioEngineCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                  <TextBlock Text="Go to settings" />
+                  <materialIcons:MaterialIcon
+                    Width="16"
+                    Height="16"
+                    Kind="ArrowTopRight" />
+                </StackPanel>
+              </HyperlinkButton>
+            </StackPanel>
 
             <!--  Device Fault  -->
             <Border
