@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
@@ -43,6 +43,9 @@ public partial class AppSettingsPaths : INotifyPropertyChanged
 
     [Description("Skin used when realtime mode is enabled.")]
     public string? SelectedSkinName { get; set; }
+
+    [Description("Allow automatic loading of skins from osu! folder.")]
+    public bool? AllowAutoLoadSkins { get; set; }
 }
 
 public partial class AppSettingsAudio : INotifyPropertyChanged

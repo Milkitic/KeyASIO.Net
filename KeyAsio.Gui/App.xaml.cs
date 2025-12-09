@@ -49,6 +49,11 @@ public partial class App : Application
         SimdAudioConverter.EnableAvx512 = _appSettings.Performance.EnableAvx512;
         ProfessionalBalanceProvider.EnableAvx512 = _appSettings.Performance.EnableAvx512;
 
+        if (_appSettings.Paths.AllowAutoLoadSkins == null)
+        {
+            _appSettings.Paths.AllowAutoLoadSkins = true;
+        }
+
         _skinManager.Start();
         StartMemoryScan();
 

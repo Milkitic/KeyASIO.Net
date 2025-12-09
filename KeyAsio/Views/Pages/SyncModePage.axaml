@@ -47,6 +47,15 @@
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
+
+              <Grid Margin="0,5,8,0" ColumnDefinitions="*, Auto">
+                <TextBlock VerticalAlignment="Center" Text="Auto Load Skins from osu!" />
+                <ToggleSwitch
+                  Grid.Column="1"
+                  IsChecked="{Binding AppSettings.Paths.AllowAutoLoadSkins}"
+                  OffContent="Off"
+                  OnContent="On" />
+              </Grid>
             </StackPanel>
           </Grid>
         </suki:GroupBox>

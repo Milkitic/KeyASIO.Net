@@ -58,6 +58,8 @@ public class SkinManager
         return _dictionary.TryGetValue(key, out data);
     }
 
+    public Task ReloadSkinsAsync() => RefreshSkinsAsync();
+
     public void Start()
     {
         if (string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
@@ -89,7 +91,8 @@ public class SkinManager
 
         _appSettings.Paths.PropertyChanged += (s, e) =>
         {
-            if (e.PropertyName == nameof(AppSettings.Paths.OsuFolderPath))
+            if (e.PropertyName == nameof(AppSettings.Paths.OsuFolderPath) ||
+                e.PropertyName == nameof(AppSettings.Paths.AllowAutoLoadSkins))
             {
                 _ = RefreshSkinsAsync();
             }
@@ -220,6 +223,18 @@ public class SkinManager
         using var @lock = await _asyncLock.LockAsync();
 
         await StopRefreshTask();
+
+        if (_appSettings.Paths.AllowAutoLoadSkins != true)
+        {
+            await UiDispatcher.InvokeAsync(() =>
+            {
+                _sharedViewModel.Skins.Clear();
+                _sharedViewModel.Skins.Add(SkinDescription.Default);
+                _sharedViewModel.SelectedSkin = SkinDescription.Default;
+            });
+            return;
+        }
+
         _skinLoadCts = new CancellationTokenSource();
         var token = _skinLoadCts.Token;
 

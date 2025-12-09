@@ -8,6 +8,7 @@ using KeyAsio.Audio.SampleProviders.BalancePans;
 using KeyAsio.Audio.Utils;
 using KeyAsio.Services;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Services;
 using KeyAsio.Utils;
 using KeyAsio.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -23,10 +24,12 @@ public partial class MainWindow : SukiWindow
 {
     private readonly ILogger<MainWindow> _logger;
     private readonly MainWindowViewModel _viewModel;
+    private readonly SkinManager _skinManager;
 
-    public MainWindow(ILogger<MainWindow> logger, MainWindowViewModel mainWindowViewModel)
+    public MainWindow(ILogger<MainWindow> logger, MainWindowViewModel mainWindowViewModel, SkinManager skinManager)
     {
         _logger = logger;
+        _skinManager = skinManager;
         DataContext = _viewModel = mainWindowViewModel;
         InitializeComponent();
         ToastHost.Manager = _viewModel.MainToastManager;
@@ -85,6 +88,25 @@ public partial class MainWindow : SukiWindow
 
             _viewModel.SettingsPageItem = SettingsMenuItem;
             _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
+
+            if (_viewModel.AppSettings.Paths.AllowAutoLoadSkins == null)
+            {
+                _viewModel.MainToastManager.CreateToast()
+                    .WithTitle("Load Skins")
+                    .WithContent("Do you want to load skins from osu! folder?")
+                    .WithActionButton("No", _ =>
+                    {
+                        _viewModel.AppSettings.Paths.AllowAutoLoadSkins = false;
+                        _viewModel.AppSettings.Save();
+                    }, true, SukiButtonStyles.Basic)
+                    .WithActionButton("Yes", _ =>
+                    {
+                        _viewModel.AppSettings.Paths.AllowAutoLoadSkins = true;
+                        _viewModel.AppSettings.Save();
+                        _skinManager.ReloadSkinsAsync();
+                    }, true)
+                    .Queue();
+            }
 
             if (!_viewModel.AppSettings.Logging.ErrorReportingConfirmed)
             {
