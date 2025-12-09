@@ -8,23 +8,20 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Milki.Extensions.Configuration;
 
-namespace KeyAsio.Shared.Realtime;
+namespace KeyAsio.Shared.Services;
 
 public class SkinManager : IHostedService
 {
-    private static readonly Lock InstanceLock = new();
     private readonly ILogger<SkinManager> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
-    private CancellationTokenSource? _cts;
-    private Task? _refreshTask;
-    private bool _waiting;
 
     private readonly AsyncLock _asyncLock = new();
 
     private ManagementEventWatcher? _processWatcher;
     private CancellationTokenSource? _skinLoadCts;
+    private Task? _skinLoadTask;
 
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel)
@@ -171,15 +168,22 @@ public class SkinManager : IHostedService
     {
         using var @lock = await _asyncLock.LockAsync();
 
-        if (_skinLoadCts != null) await _skinLoadCts.CancelAsync();
+        await StopRefreshTask();
         _skinLoadCts = new CancellationTokenSource();
         var token = _skinLoadCts.Token;
 
-        _ = Task.Run(async () =>
+        _skinLoadTask = Task.Run(async () =>
         {
             //wip: wait mainwindow loaded?
-            await Task.Delay(3000, token);
-            LoadSkinsInternal(token);
+            try
+            {
+                await Task.Delay(3000, token);
+                LoadSkinsInternal(token);
+            }
+            catch (TaskCanceledException)
+            {
+                // Task cancelled
+            }
         }, token);
     }
 
@@ -278,11 +282,15 @@ public class SkinManager : IHostedService
 
     private async Task StopRefreshTask()
     {
-        _cts?.Cancel();
-        _cts?.Dispose();
-        if (_refreshTask != null)
+        if (_skinLoadCts != null)
         {
-            await _refreshTask;
+            await _skinLoadCts.CancelAsync();
+            _skinLoadCts.Dispose();
+        }
+
+        if (_skinLoadTask != null)
+        {
+            await _skinLoadTask;
         }
     }
 }

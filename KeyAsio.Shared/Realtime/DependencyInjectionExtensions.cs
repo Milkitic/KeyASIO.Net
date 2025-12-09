@@ -1,4 +1,5 @@
 using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KeyAsio.Shared.Realtime;
