@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using KeyAsio.Gui.Utils;
 using KeyAsio.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,11 +20,6 @@ internal class GuiStartupService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_appSettings.Logging.EnableDebugConsole)
-        {
-            ConsoleManager.Show();
-        }
-
         var thread = new Thread(() =>
         {
             var app = _serviceProvider.GetRequiredService<App>();

@@ -34,6 +34,10 @@ internal sealed class Program
 
         var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>(
             ".", "appsettings.yaml", MyYamlConfigurationConverter.Instance);
+        if (appSettings.Logging.EnableDebugConsole)
+        {
+            ConsoleManager.Show();
+        }
 
         Mutex? mutex = null;
 

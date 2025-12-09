@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using dnlib.DotNet;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
@@ -10,6 +11,21 @@ namespace KeyAsio.Shared.Services;
 
 public class SkinManager
 {
+    private static readonly HashSet<string> ResourcesKeys =
+    [
+        "drum-hitclap", "drum-hitfinish", "drum-hitnormal", "drum-hitwhistle",
+        "drum-sliderslide", "drum-slidertick", "drum-sliderwhistle",
+
+        "normal-hitclap", "normal-hitfinish", "normal-hitnormal", "normal-hitwhistle",
+        "normal-sliderslide", "normal-slidertick", "normal-sliderwhistle",
+
+        "soft-sliderslide", "soft-slidertick", "soft-sliderwhistle",
+        "soft-hitclap", "soft-hitfinish", "soft-hitnormal", "soft-hitwhistle",
+
+        "combobreak",
+        "nightcore-clap", "nightcore-finish", "nightcore-hat", "nightcore-kick"
+    ];
+
     private readonly ILogger<SkinManager> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
@@ -22,6 +38,8 @@ public class SkinManager
     private CancellationTokenSource? _skinLoadCts;
     private Task? _skinLoadTask;
 
+    private readonly Dictionary<string, ReadOnlyMemory<byte>> _dictionary;
+
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel)
     {
@@ -30,6 +48,8 @@ public class SkinManager
         _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
         _sharedViewModel.PropertyChanged += SharedViewModel_PropertyChanged;
+
+        _dictionary = ResourcesKeys.ToDictionary(k => k, k => ReadOnlyMemory<byte>.Empty);
     }
 
     public void Start()
@@ -221,6 +241,9 @@ public class SkinManager
     private void LoadSkinsInternal(CancellationToken token)
     {
         if (string.IsNullOrEmpty(_appSettings.Paths.OsuFolderPath)) return;
+
+        ExtractDefaultResources(_appSettings.Paths.OsuFolderPath, token);
+
         var skinsDir = Path.Combine(_appSettings.Paths.OsuFolderPath, "Skins");
         if (!Directory.Exists(skinsDir)) return;
 
@@ -260,6 +283,55 @@ public class SkinManager
             _sharedViewModel.Skins.AddRange(newSkinList);
             _sharedViewModel.SelectedSkin = targetSkin;
         });
+    }
+
+    private void ExtractDefaultResources(string osuPath, CancellationToken token)
+    {
+        var dllPath = Path.Combine(osuPath, "osu!gameplay.dll");
+        if (!File.Exists(dllPath))
+        {
+            return;
+        }
+
+        try
+        {
+            if (token.IsCancellationRequested) return;
+
+            using var module = ModuleDefMD.Load(dllPath);
+            var resource = module.Resources.FindEmbeddedResource("osu_gameplay.ResourcesStore.resources");
+            if (resource == null)
+            {
+                return;
+            }
+
+            using var stream = resource.CreateReader().AsStream();
+            using var reader = new System.Resources.ResourceReader(stream);
+
+            foreach (var resourcesKey in ResourcesKeys)
+            {
+                try
+                {
+                    reader.GetResourceData(resourcesKey, out var resourceType, out var resourceData);
+
+                    if (!resourceType.Contains("ResourceTypeCode.ByteArray")) return;
+                    // [ 长度 (Int32, 4字节) ] + [ 实际数据 (N字节) ]
+                    if (resourceData.Length <= 4) return;
+
+                    var memory = resourceData.AsMemory(4);
+                    _dictionary[resourcesKey] = memory;
+                    _logger.LogDebug("Extracted '{ResourcesKey}' ({Bytes} bytes)", resourcesKey, memory.Length);
+                }
+                catch (ArgumentException)
+                {
+                    _logger.LogWarning("Resource '{ResourcesKey}' not found in osu!gameplay.dll", resourcesKey);
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to extract default resources from osu!gameplay.dll");
+        }
     }
 
     private static (string?, string?) ReadIniFile(string iniFile)
