@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using KeyAsio.Shared;
 using KeyAsio.Shared.Services;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        UiDispatcher.SetUiSynchronizationContext();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 

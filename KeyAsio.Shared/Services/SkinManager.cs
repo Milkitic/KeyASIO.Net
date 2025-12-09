@@ -85,6 +85,7 @@ public class SkinManager
             {
                 _logger.LogInformation("Detected osu! process start via WMI.");
                 CheckAndSetOsuPath();
+                _ = RefreshSkinsAsync();
             };
 
             _processWatcher.Start();
@@ -197,10 +198,9 @@ public class SkinManager
         var skinsDir = Path.Combine(_appSettings.Paths.OsuFolderPath, "Skins");
         if (!Directory.Exists(skinsDir)) return;
 
-        var newSkinList = new List<SkinDescription> { SkinDescription.Default };
-
         var directories = Directory.EnumerateDirectories(skinsDir);
-        var loadedSkins = directories.AsParallel()
+        var loadedSkins = directories
+            .AsParallel()
             .WithDegreeOfParallelism(2)
             .Select(dir =>
             {
@@ -220,17 +220,18 @@ public class SkinManager
             .Where(x => x != null)
             .ToList();
 
-        if (token.IsCancellationRequested) return;
+        _ = UiDispatcher.InvokeAsync(() =>
+        {
+            if (token.IsCancellationRequested) return;
 
-        newSkinList.AddRange(loadedSkins!);
-
-        _sharedViewModel.Skins.Clear();
-        foreach (var s in newSkinList) _sharedViewModel.Skins.Add(s);
-
-        var selectedName = _appSettings.Paths.SelectedSkinName;
-        _sharedViewModel.SelectedSkin = _sharedViewModel.Skins
-                                            .FirstOrDefault(k => k.FolderName == selectedName)
-                                        ?? _sharedViewModel.Skins.FirstOrDefault();
+            _sharedViewModel.Skins.Clear();
+            _sharedViewModel.Skins.Add(SkinDescription.Default);
+            _sharedViewModel.Skins.AddRange(loadedSkins!);
+            var selectedName = _appSettings.Paths.SelectedSkinName;
+            _sharedViewModel.SelectedSkin =
+                _sharedViewModel.Skins.FirstOrDefault(k => k.FolderName == selectedName)
+                ?? SkinDescription.Default;
+        });
     }
 
     private static (string?, string?) ReadIniFile(string iniFile)
@@ -241,15 +242,21 @@ public class SkinManager
         using var fs = File.Open(iniFile, FileMode.Open, FileAccess.Read, FileShare.Read);
         using var sr = new StreamReader(fs);
 
-        while (sr.ReadLine() is { } line)
+        using var lineReader = new EphemeralLineReader(sr);
+        ReadOnlyMemory<char>? currentLineMemory;
+
+        while ((currentLineMemory = lineReader.ReadLine()) != null)
         {
-            if (line.StartsWith("Name:", StringComparison.OrdinalIgnoreCase))
+            var lineSpan = currentLineMemory.Value.Span;
+            var trimmedLineSpan = lineSpan.Trim();
+
+            if (trimmedLineSpan.StartsWith("Name:", StringComparison.OrdinalIgnoreCase))
             {
-                name = line.AsSpan(5).Trim().ToString();
+                name = trimmedLineSpan.Slice(5).TrimStart().ToString();
             }
-            else if (line.StartsWith("Author:", StringComparison.OrdinalIgnoreCase))
+            else if (trimmedLineSpan.StartsWith("Author:", StringComparison.OrdinalIgnoreCase))
             {
-                author = line.AsSpan(7).Trim().ToString();
+                author = trimmedLineSpan.Slice(7).TrimStart().ToString();
             }
 
             if (name is not null && author is not null)
