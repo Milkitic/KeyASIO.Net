@@ -29,6 +29,7 @@ public class SkinManager
         _appSettings = appSettings;
         _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
+        _sharedViewModel.PropertyChanged += SharedViewModel_PropertyChanged;
     }
 
     public void Start()
@@ -67,6 +68,14 @@ public class SkinManager
                 _ = RefreshSkinsAsync();
             }
         };
+    }
+
+    private void SharedViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SharedViewModel.SelectedSkin))
+        {
+            _appSettings.Paths.SelectedSkinName = _sharedViewModel.SelectedSkin?.FolderName;
+        }
     }
 
     private void StartProcessListener()
@@ -218,7 +227,6 @@ public class SkinManager
         var directories = Directory.EnumerateDirectories(skinsDir);
         var loadedSkins = directories
             .AsParallel()
-            .WithDegreeOfParallelism(2)
             .Select(dir =>
             {
                 if (token.IsCancellationRequested) return null!;

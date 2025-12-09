@@ -33,18 +33,21 @@ public partial class MainWindowViewModel
         {
             AppSettings = new AppSettings();
             AudioSettings = new AudioSettingsViewModel();
+            Shared = new SharedViewModel(AppSettings);
         }
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
         AppSettings appSettings,
         UpdateService updateService,
-        AudioSettingsViewModel audioSettingsViewModel)
+        AudioSettingsViewModel audioSettingsViewModel,
+        SharedViewModel sharedViewModel)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
         _logger = logger;
         AudioSettings = audioSettingsViewModel;
+        Shared = sharedViewModel;
         AudioSettings.ToastManager = MainToastManager;
 
         SubscribeToSettingsChanges();
@@ -55,6 +58,7 @@ public partial class MainWindowViewModel
     public AppSettings AppSettings { get; }
     public UpdateService UpdateService { get; }
     public AudioSettingsViewModel AudioSettings { get; }
+    public SharedViewModel Shared { get; }
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
 
     [ObservableProperty]
