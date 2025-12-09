@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using Milki.Extensions.Configuration.Converters;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -114,8 +114,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             Logging = new AppSettingsLogging
             {
                 EnableDebugConsole = s.Debugging,
-                EnableErrorReporting = s.SendLogsToDeveloper,
-                ErrorReportingConfirmed = s.SendLogsToDeveloperConfirmed,
+                EnableErrorReporting = s.SendLogsToDeveloperConfirmed ? s.SendLogsToDeveloper : null,
                 PlayerBase64 = s.PlayerBase64
             },
             Performance = new AppSettingsPerformance
@@ -175,8 +174,8 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         if (y.Logging != null)
         {
             s.Debugging = y.Logging.EnableDebugConsole;
-            s.SendLogsToDeveloper = y.Logging.EnableErrorReporting;
-            s.SendLogsToDeveloperConfirmed = y.Logging.ErrorReportingConfirmed;
+            s.SendLogsToDeveloper = y.Logging.EnableErrorReporting ?? true;
+            s.SendLogsToDeveloperConfirmed = y.Logging.EnableErrorReporting.HasValue;
             s.PlayerBase64 = y.Logging.PlayerBase64 ?? "";
         }
         if (y.Performance != null)

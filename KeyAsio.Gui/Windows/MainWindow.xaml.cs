@@ -265,14 +265,13 @@ public partial class MainWindow : DialogWindow
 
         _bindingInitializer.RegisterKeys(AppSettings.Input.Keys);
 
-        if (!AppSettings.Logging.ErrorReportingConfirmed)
+        if (AppSettings.Logging.EnableErrorReporting == null)
         {
             Growl.Ask($"Send logs and errors to developer?\r\n" +
                       $"You can change option later in configuration file.",
                 dialogResult =>
                 {
                     AppSettings.Logging.EnableErrorReporting = dialogResult;
-                    AppSettings.Logging.ErrorReportingConfirmed = true;
                     return true;
                 });
         }

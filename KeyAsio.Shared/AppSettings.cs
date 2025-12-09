@@ -78,9 +78,7 @@ public partial class AppSettingsLogging : INotifyPropertyChanged
     public bool EnableDebugConsole { get; set; }
 
     [Description("Enable error/bug reporting to developer.")]
-    public bool EnableErrorReporting { get; set; }
-
-    public bool ErrorReportingConfirmed { get; set; }
+    public bool? EnableErrorReporting { get; set; }
 
     public string? PlayerBase64 { get; set; }
 }

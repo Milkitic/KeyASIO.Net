@@ -28,7 +28,7 @@ public class KeyAsioSentryEventProcessor : ISentryEventProcessor
 #if DEBUG
         return null;
 #endif
-        if (!_appSettings.Logging.EnableErrorReporting)
+        if (_appSettings.Logging.EnableErrorReporting != true)
         {
             return null;
         }

@@ -108,7 +108,7 @@ public partial class MainWindow : SukiWindow
                     .Queue();
             }
 
-            if (!_viewModel.AppSettings.Logging.ErrorReportingConfirmed)
+            if (_viewModel.AppSettings.Logging.EnableErrorReporting == null)
             {
                 _viewModel.MainToastManager.CreateToast()
                     .WithTitle("Enable Error Reporting")
@@ -116,13 +116,11 @@ public partial class MainWindow : SukiWindow
                     .WithActionButton("No", _ =>
                     {
                         _viewModel.AppSettings.Logging.EnableErrorReporting = false;
-                        _viewModel.AppSettings.Logging.ErrorReportingConfirmed = true;
                         _viewModel.AppSettings.Save();
                     }, true, SukiButtonStyles.Basic)
                     .WithActionButton("Yes", _ =>
                     {
                         _viewModel.AppSettings.Logging.EnableErrorReporting = true;
-                        _viewModel.AppSettings.Logging.ErrorReportingConfirmed = true;
                         _viewModel.AppSettings.Save();
                     }, true)
                     .Queue();
