@@ -401,5 +401,7 @@ public class SkinManager
         {
             await _skinLoadTask;
         }
+
+        _skinLoadCts = null;
     }
 }
