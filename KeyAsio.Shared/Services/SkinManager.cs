@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet;
 using KeyAsio.Audio.Caching;
@@ -369,6 +369,13 @@ public class SkinManager
         while ((currentLineMemory = lineReader.ReadLine()) != null)
         {
             var lineSpan = currentLineMemory.Value.Span;
+
+            var commentIndex = lineSpan.IndexOf("//");
+            if (commentIndex >= 0)
+            {
+                lineSpan = lineSpan.Slice(0, commentIndex);
+            }
+
             var trimmedLineSpan = lineSpan.Trim();
 
             if (trimmedLineSpan.StartsWith("Name:", StringComparison.OrdinalIgnoreCase))
