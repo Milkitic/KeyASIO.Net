@@ -14,6 +14,7 @@
 
   <UserControl.Resources>
     <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
+    <converters:IntMillisecond2TimeSpanConverter x:Key="IntMillisecond2TimeSpanConverter" />
   </UserControl.Resources>
 
   <UserControl.Styles>
@@ -91,25 +92,73 @@
               Classes="h2"
               FontWeight="Bold"
               Foreground="{DynamicResource SukiText}"
-              Text="SYNCED" />
+              Text="{Binding RealtimeSession.SyncedStatusText}" />
             <TextBlock
               HorizontalAlignment="Center"
               Classes="Caption"
               Opacity="0.6"
-              Text="ID: 14022" />
+              Text="{Binding RealtimeSession.ProcessId, StringFormat='PID: {0}'}" />
           </StackPanel>
         </Grid>
       </suki:GlassCard>
     </Grid>
 
     <!--  Bottom: Stats & Quick Keys  -->
-    <Grid
+    <StackPanel
       Grid.Row="2"
-      Grid.ColumnSpan="2"
       Margin="0,20,0,0"
-      ColumnDefinitions="*,*">
-      <!--  Stats  -->
+      Spacing="15">
+      <!--  Realtime Info  -->
       <suki:GlassCard
+        Classes="Surface"
+        IsVisible="{Binding AppSettings.Realtime.RealtimeMode}">
+        <Grid RowDefinitions="Auto,*">
+          <DockPanel LastChildFill="False">
+            <TextBlock FontWeight="Bold" Text="Realtime Status" />
+          </DockPanel>
+
+          <Grid
+            Grid.Row="1"
+            Margin="0,15,0,0"
+            ColumnDefinitions="2*,*,*">
+            <StackPanel Margin="0,0,10,0">
+              <TextBlock
+                Margin="0,0,0,5"
+                FontSize="12"
+                Opacity="0.6"
+                Text="Beatmap" />
+              <TextBlock
+                FontWeight="DemiBold"
+                Text="{Binding RealtimeSession.Beatmap.Filename}"
+                TextTrimming="CharacterEllipsis"
+                ToolTip.Tip="{Binding RealtimeSession.Beatmap.Filename}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+              <TextBlock
+                Margin="0,0,0,5"
+                FontSize="12"
+                Opacity="0.6"
+                Text="Play Time" />
+              <TextBlock
+                FontFamily="Consolas"
+                FontWeight="DemiBold"
+                Text="{Binding RealtimeSession.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock
+                Margin="0,0,0,5"
+                FontSize="12"
+                Opacity="0.6"
+                Text="Status" />
+              <TextBlock FontWeight="DemiBold" Text="{Binding RealtimeSession.OsuStatus}" />
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </suki:GlassCard>
+
+      <Grid ColumnDefinitions="*,*">
+        <!--  Stats  -->
+        <suki:GlassCard
         Height="140"
         Margin="0,0,10,0"
         Padding="15"
@@ -445,6 +494,7 @@
           </Grid>
         </Grid>
       </suki:GlassCard>
-    </Grid>
+      </Grid>
+    </StackPanel>
   </Grid>
 </UserControl>

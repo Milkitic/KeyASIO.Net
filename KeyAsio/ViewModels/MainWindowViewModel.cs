@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Realtime;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using SukiUI.Dialogs;
@@ -34,6 +35,7 @@ public partial class MainWindowViewModel
             AppSettings = new AppSettings();
             AudioSettings = new AudioSettingsViewModel();
             Shared = new SharedViewModel(AppSettings);
+            RealtimeSession = new RealtimeSessionContext(AppSettings);
         }
     }
 
@@ -41,13 +43,15 @@ public partial class MainWindowViewModel
         AppSettings appSettings,
         UpdateService updateService,
         AudioSettingsViewModel audioSettingsViewModel,
-        SharedViewModel sharedViewModel)
+        SharedViewModel sharedViewModel,
+        RealtimeSessionContext realtimeSession)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
         _logger = logger;
         AudioSettings = audioSettingsViewModel;
         Shared = sharedViewModel;
+        RealtimeSession = realtimeSession;
         AudioSettings.ToastManager = MainToastManager;
 
         SubscribeToSettingsChanges();
@@ -59,6 +63,7 @@ public partial class MainWindowViewModel
     public UpdateService UpdateService { get; }
     public AudioSettingsViewModel AudioSettings { get; }
     public SharedViewModel Shared { get; }
+    public RealtimeSessionContext RealtimeSession { get; }
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
 
     [ObservableProperty]

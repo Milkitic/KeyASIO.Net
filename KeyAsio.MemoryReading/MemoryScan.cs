@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.MemoryReading.OsuMemoryModels.Direct;
@@ -150,12 +150,14 @@ public class MemoryScan
             }
 
             if (generalScanLimiter.Elapsed.TotalMilliseconds > _generalScanInterval)
-            {
-                generalScanLimiter.Restart();
-                if (!_reader!.CanRead)
                 {
-                    MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
-                }
+                    generalScanLimiter.Restart();
+                    MemoryReadObject.ProcessId = _innerMemoryReader?.CurrentProcess?.Id ?? 0;
+
+                    if (!_reader!.CanRead)
+                    {
+                        MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
+                    }
 
                 if (_reader.TryRead(allData.BanchoUser))
                 {
