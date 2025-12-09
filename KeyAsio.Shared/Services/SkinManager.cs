@@ -3,14 +3,13 @@ using System.Management;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Shared.Services;
 
-public class SkinManager : IHostedService
+public class SkinManager
 {
     private readonly ILogger<SkinManager> _logger;
     private readonly AppSettings _appSettings;
@@ -32,11 +31,11 @@ public class SkinManager : IHostedService
         _sharedViewModel = sharedViewModel;
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public void Start()
     {
         if (string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
         {
-            await CheckOsuRegistryAsync();
+            CheckOsuRegistry();
         }
 
         ListenPropertyChanging();
@@ -45,10 +44,9 @@ public class SkinManager : IHostedService
         StartProcessListener();
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public void Stop()
     {
         StopProcessListener();
-        return Task.CompletedTask;
     }
 
     public void ListenPropertyChanging()
@@ -71,7 +69,7 @@ public class SkinManager : IHostedService
         };
     }
 
-    public void StartProcessListener()
+    private void StartProcessListener()
     {
         CheckAndSetOsuPath();
 
@@ -137,7 +135,7 @@ public class SkinManager : IHostedService
                         if (_appSettings.Paths.OsuFolderPath != detectedPath)
                         {
                             _logger.LogInformation("Auto-detected osu! path: {Path}", detectedPath);
-                            UiDispatcher.Invoke(() => { _appSettings.Paths.OsuFolderPath = detectedPath; });
+                            _appSettings.Paths.OsuFolderPath = detectedPath;
                         }
 
                         break;
@@ -164,7 +162,7 @@ public class SkinManager : IHostedService
         }
     }
 
-    public async Task RefreshSkinsAsync()
+    private async Task RefreshSkinsAsync()
     {
         using var @lock = await _asyncLock.LockAsync();
 
@@ -172,22 +170,10 @@ public class SkinManager : IHostedService
         _skinLoadCts = new CancellationTokenSource();
         var token = _skinLoadCts.Token;
 
-        _skinLoadTask = Task.Run(async () =>
-        {
-            //wip: wait mainwindow loaded?
-            try
-            {
-                await Task.Delay(3000, token);
-                LoadSkinsInternal(token);
-            }
-            catch (TaskCanceledException)
-            {
-                // Task cancelled
-            }
-        }, token);
+        _skinLoadTask = Task.Run(() => LoadSkinsInternal(token));
     }
 
-    public async Task CheckOsuRegistryAsync()
+    private void CheckOsuRegistry()
     {
         try
         {
@@ -238,18 +224,13 @@ public class SkinManager : IHostedService
 
         newSkinList.AddRange(loadedSkins!);
 
-        UiDispatcher.Invoke(() =>
-        {
-            if (token.IsCancellationRequested) return;
+        _sharedViewModel.Skins.Clear();
+        foreach (var s in newSkinList) _sharedViewModel.Skins.Add(s);
 
-            _sharedViewModel.Skins.Clear();
-            foreach (var s in newSkinList) _sharedViewModel.Skins.Add(s);
-
-            var selectedName = _appSettings.Paths.SelectedSkinName;
-            _sharedViewModel.SelectedSkin = _sharedViewModel.Skins
-                                                .FirstOrDefault(k => k.FolderName == selectedName)
-                                            ?? _sharedViewModel.Skins.FirstOrDefault();
-        });
+        var selectedName = _appSettings.Paths.SelectedSkinName;
+        _sharedViewModel.SelectedSkin = _sharedViewModel.Skins
+                                            .FirstOrDefault(k => k.FolderName == selectedName)
+                                        ?? _sharedViewModel.Skins.FirstOrDefault();
     }
 
     private static (string?, string?) ReadIniFile(string iniFile)

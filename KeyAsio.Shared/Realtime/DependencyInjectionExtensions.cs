@@ -17,7 +17,7 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<RealtimeSessionContext>();
         services.AddSingleton<RealtimeController>();
 
-        services.AddHostedService<SkinManager>();
+        services.AddSingleton<SkinManager>();
         return services;
     }
 }
