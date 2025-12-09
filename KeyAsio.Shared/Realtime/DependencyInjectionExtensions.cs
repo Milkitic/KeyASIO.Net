@@ -8,7 +8,7 @@ public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddRealtimeModule(this IServiceCollection services)
     {
-        services.AddSingleton<AudioCacheService>();
+        services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<BackgroundMusicManager>();
         services.AddSingleton<SfxPlaybackService>();

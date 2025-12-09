@@ -14,7 +14,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     private readonly AppSettings _appSettings;
     private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AudioEngine _audioEngine;
-    private readonly AudioCacheService _audioCacheService;
+    private readonly GameplayAudioService _gameplayAudioService;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
     private Queue<PlayableNode> _hitQueue = new();
@@ -24,14 +24,14 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         AppSettings appSettings,
         RealtimeSessionContext realtimeSessionContext,
         AudioEngine audioEngine,
-        AudioCacheService audioCacheService,
+        GameplayAudioService gameplayAudioService,
         GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
         _appSettings = appSettings;
         _realtimeSessionContext = realtimeSessionContext;
         _audioEngine = audioEngine;
-        _audioCacheService = audioCacheService;
+        _gameplayAudioService = gameplayAudioService;
         _gameplaySessionManager = gameplaySessionManager;
     }
 
@@ -232,7 +232,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
             // 只有在延迟容忍度内才播放
             if (playTime < node.Offset + AudioLatencyTolerance)
             {
-                if (_audioCacheService.TryGetAudioByNode(node, out var cachedSound))
+                if (_gameplayAudioService.TryGetAudioByNode(node, out var cachedSound))
                 {
                     buffer.Add(new PlaybackInfo(cachedSound, node));
                 }
@@ -246,7 +246,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     private void DequeueAndPlay<T>(List<PlaybackInfo> buffer, Queue<T> queue) where T : HitsoundNode
     {
         var node = queue.Dequeue();
-        if (_audioCacheService.TryGetAudioByNode(node, out var cachedSound))
+        if (_gameplayAudioService.TryGetAudioByNode(node, out var cachedSound))
         {
             buffer.Add(new PlaybackInfo(cachedSound, node));
         }

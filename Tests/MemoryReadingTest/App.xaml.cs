@@ -20,7 +20,7 @@ namespace MemoryReadingTest
             var services = new ServiceCollection();
             services.AddSingleton(new AppSettings());
             services.AddSingleton<SharedViewModel>();
-            services.AddSingleton<AudioCacheService>();
+            services.AddSingleton<GameplayAudioService>();
             services.AddSingleton<MemoryScan>();
             services.AddSingleton<BeatmapHitsoundLoader>();
             services.AddSingleton<BackgroundMusicManager>();

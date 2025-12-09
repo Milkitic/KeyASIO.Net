@@ -10,7 +10,7 @@ public class GameplaySessionManager
 {
     private readonly ILogger<GameplaySessionManager> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly AudioCacheService _audioCacheService;
+    private readonly GameplayAudioService _gameplayAudioService;
     private readonly AudioEngine _audioEngine;
     private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly BeatmapHitsoundLoader _beatmapHitsoundLoader;
@@ -21,7 +21,7 @@ public class GameplaySessionManager
 
     public GameplaySessionManager(ILogger<GameplaySessionManager> logger,
         IServiceProvider serviceProvider,
-        AudioCacheService audioCacheService,
+        GameplayAudioService gameplayAudioService,
         AudioEngine audioEngine,
         RealtimeSessionContext realtimeSessionContext,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
@@ -30,7 +30,7 @@ public class GameplaySessionManager
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
-        _audioCacheService = audioCacheService;
+        _gameplayAudioService = gameplayAudioService;
         _audioEngine = audioEngine;
         _realtimeSessionContext = realtimeSessionContext;
         _beatmapHitsoundLoader = beatmapHitsoundLoader;
@@ -103,7 +103,7 @@ public class GameplaySessionManager
         if (previousFolder != null && previousFolder != newFolder)
         {
             _logger.LogInformation("Cleaning caches caused by folder changing.");
-            _audioCacheService.ClearCaches();
+            _gameplayAudioService.ClearCaches();
         }
 
         var mainFolder = _backgroundMusicManager.GetMainTrackFolder();
@@ -120,8 +120,8 @@ public class GameplaySessionManager
             return;
         }
 
-        _audioCacheService.SetContext(mainFolder, mainAudioFilename);
-        _audioCacheService.PrecacheMusicAndSkinInBackground();
+        _gameplayAudioService.SetContext(mainFolder, mainAudioFilename);
+        _gameplayAudioService.PrecacheMusicAndSkinInBackground();
     }
 
     public void Stop()

@@ -12,7 +12,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Shared.Realtime.Services;
 
-public class AudioCacheService
+public class GameplayAudioService
 {
     private static readonly string[] SkinAudioFiles = ["combobreak"];
 
@@ -21,7 +21,7 @@ public class AudioCacheService
     private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedAudioMapping = new();
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
-    private readonly ILogger<AudioCacheService> _logger;
+    private readonly ILogger<GameplayAudioService> _logger;
     private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
@@ -30,7 +30,7 @@ public class AudioCacheService
     private string? _beatmapFolder;
     private string? _audioFilename;
 
-    public AudioCacheService(ILogger<AudioCacheService> logger,
+    public GameplayAudioService(ILogger<GameplayAudioService> logger,
         RealtimeSessionContext realtimeSessionContext,
         AppSettings appSettings,
         AudioEngine audioEngine,

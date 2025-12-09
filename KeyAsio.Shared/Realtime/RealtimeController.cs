@@ -21,7 +21,7 @@ public class RealtimeController
         AppSettings appSettings,
         AudioEngine audioEngine,
         SharedViewModel sharedViewModel,
-        AudioCacheService audioCacheService,
+        GameplayAudioService gameplayAudioService,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
         BackgroundMusicManager backgroundMusicManager,
         SfxPlaybackService sfxPlaybackService,
@@ -38,17 +38,17 @@ public class RealtimeController
 
         var standardAudioProvider = new StandardHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<StandardHitsoundSequencer>>(),
-            appSettings, realtimeSessionContext, audioEngine, audioCacheService, gameplaySessionManager);
+            appSettings, realtimeSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
         var maniaAudioProvider = new ManiaHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<ManiaHitsoundSequencer>>(),
-            appSettings, realtimeSessionContext, audioEngine, audioCacheService, gameplaySessionManager);
+            appSettings, realtimeSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
         gameplaySessionManager.InitializeProviders(standardAudioProvider, maniaAudioProvider);
 
         // Initialize realtime state machine with scene mappings
         _stateMachine = new GameStateMachine(new Dictionary<OsuMemoryStatus, IGameState>
         {
             [OsuMemoryStatus.Playing] = new PlayingState(appSettings, audioEngine, audioCacheManager, backgroundMusicManager,
-                beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel, gameplaySessionManager, audioCacheService),
+                beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel, gameplaySessionManager, gameplayAudioService),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(backgroundMusicManager),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(appSettings, backgroundMusicManager),
             [OsuMemoryStatus.SongSelect] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),

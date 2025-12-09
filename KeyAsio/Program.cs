@@ -34,13 +34,7 @@ internal sealed class Program
 
         var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>(
             ".", "appsettings.yaml", MyYamlConfigurationConverter.Instance);
-        if (appSettings.Logging.EnableDebugConsole)
-        {
-            ConsoleManager.Show();
-        }
-
         Mutex? mutex = null;
-
         if (!appSettings.General.AllowMultipleInstance)
         {
             mutex = new Mutex(true, "KeyAsio.Net", out bool createNew);
@@ -61,6 +55,11 @@ internal sealed class Program
             throw new PlatformNotSupportedException(
                 $"Current OS version {Environment.OSVersion.Version} is not supported. " +
                 $"Requires Windows Vista or later.");
+        }
+
+        if (appSettings.Logging.EnableDebugConsole)
+        {
+            ConsoleManager.Show();
         }
 
         Host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()

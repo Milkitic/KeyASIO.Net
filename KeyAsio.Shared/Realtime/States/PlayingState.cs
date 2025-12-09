@@ -19,7 +19,7 @@ public class PlayingState : IGameState
     private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SharedViewModel _sharedViewModel;
     private readonly GameplaySessionManager _gameplaySessionManager;
-    private readonly AudioCacheService _audioCacheService;
+    private readonly GameplayAudioService _gameplayAudioService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
     public PlayingState(AppSettings appSettings,
@@ -30,7 +30,7 @@ public class PlayingState : IGameState
         SfxPlaybackService sfxPlaybackService,
         SharedViewModel sharedViewModel,
         GameplaySessionManager gameplaySessionManager,
-        AudioCacheService audioCacheService)
+        GameplayAudioService gameplayAudioService)
     {
         _appSettings = appSettings;
         _audioEngine = audioEngine;
@@ -40,7 +40,7 @@ public class PlayingState : IGameState
         _sfxPlaybackService = sfxPlaybackService;
         _sharedViewModel = sharedViewModel;
         _gameplaySessionManager = gameplaySessionManager;
-        _audioCacheService = audioCacheService;
+        _gameplayAudioService = gameplayAudioService;
     }
 
     public async Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
@@ -132,7 +132,7 @@ public class PlayingState : IGameState
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;
 
-        if (_audioCacheService.TryGetCachedAudio("combobreak", out var cachedAudio))
+        if (_gameplayAudioService.TryGetCachedAudio("combobreak", out var cachedAudio))
         {
             _sfxPlaybackService.PlayEffectsAudio(cachedAudio, 1, 0);
         }

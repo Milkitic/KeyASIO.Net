@@ -13,7 +13,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
     private readonly AppSettings _appSettings;
     private readonly RealtimeSessionContext _realtimeSessionContext;
     private readonly AudioEngine _audioEngine;
-    private readonly AudioCacheService _audioCacheService;
+    private readonly GameplayAudioService _gameplayAudioService;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
     private List<Queue<PlayableNode>> _hitQueue = new();
@@ -29,14 +29,14 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
         AppSettings appSettings,
         RealtimeSessionContext realtimeSessionContext,
         AudioEngine audioEngine,
-        AudioCacheService audioCacheService,
+        GameplayAudioService gameplayAudioService,
         GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
         _appSettings = appSettings;
         _realtimeSessionContext = realtimeSessionContext;
         _audioEngine = audioEngine;
-        _audioCacheService = audioCacheService;
+        _gameplayAudioService = gameplayAudioService;
         _gameplaySessionManager = gameplaySessionManager;
     }
 
@@ -139,7 +139,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
             _logger.LogDebug("Use cache");
         }
 
-        if (playableNode == null || !_audioCacheService.TryGetAudioByNode(playableNode, out var cachedAudio))
+        if (playableNode == null || !_gameplayAudioService.TryGetAudioByNode(playableNode, out var cachedAudio))
         {
             _logger.LogWarning("No audio returned.");
         }
@@ -213,7 +213,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
             }
 
             if (playTime < firstNode.Offset + 200 &&
-                _audioCacheService.TryGetAudioByNode(firstNode, out var cachedSound))
+                _gameplayAudioService.TryGetAudioByNode(firstNode, out var cachedSound))
             {
                 buffer.Add(new PlaybackInfo(cachedSound, firstNode));
             }

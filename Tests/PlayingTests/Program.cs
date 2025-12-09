@@ -40,7 +40,7 @@ static class Program
         services.AddSingleton(appSettings);
         services.AddSingleton<GameplaySessionManager>();
         services.AddSingleton<SharedViewModel>();
-        services.AddSingleton<AudioCacheService>();
+        services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<BackgroundMusicManager>();
         services.AddSingleton<SfxPlaybackService>();

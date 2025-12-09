@@ -10,18 +10,18 @@ public class BeatmapHitsoundLoader
 {
     private readonly ILogger<BeatmapHitsoundLoader> _logger;
     private readonly AppSettings _appSettings;
-    private readonly AudioCacheService _audioCacheService;
+    private readonly GameplayAudioService _gameplayAudioService;
 
     private readonly List<PlayableNode> _keyList = new();
     private readonly List<HitsoundNode> _playbackList = new();
     private int _nextCachingTime;
 
     public BeatmapHitsoundLoader(ILogger<BeatmapHitsoundLoader> logger, AppSettings appSettings,
-        AudioCacheService audioCacheService)
+        GameplayAudioService gameplayAudioService)
     {
         _logger = logger;
         _appSettings = appSettings;
-        _audioCacheService = audioCacheService;
+        _gameplayAudioService = gameplayAudioService;
     }
 
     public IReadOnlyList<HitsoundNode> PlaybackList => _playbackList;
@@ -73,8 +73,8 @@ public class BeatmapHitsoundLoader
     public void ResetNodes(IHitsoundSequencer hitsoundSequencer, int playTime)
     {
         hitsoundSequencer.SeekTo(playTime);
-        _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _keyList);
-        _audioCacheService.PrecacheHitsoundsRangeInBackground(0, 13000, _playbackList);
+        _gameplayAudioService.PrecacheHitsoundsRangeInBackground(0, 13000, _keyList);
+        _gameplayAudioService.PrecacheHitsoundsRangeInBackground(0, 13000, _playbackList);
         _nextCachingTime = 10000;
     }
 
@@ -90,6 +90,6 @@ public class BeatmapHitsoundLoader
 
     private void AddAudioCacheInBackground(int startTime, int endTime, IEnumerable<HitsoundNode> playableNodes)
     {
-        _audioCacheService.PrecacheHitsoundsRangeInBackground(startTime, endTime, playableNodes);
+        _gameplayAudioService.PrecacheHitsoundsRangeInBackground(startTime, endTime, playableNodes);
     }
 }
