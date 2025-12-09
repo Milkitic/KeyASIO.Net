@@ -29,11 +29,18 @@
               <materialIcons:MaterialIcon Kind="Image" Opacity="0.3" />
             </Border>
             <StackPanel Grid.Column="1" Spacing="5">
-              <TextBlock Text="Selected Skin" />
+              <StackPanel>
+                <TextBlock Text="Selected Skin" />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Assets loaded from your local installation. " />
+              </StackPanel>
               <ComboBox
                 HorizontalAlignment="Stretch"
                 ItemsSource="{Binding Shared.Skins}"
-                SelectedItem="{Binding Shared.SelectedSkin}">
+                SelectedItem="{Binding Shared.SelectedSkin}"
+                ToolTip.Tip="{Binding Shared.SelectedSkin.CopyRight}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate>
                     <TextBlock Text="{Binding Description}" />

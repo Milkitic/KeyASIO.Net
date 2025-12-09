@@ -8,7 +8,7 @@ public record SkinDescription(string FolderName, string Folder, string? Name, st
     {
         get
         {
-            if (Folder == "") return "osu! classic";
+            if (Folder == "") return "classic";
             var sb = new StringBuilder(FolderName);
             if (Name == null && Author == null) return sb.ToString();
             sb.Append(" (");
@@ -21,6 +21,24 @@ public record SkinDescription(string FolderName, string Folder, string? Name, st
 
             sb.Append(')');
             return sb.ToString();
+        }
+    }
+
+    public string? CopyRight
+    {
+        get
+        {
+            if (Folder == "")
+            {
+                return "Original copyright © ppy Pty Ltd.";
+            }
+
+            if (Author == null)
+            {
+                return "Unknown author";
+            }
+
+            return $"Skin made by {Author}";
         }
     }
 
