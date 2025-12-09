@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.Models;
@@ -38,7 +39,7 @@ public class SkinManager
     private CancellationTokenSource? _skinLoadCts;
     private Task? _skinLoadTask;
 
-    private readonly Dictionary<string, ReadOnlyMemory<byte>> _dictionary;
+    private readonly Dictionary<string, byte[]> _dictionary;
 
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel)
@@ -49,7 +50,12 @@ public class SkinManager
         _sharedViewModel = sharedViewModel;
         _sharedViewModel.PropertyChanged += SharedViewModel_PropertyChanged;
 
-        _dictionary = ResourcesKeys.ToDictionary(k => k, k => ReadOnlyMemory<byte>.Empty);
+        _dictionary = ResourcesKeys.ToDictionary(k => k, _ => Array.Empty<byte>());
+    }
+
+    public bool TryGetResource(string key, [NotNullWhen(true)] out byte[]? data)
+    {
+        return _dictionary.TryGetValue(key, out data);
     }
 
     public void Start()
@@ -317,9 +323,9 @@ public class SkinManager
                     // [ 长度 (Int32, 4字节) ] + [ 实际数据 (N字节) ]
                     if (resourceData.Length <= 4) return;
 
-                    var memory = resourceData.AsMemory(4);
-                    _dictionary[resourcesKey] = memory;
-                    _logger.LogDebug("Extracted '{ResourcesKey}' ({Bytes} bytes)", resourcesKey, memory.Length);
+                    var bytes = resourceData.AsSpan(4).ToArray();
+                    _dictionary[resourcesKey] = bytes;
+                    _logger.LogDebug("Extracted '{ResourcesKey}' ({Bytes} bytes)", resourcesKey, bytes.Length);
                 }
                 catch (ArgumentException)
                 {
