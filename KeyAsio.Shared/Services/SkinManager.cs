@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using System.Management;
+ï»¿using System.Diagnostics;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
@@ -18,7 +17,8 @@ public class SkinManager
 
     private readonly AsyncLock _asyncLock = new();
 
-    private ManagementEventWatcher? _processWatcher;
+    private CancellationTokenSource? _processPollingCts;
+    private Task? _processPollingTask;
     private CancellationTokenSource? _skinLoadCts;
     private Task? _skinLoadTask;
 
@@ -71,29 +71,19 @@ public class SkinManager
 
     private void StartProcessListener()
     {
-        CheckAndSetOsuPath();
+        var processes = Process.GetProcessesByName("osu!");
+        CheckAndSetOsuPath(processes);
 
         try
         {
-            // WMI ²éÑ¯£º¼àÌý Win32_Process µÄ´´½¨ÊÂ¼þ£¬ÇÒ½ø³ÌÃûÎª osu!.exe
-            // WITHIN 1 ±íÊ¾ÂÖÑ¯¼ä¸ôÎª 1 Ãë£¨WMI ÄÚ²¿»úÖÆ£¬·Ç´úÂëÑ­»·£©
-            var query = new WqlEventQuery(
-                "SELECT * FROM __InstanceCreationEvent WITHIN 3 WHERE TargetInstance ISA 'Win32_Process' AND TargetInstance.Name = 'osu!.exe'");
-
-            _processWatcher = new ManagementEventWatcher(query);
-            _processWatcher.EventArrived += (s, e) =>
-            {
-                _logger.LogInformation("Detected osu! process start via WMI.");
-                CheckAndSetOsuPath();
-                _ = RefreshSkinsAsync();
-            };
-
-            _processWatcher.Start();
+            _processPollingCts = new CancellationTokenSource();
+            var token = _processPollingCts.Token;
+            _processPollingTask = Task.Run(() => ProcessPollingLoop(token), token);
             _logger.LogInformation("Osu process listener started.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to start WMI process watcher. Process detection may rely on restart.");
+            _logger.LogError(ex, "Failed to start process polling.");
         }
     }
 
@@ -101,65 +91,92 @@ public class SkinManager
     {
         try
         {
-            _processWatcher?.Stop();
-            _processWatcher?.Dispose();
-            _processWatcher = null;
+            _processPollingCts?.Cancel();
+            try
+            {
+                _processPollingTask?.Wait(1000);
+            }
+            catch (AggregateException)
+            {
+            }
+
+            _processPollingCts?.Dispose();
+            _processPollingCts = null;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Error stopping process watcher.");
+            _logger.LogWarning(ex, "Error stopping process polling.");
         }
     }
 
-    /// <summary>
-    /// ºËÐÄÂß¼­£º²éÕÒ osu! ½ø³Ì²¢ÉèÖÃÂ·¾¶
-    /// </summary>
-    private void CheckAndSetOsuPath()
+    private async Task ProcessPollingLoop(CancellationToken token)
     {
-        try
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
+        bool wasRunning = IsOsuRunning();
+
+        while (await timer.WaitForNextTickAsync(token))
         {
             var processes = Process.GetProcessesByName("osu!");
-            foreach (var proc in processes)
+            bool isRunning = processes.Length > 0;
+
+            if (isRunning && !wasRunning)
             {
-                try
+                _logger.LogInformation("Detected osu! process start via polling.");
+                CheckAndSetOsuPath(processes);
+                _ = RefreshSkinsAsync();
+            }
+
+            wasRunning = isRunning;
+        }
+    }
+
+    private static bool IsOsuRunning()
+    {
+        var processes = Process.GetProcessesByName("osu!");
+        bool any = processes.Length > 0;
+        foreach (var p in processes) p.Dispose();
+        return any;
+    }
+
+    private void CheckAndSetOsuPath(Process[] processes)
+    {
+        foreach (var proc in processes)
+        {
+            try
+            {
+                if (proc.HasExited) continue;
+                if (proc.MainModule is not { } module) continue;
+
+                var fileName = module.FileName;
+                if (string.IsNullOrEmpty(fileName)) continue;
+
+                var fileVersionInfo = FileVersionInfo.GetVersionInfo(fileName);
+                if (fileVersionInfo.CompanyName == "ppy")
                 {
-                    if (proc.MainModule is not { } module) continue;
+                    var detectedPath = Path.GetDirectoryName(Path.GetFullPath(fileName));
 
-                    var fileName = module.FileName;
-                    if (string.IsNullOrEmpty(fileName)) continue;
-
-                    var fileVersionInfo = FileVersionInfo.GetVersionInfo(fileName);
-                    if (fileVersionInfo.CompanyName == "ppy")
+                    if (_appSettings.Paths.OsuFolderPath != detectedPath)
                     {
-                        var detectedPath = Path.GetDirectoryName(Path.GetFullPath(fileName));
-
-                        if (_appSettings.Paths.OsuFolderPath != detectedPath)
-                        {
-                            _logger.LogInformation("Auto-detected osu! path: {Path}", detectedPath);
-                            _appSettings.Paths.OsuFolderPath = detectedPath;
-                        }
-
-                        break;
+                        _logger.LogInformation("Auto-detected osu! path: {Path}", detectedPath);
+                        _appSettings.Paths.OsuFolderPath = detectedPath;
                     }
 
-                    if (fileVersionInfo.CompanyName == "ppy Pty Ltd")
-                    {
-                        // lazer wip
-                    }
+                    break;
                 }
-                catch (System.ComponentModel.Win32Exception)
+
+                if (fileVersionInfo.CompanyName == "ppy Pty Ltd")
                 {
-                    // ºöÂÔÎÞÈ¨·ÃÎÊµÄ½ø³Ì
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error inspecting osu! process module.");
+                    // lazer wip
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in CheckAndSetOsuPath.");
+            catch (System.ComponentModel.Win32Exception)
+            {
+                // å¿½ç•¥æ— æƒè®¿é—®çš„è¿›ç¨‹
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error inspecting osu! process module.");
+            }
         }
     }
 
@@ -204,7 +221,7 @@ public class SkinManager
             .WithDegreeOfParallelism(2)
             .Select(dir =>
             {
-                if (token.IsCancellationRequested) return null;
+                if (token.IsCancellationRequested) return null!;
                 var iniPath = Path.Combine(dir, "skin.ini");
                 string? name = null;
                 string? author = null;
@@ -217,20 +234,23 @@ public class SkinManager
                 _logger.LogDebug("Find skin: {SkinDescription}", skinDescription);
                 return skinDescription;
             })
-            .Where(x => x != null)
+            .Where(x => x != null!)
             .ToList();
+
+        var newSkinList = new List<SkinDescription> { SkinDescription.Default };
+        newSkinList.AddRange(loadedSkins);
+
+        var selectedName = _appSettings.Paths.SelectedSkinName;
+        var targetSkin = newSkinList.FirstOrDefault(k => k.FolderName == selectedName)
+                         ?? SkinDescription.Default;
 
         _ = UiDispatcher.InvokeAsync(() =>
         {
             if (token.IsCancellationRequested) return;
 
             _sharedViewModel.Skins.Clear();
-            _sharedViewModel.Skins.Add(SkinDescription.Default);
-            _sharedViewModel.Skins.AddRange(loadedSkins!);
-            var selectedName = _appSettings.Paths.SelectedSkinName;
-            _sharedViewModel.SelectedSkin =
-                _sharedViewModel.Skins.FirstOrDefault(k => k.FolderName == selectedName)
-                ?? SkinDescription.Default;
+            _sharedViewModel.Skins.AddRange(newSkinList);
+            _sharedViewModel.SelectedSkin = targetSkin;
         });
     }
 
