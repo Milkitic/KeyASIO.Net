@@ -28,7 +28,8 @@ namespace KeyAsio.Memory;
 // │   │
 // │   └─► beatmapClassBeatmapFileNamePropStringPointer
 // │       └─ [.NET String Object - Unicode]
-// │           ├─ +0x00: [对象头/同步块]
+// │           ├─ -0x04: [SyncBlock Index]
+// │           ├─ +0x00: [vtable/类型标识]
 // │           ├─ +0x04: Length = 字符数量
 // │           └─ +0x08: Unicode字符数据 (UTF-16LE)
 // │                   └─► beatmapFileNamePropValue (最终结果)
