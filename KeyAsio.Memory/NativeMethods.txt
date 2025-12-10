@@ -1,0 +1,6 @@
+﻿OpenProcess
+CloseHandle
+ReadProcessMemory
+GetSystemInfo
+VirtualQueryEx
+QueryFullProcessImageName
