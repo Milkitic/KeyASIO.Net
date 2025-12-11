@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using Reloaded.Memory.Sigscan;
