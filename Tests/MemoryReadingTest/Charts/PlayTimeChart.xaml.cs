@@ -39,10 +39,10 @@ public partial class PlayTimeChart : UserControl
         DataContext = _viewModel = new PlayTimeChartVm();
 
         var app = (App)Application.Current;
-        app.MemoryScan.MemoryReadObject.PlayingTimeUpdated += MemoryReadObject_PlayingTimeUpdated;
+        app.MemoryScan.MemoryReadObject.PlayingTimeChanged += MemoryReadObject_PlayingTimeChanged;
     }
 
-    private void MemoryReadObject_PlayingTimeUpdated(int oldValue, int newValue)
+    private void MemoryReadObject_PlayingTimeChanged(int oldValue, int newValue)
     {
         _viewModel.Collection.Add(new TimeSpanPoint(TimeSpan.FromMicroseconds(newValue), newValue));
     }

@@ -91,7 +91,7 @@ public partial class App : Application
             dispatcher.InvokeAsync(() => _realtimeSessionContext.Score = score);
         _memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
             dispatcher.InvokeAsync(() => _realtimeSessionContext.IsReplay = isReplay);
-        _memoryScan.MemoryReadObject.PlayingTimeUpdated += (_, playTime) =>
+        _memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
             dispatcher.InvokeAsync(() => _realtimeSessionContext.BaseMemoryTime = playTime);
         _memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
             dispatcher.InvokeAsync(() => _realtimeSessionContext.Beatmap = beatmap);

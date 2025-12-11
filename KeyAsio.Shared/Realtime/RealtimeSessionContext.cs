@@ -139,8 +139,8 @@ public class RealtimeSessionContext : ViewModelBase
     }
 
     public string SyncedStatusText => OsuStatus is OsuMemoryStatus.NotRunning or OsuMemoryStatus.Unknown
-        ? "DETACHED"
-        : "ATTACHED";
+        ? "OFFLINE"
+        : "SYNCED";
 
     public BeatmapIdentifier Beatmap
     {

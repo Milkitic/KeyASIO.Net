@@ -106,6 +106,7 @@ public class MemoryScan
                         }
 
                         _logger.LogInformation("Connected to osu! process");
+                        MemoryReadObject.ProcessId = _process.Id;
                     }
                 }
                 catch (Exception ex)
