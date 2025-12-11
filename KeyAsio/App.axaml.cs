@@ -98,8 +98,7 @@ public partial class App : Application
             Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.OsuStatus = current);
         memoryScan.MemoryReadObject.ProcessIdChanged += (_, id) =>
             Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.ProcessId = id);
-        memoryScan.Start(appSettings.Realtime.Scanning.GeneralInterval,
-            appSettings.Realtime.Scanning.TimingInterval);
+        memoryScan.Start(appSettings.Realtime.Scanning.ScanInterval);
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

@@ -111,14 +111,8 @@ public partial class AppSettingsRealtime : INotifyPropertyChanged
 
 public partial class AppSettingsRealtimeScanning : INotifyPropertyChanged
 {
-    [Description("Lower values update generic fields more promptly. " +
-                 "Intended for delay-insensitive fields; increase to reduce CPU usage.")]
-    public int GeneralInterval { get; set; } = 50;
-
-    [Description("Lower values update timing fields more promptly. " +
-                 "Intended for delay‑sensitive fields; keep as low as possible. " +
-                 "Increase if audio cutting occurs.")]
-    public int TimingInterval { get; set; } = 15;
+    [Description("Memory scan interval (ms).")]
+    public int ScanInterval { get; set; } = 10;
 }
 
 public partial class AppSettingsRealtimePlayback : INotifyPropertyChanged

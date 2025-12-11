@@ -24,8 +24,8 @@ public static class PowerThrottling
         var currentProcess = Process.GetCurrentProcess();
         try
         {
-            currentProcess.PriorityClass = ProcessPriorityClass.High;
-            Console.WriteLine("Process priority set to High.");
+            currentProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
+            Console.WriteLine("Process priority set to AboveNormal.");
         }
         catch (Exception ex)
         {

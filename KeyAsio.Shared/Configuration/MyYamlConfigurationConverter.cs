@@ -127,8 +127,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 RealtimeEnableMusic = s.RealtimeOptions.EnableMusicFunctions,
                 Scanning = new AppSettingsRealtimeScanning
                 {
-                    GeneralInterval = s.RealtimeOptions.GeneralScanInterval,
-                    TimingInterval = s.RealtimeOptions.TimingScanInterval
+                    ScanInterval = s.RealtimeOptions.TimingScanInterval
                 },
                 Playback = new AppSettingsRealtimePlayback
                 {
@@ -187,8 +186,8 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             s.RealtimeOptions.RealtimeMode = y.Realtime.RealtimeMode;
             if (y.Realtime.Scanning != null)
             {
-                s.RealtimeOptions.GeneralScanInterval = y.Realtime.Scanning.GeneralInterval;
-                s.RealtimeOptions.TimingScanInterval = y.Realtime.Scanning.TimingInterval;
+                s.RealtimeOptions.GeneralScanInterval = y.Realtime.Scanning.ScanInterval;
+                s.RealtimeOptions.TimingScanInterval = y.Realtime.Scanning.ScanInterval;
             }
             if (y.Realtime.Playback != null)
             {

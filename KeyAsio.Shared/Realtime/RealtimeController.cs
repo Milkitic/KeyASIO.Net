@@ -1,14 +1,13 @@
-using System.Diagnostics;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.AudioProviders;
 using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Realtime.States;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using KeyAsio.MemoryReading.OsuMemoryModels;
 
 namespace KeyAsio.Shared.Realtime;
 
@@ -57,7 +56,6 @@ public class RealtimeController
             [OsuMemoryStatus.MultiSongSelection] =
                 new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
         });
-        Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
     }
 
 

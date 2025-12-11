@@ -10,9 +10,8 @@ public class MemoryScan
 {
     private readonly ILogger<MemoryScan> _logger;
 
-    private int _timingScanInterval;
-    private int _generalScanInterval;
-    
+    private int _scanInterval;
+
     private Process? _process;
     private SigScan? _sigScan;
     private MemoryProfile? _memoryProfile;
@@ -29,12 +28,11 @@ public class MemoryScan
 
     public MemoryReadObject MemoryReadObject { get; } = new();
 
-    public void Start(int generalScanInterval, int timingScanInterval, int processInterval = 500)
+    public void Start(int scanInterval, int processInterval = 500)
     {
         if (_isStarted) return;
         _isStarted = true;
-        _generalScanInterval = generalScanInterval;
-        _timingScanInterval = timingScanInterval;
+        _scanInterval = scanInterval;
 
         try
         {
@@ -58,7 +56,7 @@ public class MemoryScan
     {
         if (!_isStarted) return;
         await _cts!.CancelAsync();
-        
+
         if (_readTask != null)
             await _readTask;
 
@@ -71,13 +69,6 @@ public class MemoryScan
 
     private void ReadImpl()
     {
-        var generalScanLimiter = Stopwatch.StartNew();
-        var timingScanLimiter = Stopwatch.StartNew();
-
-        var internalTimerScanLimiter = Stopwatch.StartNew();
-        var internalTimer = new Stopwatch();
-
-        int lastFetchPlayingTime = 0;
         string? songsDirectory = null;
         var data = new OsuMemoryData();
 
@@ -103,7 +94,7 @@ public class MemoryScan
                         _sigScan = new SigScan(_process);
                         _memoryContext = new MemoryContext<OsuMemoryData>(_sigScan, _memoryProfile!);
                         _memoryContext.Scan();
-                        
+
                         var mainModuleFileName = _process.MainModule?.FileName;
                         if (!string.IsNullOrEmpty(mainModuleFileName))
                         {
@@ -134,73 +125,41 @@ public class MemoryScan
                 _memoryContext!.BeginUpdate();
                 _memoryContext.Populate(data);
 
-                var ratio = GetRatio(MemoryReadObject.OsuStatus, MemoryReadObject.Mods);
-                var playingTime = lastFetchPlayingTime + internalTimer.ElapsedMilliseconds * ratio;
+                MemoryReadObject.PlayingTime = data.AudioTime;
+                MemoryReadObject.OsuStatus = (OsuMemoryStatus)data.RawStatus;
+                MemoryReadObject.PlayerName = data.Username;
+                MemoryReadObject.Mods = (Mods)data.Mods;
 
-                if (timingScanLimiter.Elapsed.TotalMilliseconds > _timingScanInterval)
+                if (MemoryReadObject.OsuStatus == OsuMemoryStatus.Playing)
                 {
-                    timingScanLimiter.Restart();
-
-                    var audioTime = data.AudioTime;
-                    
-                    if (audioTime == lastFetchPlayingTime)
-                    {
-                        MemoryReadObject.PlayingTime = audioTime;
-                        internalTimer.Reset();
-                    }
-                    else
-                    {
-                        MemoryReadObject.PlayingTime = audioTime;
-                        lastFetchPlayingTime = audioTime;
-                        internalTimer.Restart();
-                    }
+                    MemoryReadObject.IsReplay = data.IsReplay;
+                    MemoryReadObject.Score = data.Score;
+                    MemoryReadObject.Combo = data.Combo;
                 }
-                else if (_timingScanInterval >= 16 && internalTimer.IsRunning &&
-                         internalTimerScanLimiter.ElapsedMilliseconds > 16)
+                else
                 {
-                    internalTimerScanLimiter.Restart();
-                    MemoryReadObject.PlayingTime = (int)playingTime;
+                    MemoryReadObject.Score = 0;
+                    MemoryReadObject.Combo = 0;
                 }
 
-                if (generalScanLimiter.Elapsed.TotalMilliseconds > _generalScanInterval)
+                if (songsDirectory != null)
                 {
-                    generalScanLimiter.Restart();
+                    var folderName = data.FolderName;
+                    var osuFileName = data.OsuFileName;
 
-                    MemoryReadObject.OsuStatus = (OsuMemoryStatus)data.RawStatus;
-                    MemoryReadObject.PlayerName = data.Username;
-                    MemoryReadObject.Mods = (Mods)data.Mods;
-
-                    if (MemoryReadObject.OsuStatus == OsuMemoryStatus.Playing)
+                    if (!string.IsNullOrEmpty(folderName) && !string.IsNullOrEmpty(osuFileName))
                     {
-                        MemoryReadObject.IsReplay = data.IsReplay;
-                        MemoryReadObject.Score = data.Score;
-                        MemoryReadObject.Combo = data.Combo;
-                    }
-                    else
-                    {
-                        MemoryReadObject.Score = 0;
-                        MemoryReadObject.Combo = 0;
-                    }
-
-                    if (songsDirectory != null)
-                    {
-                        var folderName = data.FolderName;
-                        var osuFileName = data.OsuFileName;
-                        
-                        if (!string.IsNullOrEmpty(folderName) && !string.IsNullOrEmpty(osuFileName))
+                        var directory = Path.Combine(songsDirectory, folderName);
+                        // Check if changed
+                        if (MemoryReadObject.BeatmapIdentifier.Filename != osuFileName ||
+                            MemoryReadObject.BeatmapIdentifier.Folder != directory)
                         {
-                            var directory = Path.Combine(songsDirectory, folderName);
-                            // Check if changed
-                            if (MemoryReadObject.BeatmapIdentifier.Filename != osuFileName ||
-                                MemoryReadObject.BeatmapIdentifier.Folder != directory)
-                            {
-                                    MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, osuFileName);
-                            }
+                            MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, osuFileName);
                         }
                     }
                 }
 
-                Thread.Sleep(1);
+                Thread.Sleep(_scanInterval);
             }
             catch (Exception ex)
             {
@@ -209,14 +168,5 @@ public class MemoryScan
                 _process = null;
             }
         }
-    }
-
-    private double GetRatio(OsuMemoryStatus status, Mods mods)
-    {
-        if (status != OsuMemoryStatus.Playing) return 1;
-        
-        if (mods.HasFlag(Mods.DoubleTime) || mods.HasFlag(Mods.Nightcore)) return 1.5;
-        if (mods.HasFlag(Mods.HalfTime)) return 0.75;
-        return 1;
     }
 }

@@ -97,8 +97,7 @@ public partial class App : Application
             dispatcher.InvokeAsync(() => _realtimeSessionContext.Beatmap = beatmap);
         _memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
             dispatcher.InvokeAsync(() => _realtimeSessionContext.OsuStatus = current);
-        _memoryScan.Start(_appSettings.Realtime.Scanning.GeneralInterval,
-            _appSettings.Realtime.Scanning.TimingInterval);
+        _memoryScan.Start(_appSettings.Realtime.Scanning.ScanInterval);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

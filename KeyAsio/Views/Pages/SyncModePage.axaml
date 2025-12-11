@@ -277,7 +277,7 @@
       <suki:GlassCard>
         <suki:GroupBox Header="Advanced Settings">
           <StackPanel Margin="0,0,8,0" Spacing="10">
-            <!--  General Interval  -->
+            <!--  Scan Interval  -->
             <Grid ColumnDefinitions="Auto, *, Auto">
               <materialIcons:MaterialIcon
                 Width="24"
@@ -287,11 +287,11 @@
                 Kind="Radar"
                 Opacity="0.6" />
               <StackPanel Grid.Column="1" Spacing="0">
-                <TextBlock Text="General Scan Interval (ms)" />
+                <TextBlock Text="Memory Scan Interval (ms)" />
                 <TextBlock
                   FontSize="11"
                   Opacity="0.6"
-                  Text="Lower values update generic fields more promptly. Increase to reduce CPU usage."
+                  Text="Lower values update memory more promptly but increase CPU usage."
                   TextWrapping="Wrap" />
               </StackPanel>
               <NumericUpDown
@@ -299,31 +299,7 @@
                 Classes="SettingItem"
                 Maximum="1000"
                 Minimum="1"
-                Value="{Binding AppSettings.Realtime.Scanning.GeneralInterval}" />
-            </Grid>
-            <!--  Timing Interval  -->
-            <Grid ColumnDefinitions="Auto, *, Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="Timer"
-                Opacity="0.6" />
-              <StackPanel Grid.Column="1" Spacing="0">
-                <TextBlock Text="Timing Scan Interval (ms)" />
-                <TextBlock
-                  FontSize="11"
-                  Opacity="0.6"
-                  Text="Lower values update timing fields more promptly. Increase if audio cutting occurs."
-                  TextWrapping="Wrap" />
-              </StackPanel>
-              <NumericUpDown
-                Grid.Column="2"
-                Classes="SettingItem"
-                Maximum="1000"
-                Minimum="1"
-                Value="{Binding AppSettings.Realtime.Scanning.TimingInterval}" />
+                Value="{Binding AppSettings.Realtime.Scanning.ScanInterval}" />
             </Grid>
           </StackPanel>
         </suki:GroupBox>

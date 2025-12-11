@@ -17,6 +17,7 @@ using Sentry.Extensibility;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using KeyAsio.Memory.Utils;
 
 namespace KeyAsio;
 
@@ -106,6 +107,9 @@ internal sealed class Program
 
         try
         {
+            if (OperatingSystem.IsWindowsVersionAtLeast(8))
+                PowerThrottling.DisableThrottling();
+
             await Host.RunAsync();
         }
         finally
