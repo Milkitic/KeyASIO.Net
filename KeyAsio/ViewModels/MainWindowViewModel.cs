@@ -192,10 +192,22 @@ public partial class MainWindowViewModel
 
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(AppSettingsAudio.MasterVolume)
-            or nameof(AppSettingsAudio.MusicVolume)
-            or nameof(AppSettingsAudio.EffectVolume)
-            or nameof(AppSettingsRealtimePlayback.BalanceFactor))
+        if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume))
+        {
+            AudioSettings.AudioEngine.MainVolume = AppSettings.Audio.MasterVolume / 100f;
+            DebounceSave();
+        }
+        else if (e.PropertyName == nameof(AppSettingsAudio.MusicVolume))
+        {
+            AudioSettings.AudioEngine.MusicVolume = AppSettings.Audio.MusicVolume / 100f;
+            DebounceSave();
+        }
+        else if (e.PropertyName == nameof(AppSettingsAudio.EffectVolume))
+        {
+            AudioSettings.AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
+            DebounceSave();
+        }
+        else if (e.PropertyName == nameof(AppSettingsRealtimePlayback.BalanceFactor))
         {
             DebounceSave();
         }

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
@@ -70,6 +70,9 @@ public partial class AppSettingsAudio : INotifyPropertyChanged
 
     [Description("Effect track volume.")]
     public int EffectVolume { get; set; } = 100;
+
+    [Description("Extend the maximum volume limit to 150%.")]
+    public bool EnableExtendedVolume { get; set; }
 }
 
 public partial class AppSettingsLogging : INotifyPropertyChanged
