@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -50,7 +51,7 @@ public static class MemoryReadHelper
     public static bool TryGetValue<T>(IMemoryReader memoryReader, IntPtr pointer, out T result) where T : struct
     {
         result = default;
-        int size = Marshal.SizeOf<T>();
+        int size = Unsafe.SizeOf<T>();
         if (typeof(T) == typeof(bool)) size = 1;
 
         byte[]? arrayPoolBuffer = null;
