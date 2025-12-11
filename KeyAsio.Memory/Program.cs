@@ -1,322 +1,153 @@
-﻿using System.Buffers;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Diagnostics;
+using KeyAsio.Memory.Configuration;
 
 namespace KeyAsio.Memory;
 
-// osu! 进程内存空间 (32-bit)
-// │
-// ├─ [内存区域: JIT 代码段 - PAGE_EXECUTE_READWRITE]
-// │   │
-// │   └─► [特征码扫描] "F8 01 74 04 83 65"
-// │       └─► baseMemPos (锚点地址 - JIT编译的代码位置)
-// │           │
-// │           └─ [偏移 -0xC]
-// │               └─► beatmapMemPos (静态/全局引用区)
-// │
-// ├─ [内存区域: 托管堆 Heap - CLR Managed Memory]
-// │   │
-// │   ├─► beatmapClassPointerAddress 
-// │   │   └─ [Beatmap Manager/Holder 单例]
-// │   │       └─► beatmapClassAddress 
-// │   │           └─ [Beatmap Instance - 当前选中的谱面对象]
-// │   │               │
-// │   │               ├─ +0x00: beatmapClassHeader (vtable/类型标识)
-// │   │               ├─ +0x04~0x8F: [其他属性字段]
-// │   │               └─ +0x90: BeatmapFileName (string 引用)
-// │   │
-// │   └─► beatmapClassBeatmapFileNamePropStringPointer
-// │       └─ [.NET String Object - Unicode]
-// │           ├─ -0x04: [SyncBlock Index]
-// │           ├─ +0x00: [vtable/类型标识]
-// │           ├─ +0x04: Length = 字符数量
-// │           └─ +0x08: Unicode字符数据 (UTF-16LE)
-// │                   └─► beatmapFileNamePropValue (最终结果)
-
-
-// Beatmap Manager (单例)
-// └─ CurrentBeatmap → Beatmap Instance
-//                      ├─ Header (类型信息)
-//                      ├─ Metadata (艺术家、标题等)
-//                      ├─ TimingPoints
-//                      ├─ HitObjects
-//                      └─ FileName (string, offset +0x90)
-//                          └─ "example.osu"
-
 public class Program
 {
-    private const int PtrSize = 4; // osu! is a 32-bit process
-    private static readonly byte[] Buffer = new byte[1024];
+    private static MemoryContext? _ctx;
+    private static SigScan? _sigScan;
+    private static readonly object _lock = new();
+
+    // 指向源文件的绝对路径，方便演示动态修改
+    private const string ConfigPath = @"e:\Working\GitHub\KeyAsio.Net\KeyAsio.Memory\Configuration\rules.json";
 
     public static async Task Main(string[] args)
     {
+        PowerThrottling.DisableThrottling();
+
+        await DirectScan.Perform();
+
         var process = Process.GetProcessesByName("osu!").FirstOrDefault();
         if (process == null)
         {
-            throw new Exception("Process not found.");
+            Console.WriteLine("osu! process not found. Please start osu! and restart this program.");
+            return;
         }
 
-        using var sigScan = new SigScan(process);
-        var baseMemPos = sigScan.FindPattern("F8 01 74 04 83 65");
-        Debug.Assert(baseMemPos != nint.Zero);
+        _sigScan = new SigScan(process);
 
-        var beatmapMemPos = baseMemPos - 0xC;
+        // 初始加载配置
+        ReloadConfig();
 
-        var beatmapClassPointerAddress = GetPointer(sigScan, beatmapMemPos);
-        var beatmapClassAddress = GetPointer(sigScan, beatmapClassPointerAddress);
-        var beatmapClassHeader = GetValue<int>(sigScan, beatmapClassAddress);
-
-        // Ints
-        var id = GetValue<int>(sigScan, beatmapClassAddress + 0xC8);
-        var setId = GetValue<int>(sigScan, beatmapClassAddress + 0xCC);
-
-        // Strings
-        var mapString = GetManagedString(sigScan, beatmapClassAddress + 0x80);
-        var folderName = GetManagedString(sigScan, beatmapClassAddress + 0x78);
-        var osuFileName = GetManagedString(sigScan, beatmapClassAddress + 0x90);
-        var md5 = GetManagedString(sigScan, beatmapClassAddress + 0x6C);
-
-        // Floats
-        var ar = GetValue<float>(sigScan, beatmapClassAddress + 0x2C);
-        var cs = GetValue<float>(sigScan, beatmapClassAddress + 0x30);
-        var hp = GetValue<float>(sigScan, beatmapClassAddress + 0x34);
-        var od = GetValue<float>(sigScan, beatmapClassAddress + 0x38);
-
-        // Short
-        var status = GetValue<short>(sigScan, beatmapClassAddress + 0x12C);
-
-        Console.WriteLine($"ID: {id}");
-        Console.WriteLine($"SetID: {setId}");
-        Console.WriteLine($"MapString: {mapString}");
-        Console.WriteLine($"FolderName: {folderName}");
-        Console.WriteLine($"OsuFileName: {osuFileName}");
-        Console.WriteLine($"MD5: {md5}");
-        Console.WriteLine($"AR: {ar}");
-        Console.WriteLine($"CS: {cs}");
-        Console.WriteLine($"HP: {hp}");
-        Console.WriteLine($"OD: {od}");
-        Console.WriteLine($"Status: {status}");
-
-        Console.WriteLine("--------------------------------------------------");
-        Console.WriteLine("General Data:");
-
-        // GeneralData Patterns
-        var statusPattern = sigScan.FindPattern("48 83 F8 04 73 1E");
-        var settingsPattern = sigScan.FindPattern("83 E0 20 85 C0 7E 2F");
-        var audioTimeBasePattern = sigScan.FindPattern("83 E4 F8 57 56 83 EC 38");
-        var modsPattern = sigScan.FindPattern("C8 FF ?? ?? ?? ?? ?? 81 0D ?? ?? ?? ?? 00 08 00 00");
-        var chatExpandedPattern = sigScan.FindPattern("0A D7 23 3C 00 00 ?? 01");
-
-        // GeneralData Values
-        if (statusPattern != IntPtr.Zero)
+        // 启动文件监控
+        using var watcher = new FileSystemWatcher(Path.GetDirectoryName(ConfigPath)!, Path.GetFileName(ConfigPath));
+        watcher.NotifyFilter = NotifyFilters.LastWrite;
+        watcher.Changed += (s, e) =>
         {
-            var statusAddr = GetPointer(sigScan, statusPattern - 0x4);
-            var rawStatus = GetValue<int>(sigScan, statusAddr);
-            Console.WriteLine($"RawStatus: {rawStatus}");
-        }
+            // 简单的防抖动
+            Thread.Sleep(100);
+            ReloadConfig();
+        };
+        watcher.EnableRaisingEvents = true;
 
-        if (baseMemPos != IntPtr.Zero)
-        {
-            var gameModePtr = GetPointer(sigScan, baseMemPos - 0x33);
-            var gameMode = GetValue<int>(sigScan, gameModePtr);
-            var retries = GetValue<int>(sigScan, gameModePtr + 0x8);
-
-            var audioTimePtr = GetPointer(sigScan, baseMemPos + 0x64);
-            var audioTime = GetValue<int>(sigScan, audioTimePtr - 0x10);
-
-            Console.WriteLine($"GameMode: {gameMode}");
-            Console.WriteLine($"Retries: {retries}");
-            Console.WriteLine($"AudioTime: {audioTime}");
-        }
-
-        if (audioTimeBasePattern != IntPtr.Zero)
-        {
-            var totalAudioTimeBasePtr = GetPointer(sigScan, audioTimeBasePattern + 0xA);
-            var totalAudioTime = GetValue<double>(sigScan, totalAudioTimeBasePtr + 0x4);
-            Console.WriteLine($"TotalAudioTime: {totalAudioTime}");
-        }
-
-        if (chatExpandedPattern != IntPtr.Zero)
-        {
-            var chatExpandedAddr = GetPointer(sigScan, chatExpandedPattern - 0x20);
-            var chatIsExpanded = GetValue<bool>(sigScan, chatExpandedAddr);
-            Console.WriteLine($"ChatIsExpanded: {chatIsExpanded}");
-        }
-
-        if (modsPattern != IntPtr.Zero)
-        {
-            var modsPtr = GetPointer(sigScan, modsPattern + 0x9);
-            var mods = GetValue<int>(sigScan, modsPtr);
-            Console.WriteLine($"Mods: {mods}");
-        }
-
-        if (settingsPattern != IntPtr.Zero)
-        {
-            var settingsPtr = GetPointer(sigScan, settingsPattern + 0x8);
-
-            var showInterfaceAddr = GetPointer(sigScan, settingsPtr + 0x4);
-            var showInterface = GetValue<bool>(sigScan, showInterfaceAddr + 0xC);
-            Console.WriteLine($"ShowPlayingInterface: {showInterface}");
-
-            var osuVersionAddr = GetPointer(sigScan, settingsPtr + 0x44);
-            var osuVersion = GetManagedString(sigScan, osuVersionAddr + 0x4);
-            Console.WriteLine($"OsuVersion: {osuVersion}");
-        }
-
-        Console.WriteLine("--------------------------------------------------");
-        Console.WriteLine("Additional Data:");
-
-        // Additional Patterns
-        var isLoggedInPattern = sigScan.FindPattern("B8 0B 00 00 8B 35");
-        var userPanelPattern = sigScan.FindPattern("FF FF 89 50 70");
-        var currentSkinDataPattern = sigScan.FindPattern("85 C0 74 11 8B 1D");
-        var currentRulesetPattern = sigScan.FindPattern("C7 86 48 01 00 00 01 00 00 00 A1");
-        var isReplayPattern = sigScan.FindPattern("8B FA B8 01 00 00 00");
-
-        // BanchoUser
-        if (isLoggedInPattern != IntPtr.Zero)
-        {
-            var isLoggedInPtr = GetPointer(sigScan, isLoggedInPattern - 0xB);
-            var isLoggedIn = GetValue<bool>(sigScan, isLoggedInPtr);
-            Console.WriteLine($"IsLoggedIn: {isLoggedIn}");
-        }
-
-        if (userPanelPattern != IntPtr.Zero)
-        {
-            var userPanelPtr = GetPointer(sigScan, userPanelPattern + 0x6);
-            var userPanelAddress = GetPointer(sigScan, userPanelPtr);
-
-            if (userPanelAddress != IntPtr.Zero)
-            {
-                var username = GetManagedString(sigScan, userPanelAddress + 0x30);
-                Console.WriteLine($"Username: {username}");
-            }
-        }
-
-        // Skin
-        if (currentSkinDataPattern != IntPtr.Zero)
-        {
-            var skinDataPtr = GetPointer(sigScan, currentSkinDataPattern + 0x6);
-            var skinDataAddress = GetPointer(sigScan, skinDataPtr);
-            if (skinDataAddress != IntPtr.Zero)
-            {
-                var folder = GetManagedString(sigScan, skinDataAddress + 0x44);
-                Console.WriteLine($"SkinFolder: {folder}");
-            }
-        }
-
-        // Player / RulesetPlayData
-        if (isReplayPattern != IntPtr.Zero)
-        {
-            var isReplayPtr = GetPointer(sigScan, isReplayPattern + 0x2A);
-            var isReplay = GetValue<bool>(sigScan, isReplayPtr);
-            Console.WriteLine($"IsReplay: {isReplay}");
-        }
-
-        if (currentRulesetPattern != IntPtr.Zero)
-        {
-            var tempPtr = GetPointer(sigScan, currentRulesetPattern + 0xB);
-            var currentRulesetPtr = tempPtr + 0x4;
-            var currentRulesetAddress = GetPointer(sigScan, currentRulesetPtr);
-
-            if (currentRulesetAddress != IntPtr.Zero)
-            {
-                var score = GetValue<int>(sigScan, currentRulesetAddress + 0x100);
-                Console.WriteLine($"Score: {score}");
-
-                var playerPtr = GetPointer(sigScan, currentRulesetAddress + 0x68);
-                if (playerPtr != IntPtr.Zero)
-                {
-                    var comboBase = GetPointer(sigScan, playerPtr + 0x38);
-                    if (comboBase != IntPtr.Zero)
-                    {
-                        var combo = GetValue<ushort>(sigScan, comboBase + 0x94);
-                        Console.WriteLine($"Combo: {combo}");
-                    }
-                }
-            }
-        }
+        Console.WriteLine("Memory Reader Started.");
+        Console.WriteLine($"Watching config file: {ConfigPath}");
+        Console.WriteLine("Press 'Q' to exit.");
 
         var cts = new CancellationTokenSource();
-        var task = Task.Factory.StartNew(async () =>
-        {
-            var t = new PeriodicTimer(TimeSpan.FromMilliseconds(3));
-            int oldAudioTime = int.MinValue;
-            int i = 0;
-            while (await t.WaitForNextTickAsync())
-            {
-                if (cts.IsCancellationRequested) break;
-                if (baseMemPos != IntPtr.Zero)
-                {
-                    var audioTimePtr = GetPointer(sigScan, baseMemPos + 0x64);
-                    var audioTime = GetValue<int>(sigScan, audioTimePtr - 0x10);
-                    if (oldAudioTime != audioTime || (oldAudioTime == audioTime && i < 10))
-                        Console.WriteLine($"AudioTime: {audioTime}");
 
-                    if (oldAudioTime == audioTime)
-                        i++;
-                    else
-                        i = 0;
-                    oldAudioTime = audioTime;
+        // 高频读取线程 (模拟原有的 AudioTime 读取)
+        var audioTask = Task.Factory.StartNew(() =>
+        {
+            using var scope = new HighPrecisionTimerScope();
+            int oldAudioTime = int.MinValue;
+
+            while (!cts.IsCancellationRequested)
+            {
+                lock (_lock)
+                {
+                    if (_ctx != null)
+                    {
+                        var audioTime = _ctx.GetValue<int>("AudioTime");
+                        if (audioTime.HasValue && oldAudioTime != audioTime.Value)
+                        {
+                            // 可以在这里输出，但为了不刷屏，暂时注释掉
+                            // Console.WriteLine($"AudioTime: {audioTime}");
+                            oldAudioTime = audioTime.Value;
+                        }
+                    }
                 }
+
+                Thread.Sleep(1);
             }
         }, TaskCreationOptions.LongRunning);
 
-        Console.ReadKey();
+        // 主循环：定期刷新显示完整数据
+        while (!cts.IsCancellationRequested)
+        {
+            if (Console.KeyAvailable)
+            {
+                var key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Q) break;
+            }
+
+            lock (_lock)
+            {
+                if (_ctx != null)
+                {
+                    try
+                    {
+                        var data = new OsuData();
+                        _ctx.Populate(data);
+
+                        Console.Clear();
+                        Console.WriteLine("=== KeyAsio Memory Reader (Declarative Framework) ===");
+                        Console.WriteLine($"Config Source: {ConfigPath}");
+                        Console.WriteLine("--------------------------------------------------");
+                        Console.WriteLine(data.ToString());
+                        Console.WriteLine("--------------------------------------------------");
+                        Console.WriteLine($"Folder: {data.FolderName}");
+                        Console.WriteLine($"File:   {data.OsuFileName}");
+                        Console.WriteLine($"MD5:    {data.MD5}");
+                        Console.WriteLine($"Mods:   {data.Mods}");
+                        Console.WriteLine($"Status: {data.Status} (Raw: {data.RawStatus})");
+                        Console.WriteLine($"GameMode: {data.GameMode}");
+                        Console.WriteLine($"Retries:  {data.Retries}");
+                        Console.WriteLine($"User:     {data.Username}");
+                        Console.WriteLine($"Score:    {data.Score}");
+                        Console.WriteLine($"Combo:    {data.Combo}");
+                        Console.WriteLine("--------------------------------------------------");
+                        Console.WriteLine("Modify the rules.json file to update offsets dynamically!");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error reading memory: {ex.Message}");
+                    }
+                }
+            }
+
+            await Task.Delay(500); // 0.5秒刷新一次界面
+        }
+
         cts.Cancel();
-        await task;
-    }
-
-    private static string GetManagedString(SigScan sigScan, IntPtr stringRefAddress)
-    {
-        var stringPointer = GetPointer(sigScan, stringRefAddress);
-        if (stringPointer == IntPtr.Zero) return string.Empty;
-
-        var length = GetValue<int>(sigScan, stringPointer + 4);
-        if (length == 0) return string.Empty;
-
-        return GetString(sigScan, stringPointer + 8, length * 2);
-    }
-
-    private static string GetString(SigScan sigScan, IntPtr elementStartPointer, int bytesCount)
-    {
-        byte[]? buffer = null;
-        var span = bytesCount < 256
-            ? stackalloc byte[bytesCount]
-            : buffer = ArrayPool<byte>.Shared.Rent(bytesCount);
         try
         {
-            if (!sigScan.ReadMemory(elementStartPointer, span, bytesCount, out var bytesRead))
-                throw new Exception("Failed to read memory.");
-            if (bytesRead != bytesCount)
-                throw new Exception("Failed to read complete string data.");
-            return Encoding.Unicode.GetString(span.Slice(0, bytesCount));
+            await audioTask;
         }
-        finally
+        catch
         {
-            if (buffer != null) ArrayPool<byte>.Shared.Return(buffer);
         }
+
+        _sigScan.Dispose();
     }
 
-    private static T GetValue<T>(SigScan sigScan, IntPtr pointer) where T : struct
+    private static void ReloadConfig()
     {
-        int size = Marshal.SizeOf<T>();
-        if (typeof(T) == typeof(bool)) size = 1; // Marshal.SizeOf<bool> is 4
-
-        if (!sigScan.ReadMemory(pointer, Buffer, size, out _))
-            throw new Exception("Failed to read memory.");
-
-        var value = MemoryMarshal.Read<T>(Buffer);
-        return value;
-    }
-
-    private static IntPtr GetPointer(SigScan sigScan, IntPtr parentPointer)
-    {
-        if (!sigScan.ReadMemory(parentPointer, Buffer, PtrSize, out _))
-            throw new Exception("Failed to read memory.");
-
-        var pointer = (nint)MemoryMarshal.Read<uint>(Buffer);
-        return pointer;
+        try
+        {
+            lock (_lock)
+            {
+                Console.WriteLine("Loading Configuration...");
+                var profile = MemoryProfile.Load(ConfigPath);
+                _ctx = new MemoryContext(_sigScan!, profile);
+                _ctx.Scan();
+                Console.WriteLine("Configuration Loaded Successfully.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load config: {ex.Message}");
+        }
     }
 }
