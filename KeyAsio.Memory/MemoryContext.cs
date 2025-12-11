@@ -31,51 +31,17 @@ public class MemoryContext
         }
     }
 
-    public IntPtr ResolvePointer(string pointerName)
+    private IntPtr ResolvePointer(string pointerName)
     {
         if (!_profile.Pointers.TryGetValue(pointerName, out var def))
-            throw new ArgumentException($"Pointer '{pointerName}' not defined.");
+            return IntPtr.Zero;
 
-        // Resolve Base
-        IntPtr currentPtr;
-        if (_signatureCache.TryGetValue(def.Base, out var sigPtr))
-        {
-            currentPtr = sigPtr;
-        }
-        else if (_profile.Pointers.ContainsKey(def.Base))
-        {
-            currentPtr = ResolvePointer(def.Base); // Recursive resolution
-        }
-        else
-        {
-            return IntPtr.Zero; // Base not found
-        }
-
-        if (currentPtr == IntPtr.Zero) return IntPtr.Zero;
-
-        // Apply Offsets
-        foreach (var offset in def.Offsets)
-        {
-            // 1. 加上偏移量 (定位到存放指针的地址)
-            currentPtr += offset;
-
-            // 2. 读取指针 (读取该地址内存中的值，作为新的地址)
-            // 相当于 C++ 中的: currentPtr = *(int*)(currentPtr);
-            currentPtr = MemoryReadHelper.GetPointer(_sigScan, currentPtr);
-
-            // 如果读出来是空指针，说明链断了，停止
-            if (currentPtr == IntPtr.Zero) return IntPtr.Zero;
-        }
-
-        return currentPtr;
+        return ResolvePointerInternal(def);
     }
 
-    public bool TryGetValue<T>(string valueName, out T result)
+    public bool TryGetValueInternal<T>(ValueDefinition def, out T result)
     {
         result = default!;
-
-        if (!_profile.Values.TryGetValue(valueName, out var def))
-            throw new ArgumentException($"Value '{valueName}' not defined.");
 
         IntPtr basePtr;
 
@@ -84,9 +50,9 @@ public class MemoryContext
         {
             basePtr = value;
         }
-        else if (_profile.Pointers.ContainsKey(def.Base))
+        else if (_profile.Pointers.TryGetValue(def.Base, out var ptrDef))
         {
-            basePtr = ResolvePointer(def.Base);
+            basePtr = ResolvePointerInternal(ptrDef);
         }
         else
         {
@@ -97,72 +63,94 @@ public class MemoryContext
 
         var finalAddr = basePtr + def.Offset;
 
-        try
+        // Fast path for supported value types to avoid boxing using Unsafe.As
+        if (typeof(T) == typeof(int))
         {
-            // Fast path for supported value types to avoid boxing using Unsafe.As
-            if (typeof(T) == typeof(int))
+            if (MemoryReadHelper.TryGetValue<int>(_sigScan, finalAddr, out var val))
             {
-                var val = MemoryReadHelper.GetValue<int>(_sigScan, finalAddr);
                 result = Unsafe.As<int, T>(ref val);
                 return true;
             }
 
-            if (typeof(T) == typeof(float))
+            return false;
+        }
+
+        if (typeof(T) == typeof(float))
+        {
+            if (MemoryReadHelper.TryGetValue<float>(_sigScan, finalAddr, out var val))
             {
-                var val = MemoryReadHelper.GetValue<float>(_sigScan, finalAddr);
                 result = Unsafe.As<float, T>(ref val);
                 return true;
             }
 
-            if (typeof(T) == typeof(double))
+            return false;
+        }
+
+        if (typeof(T) == typeof(double))
+        {
+            if (MemoryReadHelper.TryGetValue<double>(_sigScan, finalAddr, out var val))
             {
-                var val = MemoryReadHelper.GetValue<double>(_sigScan, finalAddr);
                 result = Unsafe.As<double, T>(ref val);
                 return true;
             }
 
-            if (typeof(T) == typeof(bool))
+            return false;
+        }
+
+        if (typeof(T) == typeof(bool))
+        {
+            if (MemoryReadHelper.TryGetValue<bool>(_sigScan, finalAddr, out var val))
             {
-                var val = MemoryReadHelper.GetValue<bool>(_sigScan, finalAddr);
                 result = Unsafe.As<bool, T>(ref val);
                 return true;
             }
 
-            if (typeof(T) == typeof(short))
+            return false;
+        }
+
+        if (typeof(T) == typeof(short))
+        {
+            if (MemoryReadHelper.TryGetValue<short>(_sigScan, finalAddr, out var val))
             {
-                var val = MemoryReadHelper.GetValue<short>(_sigScan, finalAddr);
                 result = Unsafe.As<short, T>(ref val);
                 return true;
             }
 
-            if (typeof(T) == typeof(ushort))
+            return false;
+        }
+
+        if (typeof(T) == typeof(ushort))
+        {
+            if (MemoryReadHelper.TryGetValue<ushort>(_sigScan, finalAddr, out var val))
             {
-                var val = MemoryReadHelper.GetValue<ushort>(_sigScan, finalAddr);
                 result = Unsafe.As<ushort, T>(ref val);
                 return true;
             }
 
-            if (typeof(T) == typeof(string))
-            {
-                var val = MemoryReadHelper.GetManagedString(_sigScan, finalAddr);
-                result = Unsafe.As<string, T>(ref val);
-                return true;
-            }
-
-            // Fallback (boxing)
-            var valObj = GetValue(valueName);
-            if (valObj is T typedVal)
-            {
-                result = typedVal;
-                return true;
-            }
-        }
-        catch
-        {
             return false;
         }
 
+        if (typeof(T) == typeof(string))
+        {
+            if (MemoryReadHelper.TryGetManagedString(_sigScan, finalAddr, out var val))
+            {
+                result = Unsafe.As<string, T>(ref val);
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    public bool TryGetValue<T>(string valueName, out T result)
+    {
+        if (!_profile.Values.TryGetValue(valueName, out var def))
+        {
+            result = default!;
+            return false; // Don't throw
+        }
+
+        return TryGetValueInternal(def, out result);
     }
 
     public object? GetValue(string valueName)
@@ -219,6 +207,45 @@ public class MemoryContext
         var result = GetValue(valueName);
         return result as string;
     }
+
+    private IntPtr ResolvePointerInternal(PointerDefinition def)
+    {
+        // Resolve Base
+        IntPtr currentPtr;
+        if (_signatureCache.TryGetValue(def.Base, out var sigPtr))
+        {
+            currentPtr = sigPtr;
+        }
+        else if (_profile.Pointers.TryGetValue(def.Base, out var baseDef))
+        {
+            // Recursive resolution
+            // Optimization opportunity: This still does a dictionary lookup for the base pointer.
+            // To fully eliminate it, we'd need to link PointerDefinitions directly.
+            // For now, this eliminates the lookup for the *current* pointer.
+            currentPtr = ResolvePointerInternal(baseDef);
+        }
+        else
+        {
+            return IntPtr.Zero; // Base not found
+        }
+
+        if (currentPtr == IntPtr.Zero) return IntPtr.Zero;
+
+        // Apply Offsets
+        foreach (var offset in def.Offsets)
+        {
+            currentPtr += offset;
+
+            if (!MemoryReadHelper.TryGetPointer(_sigScan, currentPtr, out currentPtr))
+            {
+                return IntPtr.Zero;
+            }
+
+            if (currentPtr == IntPtr.Zero) return IntPtr.Zero;
+        }
+
+        return currentPtr;
+    }
 }
 
 public class MemoryContext<T> : MemoryContext where T : class
@@ -240,20 +267,23 @@ public class MemoryContext<T> : MemoryContext where T : class
         var targetParam = Expression.Parameter(typeof(T), "target");
         var expressions = new List<Expression>();
         var contextConstant = Expression.Constant(this, typeof(MemoryContext));
-        var tryGetValueMethod = typeof(MemoryContext).GetMethod(nameof(TryGetValue));
+        var tryGetValueInternalMethod = typeof(MemoryContext).GetMethod(nameof(TryGetValueInternal));
 
         foreach (var prop in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            if (!profile.Values.ContainsKey(prop.Name)) continue;
+            if (!profile.Values.TryGetValue(prop.Name, out var valDef)) continue;
             if (prop.GetSetMethod() == null) continue;
 
             var valVar = Expression.Variable(prop.PropertyType, $"val_{prop.Name}");
-            var genericMethod = tryGetValueMethod!.MakeGenericMethod(prop.PropertyType);
+            var genericMethod = tryGetValueInternalMethod!.MakeGenericMethod(prop.PropertyType);
+
+            // Bake ValueDefinition as a constant
+            var defConstant = Expression.Constant(valDef, typeof(ValueDefinition));
 
             var call = Expression.Call(
                 contextConstant,
                 genericMethod,
-                Expression.Constant(prop.Name),
+                defConstant,
                 valVar
             );
 
