@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using KeyAsio.Memory.Configuration;
@@ -218,80 +219,53 @@ public class MemoryContext
         var result = GetValue(valueName);
         return result as string;
     }
+}
 
-    // Auto-populate a POCO based on property names matching Value definitions
-    public void Populate<T>(T target) where T : class
+public class MemoryContext<T> : MemoryContext where T : class
+{
+    private readonly Action<T> _populateAction;
+
+    public MemoryContext(SigScan sigScan, MemoryProfile profile) : base(sigScan, profile)
     {
-        var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        foreach (var prop in props)
+        _populateAction = BuildPopulateAction(profile);
+    }
+
+    public void Populate(T target)
+    {
+        _populateAction(target);
+    }
+
+    private Action<T> BuildPopulateAction(MemoryProfile profile)
+    {
+        var targetParam = Expression.Parameter(typeof(T), "target");
+        var expressions = new List<Expression>();
+        var contextConstant = Expression.Constant(this, typeof(MemoryContext));
+        var tryGetValueMethod = typeof(MemoryContext).GetMethod(nameof(TryGetValue));
+
+        foreach (var prop in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            if (!_profile.Values.ContainsKey(prop.Name)) continue;
+            if (!profile.Values.ContainsKey(prop.Name)) continue;
+            if (prop.GetSetMethod() == null) continue;
 
-            try
-            {
-                // Try optimized path first for common types
-                if (prop.PropertyType == typeof(int))
-                {
-                    if (TryGetValue<int>(prop.Name, out var val)) prop.SetValue(target, val);
-                    continue;
-                }
+            var valVar = Expression.Variable(prop.PropertyType, $"val_{prop.Name}");
+            var genericMethod = tryGetValueMethod!.MakeGenericMethod(prop.PropertyType);
 
-                if (prop.PropertyType == typeof(float))
-                {
-                    if (TryGetValue<float>(prop.Name, out var val)) prop.SetValue(target, val);
-                    continue;
-                }
+            var call = Expression.Call(
+                contextConstant,
+                genericMethod,
+                Expression.Constant(prop.Name),
+                valVar
+            );
 
-                if (prop.PropertyType == typeof(double))
-                {
-                    if (TryGetValue<double>(prop.Name, out var val)) prop.SetValue(target, val);
-                    continue;
-                }
+            var assign = Expression.Assign(Expression.Property(targetParam, prop), valVar);
+            var check = Expression.IfThen(call, assign);
 
-                if (prop.PropertyType == typeof(bool))
-                {
-                    if (TryGetValue<bool>(prop.Name, out var val)) prop.SetValue(target, val);
-                    continue;
-                }
-
-                if (prop.PropertyType == typeof(short))
-                {
-                    if (TryGetValue<short>(prop.Name, out var val)) prop.SetValue(target, val);
-                    continue;
-                }
-
-                if (prop.PropertyType == typeof(ushort))
-                {
-                    if (TryGetValue<ushort>(prop.Name, out var val)) prop.SetValue(target, val);
-                    continue;
-                }
-
-                if (prop.PropertyType == typeof(string))
-                {
-                    if (TryGetValue<string>(prop.Name, out var val)) prop.SetValue(target, val);
-                    continue;
-                }
-
-                // Fallback to boxing for other types or conversions
-                var valObj = GetValue(prop.Name);
-                if (valObj != null)
-                {
-                    if (prop.PropertyType.IsInstanceOfType(valObj))
-                    {
-                        prop.SetValue(target, valObj);
-                    }
-                    else
-                    {
-                        var converted = Convert.ChangeType(valObj, prop.PropertyType);
-                        prop.SetValue(target, converted);
-                    }
-                }
-            }
-            catch
-            {
-                throw;
-                // Ignore read errors for individual properties
-            }
+            expressions.Add(Expression.Block([valVar], check));
         }
+
+        if (expressions.Count == 0) return _ => { };
+
+        var finalBlock = Expression.Block(expressions);
+        return Expression.Lambda<Action<T>>(finalBlock, targetParam).Compile();
     }
 }

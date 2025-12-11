@@ -15,6 +15,7 @@ public static class MemoryReadHelper
         if (stringPointer == IntPtr.Zero) return string.Empty;
 
         var length = GetValue<int>(memoryReader, stringPointer + 4);
+        if (length > ushort.MaxValue) return string.Empty;
         if (length == 0) return string.Empty;
 
         return GetString(memoryReader, stringPointer + 8, length * 2);

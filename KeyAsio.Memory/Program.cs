@@ -5,7 +5,7 @@ namespace KeyAsio.Memory;
 
 public class Program
 {
-    private static MemoryContext? _ctx;
+    private static MemoryContext<OsuData>? _ctx;
     private static SigScan? _sigScan;
     private static readonly object _lock = new();
 
@@ -64,7 +64,6 @@ public class Program
         }, TaskCreationOptions.LongRunning);
 
         // 主循环：定期刷新显示完整数据
-        Console.Clear();
         while (!cts.IsCancellationRequested)
         {
             if (Console.KeyAvailable)
@@ -79,7 +78,7 @@ public class Program
                 {
                     try
                     {
-                        Console.SetCursorPosition(0, 0);
+                        Console.Clear();
                         Console.WriteLine("=== KeyAsio Memory Reader (Declarative Framework) ===");
                         Console.WriteLine($"Config Source: {ConfigPath}");
                         Console.WriteLine("--------------------------------------------------");
@@ -128,7 +127,7 @@ public class Program
             {
                 Console.WriteLine("Loading Configuration...");
                 var profile = MemoryProfile.Load(ConfigPath);
-                _ctx = new MemoryContext(_sigScan!, profile);
+                _ctx = new MemoryContext<OsuData>(_sigScan!, profile);
                 _ctx.Scan();
                 Console.WriteLine("Configuration Loaded Successfully.");
             }
