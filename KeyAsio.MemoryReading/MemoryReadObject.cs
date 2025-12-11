@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using KeyAsio.MemoryReading.OsuMemoryModels;
 using PropertyChanged;
 
@@ -15,6 +15,7 @@ public partial class MemoryReadObject : INotifyPropertyChanged
     public event NotifyPropertyChangedEventHandler<OsuMemoryStatus>? OsuStatusChanged;
     public event NotifyPropertyChangedEventHandler<int>? PlayingTimeChanged;
     public event NotifyPropertyChangedEventHandler<Mods>? ModsChanged;
+    public event NotifyPropertyChangedEventHandler<int>? ProcessIdChanged;
     public event NotifyPropertyChangedEventHandler<BeatmapIdentifier>? BeatmapIdentifierChanged;
 
     [OnChangedMethod(nameof(OnPlayerNameChanged))]
@@ -37,6 +38,9 @@ public partial class MemoryReadObject : INotifyPropertyChanged
 
     [OnChangedMethod(nameof(OnModsChanged))]
     public Mods Mods { get; set; } // GeneralData.Mods
+
+    [OnChangedMethod(nameof(OnProcessIdChanged))]
+    public int ProcessId { get; set; }
 
     //public string? BeatmapFolder { get; set; } // CurrentBeatmap.FolderName
     //public string? BeatmapFileName { get; set; } // CurrentBeatmap.OsuFileName
@@ -77,6 +81,11 @@ public partial class MemoryReadObject : INotifyPropertyChanged
     private void OnModsChanged(Mods oldValue, Mods newValue)
     {
         ModsChanged?.Invoke(oldValue, newValue);
+    }
+
+    private void OnProcessIdChanged(int oldValue, int newValue)
+    {
+        ProcessIdChanged?.Invoke(oldValue, newValue);
     }
 
     private void OnBeatmapIdentifierChanged(BeatmapIdentifier oldValue, BeatmapIdentifier newValue)

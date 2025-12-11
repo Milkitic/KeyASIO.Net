@@ -24,6 +24,7 @@ public class RealtimeSessionContext : ViewModelBase
     private int _baseMemoryTime;
     private int _combo;
     private int _score;
+    private int _processId;
     private OsuMemoryStatus _osuStatus;
     private BeatmapIdentifier _beatmap;
 
@@ -34,6 +35,12 @@ public class RealtimeSessionContext : ViewModelBase
 
     public bool IsStarted { get; set; }
     public bool IsReplay { get; set; }
+
+    public int ProcessId
+    {
+        get => _processId;
+        set => SetField(ref _processId, value);
+    }
 
     public string? Username
     {
@@ -128,9 +135,12 @@ public class RealtimeSessionContext : ViewModelBase
             if (SetField(ref _osuStatus, value))
             {
                 OnStatusChanged?.Invoke(val, value);
+                OnPropertyChanged(nameof(SyncedStatusText));
             }
         }
     }
+
+    public string SyncedStatusText => (OsuStatus == OsuMemoryStatus.NotRunning || OsuStatus == OsuMemoryStatus.Unknown) ? "OFFLINE" : "ONLINE";
 
     public BeatmapIdentifier Beatmap
     {

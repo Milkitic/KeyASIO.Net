@@ -15,7 +15,7 @@ var services = new ServiceCollection();
 var appSettings = new AppSettings();
 services.AddSingleton(appSettings);
 services.AddSingleton<SharedViewModel>();
-services.AddSingleton<AudioCacheService>();
+services.AddSingleton<GameplayAudioService>();
 services.AddSingleton<BeatmapHitsoundLoader>();
 services.AddSingleton<BackgroundMusicManager>();
 services.AddSingleton<SfxPlaybackService>();
@@ -35,7 +35,7 @@ playSessionService.OsuFile = osuFile;
 
 var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
 var logger = provider.GetRequiredService<ILogger<ManiaHitsoundSequencer>>();
-var cacheService = provider.GetRequiredService<AudioCacheService>();
+var cacheService = provider.GetRequiredService<GameplayAudioService>();
 var playSession = provider.GetRequiredService<GameplaySessionManager>();
 var maniaAudioProvider = new ManiaHitsoundSequencer(logger, appSettings, realtimeProperties, audioEngine, cacheService, playSession);
 

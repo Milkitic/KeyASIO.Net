@@ -6,10 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64</Platforms>
+    <IsTrimmable>true</IsTrimmable>
+    <CustomResourceTypesSupport>true</CustomResourceTypesSupport>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Coosu.Beatmap" Version="2.3.41" />
+    <PackageReference Include="dnlib" Version="4.5.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="6.1.0" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />

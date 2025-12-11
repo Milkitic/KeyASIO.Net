@@ -1,0 +1,500 @@
+<UserControl
+  x:Class="KeyAsio.Views.Pages.DashboardPage"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:audio="clr-namespace:KeyAsio.Audio;assembly=KeyAsio.Audio"
+  xmlns:converters="using:KeyAsio.Converters"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  x:DataType="vm:MainWindowViewModel"
+  mc:Ignorable="d">
+
+  <UserControl.Resources>
+    <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
+    <converters:IntMillisecond2TimeSpanConverter x:Key="IntMillisecond2TimeSpanConverter" />
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="Button.DashboardHeaderButton">
+      <Setter Property="Width" Value="24" />
+      <Setter Property="Height" Value="24" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+
+  <Grid Margin="20" RowDefinitions="Auto,*,Auto">
+
+    <!--  Top: Switcher  -->
+    <suki:GlassCard Margin="0,0,0,15" Classes="Surface">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel
+          VerticalAlignment="Center"
+          Orientation="Horizontal"
+          Spacing="10">
+          <materialIcons:MaterialIcon Foreground="{DynamicResource SukiPrimaryColor}" Kind="LightningBolt" />
+          <TextBlock
+            VerticalAlignment="Center"
+            FontWeight="DemiBold"
+            Text="Engine Status" />
+        </StackPanel>
+        <ToggleSwitch
+          Grid.Column="1"
+          IsChecked="{Binding AppSettings.Realtime.RealtimeMode}"
+          OffContent="Key Only"
+          OnContent="Sync Mode" />
+      </Grid>
+    </suki:GlassCard>
+
+    <!--  Center: The Core (Sphere visualization)  -->
+    <Grid
+      Grid.Row="1"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center">
+      <!--  Outer Glow Ring (Simulated with Border/Shadow)  -->
+      <Border
+        Width="220"
+        Height="220"
+        BorderBrush="{DynamicResource SukiPrimaryColor}"
+        BorderThickness="2"
+        CornerRadius="150"
+        Opacity="0.2">
+        <Border.Effect>
+          <BlurEffect Radius="20" />
+        </Border.Effect>
+      </Border>
+
+      <!--  Main Sphere  -->
+      <suki:GlassCard
+        Width="200"
+        Height="200"
+        BorderThickness="0"
+        CornerRadius="100">
+        <Grid>
+          <Border
+            Background="{DynamicResource SukiPrimaryColor}"
+            CornerRadius="100"
+            Opacity="0.1" />
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <materialIcons:MaterialIcon
+              Width="48"
+              Height="48"
+              Foreground="{DynamicResource SukiPrimaryColor}"
+              Kind="LinkVariant" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="h2"
+              FontWeight="Bold"
+              Foreground="{DynamicResource SukiText}"
+              Text="{Binding RealtimeSession.SyncedStatusText}" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="Caption"
+              Opacity="0.6"
+              Text="{Binding RealtimeSession.ProcessId, StringFormat='PID: {0}'}" />
+          </StackPanel>
+        </Grid>
+      </suki:GlassCard>
+    </Grid>
+
+    <!--  Bottom: Stats & Quick Keys  -->
+    <StackPanel
+      Grid.Row="2"
+      Margin="0,20,0,0"
+      Spacing="15">
+      <!--  Realtime Info  -->
+      <suki:GlassCard
+        Classes="Surface"
+        IsVisible="{Binding AppSettings.Realtime.RealtimeMode}">
+        <Grid RowDefinitions="Auto,*">
+          <DockPanel LastChildFill="False">
+            <TextBlock FontWeight="Bold" Text="Realtime Status" />
+          </DockPanel>
+
+          <Grid
+            Grid.Row="1"
+            Margin="0,15,0,0"
+            ColumnDefinitions="2*,*,*">
+            <StackPanel Margin="0,0,10,0">
+              <TextBlock
+                Margin="0,0,0,5"
+                FontSize="12"
+                Opacity="0.6"
+                Text="Beatmap" />
+              <TextBlock
+                FontWeight="DemiBold"
+                Text="{Binding RealtimeSession.Beatmap.Filename}"
+                TextTrimming="CharacterEllipsis"
+                ToolTip.Tip="{Binding RealtimeSession.Beatmap.Filename}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+              <TextBlock
+                Margin="0,0,0,5"
+                FontSize="12"
+                Opacity="0.6"
+                Text="Play Time" />
+              <TextBlock
+                FontFamily="Consolas"
+                FontWeight="DemiBold"
+                Text="{Binding RealtimeSession.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock
+                Margin="0,0,0,5"
+                FontSize="12"
+                Opacity="0.6"
+                Text="Status" />
+              <TextBlock FontWeight="DemiBold" Text="{Binding RealtimeSession.OsuStatus}" />
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </suki:GlassCard>
+
+      <Grid ColumnDefinitions="*,*">
+        <!--  Stats  -->
+        <suki:GlassCard
+        Height="140"
+        Margin="0,0,10,0"
+        Padding="15"
+        Command="{Binding ShowDeviceErrorCommand}"
+        IsInteractive="{Binding AudioSettings.DeviceErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <suki:GlassCard.Styles>
+          <Style Selector="suki|GlassCard[IsInteractive=True]">
+            <Setter Property="Cursor" Value="Hand" />
+          </Style>
+        </suki:GlassCard.Styles>
+
+        <Grid RowDefinitions="Auto,*">
+
+          <DockPanel LastChildFill="False">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <materialIcons:MaterialIcon Foreground="{DynamicResource SukiPrimaryColor}" Kind="Speaker" />
+              <TextBlock
+                VerticalAlignment="Center"
+                FontWeight="Bold"
+                Text="Audio Device" />
+              <Panel VerticalAlignment="Center" IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Border
+                  Background="{DynamicResource SukiPrimaryColor}"
+                  CornerRadius="4"
+                  Opacity="0.1" />
+                <TextBlock
+                  Margin="6,2"
+                  FontSize="10"
+                  FontWeight="Bold"
+                  Foreground="{DynamicResource SukiPrimaryColor}"
+                  Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType}" />
+              </Panel>
+            </StackPanel>
+
+            <!--  Action Buttons  -->
+            <StackPanel
+              DockPanel.Dock="Right"
+              Orientation="Horizontal"
+              Spacing="5">
+              <!--  ASIO Settings  -->
+              <Button
+                Classes="DashboardHeaderButton Flat"
+                Command="{Binding AudioSettings.OpenAsioPanelCommand}"
+                IsVisible="{Binding AudioSettings.IsAsio}"
+                ToolTip.Tip="Driver Panel">
+                <materialIcons:MaterialIcon
+                  Width="16"
+                  Height="16"
+                  Kind="Tune"
+                  Opacity="0.7" />
+              </Button>
+
+              <!--  Refresh  -->
+              <Button
+                Classes="DashboardHeaderButton"
+                Command="{Binding AudioSettings.ReloadAudioDeviceCommand}"
+                Cursor="Arrow"
+                IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNotNull}}"
+                ToolTip.Tip="Reload Device">
+                <materialIcons:MaterialIcon
+                  Width="16"
+                  Height="16"
+                  Kind="Refresh"
+                  Opacity="0.7" />
+              </Button>
+
+              <!--  Delete/Clear  -->
+              <Button
+                Classes="DashboardHeaderButton Danger"
+                Command="{Binding AudioSettings.ClearAudioDeviceCommand}"
+                Cursor="Arrow"
+                IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNotNull}}"
+                ToolTip.Tip="Clear Device">
+                <materialIcons:MaterialIcon
+                  Width="16"
+                  Height="16"
+                  Kind="Close"
+                  Opacity="0.7" />
+              </Button>
+            </StackPanel>
+          </DockPanel>
+
+          <Panel Grid.Row="1" VerticalAlignment="Stretch">
+            <!--  No Device  -->
+            <StackPanel VerticalAlignment="Center" IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNull}}">
+              <TextBlock Foreground="{DynamicResource SukiText}" Text="No device selected. " />
+              <HyperlinkButton Command="{Binding NavigateToAudioEngineCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                  <TextBlock Text="Go to settings" />
+                  <materialIcons:MaterialIcon
+                    Width="16"
+                    Height="16"
+                    Kind="ArrowTopRight" />
+                </StackPanel>
+              </HyperlinkButton>
+            </StackPanel>
+
+            <!--  Device Fault  -->
+            <Border
+              Padding="0"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Center"
+              Classes="Basic"
+              IsVisible="{Binding AudioSettings.DeviceErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StackPanel>
+                <TextBlock
+                  FontSize="15"
+                  FontWeight="Bold"
+                  Foreground="{DynamicResource SukiDangerColor}"
+                  TextWrapping="Wrap">
+                  <materialIcons:MaterialIcon
+                    Width="12"
+                    Height="12"
+                    Foreground="{DynamicResource SukiDangerColor}"
+                    Kind="AlertCircle" />
+                  <Run Text="{Binding AudioSettings.DeviceErrorMessage}" /></TextBlock>
+                <TextBlock Foreground="{DynamicResource SukiDangerColor}" TextTrimming="CharacterEllipsis">
+                  <Run Text="{Binding AppSettings.Audio.PlaybackDevice.FriendlyName}" /><Run Text=" (" /><Run Text="{Binding AppSettings.Audio.PlaybackDevice.WavePlayerType}" /><Run Text=")" />
+                </TextBlock>
+              </StackPanel>
+            </Border>
+
+            <!--  Device Info  -->
+            <Grid
+              VerticalAlignment="Center"
+              IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}"
+              RowDefinitions="Auto,*">
+
+              <TextBlock
+                Margin="0,10"
+                FontSize="15"
+                FontWeight="DemiBold"
+                Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.FriendlyName}"
+                TextWrapping="Wrap" />
+
+              <WrapPanel Grid.Row="1" Orientation="Horizontal">
+                <WrapPanel.Styles>
+                  <Style Selector="Panel.StatBadge">
+                    <Setter Property="Margin" Value="0,0,10,0" />
+                  </Style>
+                  <Style Selector="TextBlock.StatLabel">
+                    <Setter Property="FontSize" Value="10" />
+                    <Setter Property="Opacity" Value="0.6" />
+                  </Style>
+                  <Style Selector="TextBlock.StatValue">
+                    <Setter Property="FontWeight" Value="DemiBold" />
+                  </Style>
+                </WrapPanel.Styles>
+
+                <!--  Sample Rate  -->
+                <Panel Classes="StatBadge">
+                  <Border
+                    Background="{DynamicResource SukiPrimaryColor}"
+                    CornerRadius="6"
+                    Opacity="0.06" />
+                  <StackPanel Margin="10,6">
+                    <TextBlock Classes="StatLabel" Text="Sample Rate" />
+                    <TextBlock Classes="StatValue" Text="{Binding AudioSettings.AudioEngine.EngineWaveFormat.SampleRate, StringFormat='{}{0} Hz', FallbackValue='-'}" />
+                  </StackPanel>
+                </Panel>
+
+                <!--  Latency (WASAPI)  -->
+                <Panel Classes="StatBadge" IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}">
+                  <Border
+                    Background="{DynamicResource SukiPrimaryColor}"
+                    CornerRadius="6"
+                    Opacity="0.06" />
+                  <StackPanel Margin="10,6">
+                    <TextBlock Classes="StatLabel" Text="Latency" />
+                    <TextBlock Classes="StatValue" Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.Latency, StringFormat='{}{0} ms'}" />
+                  </StackPanel>
+                </Panel>
+
+                <!--  Latency (DirectSound)  -->
+                <Panel Classes="StatBadge" IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.DirectSound}}">
+                  <Border
+                    Background="{DynamicResource SukiPrimaryColor}"
+                    CornerRadius="6"
+                    Opacity="0.06" />
+                  <StackPanel Margin="10,6">
+                    <TextBlock Classes="StatLabel" Text="Latency" />
+                    <TextBlock Classes="StatValue" Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.Latency, StringFormat='{}{0} ms'}" />
+                  </StackPanel>
+                </Panel>
+
+                <!--  ASIO Buffer  -->
+                <Panel Classes="StatBadge" IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}">
+                  <Border
+                    Background="{DynamicResource SukiPrimaryColor}"
+                    CornerRadius="6"
+                    Opacity="0.06" />
+                  <StackPanel Margin="10,6">
+                    <TextBlock Classes="StatLabel" Text="Buffer" />
+                    <TextBlock Classes="StatValue" Text="{Binding AudioSettings.FramesPerBuffer, StringFormat='{}{0} samples'}" />
+                  </StackPanel>
+                </Panel>
+
+                <!--  ASIO Latency  -->
+                <Panel Classes="StatBadge" IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}">
+                  <Border
+                    Background="{DynamicResource SukiPrimaryColor}"
+                    CornerRadius="6"
+                    Opacity="0.06" />
+                  <StackPanel Margin="10,6">
+                    <TextBlock Classes="StatLabel" Text="Latency" />
+                    <TextBlock Classes="StatValue" Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.AsioLatencyMs, StringFormat='{}{0:F2} ms'}" />
+                  </StackPanel>
+                </Panel>
+
+                <!--  Exclusive Mode  -->
+                <Panel Classes="StatBadge" IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}">
+                  <Border
+                    Background="{DynamicResource SukiPrimaryColor}"
+                    CornerRadius="6"
+                    Opacity="0.06" />
+                  <StackPanel Margin="10,6">
+                    <TextBlock Classes="StatLabel" Text="Exclusive" />
+                    <Panel>
+                      <TextBlock
+                        Classes="StatValue"
+                        Foreground="{DynamicResource SukiPrimaryColor}"
+                        IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.IsExclusive}"
+                        Text="On" />
+                      <TextBlock
+                        Classes="StatValue"
+                        IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.IsExclusive, Converter={x:Static BoolConverters.Not}}"
+                        Opacity="0.5"
+                        Text="Off" />
+                    </Panel>
+                  </StackPanel>
+                </Panel>
+
+              </WrapPanel>
+            </Grid>
+          </Panel>
+        </Grid>
+      </suki:GlassCard>
+
+      <!--  Key Bindings  -->
+      <suki:GlassCard
+        Grid.Column="1"
+        Margin="10,0,0,0"
+        Padding="15">
+        <Grid RowDefinitions="Auto,*">
+          <DockPanel LastChildFill="False">
+            <TextBlock FontWeight="Bold" Text="Quick Bindings" />
+
+            <!--  Add Button  -->
+            <Button
+              Margin="5,0,0,0"
+              Classes="DashboardHeaderButton Flat"
+              Command="{Binding AddKeyCommand}"
+              DockPanel.Dock="Right"
+              IsVisible="{Binding !IsEditingKeys}">
+              <materialIcons:MaterialIcon Kind="Plus" />
+            </Button>
+
+            <!--  Edit/Done Toggle  -->
+            <Panel DockPanel.Dock="Right">
+              <Button
+                Classes="DashboardHeaderButton Flat"
+                Command="{Binding ToggleEditKeysCommand}"
+                IsVisible="{Binding !IsEditingKeys}"
+                ToolTip.Tip="Edit Bindings">
+                <materialIcons:MaterialIcon Kind="Pencil" />
+              </Button>
+              <Button
+                Classes="DashboardHeaderButton Flat"
+                Command="{Binding ToggleEditKeysCommand}"
+                IsVisible="{Binding IsEditingKeys}"
+                ToolTip.Tip="Done">
+                <materialIcons:MaterialIcon Kind="Check" />
+              </Button>
+            </Panel>
+          </DockPanel>
+
+          <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+            <ScrollViewer
+              Margin="0,10,0,0"
+              HorizontalScrollBarVisibility="Auto"
+              VerticalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding BoundKeys}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel
+                      HorizontalAlignment="Left"
+                      Orientation="Horizontal"
+                      Spacing="10" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Canvas Width="42" Height="42">
+                      <suki:GlassCard
+                        Width="42"
+                        Height="42"
+                        Padding="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        CornerRadius="8">
+                        <TextBlock
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          FontSize="16"
+                          FontWeight="Bold"
+                          Text="{Binding}" />
+                      </suki:GlassCard>
+
+                      <Button
+                        Canvas.Top="-8"
+                        Canvas.Right="-8"
+                        Width="20"
+                        Height="20"
+                        Margin="0,0,0,0"
+                        Padding="0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Classes="Danger"
+                        Command="{Binding $parent[UserControl].DataContext.RemoveKeyCommand}"
+                        CommandParameter="{Binding}"
+                        CornerRadius="10"
+                        IsVisible="{Binding $parent[UserControl].DataContext.IsEditingKeys}">
+                        <materialIcons:MaterialIcon
+                          Width="12"
+                          Height="12"
+                          Kind="Close" />
+                      </Button>
+                    </Canvas>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Grid>
+        </Grid>
+      </suki:GlassCard>
+      </Grid>
+    </StackPanel>
+  </Grid>
+</UserControl>

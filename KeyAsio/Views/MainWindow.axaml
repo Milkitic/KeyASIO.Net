@@ -1,0 +1,200 @@
+
+<suki:SukiWindow
+  x:Class="KeyAsio.Views.MainWindow"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:pages="using:KeyAsio.Views.Pages"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  Title="KeyAsio"
+  Width="900"
+  Height="697"
+  x:DataType="vm:MainWindowViewModel"
+  BackgroundAnimationEnabled="False"
+  BackgroundStyle="GradientSoft"
+  BackgroundTransitionsEnabled="False"
+  Icon="/Assets/KeyAsio.ico"
+  Loaded="Control_OnLoaded"
+  TitleBarAnimationEnabled="False"
+  WindowStartupLocation="CenterScreen"
+  mc:Ignorable="d">
+
+  <Design.DataContext>
+    <!--
+      This only sets the DataContext for the previewer in an IDE,
+      to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs)
+    -->
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+
+  <suki:SukiWindow.RightWindowTitleBarControls>
+    <Button
+      Padding="0"
+      Classes="Basic"
+      Command="{Binding UpdateService.TriggerUpdateCommand}"
+      IsVisible="{Binding UpdateService.NewRelease, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+      ToolTip.Tip="Click to Update">
+      <StackPanel Orientation="Horizontal" Spacing="5">
+        <materialIcons:MaterialIcon Kind="Update" />
+        <TextBlock
+          VerticalAlignment="Center"
+          FontSize="12"
+          Text="Click to Update" />
+      </StackPanel>
+    </Button>
+  </suki:SukiWindow.RightWindowTitleBarControls>
+
+  <suki:SukiWindow.Hosts>
+    <suki:SukiToastHost Name="ToastHost" Position="BottomLeft" />
+    <suki:SukiDialogHost Manager="{Binding DialogManager}" />
+  </suki:SukiWindow.Hosts>
+
+  <suki:SukiSideMenu
+    IsSearchEnabled="False"
+    IsSelectedItemContentMovable="False"
+    IsToggleButtonVisible="True"
+    SelectedItem="{Binding SelectedMenuItem}">
+    <suki:SukiSideMenu.Items>
+
+      <!--  PAGE 1: DASHBOARD  -->
+      <suki:SukiSideMenuItem Classes="Compact" Header="Dashboard">
+        <suki:SukiSideMenuItem.Icon>
+          <materialIcons:MaterialIcon Kind="ViewDashboard" />
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <pages:DashboardPage />
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
+      <!--  PAGE 2: AUDIO ENGINE  -->
+      <suki:SukiSideMenuItem x:Name="AudioEngineMenuItem" Classes="Compact" Header="Audio Engine">
+        <suki:SukiSideMenuItem.Icon>
+          <materialIcons:MaterialIcon Kind="Speaker" />
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <pages:AudioEnginePage />
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
+      <!--  PAGE 3: SYNC MODE  -->
+      <suki:SukiSideMenuItem Classes="Compact" Header="Sync Mode">
+        <suki:SukiSideMenuItem.Icon>
+          <materialIcons:MaterialIcon Kind="Link" />
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <pages:SyncModePage />
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
+      <!--  PAGE 4: SETTINGS  -->
+      <suki:SukiSideMenuItem x:Name="SettingsMenuItem" Classes="Compact" Header="Settings">
+        <suki:SukiSideMenuItem.Icon>
+          <materialIcons:MaterialIcon Kind="Cog" />
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <pages:SettingsPage />
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
+    </suki:SukiSideMenu.Items>
+
+    <!--  HEADER LOGO  -->
+    <suki:SukiSideMenu.HeaderContent>
+      <StackPanel Margin="0,20,0,20" HorizontalAlignment="Center">
+        <Image
+          Width="80"
+          Height="80"
+          Margin="0,0,0,10"
+          Source="/Assets/KeyAsio.ico" />
+        <TextBlock
+          HorizontalAlignment="Center"
+          Classes="h4"
+          FontWeight="SemiBold"
+          Text="KeyAsio" />
+        <TextBlock HorizontalAlignment="Center" Opacity="0.5">
+          <Run Text="v" /><Run Text="{Binding UpdateService.Version}" />
+        </TextBlock>
+      </StackPanel>
+    </suki:SukiSideMenu.HeaderContent>
+
+    <!--  FOOTER VOLUME  -->
+    <suki:SukiSideMenu.FooterContent>
+      <StackPanel Margin="15">
+        <Separator Margin="0,0,0,10" Opacity="0.1" />
+
+        <TextBlock
+          Margin="0,0,0,5"
+          FontSize="12"
+          FontWeight="SemiBold"
+          Text="Master" />
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <materialIcons:MaterialIcon
+            Margin="0,0,10,0"
+            Kind="VolumeHigh"
+            Opacity="0.7" />
+          <Slider
+            Grid.Column="1"
+            Maximum="150"
+            Value="{Binding AppSettings.Audio.MasterVolume}" />
+          <TextBlock
+            Grid.Column="2"
+            Width="35"
+            Margin="10,0,0,0"
+            VerticalAlignment="Center"
+            Text="{Binding AppSettings.Audio.MasterVolume, StringFormat='{}{0}%'}"
+            TextAlignment="Right" />
+        </Grid>
+
+        <TextBlock
+          Margin="0,10,0,5"
+          FontSize="12"
+          FontWeight="SemiBold"
+          Text="Music" />
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <materialIcons:MaterialIcon
+            Margin="0,0,10,0"
+            Kind="MusicNote"
+            Opacity="0.7" />
+          <Slider
+            Grid.Column="1"
+            Maximum="100"
+            Value="{Binding AppSettings.Audio.MusicVolume}" />
+          <TextBlock
+            Grid.Column="2"
+            Width="35"
+            Margin="10,0,0,0"
+            VerticalAlignment="Center"
+            Text="{Binding AppSettings.Audio.MusicVolume, StringFormat='{}{0}%'}"
+            TextAlignment="Right" />
+        </Grid>
+
+        <TextBlock
+          Margin="0,10,0,5"
+          FontSize="12"
+          FontWeight="SemiBold"
+          Text="Effect" />
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <materialIcons:MaterialIcon
+            Margin="0,0,10,0"
+            Kind="Flash"
+            Opacity="0.7" />
+          <Slider
+            Grid.Column="1"
+            Maximum="100"
+            Value="{Binding AppSettings.Audio.EffectVolume}" />
+          <TextBlock
+            Grid.Column="2"
+            Width="35"
+            Margin="10,0,0,0"
+            VerticalAlignment="Center"
+            Text="{Binding AppSettings.Audio.EffectVolume, StringFormat='{}{0}%'}"
+            TextAlignment="Right" />
+        </Grid>
+      </StackPanel>
+    </suki:SukiSideMenu.FooterContent>
+
+  </suki:SukiSideMenu>
+</suki:SukiWindow>

@@ -1,0 +1,227 @@
+<UserControl
+  x:Class="KeyAsio.Views.Pages.AudioEnginePage"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  x:DataType="vm:MainWindowViewModel"
+  mc:Ignorable="d">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+
+  <Grid>
+    <ScrollViewer>
+      <StackPanel Margin="20" Spacing="20">
+        <suki:GlassCard>
+          <suki:GroupBox Header="Backend Selection">
+            <StackPanel Spacing="15">
+              <Grid ColumnDefinitions="Auto,120,*">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Margin="0,0,10,0"
+                  Foreground="{DynamicResource SukiText}"
+                  Kind="DeveloperBoard"
+                  Opacity="0.6" />
+                <TextBlock
+                  Grid.Column="1"
+                  VerticalAlignment="Center"
+                  Opacity="0.7"
+                  Text="Driver Type" />
+                <ComboBox
+                  Grid.Column="2"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding AudioSettings.AvailableDriverTypes}"
+                  SelectedItem="{Binding AudioSettings.SelectedDriverType}" />
+              </Grid>
+              <Grid ColumnDefinitions="Auto,120,*">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Margin="0,0,10,0"
+                  Foreground="{DynamicResource SukiText}"
+                  Kind="Speaker"
+                  Opacity="0.6" />
+                <TextBlock
+                  Grid.Column="1"
+                  VerticalAlignment="Center"
+                  Opacity="0.7"
+                  Text="Output Device" />
+                <ComboBox
+                  Grid.Column="2"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding AudioSettings.AvailableAudioDevices}"
+                  SelectedItem="{Binding AudioSettings.SelectedAudioDevice}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding FriendlyName}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+              <Grid ColumnDefinitions="Auto,120,*">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Margin="0,0,10,0"
+                  Foreground="{DynamicResource SukiText}"
+                  Kind="Waveform"
+                  Opacity="0.6" />
+                <TextBlock
+                  Grid.Column="1"
+                  VerticalAlignment="Center"
+                  Opacity="0.7"
+                  Text="Sample Rate" />
+                <ComboBox
+                  Grid.Column="2"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding AudioSettings.SupportedSampleRates}"
+                  SelectedItem="{Binding AudioSettings.SelectedSampleRate}" />
+              </Grid>
+            </StackPanel>
+          </suki:GroupBox>
+        </suki:GlassCard>
+
+        <suki:GlassCard>
+          <suki:GroupBox Header="Latency &amp; Buffer">
+            <StackPanel Spacing="20">
+              <StackPanel IsVisible="{Binding !AudioSettings.IsAsio}" Spacing="20">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <materialIcons:MaterialIcon
+                    Width="24"
+                    Height="24"
+                    Margin="0,0,15,0"
+                    Foreground="{DynamicResource SukiText}"
+                    Kind="TimerSand"
+                    Opacity="0.6" />
+                  <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Text="Target Latency" />
+                  <TextBlock
+                    Grid.Column="2"
+                    FontWeight="Bold"
+                    Foreground="{DynamicResource SukiPrimaryColor}"
+                    Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
+                </Grid>
+                <Slider
+                  IsSnapToTickEnabled="True"
+                  Maximum="200"
+                  Minimum="0"
+                  TickFrequency="1"
+                  Value="{Binding AudioSettings.TargetBufferSize}" />
+              </StackPanel>
+
+              <StackPanel IsVisible="{Binding AudioSettings.IsAsio}" Spacing="20">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <materialIcons:MaterialIcon
+                    Width="24"
+                    Height="24"
+                    Margin="0,0,15,0"
+                    Foreground="{DynamicResource SukiText}"
+                    Kind="TimerSand"
+                    Opacity="0.6" />
+                  <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Text="Force Buffer Size" />
+                  <TextBlock
+                    Grid.Column="2"
+                    FontWeight="Bold"
+                    Foreground="{DynamicResource SukiPrimaryColor}"
+                    Text="{Binding AudioSettings.ForceAsioBufferSize, StringFormat='{}{0} samples'}" />
+                </Grid>
+                <Slider
+                  IsSnapToTickEnabled="True"
+                  Maximum="2048"
+                  Minimum="0"
+                  TickFrequency="1"
+                  Value="{Binding AudioSettings.ForceAsioBufferSize}" />
+              </StackPanel>
+
+              <Separator IsVisible="{Binding AudioSettings.IsWasapi}" Opacity="0.1" />
+
+              <StackPanel
+                IsVisible="{Binding AudioSettings.IsWasapi}"
+                Orientation="Horizontal"
+                Spacing="10">
+                <materialIcons:MaterialIcon
+                  Width="20"
+                  Height="20"
+                  Kind="Lock"
+                  Opacity="0.6" />
+                <CheckBox Content="Exclusive Mode" IsChecked="{Binding AudioSettings.IsExclusiveMode}" />
+              </StackPanel>
+            </StackPanel>
+          </suki:GroupBox>
+        </suki:GlassCard>
+
+        <suki:GlassCard>
+          <suki:GroupBox Header="Audio Processing">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <materialIcons:MaterialIcon
+                Width="20"
+                Height="20"
+                Kind="Equalizer"
+                Opacity="0.6"
+                VerticalAlignment="Top"
+                Margin="0,5,0,0" />
+              <StackPanel>
+                <CheckBox Content="Audio Limiter" IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
+                <TextBlock
+                  FontSize="12"
+                  Opacity="0.6"
+                  Text="Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio."
+                  TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </suki:GroupBox>
+        </suki:GlassCard>
+
+        <!--  Spacer for Floating Bar  -->
+        <Border Height="80" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <!--  Floating Action Bar  -->
+    <suki:GlassCard
+      Margin="20"
+      Padding="15"
+      VerticalAlignment="Bottom"
+      IsVisible="{Binding AudioSettings.HasUnsavedAudioChanges}">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel
+          VerticalAlignment="Center"
+          Orientation="Horizontal"
+          Spacing="10">
+          <materialIcons:MaterialIcon
+            Width="20"
+            Height="20"
+            Kind="InformationOutline"
+            Opacity="0.5" />
+          <TextBlock
+            VerticalAlignment="Center"
+            Opacity="0.7"
+            Text="Changes require application to take effect" />
+        </StackPanel>
+        <StackPanel
+          Grid.Column="1"
+          Orientation="Horizontal"
+          Spacing="10">
+          <Button
+            Command="{Binding AudioSettings.DiscardAudioSettingsCommand}"
+            Content="Discard" />
+          <Button
+            Classes="Flat"
+            Command="{Binding AudioSettings.ApplyAudioSettingsCommand}"
+            Content="Apply Settings" />
+        </StackPanel>
+      </Grid>
+    </suki:GlassCard>
+  </Grid>
+</UserControl>

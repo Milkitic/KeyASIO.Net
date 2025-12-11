@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 
 namespace KeyAsio.Audio;
@@ -23,6 +23,9 @@ public record DeviceDescription
 
     [Description("Available for WASAPI")]
     public bool IsExclusive { get; init; }
+
+    [IgnoreDataMember]
+    public double AsioLatencyMs { get; init; }
 
     public static DeviceDescription WasapiDefault { get; } = new()
     {

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using KeyAsio.Memory;
 using KeyAsio.Memory.Configuration;
 using KeyAsio.MemoryReading.OsuMemoryModels;

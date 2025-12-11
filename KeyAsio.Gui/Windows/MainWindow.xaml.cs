@@ -100,12 +100,13 @@ public partial class MainWindow : DialogWindow
     {
         try
         {
-            var (device, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription);
             AudioEngine.EnableLimiter = AppSettings.Audio.EnableLimiter;
             AudioEngine.MainVolume = AppSettings.Audio.MasterVolume / 100f;
             AudioEngine.MusicVolume = AppSettings.Audio.MusicVolume / 100f;
             AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
-            AudioEngine.StartDevice(device);
+            AudioEngine.StartDevice(deviceDescription);
+            var device = AudioEngine.CurrentDevice;
+            var actualDescription = AudioEngine.CurrentDeviceDescription;
 
             if (device is AsioOut asioOut)
             {
@@ -264,14 +265,13 @@ public partial class MainWindow : DialogWindow
 
         _bindingInitializer.RegisterKeys(AppSettings.Input.Keys);
 
-        if (!AppSettings.Logging.ErrorReportingConfirmed)
+        if (AppSettings.Logging.EnableErrorReporting == null)
         {
             Growl.Ask($"Send logs and errors to developer?\r\n" +
                       $"You can change option later in configuration file.",
                 dialogResult =>
                 {
                     AppSettings.Logging.EnableErrorReporting = dialogResult;
-                    AppSettings.Logging.ErrorReportingConfirmed = true;
                     return true;
                 });
         }

@@ -1,0 +1,333 @@
+<UserControl
+  x:Class="KeyAsio.Views.Pages.SyncModePage"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  x:DataType="vm:MainWindowViewModel"
+  mc:Ignorable="d">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="20">
+      <!--  Skin  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Skin Resources">
+          <Grid ColumnDefinitions="Auto, *">
+            <Border
+              Width="48"
+              Height="48"
+              Margin="0,0,15,0"
+              Background="#22000000"
+              CornerRadius="8">
+              <materialIcons:MaterialIcon Kind="Image" Opacity="0.3" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="5">
+              <StackPanel>
+                <TextBlock Text="Selected Skin" />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Assets loaded from your local installation. " />
+              </StackPanel>
+              <ComboBox
+                HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Shared.Skins}"
+                SelectedItem="{Binding Shared.SelectedSkin}"
+                ToolTip.Tip="{Binding Shared.SelectedSkin.CopyRight}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Description}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+
+              <Grid Margin="0,5,8,0" ColumnDefinitions="*, Auto">
+                <TextBlock VerticalAlignment="Center" Text="Auto Load Skins from osu!" />
+                <ToggleSwitch
+                  Grid.Column="1"
+                  IsChecked="{Binding AppSettings.Paths.AllowAutoLoadSkins}"
+                  OffContent="Off"
+                  OnContent="On" />
+              </Grid>
+            </StackPanel>
+          </Grid>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <!--  Music Override  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Music Control">
+          <StackPanel Margin="0,0,8,0" Spacing="10">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="MusicNote"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" Spacing="0">
+                <TextBlock FontWeight="DemiBold" Text="Override Game Music" />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Experimental feature" />
+              </StackPanel>
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Realtime.RealtimeEnableMusic}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Separator Opacity="0.3" />
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="FastForward"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Force Nightcore Beats" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Realtime.Playback.NightcoreBeats}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="VectorCurve"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Slider Tail Behavior" />
+              <ComboBox
+                Grid.Column="2"
+                MinWidth="120"
+                ItemsSource="{Binding SliderTailBehaviors}"
+                SelectedItem="{Binding AppSettings.Realtime.Playback.TailPlaybackBehavior}" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <!--  Sync & Balance  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Audio Field">
+          <StackPanel Spacing="15">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="SurroundSound"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Stereo Width" />
+              <TextBlock
+                Grid.Column="2"
+                FontWeight="Bold"
+                Foreground="{DynamicResource SukiPrimaryColor}"
+                Text="{Binding AppSettings.Realtime.Playback.BalanceFactor, StringFormat='{}{0:0.00}'}" />
+            </Grid>
+            <Slider
+              Maximum="1"
+              Minimum="0"
+              TickFrequency="0.01"
+              Value="{Binding AppSettings.Realtime.Playback.BalanceFactor}" />
+            <Grid Margin="0,-10,0,0" ColumnDefinitions="Auto,*,Auto">
+              <TextBlock
+                FontSize="10"
+                Opacity="0.5"
+                Text="Narrow" />
+              <TextBlock
+                Grid.Column="1"
+                HorizontalAlignment="Center"
+                FontSize="10"
+                Opacity="0.5"
+                Text="Normal" />
+              <TextBlock
+                Grid.Column="2"
+                FontSize="10"
+                Opacity="0.5"
+                Text="Wide" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <!--  Filters  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Audio Filters">
+          <StackPanel Margin="0,0,8,0" Spacing="10">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="VolumeOff"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Disable Map Hitsounds" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Realtime.Filters.DisableBeatmapHitsounds}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="MovieOff"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Disable Storyboard" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Realtime.Filters.DisableStoryboardSamples}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Metronome"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Disable Slider Ticks" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Realtime.Filters.DisableSliderTicksAndSlides}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="HeartBroken"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Disable Combo Break" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Realtime.Filters.DisableComboBreakSfx}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="VolumeVariantOff"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Ignore Volume Changes" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Realtime.Filters.IgnoreLineVolumes}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <!--  Advanced Settings  -->
+      <suki:GlassCard>
+        <suki:GroupBox Header="Advanced Settings">
+          <StackPanel Margin="0,0,8,0" Spacing="10">
+            <!--  General Interval  -->
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Radar"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" Spacing="0">
+                <TextBlock Text="General Scan Interval (ms)" />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Lower values update generic fields more promptly. Increase to reduce CPU usage."
+                  TextWrapping="Wrap" />
+              </StackPanel>
+              <NumericUpDown
+                Grid.Column="2"
+                Classes="SettingItem"
+                Maximum="1000"
+                Minimum="1"
+                Value="{Binding AppSettings.Realtime.Scanning.GeneralInterval}" />
+            </Grid>
+            <!--  Timing Interval  -->
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Timer"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" Spacing="0">
+                <TextBlock Text="Timing Scan Interval (ms)" />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Lower values update timing fields more promptly. Increase if audio cutting occurs."
+                  TextWrapping="Wrap" />
+              </StackPanel>
+              <NumericUpDown
+                Grid.Column="2"
+                Classes="SettingItem"
+                Maximum="1000"
+                Minimum="1"
+                Value="{Binding AppSettings.Realtime.Scanning.TimingInterval}" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

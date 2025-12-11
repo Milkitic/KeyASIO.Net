@@ -10,6 +10,7 @@ using KeyAsio.Gui.Windows;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,18 +27,21 @@ public partial class App : Application
     private readonly AppSettings _appSettings;
     private readonly MemoryScan _memoryScan;
     private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly SkinManager _skinManager;
 
     public App(ILogger<App> logger,
         IServiceProvider serviceProvider,
         AppSettings appSettings,
         MemoryScan memoryScan,
-        RealtimeSessionContext realtimeSessionContext)
+        RealtimeSessionContext realtimeSessionContext,
+        SkinManager skinManager)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _appSettings = appSettings;
         _memoryScan = memoryScan;
         _realtimeSessionContext = realtimeSessionContext;
+        _skinManager = skinManager;
     }
 
     private void App_OnStartup(object sender, StartupEventArgs e)
@@ -45,6 +49,12 @@ public partial class App : Application
         SimdAudioConverter.EnableAvx512 = _appSettings.Performance.EnableAvx512;
         ProfessionalBalanceProvider.EnableAvx512 = _appSettings.Performance.EnableAvx512;
 
+        if (_appSettings.Paths.AllowAutoLoadSkins == null)
+        {
+            _appSettings.Paths.AllowAutoLoadSkins = true;
+        }
+
+        _skinManager.Start();
         StartMemoryScan();
 
         NLogDevice.RegisterDefault(_serviceProvider.GetRequiredService<ILogger<NLogDevice>>());

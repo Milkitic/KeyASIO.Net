@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
@@ -8,12 +8,19 @@ namespace KeyAsio.Shared;
 
 public class AppSettings : IConfigurationBase
 {
+    public AppSettingsGeneral General { get => field ??= new(); init; }
     public AppSettingsInput Input { get => field ??= new(); init; }
     public AppSettingsPaths Paths { get => field ??= new(); init; }
     public AppSettingsAudio Audio { get => field ??= new(); init; }
     public AppSettingsLogging Logging { get => field ??= new(); init; }
     public AppSettingsPerformance Performance { get => field ??= new(); init; }
     public AppSettingsRealtime Realtime { get => field ??= new(); init; }
+}
+
+public partial class AppSettingsGeneral : INotifyPropertyChanged
+{
+    [Description("Allow multiple instances of the application to run simultaneously.")]
+    public bool AllowMultipleInstance { get; set; }
 }
 
 public partial class AppSettingsInput : INotifyPropertyChanged
@@ -36,6 +43,9 @@ public partial class AppSettingsPaths : INotifyPropertyChanged
 
     [Description("Skin used when realtime mode is enabled.")]
     public string? SelectedSkinName { get; set; }
+
+    [Description("Allow automatic loading of skins from osu! folder.")]
+    public bool? AllowAutoLoadSkins { get; set; }
 }
 
 public partial class AppSettingsAudio : INotifyPropertyChanged
@@ -48,6 +58,7 @@ public partial class AppSettingsAudio : INotifyPropertyChanged
 
     [Description("Prevents distortion when multiple hitsounds stack (e.g. during streams). " +
                  "Disable to preserve raw dynamic range.")]
+    // 对于想要所听即所得的用户，建议关闭。
     public bool EnableLimiter { get; set; } = true;
 
     [Description("Master volume. Range: 0–150. " +
@@ -67,9 +78,7 @@ public partial class AppSettingsLogging : INotifyPropertyChanged
     public bool EnableDebugConsole { get; set; }
 
     [Description("Enable error/bug reporting to developer.")]
-    public bool EnableErrorReporting { get; set; }
-
-    public bool ErrorReportingConfirmed { get; set; }
+    public bool? EnableErrorReporting { get; set; }
 
     public string? PlayerBase64 { get; set; }
 }
@@ -79,7 +88,7 @@ public partial class AppSettingsPerformance : INotifyPropertyChanged
     [Description("Number of threads for audio caching.")]
     public int AudioCacheThreadCount { get; set; } = 2;
 
-    [Description("Accelerates processing using AVX-512. " + 
+    [Description("Accelerates processing using AVX-512. " +
                  "Disable on older Intel CPUs (pre-11th Gen) to avoid clock speed throttling.")]
     public bool EnableAvx512 { get; set; } = true;
 }

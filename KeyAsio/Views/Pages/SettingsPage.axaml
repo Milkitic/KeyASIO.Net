@@ -1,0 +1,222 @@
+<UserControl
+  x:Class="KeyAsio.Views.Pages.SettingsPage"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  x:DataType="vm:MainWindowViewModel"
+  mc:Ignorable="d">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="20">
+      <suki:GlassCard>
+        <suki:GroupBox Header="General">
+          <StackPanel Margin="0,0,8,0" Spacing="10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="LayersTriple"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Allow Multiple Instances" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.General.AllowMultipleInstance}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <suki:GlassCard>
+        <suki:GroupBox Header="Environment">
+          <StackPanel Spacing="15">
+            <TextBlock Text="osu! Folder Path" />
+            <Grid ColumnDefinitions="*, Auto">
+              <TextBox Margin="0,0,10,0" Text="{Binding AppSettings.Paths.OsuFolderPath, UpdateSourceTrigger=LostFocus}" />
+              <Button
+                Grid.Column="1"
+                Width="35"
+                Height="35"
+                Padding="0"
+                Classes="Flat"
+                Click="OnBrowseOsuFolderClick">
+                <materialIcons:MaterialIcon Kind="FolderOpen" />
+              </Button>
+            </Grid>
+
+            <Separator Opacity="0.1" />
+
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Cpu64Bit"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Audio Cache Threads" />
+              <NumericUpDown
+                Grid.Column="2"
+                Classes="SettingItem"
+                FormatString="#"
+                Maximum="16"
+                Minimum="1"
+                Value="{Binding AppSettings.Performance.AudioCacheThreadCount}" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <suki:GlassCard>
+        <suki:GroupBox Header="Input &amp; Performance">
+          <StackPanel Margin="0,0,8,0" Spacing="10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="KeyboardVariant"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Raw Input" />
+                <TextBlock
+                  FontSize="10"
+                  Opacity="0.5"
+                  Text="Uses low-latency key hooks when disabled" />
+              </StackPanel>
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Input.UseRawInput}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="RocketLaunch"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Enable AVX-512" />
+                <TextBlock
+                  FontSize="10"
+                  Opacity="0.5"
+                  Text="Performance Boost" />
+              </StackPanel>
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Performance.EnableAvx512}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Console"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Debug Console" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Bug"
+                Opacity="0.6" />
+              <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="Error Reporting" />
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <suki:GlassCard>
+        <suki:GroupBox Header="About">
+          <StackPanel Spacing="15">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock FontWeight="DemiBold" Text="Updates" />
+                <TextBlock
+                  FontSize="11"
+                  IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                  Opacity="0.6">
+                  <Run Text="Update available: v" /><Run Text="{Binding UpdateService.NewVersion}" />
+                </TextBlock>
+                <TextBlock
+                  FontSize="11"
+                  IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                  Opacity="0.6"
+                  Text="No updates available." />
+              </StackPanel>
+              <Button
+                Grid.Column="1"
+                Classes="Flat"
+                Command="{Binding UpdateService.CheckForUpdatesCommand}"
+                Content="Check for Updates" />
+            </Grid>
+            <Separator Opacity="0.1" />
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Copyright © 2022-2025 Milkitic (aka. yf_bmp)." />
+                <TextBlock
+                  FontSize="11"
+                  Opacity="0.6"
+                  Text="Licensed under GPL-3.0" />
+              </StackPanel>
+              <Button
+                Grid.Column="1"
+                Padding="8"
+                Classes="Flat"
+                Command="{Binding OpenUrlCommand}"
+                CommandParameter="https://github.com/Milkitic/KeyASIO.Net">
+                <materialIcons:MaterialIcon
+                  Width="24"
+                  Height="24"
+                  Kind="Github" />
+              </Button>
+            </Grid>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

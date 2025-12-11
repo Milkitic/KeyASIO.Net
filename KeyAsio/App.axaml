@@ -1,0 +1,21 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:suki="https://github.com/kikipoulet/SukiUI"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="KeyAsio.App"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+  
+    <Application.Styles>
+      <suki:SukiTheme ThemeColor="Blue"  />
+        <!--<FluentTheme />-->
+      <materialIcons:MaterialIconStyles />
+      <Style Selector="suki|GlassCard">
+        <Setter Property="IsAnimated" Value="False"></Setter>
+      </Style> 
+      <Style Selector="ToggleSwitch">
+        <Setter Property="Foreground" Value="{DynamicResource SukiText}"></Setter>
+      </Style>
+      <StyleInclude Source="/Styles/Controls.axaml" />
+    </Application.Styles>
+</Application>
