@@ -40,7 +40,7 @@ namespace MemoryReadingTest
             MemoryScan.MemoryReadObject.ModsChanged += (_, mods) => _realtimeSessionContext.PlayMods = mods;
             MemoryScan.MemoryReadObject.ComboChanged += (_, combo) => _realtimeSessionContext.Combo = combo;
             MemoryScan.MemoryReadObject.ScoreChanged += (_, score) => _realtimeSessionContext.Score = score;
-            MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) => _realtimeSessionContext.BaseMemoryTime = playTime;
+            MemoryScan.MemoryReadObject.PlayingTimeUpdated += (_, playTime) => _realtimeSessionContext.BaseMemoryTime = playTime;
             MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) => _realtimeSessionContext.Beatmap = beatmap;
             MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) => _realtimeSessionContext.OsuStatus = current;
             MemoryScan.Start(2);

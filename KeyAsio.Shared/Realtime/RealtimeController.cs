@@ -59,28 +59,32 @@ public class RealtimeController
     }
 
 
-    private async ValueTask OnComboChanged(int oldCombo, int newCombo)
+    private Task OnComboChanged(int oldCombo, int newCombo)
     {
         _stateMachine.Current?.OnComboChanged(_realtimeSessionContext, oldCombo, newCombo);
+        return Task.CompletedTask;
     }
 
-    private async ValueTask OnStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus)
+    private async Task OnStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus)
     {
         await _stateMachine.TransitionToAsync(_realtimeSessionContext, newStatus);
     }
 
-    private async ValueTask OnBeatmapChanged(BeatmapIdentifier oldBeatmap, BeatmapIdentifier newBeatmap)
+    private Task OnBeatmapChanged(BeatmapIdentifier oldBeatmap, BeatmapIdentifier newBeatmap)
     {
         _stateMachine.Current?.OnBeatmapChanged(_realtimeSessionContext, newBeatmap);
+        return Task.CompletedTask;
     }
 
-    private async ValueTask OnPlayModsChanged(Mods oldMods, Mods newMods)
+    private Task OnPlayModsChanged(Mods oldMods, Mods newMods)
     {
         _stateMachine.Current?.OnModsChanged(_realtimeSessionContext, oldMods, newMods);
+        return Task.CompletedTask;
     }
 
-    private async ValueTask OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
+    private Task OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
     {
         _stateMachine.Current?.OnPlayTimeChanged(_realtimeSessionContext, oldMs, newMs, paused);
+        return Task.CompletedTask;
     }
 }

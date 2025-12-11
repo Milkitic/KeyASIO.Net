@@ -1,32 +1,24 @@
 using System.Diagnostics;
 using System.Text;
 using KeyAsio.MemoryReading;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
-using KeyAsio.MemoryReading.OsuMemoryModels;
 
 namespace KeyAsio.Shared.Realtime;
 
 public class RealtimeSessionContext : ViewModelBase
 {
-    public Func<int, int, ValueTask>? OnComboChanged;
-    public Func<Mods, Mods, ValueTask>? OnPlayModsChanged;
-    public Func<int, int, bool, ValueTask>? OnFetchedPlayTimeChanged;
-    public Func<OsuMemoryStatus, OsuMemoryStatus, ValueTask>? OnStatusChanged;
-    public Func<BeatmapIdentifier, BeatmapIdentifier, ValueTask>? OnBeatmapChanged;
+    public Func<int, int, Task>? OnComboChanged;
+    public Func<Mods, Mods, Task>? OnPlayModsChanged;
+    public Func<int, int, bool, Task>? OnFetchedPlayTimeChanged;
+    public Func<OsuMemoryStatus, OsuMemoryStatus, Task>? OnStatusChanged;
+    public Func<BeatmapIdentifier, BeatmapIdentifier, Task>? OnBeatmapChanged;
 
     private readonly AppSettings _appSettings;
     private readonly Stopwatch _playTimeStopwatch = new();
-
-    private int _playTime;
-    private string? _username;
-    private Mods _playMods;
-    private int _baseMemoryTime;
-    private int _combo;
-    private int _score;
-    private int _processId;
-    private OsuMemoryStatus _osuStatus;
-    private BeatmapIdentifier _beatmap;
+    private readonly Stopwatch _uiUpdateStopwatch = Stopwatch.StartNew();
+    private const long UiUpdateIntervalMs = 33; // ~30fps throttle
 
     public RealtimeSessionContext(AppSettings appSettings)
     {
@@ -38,17 +30,17 @@ public class RealtimeSessionContext : ViewModelBase
 
     public int ProcessId
     {
-        get => _processId;
-        set => SetField(ref _processId, value);
+        get;
+        set => SetField(ref field, value);
     }
 
     public string? Username
     {
-        get => _username;
+        get;
         set
         {
-            if (_username == value) return;
-            _username = value;
+            if (field == value) return;
+            field = value;
             if (!string.IsNullOrEmpty(value))
             {
                 _appSettings.Logging.PlayerBase64 = EncodeUtils.GetBase64String(value, Encoding.ASCII);
@@ -60,11 +52,11 @@ public class RealtimeSessionContext : ViewModelBase
 
     public Mods PlayMods
     {
-        get => _playMods;
+        get;
         set
         {
-            var val = _playMods;
-            if (SetField(ref _playMods, value))
+            var val = field;
+            if (SetField(ref field, value))
             {
                 OnPlayModsChanged?.Invoke(val, value);
             }
@@ -73,30 +65,36 @@ public class RealtimeSessionContext : ViewModelBase
 
     public int PlayTime
     {
-        get => _playTime;
+        get;
         set
         {
             value += (int)_playTimeStopwatch.ElapsedMilliseconds;
-            var val = _playTime;
-            if (SetField(ref _playTime, value))
+            var oldValue = field;
+            var changed = field != value;
+            field = value;
+
+            OnFetchedPlayTimeChanged?.Invoke(oldValue, value, !changed);
+
+            if (_uiUpdateStopwatch.ElapsedMilliseconds >= UiUpdateIntervalMs)
             {
-                OnFetchedPlayTimeChanged?.Invoke(val, value, false);
-            }
-            else
-            {
-                OnFetchedPlayTimeChanged?.Invoke(val, value, true);
+                _uiUpdateStopwatch.Restart();
+                OnPropertyChanged();
             }
         }
     }
 
     public int BaseMemoryTime
     {
-        get => _baseMemoryTime;
+        get;
         set
         {
-            if (SetField(ref _baseMemoryTime, value))
+            bool changed = field != value;
+            field = value;
+
+            if (changed)
             {
                 _playTimeStopwatch.Restart();
+                OnPropertyChanged();
             }
             else
             {
@@ -109,11 +107,11 @@ public class RealtimeSessionContext : ViewModelBase
 
     public int Combo
     {
-        get => _combo;
+        get;
         set
         {
-            var val = _combo;
-            if (SetField(ref _combo, value))
+            var val = field;
+            if (SetField(ref field, value))
             {
                 OnComboChanged?.Invoke(val, value);
             }
@@ -122,17 +120,17 @@ public class RealtimeSessionContext : ViewModelBase
 
     public int Score
     {
-        get => _score;
-        set => SetField(ref _score, value);
+        get;
+        set => SetField(ref field, value);
     }
 
     public OsuMemoryStatus OsuStatus
     {
-        get => _osuStatus;
+        get;
         set
         {
-            var val = _osuStatus;
-            if (SetField(ref _osuStatus, value))
+            var val = field;
+            if (SetField(ref field, value))
             {
                 OnStatusChanged?.Invoke(val, value);
                 OnPropertyChanged(nameof(SyncedStatusText));
@@ -140,15 +138,17 @@ public class RealtimeSessionContext : ViewModelBase
         }
     }
 
-    public string SyncedStatusText => (OsuStatus == OsuMemoryStatus.NotRunning || OsuStatus == OsuMemoryStatus.Unknown) ? "OFFLINE" : "ONLINE";
+    public string SyncedStatusText => OsuStatus is OsuMemoryStatus.NotRunning or OsuMemoryStatus.Unknown
+        ? "DETACHED"
+        : "ATTACHED";
 
     public BeatmapIdentifier Beatmap
     {
-        get => _beatmap;
+        get;
         set
         {
-            var val = _beatmap;
-            if (SetField(ref _beatmap, value))
+            var val = field;
+            if (SetField(ref field, value))
             {
                 OnBeatmapChanged?.Invoke(val, value);
             }
