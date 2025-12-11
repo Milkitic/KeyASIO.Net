@@ -4,6 +4,7 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using KeyAsio.MemoryReading;
+using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Services;
@@ -42,8 +43,17 @@ public partial class App : Application
 
             StartMemoryScan();
 
+            var keyboardBindingInitializer = Program.Host.Services.GetRequiredService<KeyboardBindingInitializer>();
+            keyboardBindingInitializer.Setup();
+            var appSettings = Program.Host.Services.GetRequiredService<AppSettings>();
+            keyboardBindingInitializer.RegisterKeys(appSettings.Input.Keys);
+            //_ = keyboardBindingInitializer.InitializeKeyAudioAsync();
+
+            var realtimeController = Program.Host.Services.GetRequiredService<RealtimeController>();
+
             var mainWindow = Program.Host.Services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
+
 
             desktop.Exit += Desktop_Exit;
         }

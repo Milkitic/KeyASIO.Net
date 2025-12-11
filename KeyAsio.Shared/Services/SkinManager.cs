@@ -299,9 +299,19 @@ public class SkinManager
         _ = UiDispatcher.InvokeAsync(() =>
         {
             if (token.IsCancellationRequested) return;
-
             _sharedViewModel.Skins.Clear();
-            _sharedViewModel.Skins.AddRange(newSkinList);
+            var type = SynchronizationContext.Current.GetType();
+            if (type.Namespace == "System.Windows.Threading")
+            {
+                foreach (var skinDescription in newSkinList)
+                {
+                    _sharedViewModel.Skins.Add(skinDescription);
+                }
+            }
+            else
+            {
+                _sharedViewModel.Skins.AddRange(newSkinList);
+            }
             _sharedViewModel.SelectedSkin = targetSkin;
         });
     }

@@ -16,6 +16,8 @@ public static class DependencyInjectionExtensions
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<AudioSettingsViewModel>();
 
+        services.AddSingleton<KeyboardBindingInitializer>();
+
         services.AddHostedService<GuiStartupService>();
         return services;
     }

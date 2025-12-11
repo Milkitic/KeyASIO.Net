@@ -21,6 +21,7 @@ namespace KeyAsio.ViewModels;
 public partial class MainWindowViewModel
 {
     private readonly ILogger<MainWindowViewModel> _logger;
+    private readonly KeyboardBindingInitializer _keyboardBindingInitializer;
     private bool _isNavigating;
     private CancellationTokenSource? _saveDebounceCts;
 
@@ -36,6 +37,7 @@ public partial class MainWindowViewModel
             AudioSettings = new AudioSettingsViewModel();
             Shared = new SharedViewModel(AppSettings);
             RealtimeSession = new RealtimeSessionContext(AppSettings);
+            _keyboardBindingInitializer = null!;
         }
     }
 
@@ -44,7 +46,8 @@ public partial class MainWindowViewModel
         UpdateService updateService,
         AudioSettingsViewModel audioSettingsViewModel,
         SharedViewModel sharedViewModel,
-        RealtimeSessionContext realtimeSession)
+        RealtimeSessionContext realtimeSession,
+        KeyboardBindingInitializer keyboardBindingInitializer)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
@@ -52,6 +55,7 @@ public partial class MainWindowViewModel
         AudioSettings = audioSettingsViewModel;
         Shared = sharedViewModel;
         RealtimeSession = realtimeSession;
+        _keyboardBindingInitializer = keyboardBindingInitializer;
         AudioSettings.ToastManager = MainToastManager;
 
         SubscribeToSettingsChanges();
