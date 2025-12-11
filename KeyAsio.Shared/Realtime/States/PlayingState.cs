@@ -5,7 +5,7 @@ using KeyAsio.Audio.Caching;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.Services;
-using OsuMemoryDataProvider;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 
 namespace KeyAsio.Shared.Realtime.States;
 

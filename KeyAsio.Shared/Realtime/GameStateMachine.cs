@@ -1,5 +1,5 @@
+using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared.Realtime.States;
-using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
@@ -22,11 +22,11 @@ public class GameStateMachine
         if (!_states.TryGetValue(next, out var target))
         {
             // fallback to Browsing/SongSelect if unknown status
-            if (_states.TryGetValue(OsuMemoryStatus.SongSelect, out var songSelect))
+            if (_states.TryGetValue(OsuMemoryStatus.SongSelection, out var songSelect))
             {
                 Current?.Exit(ctx, next);
                 Current = songSelect;
-                CurrentStatus = OsuMemoryStatus.SongSelect;
+                CurrentStatus = OsuMemoryStatus.SongSelection;
                 await songSelect.EnterAsync(ctx, from);
             }
 

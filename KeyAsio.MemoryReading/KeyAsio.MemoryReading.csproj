@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,7 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\dependencies\ProcessMemoryDataFinder\OsuMemoryDataProvider\OsuMemoryDataProvider.csproj" />
+    <ProjectReference Include="..\KeyAsio.Memory\KeyAsio.Memory.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="osu_memory_rules.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
