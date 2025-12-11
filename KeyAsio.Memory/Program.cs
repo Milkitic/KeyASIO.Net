@@ -56,7 +56,11 @@ public class Program
             {
                 lock (_lock)
                 {
-                    _ctx?.Populate(data);
+                    if (_ctx != null)
+                    {
+                        _ctx.BeginUpdate();
+                        _ctx.Populate(data);
+                    }
                 }
 
                 Thread.Sleep(1);

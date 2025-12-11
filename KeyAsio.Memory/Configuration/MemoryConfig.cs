@@ -100,6 +100,13 @@ public class PointerDefinition
 
     [JsonIgnore]
     public PointerDefinition? ParentPointer { get; set; }
+
+    // Runtime Cache
+    [JsonIgnore]
+    public IntPtr CachedAddress;
+
+    [JsonIgnore]
+    public long CachedTick;
 }
 
 public class ValueDefinition

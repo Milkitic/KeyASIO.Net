@@ -11,11 +11,17 @@ public class MemoryContext
     private readonly MemoryProfile _profile;
     private readonly Dictionary<string, IntPtr> _signatureCache = new();
     private readonly Dictionary<ValueDefinition, CachedStringReader> _stringCache = new();
+    private long _currentTick;
 
     public MemoryContext(SigScan sigScan, MemoryProfile profile)
     {
         _sigScan = sigScan;
         _profile = profile;
+    }
+
+    public void BeginUpdate()
+    {
+        _currentTick = unchecked(_currentTick + 1);
     }
 
     public void Scan()
@@ -231,6 +237,12 @@ public class MemoryContext
 
     private IntPtr ResolvePointerInternal(PointerDefinition def)
     {
+        // Check Cache
+        if (def.CachedTick == _currentTick)
+        {
+            return def.CachedAddress;
+        }
+
         // Resolve Base
         IntPtr currentPtr;
         if (def.ParentPointer != null)
@@ -265,6 +277,10 @@ public class MemoryContext
 
             if (currentPtr == IntPtr.Zero) return IntPtr.Zero;
         }
+
+        // Update Cache
+        def.CachedAddress = currentPtr;
+        def.CachedTick = _currentTick;
 
         return currentPtr;
     }
