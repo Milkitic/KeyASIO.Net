@@ -96,6 +96,15 @@ public partial class App : Application
             realtimeSessionContext.OsuStatus = current;
         memoryScan.MemoryReadObject.ProcessIdChanged += (_, id) =>
             realtimeSessionContext.ProcessId = id;
+        
+        appSettings.Realtime.Scanning.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppSettingsRealtimeScanning.ScanInterval))
+            {
+                memoryScan.UpdateScanInterval(appSettings.Realtime.Scanning.ScanInterval);
+            }
+        };
+
         memoryScan.Start(appSettings.Realtime.Scanning.ScanInterval);
     }
 

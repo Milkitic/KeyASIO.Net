@@ -20,6 +20,7 @@ public class MemoryScan
     private Task? _readTask;
     private CancellationTokenSource? _cts;
     private bool _isStarted;
+    private readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
 
     public MemoryScan(ILogger<MemoryScan> logger)
     {
@@ -63,8 +64,15 @@ public class MemoryScan
         _sigScan?.Dispose();
         _process?.Dispose();
         _cts.Dispose();
+        _intervalUpdatedEvent.Reset();
 
         _isStarted = false;
+    }
+
+    public void UpdateScanInterval(int scanInterval)
+    {
+        _scanInterval = scanInterval;
+        _intervalUpdatedEvent.Set();
     }
 
     private void ReadImpl()
@@ -160,7 +168,8 @@ public class MemoryScan
                     }
                 }
 
-                Thread.Sleep(_scanInterval);
+                WaitHandle.WaitAny([_cts.Token.WaitHandle, _intervalUpdatedEvent.WaitHandle], _scanInterval);
+                if (_intervalUpdatedEvent.IsSet) _intervalUpdatedEvent.Reset();
             }
             catch (Exception ex)
             {
