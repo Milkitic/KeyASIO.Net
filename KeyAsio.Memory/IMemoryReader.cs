@@ -2,5 +2,5 @@
 
 public interface IMemoryReader
 {
-    bool ReadMemory(nint address, Span<byte> buffer, int size, out int bytesRead);
+    bool ReadMemory(IntPtr address, Span<byte> buffer, int size, out int bytesRead);
 }
