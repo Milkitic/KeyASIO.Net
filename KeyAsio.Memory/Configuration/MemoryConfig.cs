@@ -23,7 +23,49 @@ public class MemoryProfile
             PropertyNameCaseInsensitive = true,
             AllowTrailingCommas = true
         };
+        options.Converters.Add(new HexIntJsonConverter());
         return JsonSerializer.Deserialize<MemoryProfile>(json, options) ?? new MemoryProfile();
+    }
+}
+
+public class HexIntJsonConverter : JsonConverter<int>
+{
+    public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            var stringValue = reader.GetString();
+            if (string.IsNullOrEmpty(stringValue)) return 0;
+
+            var parseString = stringValue;
+            bool isNegative = false;
+
+            if (parseString.StartsWith('-'))
+            {
+                isNegative = true;
+                parseString = parseString.Substring(1);
+            }
+
+            if (parseString.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                var val = Convert.ToInt32(parseString, 16);
+                return isNegative ? -val : val;
+            }
+
+            return int.Parse(stringValue);
+        }
+
+        if (reader.TokenType == JsonTokenType.Number)
+        {
+            return reader.GetInt32();
+        }
+
+        throw new JsonException($"Unexpected token type {reader.TokenType} for integer.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
+    {
+        writer.WriteNumberValue(value);
     }
 }
 

@@ -74,6 +74,7 @@ public class Program
         }, TaskCreationOptions.LongRunning);
 
         // 主循环：定期刷新显示完整数据
+        Console.Clear();
         while (!cts.IsCancellationRequested)
         {
             if (Console.KeyAvailable)
@@ -90,8 +91,7 @@ public class Program
                     {
                         var data = new OsuData();
                         _ctx.Populate(data);
-
-                        Console.Clear();
+                        Console.SetCursorPosition(0, 0);
                         Console.WriteLine("=== KeyAsio Memory Reader (Declarative Framework) ===");
                         Console.WriteLine($"Config Source: {ConfigPath}");
                         Console.WriteLine("--------------------------------------------------");
@@ -117,7 +117,7 @@ public class Program
                 }
             }
 
-            await Task.Delay(500); // 0.5秒刷新一次界面
+            await Task.Delay(16); // 0.5秒刷新一次界面
         }
 
         cts.Cancel();

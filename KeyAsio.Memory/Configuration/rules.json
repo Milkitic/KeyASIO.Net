@@ -15,99 +15,99 @@
   "pointers": {
     "BeatmapClass": {
       "base": "BaseMem",
-      "offsets": [-12, 0]
+      "offsets": ["-0xC", "0x0"]
     },
     "StatusAddr": {
       "base": "Status",
-      "offsets": [-4]
+      "offsets": ["-0x4"]
     },
     "GameModePtr": {
       "base": "BaseMem",
-      "offsets": [-51]
+      "offsets": ["-0x33"]
     },
     "AudioTimePtr": {
       "base": "BaseMem",
-      "offsets": [100]
+      "offsets": ["0x64"]
     },
     "TotalAudioTimePtr": {
       "base": "AudioTimeBase",
-      "offsets": [10]
+      "offsets": ["0xA"]
     },
     "ChatExpandedPtr": {
       "base": "ChatExpanded",
-      "offsets": [-32]
+      "offsets": ["-0x20"]
     },
     "ModsPtr": {
       "base": "Mods",
-      "offsets": [9]
+      "offsets": ["0x9"]
     },
     "SettingsPtr": {
       "base": "Settings",
-      "offsets": [8]
+      "offsets": ["0x8"]
     },
     "ShowInterfacePtr": {
       "base": "SettingsPtr",
-      "offsets": [4]
+      "offsets": ["0x4"]
     },
     "OsuVersionPtr": {
       "base": "SettingsPtr",
-      "offsets": [68]
+      "offsets": ["0x44"]
     },
     "IsLoggedInPtr": {
       "base": "IsLoggedIn",
-      "offsets": [-11]
+      "offsets": ["-0xB"]
     },
     "UserPanelPtr": {
       "base": "UserPanel",
-      "offsets": [6, 0]
+      "offsets": ["0x6", "0x0"]
     },
     "SkinDataPtr": {
       "base": "SkinData",
-      "offsets": [6, 0]
+      "offsets": ["0x6", "0x0"]
     },
     "IsReplayPtr": {
       "base": "IsReplay",
-      "offsets": [42]
+      "offsets": ["0x2A"]
     },
     "RulesetPtr": {
       "base": "Ruleset",
-      "offsets": [11, 4]
+      "offsets": ["0xB", "0x4"]
     },
     "PlayerPtr": {
       "base": "RulesetPtr",
-      "offsets": [104]
+      "offsets": ["0x68"]
     },
     "ComboBase": {
       "base": "PlayerPtr",
-      "offsets": [56]
+      "offsets": ["0x38"]
     }
   },
   "values": {
-    "Id": { "base": "BeatmapClass", "offset": 200, "type": "int" },
-    "SetId": { "base": "BeatmapClass", "offset": 204, "type": "int" },
-    "MapString": { "base": "BeatmapClass", "offset": 128, "type": "managed_string" },
-    "FolderName": { "base": "BeatmapClass", "offset": 120, "type": "managed_string" },
-    "OsuFileName": { "base": "BeatmapClass", "offset": 144, "type": "managed_string" },
-    "MD5": { "base": "BeatmapClass", "offset": 108, "type": "managed_string" },
-    "AR": { "base": "BeatmapClass", "offset": 44, "type": "float" },
-    "CS": { "base": "BeatmapClass", "offset": 48, "type": "float" },
-    "HP": { "base": "BeatmapClass", "offset": 52, "type": "float" },
-    "OD": { "base": "BeatmapClass", "offset": 56, "type": "float" },
-    "Status": { "base": "BeatmapClass", "offset": 300, "type": "short" },
-    "RawStatus": { "base": "StatusAddr", "offset": 0, "type": "int" },
-    "GameMode": { "base": "GameModePtr", "offset": 0, "type": "int" },
-    "Retries": { "base": "GameModePtr", "offset": 8, "type": "int" },
-    "AudioTime": { "base": "AudioTimePtr", "offset": -16, "type": "int" },
-    "TotalAudioTime": { "base": "TotalAudioTimePtr", "offset": 4, "type": "double" },
-    "ChatIsExpanded": { "base": "ChatExpandedPtr", "offset": 0, "type": "bool" },
-    "Mods": { "base": "ModsPtr", "offset": 0, "type": "int" },
-    "ShowPlayingInterface": { "base": "ShowInterfacePtr", "offset": 12, "type": "bool" },
-    "OsuVersion": { "base": "OsuVersionPtr", "offset": 4, "type": "managed_string" },
-    "IsLoggedIn": { "base": "IsLoggedInPtr", "offset": 0, "type": "bool" },
-    "Username": { "base": "UserPanelPtr", "offset": 48, "type": "managed_string" },
-    "SkinFolder": { "base": "SkinDataPtr", "offset": 68, "type": "managed_string" },
-    "IsReplay": { "base": "IsReplayPtr", "offset": 0, "type": "bool" },
-    "Score": { "base": "RulesetPtr", "offset": 256, "type": "int" },
-    "Combo": { "base": "ComboBase", "offset": 148, "type": "ushort" }
+    "Id": { "base": "BeatmapClass", "offset": "0xC8", "type": "int" },
+    "SetId": { "base": "BeatmapClass", "offset": "0xCC", "type": "int" },
+    "MapString": { "base": "BeatmapClass", "offset": "0x80", "type": "managed_string" },
+    "FolderName": { "base": "BeatmapClass", "offset": "0x78", "type": "managed_string" },
+    "OsuFileName": { "base": "BeatmapClass", "offset": "0x90", "type": "managed_string" },
+    "MD5": { "base": "BeatmapClass", "offset": "0x6C", "type": "managed_string" },
+    "AR": { "base": "BeatmapClass", "offset": "0x2C", "type": "float" },
+    "CS": { "base": "BeatmapClass", "offset": "0x30", "type": "float" },
+    "HP": { "base": "BeatmapClass", "offset": "0x34", "type": "float" },
+    "OD": { "base": "BeatmapClass", "offset": "0x38", "type": "float" },
+    "Status": { "base": "BeatmapClass", "offset": "0x12C", "type": "short" },
+    "RawStatus": { "base": "StatusAddr", "offset": "0x0", "type": "int" },
+    "GameMode": { "base": "GameModePtr", "offset": "0x0", "type": "int" },
+    "Retries": { "base": "GameModePtr", "offset": "0x8", "type": "int" },
+    "AudioTime": { "base": "AudioTimePtr", "offset": "-0x10", "type": "int" },
+    "TotalAudioTime": { "base": "TotalAudioTimePtr", "offset": "0x4", "type": "double" },
+    "ChatIsExpanded": { "base": "ChatExpandedPtr", "offset": "0x0", "type": "bool" },
+    "Mods": { "base": "ModsPtr", "offset": "0x0", "type": "int" },
+    "ShowPlayingInterface": { "base": "ShowInterfacePtr", "offset": "0xC", "type": "bool" },
+    "OsuVersion": { "base": "OsuVersionPtr", "offset": "0x4", "type": "managed_string" },
+    "IsLoggedIn": { "base": "IsLoggedInPtr", "offset": "0x0", "type": "bool" },
+    "Username": { "base": "UserPanelPtr", "offset": "0x30", "type": "managed_string" },
+    "SkinFolder": { "base": "SkinDataPtr", "offset": "0x44", "type": "managed_string" },
+    "IsReplay": { "base": "IsReplayPtr", "offset": "0x0", "type": "bool" },
+    "Score": { "base": "RulesetPtr", "offset": "0x100", "type": "int" },
+    "Combo": { "base": "ComboBase", "offset": "0x94", "type": "ushort" }
   }
 }

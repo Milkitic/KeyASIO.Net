@@ -54,8 +54,14 @@ public class MemoryContext
         // Apply Offsets
         foreach (var offset in def.Offsets)
         {
-            currentPtr = currentPtr + offset;
+            // 1. 加上偏移量 (定位到存放指针的地址)
+            currentPtr += offset;
+
+            // 2. 读取指针 (读取该地址内存中的值，作为新的地址)
+            // 相当于 C++ 中的: currentPtr = *(int*)(currentPtr);
             currentPtr = MemoryReadHelper.GetPointer(_sigScan, currentPtr);
+
+            // 如果读出来是空指针，说明链断了，停止
             if (currentPtr == IntPtr.Zero) return IntPtr.Zero;
         }
 
