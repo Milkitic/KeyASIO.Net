@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using KeyAsio.Memory.Configuration;
 
-namespace KeyAsio.Memory;
+namespace KeyAsio.Memory.Samples;
 
-public class Program
+internal static class StructureScanSample
 {
     private static MemoryContext<OsuData>? _ctx;
     private static SigScan? _sigScan;
@@ -12,7 +12,7 @@ public class Program
     // 指向源文件的绝对路径，方便演示动态修改
     private const string ConfigPath = @"e:\Working\GitHub\KeyAsio.Net\KeyAsio.Memory\Configuration\rules.json";
 
-    public static async Task Main(string[] args)
+    public static async Task Perform()
     {
         PowerThrottling.DisableThrottling();
 
