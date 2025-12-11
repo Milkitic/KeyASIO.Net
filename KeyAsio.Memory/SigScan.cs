@@ -10,7 +10,7 @@ using Windows.Win32.System.SystemInformation;
 namespace KeyAsio.Memory;
 
 [SupportedOSPlatform("windows5.1.2600")]
-public sealed class SigScan : IDisposable, ISigScan
+public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 {
     private readonly Process _process;
     private readonly List<MemoryRegionMetadata> _memoryRegions = new(256);

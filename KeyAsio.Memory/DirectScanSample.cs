@@ -3,7 +3,7 @@ using static KeyAsio.Memory.MemoryReadHelper;
 
 namespace KeyAsio.Memory;
 
-internal static class DirectScan
+internal static class DirectScanSample
 {
     // osu! 进程内存空间 (32-bit)
     // │

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using KeyAsio.Memory.Configuration;
 
 namespace KeyAsio.Memory;
@@ -68,6 +69,101 @@ public class MemoryContext
         return currentPtr;
     }
 
+    public bool TryGetValue<T>(string valueName, out T result)
+    {
+        result = default!;
+
+        if (!_profile.Values.TryGetValue(valueName, out var def))
+            throw new ArgumentException($"Value '{valueName}' not defined.");
+
+        IntPtr basePtr;
+
+        // Resolve Base (can be Signature or Pointer)
+        if (_signatureCache.TryGetValue(def.Base, out var value))
+        {
+            basePtr = value;
+        }
+        else if (_profile.Pointers.ContainsKey(def.Base))
+        {
+            basePtr = ResolvePointer(def.Base);
+        }
+        else
+        {
+            return false; // Base not found
+        }
+
+        if (basePtr == IntPtr.Zero) return false;
+
+        var finalAddr = basePtr + def.Offset;
+
+        try
+        {
+            // Fast path for supported value types to avoid boxing using Unsafe.As
+            if (typeof(T) == typeof(int))
+            {
+                var val = MemoryReadHelper.GetValue<int>(_sigScan, finalAddr);
+                result = Unsafe.As<int, T>(ref val);
+                return true;
+            }
+
+            if (typeof(T) == typeof(float))
+            {
+                var val = MemoryReadHelper.GetValue<float>(_sigScan, finalAddr);
+                result = Unsafe.As<float, T>(ref val);
+                return true;
+            }
+
+            if (typeof(T) == typeof(double))
+            {
+                var val = MemoryReadHelper.GetValue<double>(_sigScan, finalAddr);
+                result = Unsafe.As<double, T>(ref val);
+                return true;
+            }
+
+            if (typeof(T) == typeof(bool))
+            {
+                var val = MemoryReadHelper.GetValue<bool>(_sigScan, finalAddr);
+                result = Unsafe.As<bool, T>(ref val);
+                return true;
+            }
+
+            if (typeof(T) == typeof(short))
+            {
+                var val = MemoryReadHelper.GetValue<short>(_sigScan, finalAddr);
+                result = Unsafe.As<short, T>(ref val);
+                return true;
+            }
+
+            if (typeof(T) == typeof(ushort))
+            {
+                var val = MemoryReadHelper.GetValue<ushort>(_sigScan, finalAddr);
+                result = Unsafe.As<ushort, T>(ref val);
+                return true;
+            }
+
+            if (typeof(T) == typeof(string))
+            {
+                var val = MemoryReadHelper.GetManagedString(_sigScan, finalAddr);
+                result = Unsafe.As<string, T>(ref val);
+                return true;
+            }
+
+            // Fallback (boxing)
+            var valObj = GetValue(valueName);
+            if (valObj is T typedVal)
+            {
+                result = typedVal;
+                return true;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+
+        return false;
+    }
+
     public object? GetValue(string valueName)
     {
         if (!_profile.Values.TryGetValue(valueName, out var def))
@@ -109,8 +205,12 @@ public class MemoryContext
     // Generic helper for strongly typed access
     public T? GetValue<T>(string valueName) where T : struct
     {
-        var result = GetValue(valueName);
-        return result is T typedResult ? typedResult : null;
+        if (TryGetValue<T>(valueName, out var result))
+        {
+            return result;
+        }
+
+        return null;
     }
 
     public string? GetString(string valueName)
@@ -129,18 +229,60 @@ public class MemoryContext
 
             try
             {
-                var val = GetValue(prop.Name);
-                if (val != null)
+                // Try optimized path first for common types
+                if (prop.PropertyType == typeof(int))
                 {
-                    // Handle type conversion if necessary
-                    if (prop.PropertyType.IsInstanceOfType(val))
+                    if (TryGetValue<int>(prop.Name, out var val)) prop.SetValue(target, val);
+                    continue;
+                }
+
+                if (prop.PropertyType == typeof(float))
+                {
+                    if (TryGetValue<float>(prop.Name, out var val)) prop.SetValue(target, val);
+                    continue;
+                }
+
+                if (prop.PropertyType == typeof(double))
+                {
+                    if (TryGetValue<double>(prop.Name, out var val)) prop.SetValue(target, val);
+                    continue;
+                }
+
+                if (prop.PropertyType == typeof(bool))
+                {
+                    if (TryGetValue<bool>(prop.Name, out var val)) prop.SetValue(target, val);
+                    continue;
+                }
+
+                if (prop.PropertyType == typeof(short))
+                {
+                    if (TryGetValue<short>(prop.Name, out var val)) prop.SetValue(target, val);
+                    continue;
+                }
+
+                if (prop.PropertyType == typeof(ushort))
+                {
+                    if (TryGetValue<ushort>(prop.Name, out var val)) prop.SetValue(target, val);
+                    continue;
+                }
+
+                if (prop.PropertyType == typeof(string))
+                {
+                    if (TryGetValue<string>(prop.Name, out var val)) prop.SetValue(target, val);
+                    continue;
+                }
+
+                // Fallback to boxing for other types or conversions
+                var valObj = GetValue(prop.Name);
+                if (valObj != null)
+                {
+                    if (prop.PropertyType.IsInstanceOfType(valObj))
                     {
-                        prop.SetValue(target, val);
+                        prop.SetValue(target, valObj);
                     }
                     else
                     {
-                        // Try Convert
-                        var converted = Convert.ChangeType(val, prop.PropertyType);
+                        var converted = Convert.ChangeType(valObj, prop.PropertyType);
                         prop.SetValue(target, converted);
                     }
                 }

@@ -16,7 +16,7 @@ public class Program
     {
         PowerThrottling.DisableThrottling();
 
-        await DirectScan.Perform();
+        await DirectScanSample.Perform();
 
         var process = Process.GetProcessesByName("osu!").FirstOrDefault();
         if (process == null)
@@ -47,26 +47,16 @@ public class Program
 
         var cts = new CancellationTokenSource();
 
-        // 高频读取线程 (模拟原有的 AudioTime 读取)
+        var data = new OsuData();
         var audioTask = Task.Factory.StartNew(() =>
         {
             using var scope = new HighPrecisionTimerScope();
-            int oldAudioTime = int.MinValue;
 
             while (!cts.IsCancellationRequested)
             {
                 lock (_lock)
                 {
-                    if (_ctx != null)
-                    {
-                        var audioTime = _ctx.GetValue<int>("AudioTime");
-                        if (audioTime.HasValue && oldAudioTime != audioTime.Value)
-                        {
-                            // 可以在这里输出，但为了不刷屏，暂时注释掉
-                            // Console.WriteLine($"AudioTime: {audioTime}");
-                            oldAudioTime = audioTime.Value;
-                        }
-                    }
+                    _ctx?.Populate(data);
                 }
 
                 Thread.Sleep(1);
@@ -89,8 +79,6 @@ public class Program
                 {
                     try
                     {
-                        var data = new OsuData();
-                        _ctx.Populate(data);
                         Console.SetCursorPosition(0, 0);
                         Console.WriteLine("=== KeyAsio Memory Reader (Declarative Framework) ===");
                         Console.WriteLine($"Config Source: {ConfigPath}");
@@ -117,7 +105,7 @@ public class Program
                 }
             }
 
-            await Task.Delay(16); // 0.5秒刷新一次界面
+            await Task.Delay(500); // 0.5秒刷新一次界面
         }
 
         cts.Cancel();
