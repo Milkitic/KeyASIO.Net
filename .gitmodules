@@ -1,9 +1,3 @@
-[submodule "dependencies/OsuRTDataProviderCore"]
-	path = dependencies/OsuRTDataProviderCore
-	url = https://github.com/Milkitic/OsuRTDataProviderCore.git
-[submodule "dependencies/ProcessMemoryDataFinder"]
-	path = dependencies/ProcessMemoryDataFinder
-	url = https://github.com/Milkitic/ProcessMemoryDataFinder.git
 [submodule "dependencies/NAudio"]
 	path = dependencies/NAudio
 	url = https://github.com/Milkitic/NAudio.git

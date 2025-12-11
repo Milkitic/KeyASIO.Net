@@ -8,7 +8,7 @@ using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Realtime.States;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OsuMemoryDataProvider;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 
 namespace KeyAsio.Shared.Realtime;
 
@@ -51,10 +51,10 @@ public class RealtimeController
                 beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel, gameplaySessionManager, audioCacheService),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(backgroundMusicManager),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(appSettings, backgroundMusicManager),
-            [OsuMemoryStatus.SongSelect] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
-            [OsuMemoryStatus.SongSelectEdit] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
-            [OsuMemoryStatus.MainMenu] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
-            [OsuMemoryStatus.MultiplayerSongSelect] =
+            [OsuMemoryStatus.SongSelection] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
+            [OsuMemoryStatus.EditSongSelection] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
+            [OsuMemoryStatus.MainView] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
+            [OsuMemoryStatus.MultiSongSelection] =
                 new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
         });
         Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;

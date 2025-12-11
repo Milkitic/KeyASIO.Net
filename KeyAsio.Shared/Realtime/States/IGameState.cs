@@ -1,5 +1,5 @@
 using KeyAsio.MemoryReading;
-using OsuMemoryDataProvider;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 
 namespace KeyAsio.Shared.Realtime.States;
 

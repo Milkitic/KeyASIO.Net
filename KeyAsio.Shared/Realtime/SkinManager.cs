@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Milki.Extensions.Configuration;
-using OsuMemoryDataProvider;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 
 namespace KeyAsio.Shared.Realtime;
 

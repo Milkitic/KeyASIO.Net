@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using OsuMemoryDataProvider;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 using PropertyChanged;
 
 namespace KeyAsio.MemoryReading;
