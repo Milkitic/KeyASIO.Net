@@ -2,6 +2,7 @@ namespace KeyAsio.MemoryReading;
 
 public class OsuMemoryData
 {
+    // Beatmap Data
     public int Id { get; set; }
     public int SetId { get; set; }
     public string MapString { get; set; } = string.Empty;
@@ -13,6 +14,8 @@ public class OsuMemoryData
     public float HP { get; set; }
     public float OD { get; set; }
     public short Status { get; set; } // Beatmap Status
+
+    // General Data
     public int RawStatus { get; set; } // OsuStatus
     public int GameMode { get; set; }
     public int Retries { get; set; }
@@ -22,10 +25,17 @@ public class OsuMemoryData
     public int Mods { get; set; }
     public bool ShowPlayingInterface { get; set; }
     public string OsuVersion { get; set; } = string.Empty;
+
+    // Additional Data
     public bool IsLoggedIn { get; set; }
     public string Username { get; set; } = string.Empty;
     public string SkinFolder { get; set; } = string.Empty;
     public bool IsReplay { get; set; }
     public int Score { get; set; }
     public ushort Combo { get; set; }
+
+    public override string ToString()
+    {
+        return $"ID: {Id}, SetID: {SetId}, Map: {MapString}, AR: {AR}, CS: {CS}, AudioTime: {AudioTime}";
+    }
 }
