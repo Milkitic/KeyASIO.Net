@@ -1,0 +1,18 @@
+﻿OpenProcess
+CloseHandle
+ReadProcessMemory
+GetSystemInfo
+VirtualQueryEx
+QueryFullProcessImageName
+
+timeBeginPeriod
+timeEndPeriod
+
+PROCESS_POWER_THROTTLING_STATE
+PROCESS_POWER_THROTTLING_CURRENT_VERSION 
+// 禁止降低执行速度
+PROCESS_POWER_THROTTLING_EXECUTION_SPEED
+// 禁止忽略时钟精度请求
+PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION
+
+SetProcessInformation

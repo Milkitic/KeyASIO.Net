@@ -1,7 +1,7 @@
 using Coosu.Beatmap;
 using KeyAsio.MemoryReading;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared.Realtime.Services;
-using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime.States;
 
@@ -66,10 +66,10 @@ public class BrowsingState : IGameState
         }
 
         if (ctx.OsuStatus is not (
-            OsuMemoryStatus.SongSelect or
-            OsuMemoryStatus.SongSelectEdit or
-            OsuMemoryStatus.MainMenu or
-            OsuMemoryStatus.MultiplayerSongSelect)
+            OsuMemoryStatus.SongSelection or
+            OsuMemoryStatus.EditSongSelection or
+            OsuMemoryStatus.MainView or
+            OsuMemoryStatus.MultiSongSelection)
            ) return;
 
         var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>

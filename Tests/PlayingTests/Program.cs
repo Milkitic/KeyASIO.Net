@@ -9,6 +9,7 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.Utils;
 using KeyAsio.MemoryReading;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime;
@@ -17,7 +18,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.Threading;
-using OsuMemoryDataProvider;
 
 namespace PlayingTests;
 
@@ -67,7 +67,7 @@ static class Program
         var realtimeModeManager = provider.GetRequiredService<RealtimeSessionContext>();
         realtimeModeManager.BaseMemoryTime = -1;
         realtimeModeManager.PlayMods = Mods.None;
-        realtimeModeManager.OsuStatus = OsuMemoryStatus.SongSelect;
+        realtimeModeManager.OsuStatus = OsuMemoryStatus.SongSelection;
         var files = Directory.EnumerateFiles(@"D:\GitHub\Osu-Player\OsuPlayer.Wpf\bin\Debug\Songs\", "*.osu",
             SearchOption.AllDirectories).ToArray();
         int i = 0;

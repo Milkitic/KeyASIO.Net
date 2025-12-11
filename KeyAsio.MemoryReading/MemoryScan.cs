@@ -1,28 +1,26 @@
 using System.Diagnostics;
-using System.Reflection;
+using KeyAsio.Memory;
+using KeyAsio.Memory.Configuration;
 using KeyAsio.MemoryReading.OsuMemoryModels;
-using KeyAsio.MemoryReading.OsuMemoryModels.Direct;
 using Microsoft.Extensions.Logging;
-using OsuMemoryDataProvider;
-using ProcessMemoryDataFinder;
-using ProcessMemoryDataFinder.API;
 
 namespace KeyAsio.MemoryReading;
 
 public class MemoryScan
 {
     private readonly ILogger<MemoryScan> _logger;
-    private const string FieldMemoryReader1 = "_memoryReader";
-    private const string FieldMemoryReader2 = "_memoryReader";
 
     private int _timingScanInterval;
     private int _generalScanInterval;
-    private StructuredOsuMemoryReader? _reader;
+    
+    private Process? _process;
+    private SigScan? _sigScan;
+    private MemoryProfile? _memoryProfile;
+    private MemoryContext<OsuMemoryData>? _memoryContext;
+
     private Task? _readTask;
     private CancellationTokenSource? _cts;
     private bool _isStarted;
-
-    private MemoryReader? _innerMemoryReader;
 
     public MemoryScan(ILogger<MemoryScan> logger)
     {
@@ -37,38 +35,20 @@ public class MemoryScan
         _isStarted = true;
         _generalScanInterval = generalScanInterval;
         _timingScanInterval = timingScanInterval;
-        _reader = new StructuredOsuMemoryReader(new ProcessTargetOptions("osu!"))
-        {
-            ProcessWatcherDelayMs = processInterval
-        };
 
-        var type1 = _reader.GetType();
-        var fieldMemoryReader1 = type1.GetField(FieldMemoryReader1, BindingFlags.Instance | BindingFlags.NonPublic);
-        if (fieldMemoryReader1 == null)
+        try
         {
-            throw new ArgumentNullException(FieldMemoryReader1, $"Could not find internal field of {type1.Name}");
+            // Load from the output directory or adjacent to the assembly
+            var assemblyPath = Path.GetDirectoryName(typeof(MemoryScan).Assembly.Location) ?? string.Empty;
+            var rulesPath = Path.Combine(assemblyPath, "osu_memory_rules.json");
+            _memoryProfile = MemoryProfile.Load(rulesPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load memory rules");
+            throw;
         }
 
-        var memoryReader = fieldMemoryReader1.GetValue(_reader);
-        if (memoryReader == null)
-        {
-            throw new ArgumentNullException(FieldMemoryReader1, $"Internal field of {type1.Name} is null.");
-        }
-
-        var type2 = memoryReader.GetType();
-        var fieldMemoryReader2 = type2.GetField(FieldMemoryReader2, BindingFlags.Instance | BindingFlags.NonPublic);
-        if (fieldMemoryReader2 == null)
-        {
-            throw new ArgumentNullException(FieldMemoryReader2, $"Could not find internal field of {type2.FullName}");
-        }
-
-        _innerMemoryReader = (MemoryReader?)fieldMemoryReader2.GetValue(memoryReader);
-        if (_innerMemoryReader == null)
-        {
-            throw new ArgumentNullException(FieldMemoryReader1, $"Internal field of {type2.Name} is null.");
-        }
-
-        _reader.InvalidRead += Reader_InvalidRead;
         _cts = new CancellationTokenSource();
         _readTask = Task.Factory.StartNew(ReadImpl,
             TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
@@ -78,23 +58,15 @@ public class MemoryScan
     {
         if (!_isStarted) return;
         await _cts!.CancelAsync();
-        await _readTask!;
+        
+        if (_readTask != null)
+            await _readTask;
 
-        _reader!.InvalidRead -= Reader_InvalidRead;
-        await CastAndDispose(_reader);
-        await CastAndDispose(_readTask);
-        await CastAndDispose(_cts);
+        _sigScan?.Dispose();
+        _process?.Dispose();
+        _cts.Dispose();
 
         _isStarted = false;
-        return;
-
-        static ValueTask CastAndDispose(IDisposable resource)
-        {
-            if (resource is IAsyncDisposable resourceAsyncDisposable)
-                return resourceAsyncDisposable.DisposeAsync();
-            resource.Dispose();
-            return ValueTask.CompletedTask;
-        }
     }
 
     private void ReadImpl()
@@ -105,32 +77,81 @@ public class MemoryScan
         var internalTimerScanLimiter = Stopwatch.StartNew();
         var internalTimer = new Stopwatch();
 
-        var allData = new OsuBaseAddresses();
-        var audioTimeData = new GeneralDataSlim();
-
-        var canRead = false;
-        string? songsDirectory = null;
         int lastFetchPlayingTime = 0;
+        string? songsDirectory = null;
+        var data = new OsuMemoryData();
 
         while (!_cts!.IsCancellationRequested)
         {
-            var ratio = GetRatio(allData.GeneralData.OsuStatus, allData.GeneralData.Mods);
-            var playingTime = lastFetchPlayingTime + internalTimer.ElapsedMilliseconds * ratio;
-            if (timingScanLimiter.Elapsed.TotalMilliseconds > _timingScanInterval)
+            if (_process == null || _process.HasExited)
             {
-                timingScanLimiter.Restart();
+                _process?.Dispose();
+                _sigScan?.Dispose();
+                _process = null;
+                _sigScan = null;
+                _memoryContext = null;
+                songsDirectory = null;
 
-                if (_reader!.TryRead(audioTimeData))
+                MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
+
+                try
                 {
-                    if (audioTimeData.AudioTime == lastFetchPlayingTime)
+                    var processes = Process.GetProcessesByName("osu!");
+                    if (processes.Length > 0)
                     {
-                        MemoryReadObject.PlayingTime = audioTimeData.AudioTime;
+                        _process = processes[0];
+                        _sigScan = new SigScan(_process);
+                        _memoryContext = new MemoryContext<OsuMemoryData>(_sigScan, _memoryProfile!);
+                        _memoryContext.Scan();
+                        
+                        var mainModuleFileName = _process.MainModule?.FileName;
+                        if (!string.IsNullOrEmpty(mainModuleFileName))
+                        {
+                            var baseDirectory = Path.GetDirectoryName(mainModuleFileName);
+                            if (baseDirectory != null)
+                            {
+                                songsDirectory = Path.Combine(baseDirectory, "Songs");
+                            }
+                        }
+
+                        _logger.LogInformation("Connected to osu! process");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error finding osu! process");
+                }
+
+                if (_process == null)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+            }
+
+            try
+            {
+                _memoryContext!.BeginUpdate();
+                _memoryContext.Populate(data);
+
+                var ratio = GetRatio(MemoryReadObject.OsuStatus, MemoryReadObject.Mods);
+                var playingTime = lastFetchPlayingTime + internalTimer.ElapsedMilliseconds * ratio;
+
+                if (timingScanLimiter.Elapsed.TotalMilliseconds > _timingScanInterval)
+                {
+                    timingScanLimiter.Restart();
+
+                    var audioTime = data.AudioTime;
+                    
+                    if (audioTime == lastFetchPlayingTime)
+                    {
+                        MemoryReadObject.PlayingTime = audioTime;
                         internalTimer.Reset();
                     }
                     else
                     {
-                        MemoryReadObject.PlayingTime = audioTimeData.AudioTime;
-                        lastFetchPlayingTime = audioTimeData.AudioTime;
+                        MemoryReadObject.PlayingTime = audioTime;
+                        lastFetchPlayingTime = audioTime;
                         internalTimer.Restart();
                     }
                 }
@@ -138,99 +159,64 @@ public class MemoryScan
                          internalTimerScanLimiter.ElapsedMilliseconds > 16)
                 {
                     internalTimerScanLimiter.Restart();
-                    MemoryReadObject.PlayingTime = lastFetchPlayingTime;
-                    internalTimer.Reset();
+                    MemoryReadObject.PlayingTime = (int)playingTime;
                 }
-            }
-            else if (_timingScanInterval >= 16 && internalTimer.IsRunning &&
-                     internalTimerScanLimiter.ElapsedMilliseconds > 16)
-            {
-                internalTimerScanLimiter.Restart();
-                MemoryReadObject.PlayingTime = (int)playingTime;
-            }
 
-            if (generalScanLimiter.Elapsed.TotalMilliseconds > _generalScanInterval)
+                if (generalScanLimiter.Elapsed.TotalMilliseconds > _generalScanInterval)
                 {
                     generalScanLimiter.Restart();
-                    MemoryReadObject.ProcessId = _innerMemoryReader?.CurrentProcess?.Id ?? 0;
 
-                    if (!_reader!.CanRead)
+                    MemoryReadObject.OsuStatus = (OsuMemoryStatus)data.RawStatus;
+                    MemoryReadObject.PlayerName = data.Username;
+                    MemoryReadObject.Mods = (Mods)data.Mods;
+
+                    if (MemoryReadObject.OsuStatus == OsuMemoryStatus.Playing)
                     {
-                        MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
+                        MemoryReadObject.IsReplay = data.IsReplay;
+                        MemoryReadObject.Score = data.Score;
+                        MemoryReadObject.Combo = data.Combo;
+                    }
+                    else
+                    {
+                        MemoryReadObject.Score = 0;
+                        MemoryReadObject.Combo = 0;
                     }
 
-                if (_reader.TryRead(allData.BanchoUser))
-                {
-                    MemoryReadObject.PlayerName = allData.BanchoUser.Username;
-                }
-
-                if (_reader.TryRead(allData.GeneralData))
-                {
-                    MemoryReadObject.Mods = (Mods)allData.GeneralData.Mods;
-                    if (_reader.CanRead)
+                    if (songsDirectory != null)
                     {
-                        MemoryReadObject.OsuStatus = allData.GeneralData.OsuStatus;
+                        var folderName = data.FolderName;
+                        var osuFileName = data.OsuFileName;
+                        
+                        if (!string.IsNullOrEmpty(folderName) && !string.IsNullOrEmpty(osuFileName))
+                        {
+                            var directory = Path.Combine(songsDirectory, folderName);
+                            // Check if changed
+                            if (MemoryReadObject.BeatmapIdentifier.Filename != osuFileName ||
+                                MemoryReadObject.BeatmapIdentifier.Folder != directory)
+                            {
+                                    MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, osuFileName);
+                            }
+                        }
                     }
                 }
 
-                if (MemoryReadObject.OsuStatus is OsuMemoryStatus.Playing)
-                {
-                    if (_reader.TryRead(allData.Player))
-                    {
-                        MemoryReadObject.IsReplay = allData.Player.IsReplay;
-                        MemoryReadObject.Score = allData.Player.Score;
-                        MemoryReadObject.Combo = allData.Player.Combo;
-                    }
-                }
-                else
-                {
-                    MemoryReadObject.Score = 0;
-                    MemoryReadObject.Combo = 0;
-                }
-
-                if (canRead != _reader.CanRead)
-                {
-                    if (_reader.CanRead)
-                    {
-                        var baseDirectory =
-                            Path.GetDirectoryName(_innerMemoryReader!.CurrentProcess.MainModule!.FileName);
-                        songsDirectory = Path.Combine(baseDirectory!, "Songs");
-                    }
-
-                    canRead = _reader.CanRead;
-                }
-
-                if (_reader.TryRead(allData.Beatmap))
-                {
-                    var beatmapFolderName = allData.Beatmap.FolderName;
-                    var beatmapOsuFileName = allData.Beatmap.OsuFileName;
-                    if (beatmapFolderName != null && beatmapOsuFileName != null)
-                    {
-                        var directory = Path.Combine(songsDirectory!, beatmapFolderName);
-                        MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, beatmapOsuFileName);
-                    }
-                }
+                Thread.Sleep(1);
             }
-
-            Thread.Sleep(1);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reading memory");
+                _process?.Dispose();
+                _process = null;
+            }
         }
     }
 
-    private static double GetRatio(OsuMemoryStatus osuStatus, int rawMods)
+    private double GetRatio(OsuMemoryStatus status, Mods mods)
     {
-        if (osuStatus != OsuMemoryStatus.Playing) return 1;
-        var mods = (Mods)rawMods;
-
-        if ((mods & Mods.DoubleTime) != 0) return 1.5;
-        if ((mods & Mods.HalfTime) != 0) return 0.75;
+        if (status != OsuMemoryStatus.Playing) return 1;
+        
+        if (mods.HasFlag(Mods.DoubleTime) || mods.HasFlag(Mods.Nightcore)) return 1.5;
+        if (mods.HasFlag(Mods.HalfTime)) return 0.75;
         return 1;
-    }
-
-    private void Reader_InvalidRead(object? sender, (object readObject, string propPath) e)
-    {
-        if (_reader is { CanRead: true })
-        {
-            _logger.LogError("Invalid reading {Type}: {PropPath}", e.readObject?.GetType(), e.propPath);
-        }
     }
 }

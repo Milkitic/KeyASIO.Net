@@ -3,7 +3,7 @@ using System.Text;
 using KeyAsio.MemoryReading;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
-using OsuMemoryDataProvider;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 
 namespace KeyAsio.Shared.Realtime;
 
