@@ -1,4 +1,4 @@
-namespace KeyAsio.Memory;
+namespace KeyAsio.Memory.Models;
 
 public class OsuData
 {

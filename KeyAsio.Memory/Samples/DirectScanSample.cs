@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using static KeyAsio.Memory.MemoryReadHelper;
+using System.Diagnostics;
+using static KeyAsio.Memory.Utils.MemoryReadHelper;
 
 namespace KeyAsio.Memory.Samples;
 

@@ -1,13 +1,15 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Threading;
 
-namespace KeyAsio.Memory;
+namespace KeyAsio.Memory.Utils;
 
 public static class PowerThrottling
 {
+    [SupportedOSPlatform("windows8.0")]
     public static unsafe void DisableThrottling()
     {
         var throttlingState = new PROCESS_POWER_THROTTLING_STATE

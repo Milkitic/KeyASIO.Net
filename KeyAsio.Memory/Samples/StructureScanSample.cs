@@ -1,5 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using System.Runtime.Versioning;
 using KeyAsio.Memory.Configuration;
+using KeyAsio.Memory.Models;
+using KeyAsio.Memory.Utils;
 
 namespace KeyAsio.Memory.Samples;
 
@@ -12,6 +15,7 @@ internal static class StructureScanSample
     // 指向源文件的绝对路径，方便演示动态修改
     private const string ConfigPath = @"e:\Working\GitHub\KeyAsio.Net\KeyAsio.Memory\Configuration\rules.json";
 
+    [SupportedOSPlatform("windows8.0")]
     public static async Task Perform()
     {
         PowerThrottling.DisableThrottling();
