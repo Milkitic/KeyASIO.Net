@@ -1,19 +1,17 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using KeyAsio.Memory.Configuration;
-using KeyAsio.Memory.Models;
 using KeyAsio.Memory.Utils;
 
 namespace KeyAsio.Memory.Samples;
 
 internal static class StructureScanSample
 {
-    private static MemoryContext<OsuData>? _ctx;
+    private static MemoryContext<SampleOsuData>? _ctx;
     private static SigScan? _sigScan;
     private static readonly object _lock = new();
 
-    // 指向源文件的绝对路径，方便演示动态修改
-    private const string ConfigPath = @"e:\Working\GitHub\KeyAsio.Net\KeyAsio.Memory\Configuration\rules.json";
+    private const string ConfigPath = @"";
 
     [SupportedOSPlatform("windows8.0")]
     public static async Task Perform()
@@ -51,7 +49,7 @@ internal static class StructureScanSample
 
         var cts = new CancellationTokenSource();
 
-        var data = new OsuData();
+        var data = new SampleOsuData();
         var audioTask = Task.Factory.StartNew(() =>
         {
             using var scope = new HighPrecisionTimerScope();
@@ -135,7 +133,7 @@ internal static class StructureScanSample
             {
                 Console.WriteLine("Loading Configuration...");
                 var profile = MemoryProfile.Load(ConfigPath);
-                _ctx = new MemoryContext<OsuData>(_sigScan!, profile);
+                _ctx = new MemoryContext<SampleOsuData>(_sigScan!, profile);
                 _ctx.Scan();
                 Console.WriteLine("Configuration Loaded Successfully.");
             }

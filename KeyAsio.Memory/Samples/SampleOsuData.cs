@@ -1,6 +1,6 @@
-namespace KeyAsio.Memory.Models;
+namespace KeyAsio.Memory.Samples;
 
-public class OsuData
+internal class SampleOsuData
 {
     // Beatmap Data
     public int Id { get; set; }

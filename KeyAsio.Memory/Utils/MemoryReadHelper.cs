@@ -16,7 +16,7 @@ public static class MemoryReadHelper
         if (stringPointer == IntPtr.Zero) return true;
 
         if (!TryGetValue<int>(memoryReader, stringPointer + 4, out var length)) return false;
-        if (length > ushort.MaxValue) return true; // Sometimes got huge size
+        if (length is > ushort.MaxValue or < 0) return false; // Sometimes got huge size
         if (length == 0) return true;
 
         return TryGetString(memoryReader, stringPointer + 8, length * 2, out result);
