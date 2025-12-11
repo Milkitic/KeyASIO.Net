@@ -24,7 +24,28 @@ public class MemoryProfile
             AllowTrailingCommas = true
         };
         options.Converters.Add(new HexIntJsonConverter());
-        return JsonSerializer.Deserialize<MemoryProfile>(json, options) ?? new MemoryProfile();
+        var profile = JsonSerializer.Deserialize<MemoryProfile>(json, options) ?? new MemoryProfile();
+        profile.Link();
+        return profile;
+    }
+
+    public void Link()
+    {
+        foreach (var ptr in Pointers.Values)
+        {
+            if (Pointers.TryGetValue(ptr.Base, out var parent))
+            {
+                ptr.ParentPointer = parent;
+            }
+        }
+
+        foreach (var val in Values.Values)
+        {
+            if (Pointers.TryGetValue(val.Base, out var parent))
+            {
+                val.ParentPointer = parent;
+            }
+        }
     }
 }
 
@@ -76,6 +97,9 @@ public class PointerDefinition
 
     [JsonPropertyName("offsets")]
     public List<int> Offsets { get; set; } = new();
+
+    [JsonIgnore]
+    public PointerDefinition? ParentPointer { get; set; }
 }
 
 public class ValueDefinition
@@ -88,4 +112,7 @@ public class ValueDefinition
 
     [JsonPropertyName("type")]
     public string Type { get; set; } = "int"; // int, float, double, bool, short, string
+
+    [JsonIgnore]
+    public PointerDefinition? ParentPointer { get; set; }
 }

@@ -48,7 +48,11 @@ public class MemoryContext
         IntPtr basePtr;
 
         // Resolve Base (can be Signature or Pointer)
-        if (_signatureCache.TryGetValue(def.Base, out var value))
+        if (def.ParentPointer != null)
+        {
+            basePtr = ResolvePointerInternal(def.ParentPointer);
+        }
+        else if (_signatureCache.TryGetValue(def.Base, out var value))
         {
             basePtr = value;
         }
@@ -163,13 +167,17 @@ public class MemoryContext
         IntPtr basePtr;
 
         // Resolve Base (can be Signature or Pointer)
-        if (_signatureCache.TryGetValue(def.Base, out var value))
+        if (def.ParentPointer != null)
+        {
+            basePtr = ResolvePointerInternal(def.ParentPointer);
+        }
+        else if (_signatureCache.TryGetValue(def.Base, out var value))
         {
             basePtr = value;
         }
-        else if (_profile.Pointers.ContainsKey(def.Base))
+        else if (_profile.Pointers.TryGetValue(def.Base, out var ptrDef))
         {
-            basePtr = ResolvePointer(def.Base);
+            basePtr = ResolvePointerInternal(ptrDef);
         }
         else
         {
@@ -225,16 +233,17 @@ public class MemoryContext
     {
         // Resolve Base
         IntPtr currentPtr;
-        if (_signatureCache.TryGetValue(def.Base, out var sigPtr))
+        if (def.ParentPointer != null)
+        {
+            currentPtr = ResolvePointerInternal(def.ParentPointer);
+        }
+        else if (_signatureCache.TryGetValue(def.Base, out var sigPtr))
         {
             currentPtr = sigPtr;
         }
         else if (_profile.Pointers.TryGetValue(def.Base, out var baseDef))
         {
             // Recursive resolution
-            // Optimization opportunity: This still does a dictionary lookup for the base pointer.
-            // To fully eliminate it, we'd need to link PointerDefinitions directly.
-            // For now, this eliminates the lookup for the *current* pointer.
             currentPtr = ResolvePointerInternal(baseDef);
         }
         else
