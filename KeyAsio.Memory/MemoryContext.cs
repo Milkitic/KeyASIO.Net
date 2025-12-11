@@ -10,6 +10,7 @@ public class MemoryContext
     private readonly SigScan _sigScan;
     private readonly MemoryProfile _profile;
     private readonly Dictionary<string, IntPtr> _signatureCache = new();
+    private readonly Dictionary<ValueDefinition, CachedStringReader> _stringCache = new();
 
     public MemoryContext(SigScan sigScan, MemoryProfile profile)
     {
@@ -20,6 +21,7 @@ public class MemoryContext
     public void Scan()
     {
         _signatureCache.Clear();
+        _stringCache.Clear();
         foreach (var kvp in _profile.Signatures)
         {
             var ptr = _sigScan.FindPattern(kvp.Value);
@@ -132,7 +134,7 @@ public class MemoryContext
 
         if (typeof(T) == typeof(string))
         {
-            if (MemoryReadHelper.TryGetManagedString(_sigScan, finalAddr, out var val))
+            if (GetCachedStringReader(def).TryGet(_sigScan, finalAddr, out var val))
             {
                 result = Unsafe.As<string, T>(ref val);
                 return true;
@@ -186,7 +188,7 @@ public class MemoryContext
             "bool" or "boolean" => MemoryReadHelper.GetValue<bool>(_sigScan, finalAddr),
             "short" or "int16" => MemoryReadHelper.GetValue<short>(_sigScan, finalAddr),
             "ushort" or "uint16" => MemoryReadHelper.GetValue<ushort>(_sigScan, finalAddr),
-            "managed_string" => MemoryReadHelper.GetManagedString(_sigScan, finalAddr),
+            "managed_string" => GetCachedStringReader(def).Get(_sigScan, finalAddr),
             _ => throw new NotSupportedException($"Type {def.Type} not supported.")
         };
     }
@@ -206,6 +208,17 @@ public class MemoryContext
     {
         var result = GetValue(valueName);
         return result as string;
+    }
+
+    private CachedStringReader GetCachedStringReader(ValueDefinition def)
+    {
+        if (!_stringCache.TryGetValue(def, out var reader))
+        {
+            reader = new CachedStringReader();
+            _stringCache[def] = reader;
+        }
+
+        return reader;
     }
 
     private IntPtr ResolvePointerInternal(PointerDefinition def)

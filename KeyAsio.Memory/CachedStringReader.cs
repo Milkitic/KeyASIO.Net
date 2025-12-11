@@ -5,18 +5,35 @@ public class CachedStringReader
     private IntPtr _lastPtr = IntPtr.Zero;
     private string _cachedValue = string.Empty;
 
-    public string Get(IMemoryReader memoryReader, IntPtr stringRefAddr)
+    public bool TryGet(IMemoryReader memoryReader, IntPtr stringRefAddr, out string result)
     {
-        var currentPtr = MemoryReadHelper.GetPointer(memoryReader, stringRefAddr);
+        if (!MemoryReadHelper.TryGetPointer(memoryReader, stringRefAddr, out var currentPtr))
+        {
+            result = string.Empty;
+            return false;
+        }
 
         if (currentPtr == _lastPtr && currentPtr != IntPtr.Zero)
-            return _cachedValue;
+        {
+            result = _cachedValue;
+            return true;
+        }
 
-        var newValue = MemoryReadHelper.GetManagedString(memoryReader, currentPtr + 0x4);
+        if (MemoryReadHelper.TryGetManagedString(memoryReader, stringRefAddr, out var newValue))
+        {
+            _lastPtr = currentPtr;
+            _cachedValue = newValue;
+            result = newValue;
+            return true;
+        }
 
-        _lastPtr = currentPtr;
-        _cachedValue = newValue;
+        result = string.Empty;
+        return false;
+    }
 
-        return newValue;
+    public string Get(IMemoryReader memoryReader, IntPtr stringRefAddr)
+    {
+        TryGet(memoryReader, stringRefAddr, out var result);
+        return result;
     }
 }
