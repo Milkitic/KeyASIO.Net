@@ -19,12 +19,20 @@ public partial class MainWindowViewModel
             field = new ObservableCollection<HookKeys>(AppSettings.Input.Keys);
             field.CollectionChanged += (_, _) =>
             {
-                AppSettings.Input.Keys = field.ToList();
-                AppSettings.Save();
-                if (_keyboardBindingInitializer != null)
+                try
                 {
-                    _keyboardBindingInitializer.UnregisterAll();
-                    _keyboardBindingInitializer.RegisterKeys(AppSettings.Input.Keys);
+                    AppSettings.Input.Keys = field.Distinct().ToList();
+                    AppSettings.Save();
+                    if (_keyboardBindingInitializer != null)
+                    {
+                        _keyboardBindingInitializer.UnregisterAll();
+                        _keyboardBindingInitializer.RegisterKeys(AppSettings.Input.Keys);
+                    }
+                }
+                catch (Exception e)
+                {
+                    // Ignore or log
+                    System.Diagnostics.Debug.WriteLine(e);
                 }
             };
             return field;
@@ -45,7 +53,13 @@ public partial class MainWindowViewModel
     {
         DialogManager.DismissDialog();
 
-        var vm = new KeyBindDialogViewModel(AppSettings.Input, key => { BoundKeys.Add(key); },
+        if (_keyboardBindingInitializer?.KeyboardHook is null)
+        {
+             // Should not happen if initialized correctly
+             return;
+        }
+
+        var vm = new KeyBindDialogViewModel(_keyboardBindingInitializer.KeyboardHook, key => { BoundKeys.Add(key); },
             () => { DialogManager.DismissDialog(); });
 
         DialogManager.CreateDialog()

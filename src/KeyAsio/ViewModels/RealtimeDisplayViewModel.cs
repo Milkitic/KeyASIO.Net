@@ -14,7 +14,7 @@ public partial class RealtimeDisplayViewModel : ObservableObject, IDisposable
     public RealtimeDisplayViewModel(RealtimeSessionContext session)
     {
         _session = session;
-        _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Background, Tick);
+        _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(1000 / 30), DispatcherPriority.Background, Tick);
         _timer.Start();
     }
 

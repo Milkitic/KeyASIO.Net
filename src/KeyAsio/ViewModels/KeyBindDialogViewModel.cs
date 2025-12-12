@@ -1,6 +1,5 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using KeyAsio.Shared;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.ViewModels;
@@ -12,20 +11,17 @@ public partial class KeyBindDialogViewModel : ViewModelBase, IDisposable
     private readonly Action _onClose;
     private bool _isDisposed;
 
-    [ObservableProperty]
-    private string _message = "Press any key to bind...";
-
-    public KeyBindDialogViewModel(AppSettingsInput appSettingsInput, Action<HookKeys> onKeyBound, Action onClose)
+    public KeyBindDialogViewModel(IKeyboardHook keyboardHook, Action<HookKeys> onKeyBound, Action onClose)
     {
+        _keyboardHook = keyboardHook;
         _onKeyBound = onKeyBound;
         _onClose = onClose;
 
-        _keyboardHook = appSettingsInput.UseRawInput
-            ? KeyboardHookFactory.CreateRawInput()
-            : KeyboardHookFactory.CreateApplication();
-
         _keyboardHook.KeyPressed += OnKeyPressed;
     }
+
+    [ObservableProperty]
+    public partial string Message { get; set; } = "Press any key to bind...";
 
     private void OnKeyPressed(HookModifierKeys hookModifierKeys, HookKeys hookKey, KeyAction type)
     {
@@ -49,7 +45,6 @@ public partial class KeyBindDialogViewModel : ViewModelBase, IDisposable
         _isDisposed = true;
 
         _keyboardHook.KeyPressed -= OnKeyPressed;
-        _keyboardHook.Dispose();
         GC.SuppressFinalize(this);
     }
 }

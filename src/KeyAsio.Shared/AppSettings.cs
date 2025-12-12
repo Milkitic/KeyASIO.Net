@@ -118,7 +118,7 @@ public partial class AppSettingsRealtimeScanning : INotifyPropertyChanged
     [Description("Lower values update timing fields more promptly. " +
                  "Intended for delay‑sensitive fields; keep as low as possible. " +
                  "Increase if audio cutting occurs.")]
-    public int TimingScanInterval { get; set; } = 2;
+    public int TimingScanInterval { get; set; } = 15;
 }
 
 public partial class AppSettingsRealtimePlayback : INotifyPropertyChanged

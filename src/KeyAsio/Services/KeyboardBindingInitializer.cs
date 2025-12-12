@@ -34,6 +34,7 @@ public class KeyboardBindingInitializer
     private readonly SfxPlaybackService _sfxPlaybackService;
 
     private IKeyboardHook _keyboardHook = null!;
+    public IKeyboardHook KeyboardHook => _keyboardHook;
     private readonly List<Guid> _registerList = new();
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
@@ -72,9 +73,16 @@ public class KeyboardBindingInitializer
 
     public void RegisterKeys(IEnumerable<HookKeys> keys)
     {
-        foreach (var key in keys)
+        foreach (var key in keys.Distinct())
         {
-            RegisterKey(key);
+            try
+            {
+                RegisterKey(key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to register key {Key}", key);
+            }
         }
     }
 
