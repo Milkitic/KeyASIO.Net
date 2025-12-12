@@ -1,9 +1,8 @@
-using System.Text;
+﻿using System.Text;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using Avalonia.Threading;
 using KeyAsio.MemoryReading;
 using KeyAsio.Services;
 using KeyAsio.Shared;
@@ -79,25 +78,24 @@ public partial class App : Application
             logger.LogWarning(ex, "Failed to decode PlayerBase64 string.");
         }
 
-        var dispatcher = Dispatcher.UIThread;
         memoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.Username = player);
+            realtimeSessionContext.Username = player;
         memoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.PlayMods = mods);
+            realtimeSessionContext.PlayMods = mods;
         memoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.Combo = combo);
+            realtimeSessionContext.Combo = combo;
         memoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.Score = score);
+            realtimeSessionContext.Score = score;
         memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.IsReplay = isReplay);
+            realtimeSessionContext.IsReplay = isReplay;
         memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.BaseMemoryTime = playTime);
+            realtimeSessionContext.BaseMemoryTime = playTime;
         memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.Beatmap = beatmap);
+            realtimeSessionContext.Beatmap = beatmap;
         memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.OsuStatus = current);
+            realtimeSessionContext.OsuStatus = current;
         memoryScan.MemoryReadObject.ProcessIdChanged += (_, id) =>
-            dispatcher.InvokeAsync(() => realtimeSessionContext.ProcessId = id);
+            realtimeSessionContext.ProcessId = id;
 
         appSettings.Realtime.Scanning.PropertyChanged += (_, e) =>
         {
@@ -109,7 +107,8 @@ public partial class App : Application
             }
         };
 
-        memoryScan.Start(appSettings.Realtime.Scanning.GeneralScanInterval, appSettings.Realtime.Scanning.TimingScanInterval);
+        memoryScan.Start(appSettings.Realtime.Scanning.GeneralScanInterval,
+            appSettings.Realtime.Scanning.TimingScanInterval);
     }
 
     private void DisableAvaloniaDataAnnotationValidation()
