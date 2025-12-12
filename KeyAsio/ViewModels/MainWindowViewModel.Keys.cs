@@ -21,6 +21,11 @@ public partial class MainWindowViewModel
             {
                 AppSettings.Input.Keys = field.ToList();
                 AppSettings.Save();
+                if (_keyboardBindingInitializer != null)
+                {
+                    _keyboardBindingInitializer.UnregisterAll();
+                    _keyboardBindingInitializer.RegisterKeys(AppSettings.Input.Keys);
+                }
             };
             return field;
         }

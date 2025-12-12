@@ -40,15 +40,77 @@ public class MemoryContext
         }
     }
 
-    private IntPtr ResolvePointer(string pointerName)
+    public bool TryGetValue<T>(string valueName, out T result)
     {
-        if (!_profile.Pointers.TryGetValue(pointerName, out var def))
-            return IntPtr.Zero;
+        if (!_profile.Values.TryGetValue(valueName, out var def))
+        {
+            result = default!;
+            return false; // Don't throw
+        }
 
-        return ResolvePointerInternal(def);
+        return TryGetValueInternal(def, out result);
     }
 
-    public bool TryGetValueInternal<T>(ValueDefinition def, out T result)
+    public object? GetValue(string valueName)
+    {
+        if (!_profile.Values.TryGetValue(valueName, out var def))
+            throw new ArgumentException($"Value '{valueName}' not defined.");
+
+        IntPtr basePtr;
+
+        // Resolve Base (can be Signature or Pointer)
+        if (def.ParentPointer != null)
+        {
+            basePtr = ResolvePointerInternal(def.ParentPointer);
+        }
+        else if (_signatureCache.TryGetValue(def.Base, out var value))
+        {
+            basePtr = value;
+        }
+        else if (_profile.Pointers.TryGetValue(def.Base, out var ptrDef))
+        {
+            basePtr = ResolvePointerInternal(ptrDef);
+        }
+        else
+        {
+            return null; // Base not found
+        }
+
+        if (basePtr == IntPtr.Zero) return null;
+
+        var finalAddr = basePtr + def.Offset;
+
+        return def.Type.ToLower() switch
+        {
+            "int" or "int32" => MemoryReadHelper.GetValue<int>(_sigScan, finalAddr),
+            "float" or "single" => MemoryReadHelper.GetValue<float>(_sigScan, finalAddr),
+            "double" => MemoryReadHelper.GetValue<double>(_sigScan, finalAddr),
+            "bool" or "boolean" => MemoryReadHelper.GetValue<bool>(_sigScan, finalAddr),
+            "short" or "int16" => MemoryReadHelper.GetValue<short>(_sigScan, finalAddr),
+            "ushort" or "uint16" => MemoryReadHelper.GetValue<ushort>(_sigScan, finalAddr),
+            "managed_string" => GetCachedStringReader(def).Get(_sigScan, finalAddr),
+            _ => throw new NotSupportedException($"Type {def.Type} not supported.")
+        };
+    }
+
+    // Generic helper for strongly typed access
+    public T? GetValue<T>(string valueName) where T : struct
+    {
+        if (TryGetValue<T>(valueName, out var result))
+        {
+            return result;
+        }
+
+        return null;
+    }
+
+    public string? GetString(string valueName)
+    {
+        var result = GetValue(valueName);
+        return result as string;
+    }
+
+    protected bool TryGetValueInternal<T>(ValueDefinition def, out T result)
     {
         result = default!;
 
@@ -155,74 +217,12 @@ public class MemoryContext
         return false;
     }
 
-    public bool TryGetValue<T>(string valueName, out T result)
+    private IntPtr ResolvePointer(string pointerName)
     {
-        if (!_profile.Values.TryGetValue(valueName, out var def))
-        {
-            result = default!;
-            return false; // Don't throw
-        }
+        if (!_profile.Pointers.TryGetValue(pointerName, out var def))
+            return IntPtr.Zero;
 
-        return TryGetValueInternal(def, out result);
-    }
-
-    public object? GetValue(string valueName)
-    {
-        if (!_profile.Values.TryGetValue(valueName, out var def))
-            throw new ArgumentException($"Value '{valueName}' not defined.");
-
-        IntPtr basePtr;
-
-        // Resolve Base (can be Signature or Pointer)
-        if (def.ParentPointer != null)
-        {
-            basePtr = ResolvePointerInternal(def.ParentPointer);
-        }
-        else if (_signatureCache.TryGetValue(def.Base, out var value))
-        {
-            basePtr = value;
-        }
-        else if (_profile.Pointers.TryGetValue(def.Base, out var ptrDef))
-        {
-            basePtr = ResolvePointerInternal(ptrDef);
-        }
-        else
-        {
-            return null; // Base not found
-        }
-
-        if (basePtr == IntPtr.Zero) return null;
-
-        var finalAddr = basePtr + def.Offset;
-
-        return def.Type.ToLower() switch
-        {
-            "int" or "int32" => MemoryReadHelper.GetValue<int>(_sigScan, finalAddr),
-            "float" or "single" => MemoryReadHelper.GetValue<float>(_sigScan, finalAddr),
-            "double" => MemoryReadHelper.GetValue<double>(_sigScan, finalAddr),
-            "bool" or "boolean" => MemoryReadHelper.GetValue<bool>(_sigScan, finalAddr),
-            "short" or "int16" => MemoryReadHelper.GetValue<short>(_sigScan, finalAddr),
-            "ushort" or "uint16" => MemoryReadHelper.GetValue<ushort>(_sigScan, finalAddr),
-            "managed_string" => GetCachedStringReader(def).Get(_sigScan, finalAddr),
-            _ => throw new NotSupportedException($"Type {def.Type} not supported.")
-        };
-    }
-
-    // Generic helper for strongly typed access
-    public T? GetValue<T>(string valueName) where T : struct
-    {
-        if (TryGetValue<T>(valueName, out var result))
-        {
-            return result;
-        }
-
-        return null;
-    }
-
-    public string? GetString(string valueName)
-    {
-        var result = GetValue(valueName);
-        return result as string;
+        return ResolvePointerInternal(def);
     }
 
     private CachedStringReader GetCachedStringReader(ValueDefinition def)
@@ -306,7 +306,8 @@ public class MemoryContext<T> : MemoryContext where T : class
         var targetParam = Expression.Parameter(typeof(T), "target");
         var expressions = new List<Expression>();
         var contextConstant = Expression.Constant(this, typeof(MemoryContext));
-        var tryGetValueInternalMethod = typeof(MemoryContext).GetMethod(nameof(TryGetValueInternal));
+        var tryGetValueInternalMethod = typeof(MemoryContext).GetMethod(nameof(TryGetValueInternal),
+            BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic);
 
         foreach (var prop in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {

@@ -9,6 +9,7 @@
   xmlns:pages="using:KeyAsio.Views.Pages"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
+  xmlns:converters="using:KeyAsio.Converters"
   Title="KeyAsio"
   Width="900"
   Height="697"
@@ -21,6 +22,10 @@
   TitleBarAnimationEnabled="False"
   WindowStartupLocation="CenterScreen"
   mc:Ignorable="d">
+
+  <suki:SukiWindow.Resources>
+    <converters:ExtendedVolumeConverter x:Key="ExtendedVolumeConverter" />
+  </suki:SukiWindow.Resources>
 
   <Design.DataContext>
     <!--
@@ -69,23 +74,23 @@
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 
-      <!--  PAGE 2: AUDIO ENGINE  -->
-      <suki:SukiSideMenuItem x:Name="AudioEngineMenuItem" Classes="Compact" Header="Audio Engine">
-        <suki:SukiSideMenuItem.Icon>
-          <materialIcons:MaterialIcon Kind="Speaker" />
-        </suki:SukiSideMenuItem.Icon>
-        <suki:SukiSideMenuItem.PageContent>
-          <pages:AudioEnginePage />
-        </suki:SukiSideMenuItem.PageContent>
-      </suki:SukiSideMenuItem>
-
-      <!--  PAGE 3: SYNC MODE  -->
+      <!--  PAGE 2: SYNC MODE  -->
       <suki:SukiSideMenuItem Classes="Compact" Header="Sync Mode">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Link" />
         </suki:SukiSideMenuItem.Icon>
         <suki:SukiSideMenuItem.PageContent>
           <pages:SyncModePage />
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
+      <!--  PAGE 3: AUDIO ENGINE  -->
+      <suki:SukiSideMenuItem x:Name="AudioEngineMenuItem" Classes="Compact" Header="Audio Engine">
+        <suki:SukiSideMenuItem.Icon>
+          <materialIcons:MaterialIcon Kind="Speaker" />
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <pages:AudioEnginePage />
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 
@@ -137,7 +142,7 @@
             Opacity="0.7" />
           <Slider
             Grid.Column="1"
-            Maximum="150"
+            Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
             Value="{Binding AppSettings.Audio.MasterVolume}" />
           <TextBlock
             Grid.Column="2"
@@ -160,7 +165,7 @@
             Opacity="0.7" />
           <Slider
             Grid.Column="1"
-            Maximum="100"
+            Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
             Value="{Binding AppSettings.Audio.MusicVolume}" />
           <TextBlock
             Grid.Column="2"
@@ -183,7 +188,7 @@
             Opacity="0.7" />
           <Slider
             Grid.Column="1"
-            Maximum="100"
+            Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
             Value="{Binding AppSettings.Audio.EffectVolume}" />
           <TextBlock
             Grid.Column="2"

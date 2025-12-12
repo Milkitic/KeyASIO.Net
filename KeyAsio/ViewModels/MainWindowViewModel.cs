@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
@@ -18,11 +18,14 @@ using SukiUI.Toasts;
 namespace KeyAsio.ViewModels;
 
 [ObservableObject]
-public partial class MainWindowViewModel
+public partial class MainWindowViewModel : IDisposable
 {
     private readonly ILogger<MainWindowViewModel> _logger;
+    private readonly KeyboardBindingInitializer _keyboardBindingInitializer;
     private bool _isNavigating;
     private CancellationTokenSource? _saveDebounceCts;
+    private readonly List<INotifyPropertyChanged> _observedSettings = new();
+    private bool _disposed;
 
     public MainWindowViewModel()
     {
@@ -36,6 +39,8 @@ public partial class MainWindowViewModel
             AudioSettings = new AudioSettingsViewModel();
             Shared = new SharedViewModel(AppSettings);
             RealtimeSession = new RealtimeSessionContext(AppSettings);
+            RealtimeDisplay = new RealtimeDisplayViewModel(RealtimeSession);
+            _keyboardBindingInitializer = null!;
         }
     }
 
@@ -44,7 +49,8 @@ public partial class MainWindowViewModel
         UpdateService updateService,
         AudioSettingsViewModel audioSettingsViewModel,
         SharedViewModel sharedViewModel,
-        RealtimeSessionContext realtimeSession)
+        RealtimeSessionContext realtimeSession,
+        KeyboardBindingInitializer keyboardBindingInitializer)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
@@ -52,6 +58,8 @@ public partial class MainWindowViewModel
         AudioSettings = audioSettingsViewModel;
         Shared = sharedViewModel;
         RealtimeSession = realtimeSession;
+        RealtimeDisplay = new RealtimeDisplayViewModel(RealtimeSession);
+        _keyboardBindingInitializer = keyboardBindingInitializer;
         AudioSettings.ToastManager = MainToastManager;
 
         SubscribeToSettingsChanges();
@@ -64,6 +72,7 @@ public partial class MainWindowViewModel
     public AudioSettingsViewModel AudioSettings { get; }
     public SharedViewModel Shared { get; }
     public RealtimeSessionContext RealtimeSession { get; }
+    public RealtimeDisplayViewModel RealtimeDisplay { get; }
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
 
     [ObservableProperty]
@@ -171,6 +180,7 @@ public partial class MainWindowViewModel
             if (obj != null)
             {
                 obj.PropertyChanged += OnSettingsChanged;
+                _observedSettings.Add(obj);
             }
         }
 
@@ -186,12 +196,41 @@ public partial class MainWindowViewModel
         Subscribe(AppSettings.Realtime.Filters);
     }
 
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        RealtimeDisplay.Dispose();
+
+        foreach (var obj in _observedSettings)
+        {
+            obj.PropertyChanged -= OnSettingsChanged;
+        }
+
+        _observedSettings.Clear();
+        _saveDebounceCts?.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(AppSettingsAudio.MasterVolume)
-            or nameof(AppSettingsAudio.MusicVolume)
-            or nameof(AppSettingsAudio.EffectVolume)
-            or nameof(AppSettingsRealtimePlayback.BalanceFactor))
+        if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume))
+        {
+            AudioSettings.AudioEngine.MainVolume = AppSettings.Audio.MasterVolume / 100f;
+            DebounceSave();
+        }
+        else if (e.PropertyName == nameof(AppSettingsAudio.MusicVolume))
+        {
+            AudioSettings.AudioEngine.MusicVolume = AppSettings.Audio.MusicVolume / 100f;
+            DebounceSave();
+        }
+        else if (e.PropertyName == nameof(AppSettingsAudio.EffectVolume))
+        {
+            AudioSettings.AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
+            DebounceSave();
+        }
+        else if (e.PropertyName == nameof(AppSettingsRealtimePlayback.BalanceFactor))
         {
             DebounceSave();
         }

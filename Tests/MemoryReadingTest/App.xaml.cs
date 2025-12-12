@@ -43,7 +43,7 @@ namespace MemoryReadingTest
             MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) => _realtimeSessionContext.BaseMemoryTime = playTime;
             MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) => _realtimeSessionContext.Beatmap = beatmap;
             MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) => _realtimeSessionContext.OsuStatus = current;
-            MemoryScan.Start(100, 10);
+            MemoryScan.Start(50, 2);
         }
     }
 }

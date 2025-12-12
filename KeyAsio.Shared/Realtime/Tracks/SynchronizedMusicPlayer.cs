@@ -59,7 +59,7 @@ public class SynchronizedMusicPlayer
 
     public void ClearAudio()
     {
-        _audioEngine.MusicMixer.RemoveMixerInput(_baseSampleProvider);
+        if (_baseSampleProvider != null) _audioEngine.MusicMixer.RemoveMixerInput(_baseSampleProvider);
         if (_variableSampleProvider != null)
         {
             _variableSampleProvider.Dispose();

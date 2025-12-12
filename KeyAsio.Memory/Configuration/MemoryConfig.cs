@@ -3,6 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace KeyAsio.Memory.Configuration;
 
+[JsonSourceGenerationOptions(WriteIndented = true, ReadCommentHandling = JsonCommentHandling.Skip,
+    PropertyNameCaseInsensitive = true, AllowTrailingCommas = true, Converters = [typeof(HexIntJsonConverter)])]
+[JsonSerializable(typeof(MemoryProfile))]
+internal partial class SourceGenerationContext : JsonSerializerContext { }
+
 public class MemoryProfile
 {
     [JsonPropertyName("signatures")]
@@ -17,22 +22,18 @@ public class MemoryProfile
     public static MemoryProfile Load(string path)
     {
         var json = File.ReadAllText(path);
-        var options = new JsonSerializerOptions
-        {
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            PropertyNameCaseInsensitive = true,
-            AllowTrailingCommas = true
-        };
-        options.Converters.Add(new HexIntJsonConverter());
-        var profile = JsonSerializer.Deserialize<MemoryProfile>(json, options) ?? new MemoryProfile();
+        var profile = JsonSerializer.Deserialize<MemoryProfile>(json, SourceGenerationContext.Default.MemoryProfile) ?? new MemoryProfile();
         profile.Link();
         return profile;
     }
 
     public void Link()
     {
-        foreach (var ptr in Pointers.Values)
+        foreach (var kvp in Pointers)
         {
+            var ptr = kvp.Value;
+            ptr.Name = kvp.Key;
+
             if (Pointers.TryGetValue(ptr.Base, out var parent))
             {
                 ptr.ParentPointer = parent;
@@ -97,6 +98,9 @@ public class PointerDefinition
 
     [JsonPropertyName("offsets")]
     public List<int> Offsets { get; set; } = new();
+
+    [JsonIgnore]
+    public string Name { get; set; } = string.Empty;
 
     [JsonIgnore]
     public PointerDefinition? ParentPointer { get; set; }

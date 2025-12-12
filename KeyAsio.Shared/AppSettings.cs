@@ -70,6 +70,9 @@ public partial class AppSettingsAudio : INotifyPropertyChanged
 
     [Description("Effect track volume.")]
     public int EffectVolume { get; set; } = 100;
+
+    [Description("Extend the maximum volume limit to 150%.")]
+    public bool EnableExtendedVolume { get; set; }
 }
 
 public partial class AppSettingsLogging : INotifyPropertyChanged
@@ -110,12 +113,12 @@ public partial class AppSettingsRealtimeScanning : INotifyPropertyChanged
 {
     [Description("Lower values update generic fields more promptly. " +
                  "Intended for delay-insensitive fields; increase to reduce CPU usage.")]
-    public int GeneralInterval { get; set; } = 50;
+    public int GeneralScanInterval { get; set; } = 50;
 
     [Description("Lower values update timing fields more promptly. " +
                  "Intended for delay‑sensitive fields; keep as low as possible. " +
                  "Increase if audio cutting occurs.")]
-    public int TimingInterval { get; set; } = 15;
+    public int TimingScanInterval { get; set; } = 2;
 }
 
 public partial class AppSettingsRealtimePlayback : INotifyPropertyChanged

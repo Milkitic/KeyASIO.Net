@@ -60,7 +60,7 @@ public class BrowsingState : IGameState
 
     public void OnBeatmapChanged(RealtimeSessionContext ctx, BeatmapIdentifier beatmap)
     {
-        if (beatmap == default)
+        if (beatmap == default || string.IsNullOrEmpty(beatmap.Folder))
         {
             return;
         }
@@ -71,6 +71,8 @@ public class BrowsingState : IGameState
             OsuMemoryStatus.MainView or
             OsuMemoryStatus.MultiSongSelection)
            ) return;
+
+        if (!File.Exists(beatmap.FilenameFull)) return;
 
         var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
         {

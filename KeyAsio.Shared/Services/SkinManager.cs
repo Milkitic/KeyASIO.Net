@@ -39,7 +39,7 @@ public class SkinManager
     private CancellationTokenSource? _skinLoadCts;
     private Task? _skinLoadTask;
 
-    private readonly Dictionary<string, byte[]> _dictionary;
+    private readonly Dictionary<string, byte[]> _dictionary = new();
 
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel)
@@ -50,7 +50,7 @@ public class SkinManager
         _sharedViewModel = sharedViewModel;
         _sharedViewModel.PropertyChanged += SharedViewModel_PropertyChanged;
 
-        _dictionary = ResourcesKeys.ToDictionary(k => k, _ => Array.Empty<byte>());
+        //_dictionary = ResourcesKeys.ToDictionary(k => k, _ => Array.Empty<byte>());
     }
 
     public bool TryGetResource(string key, [NotNullWhen(true)] out byte[]? data)
@@ -299,15 +299,27 @@ public class SkinManager
         _ = UiDispatcher.InvokeAsync(() =>
         {
             if (token.IsCancellationRequested) return;
-
             _sharedViewModel.Skins.Clear();
-            _sharedViewModel.Skins.AddRange(newSkinList);
+            var type = SynchronizationContext.Current.GetType();
+            if (type.Namespace == "System.Windows.Threading")
+            {
+                foreach (var skinDescription in newSkinList)
+                {
+                    _sharedViewModel.Skins.Add(skinDescription);
+                }
+            }
+            else
+            {
+                _sharedViewModel.Skins.AddRange(newSkinList);
+            }
+
             _sharedViewModel.SelectedSkin = targetSkin;
         });
     }
 
     private void ExtractDefaultResources(string osuPath, CancellationToken token)
     {
+        if (_dictionary.Count > 0) return;
         var dllPath = Path.Combine(osuPath, "osu!gameplay.dll");
         if (!File.Exists(dllPath))
         {
@@ -347,7 +359,6 @@ public class SkinManager
                     _logger.LogWarning("Resource '{ResourcesKey}' not found in osu!gameplay.dll", resourcesKey);
                 }
             }
-
         }
         catch (Exception ex)
         {

@@ -135,6 +135,27 @@
                 Height="24"
                 Margin="0,0,15,0"
                 Foreground="{DynamicResource SukiText}"
+                Kind="VolumeHigh"
+                Opacity="0.6" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Extended Volume" />
+                <TextBlock
+                  FontSize="10"
+                  Opacity="0.5"
+                  Text="Allow volume up to 150%" />
+              </StackPanel>
+              <ToggleSwitch
+                Grid.Column="2"
+                IsChecked="{Binding AppSettings.Audio.EnableExtendedVolume}"
+                OffContent="Off"
+                OnContent="On" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <materialIcons:MaterialIcon
+                Width="24"
+                Height="24"
+                Margin="0,0,15,0"
+                Foreground="{DynamicResource SukiText}"
                 Kind="Console"
                 Opacity="0.6" />
               <TextBlock
