@@ -79,6 +79,7 @@ public class MemoryScan
     {
         string? songsDirectory = null;
         var data = new OsuMemoryData();
+        bool scanSuccessful = false;
 
         while (!_cts!.IsCancellationRequested)
         {
@@ -90,7 +91,9 @@ public class MemoryScan
                 _sigScan = null;
                 _memoryContext = null;
                 songsDirectory = null;
+                scanSuccessful = false;
 
+                _logger.LogInformation("Diconnected from osu! process");
                 MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
 
                 try
@@ -101,18 +104,6 @@ public class MemoryScan
                         _process = processes[0];
                         _sigScan = new SigScan(_process);
                         _memoryContext = new MemoryContext<OsuMemoryData>(_sigScan, _memoryProfile!);
-                        _memoryContext.Scan();
-
-                        var mainModuleFileName = _process.MainModule?.FileName;
-                        if (!string.IsNullOrEmpty(mainModuleFileName))
-                        {
-                            var baseDirectory = Path.GetDirectoryName(mainModuleFileName);
-                            if (baseDirectory != null)
-                            {
-                                songsDirectory = Path.Combine(baseDirectory, "Songs");
-                            }
-                        }
-
                         _logger.LogInformation("Connected to osu! process");
                         MemoryReadObject.ProcessId = _process.Id;
                     }
@@ -124,8 +115,38 @@ public class MemoryScan
 
                 if (_process == null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                     continue;
+                }
+            }
+
+            if (_memoryContext != null)
+            {
+                if (!scanSuccessful)
+                {
+                    _memoryContext.Scan();
+                    _memoryContext.BeginUpdate();
+                    scanSuccessful = _memoryContext.TryGetValue<int>("AudioTime", out var value);
+
+                    if (!scanSuccessful)
+                    {
+                        _sigScan?.Reload();
+                        Thread.Sleep(100);
+                        continue;
+                    }
+                }
+            }
+
+            if (songsDirectory == null)
+            {
+                var mainModuleFileName = _process.MainModule?.FileName;
+                if (!string.IsNullOrEmpty(mainModuleFileName))
+                {
+                    var baseDirectory = Path.GetDirectoryName(mainModuleFileName);
+                    if (baseDirectory != null)
+                    {
+                        songsDirectory = Path.Combine(baseDirectory, "Songs");
+                    }
                 }
             }
 

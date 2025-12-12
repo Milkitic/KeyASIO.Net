@@ -29,8 +29,11 @@ public class MemoryProfile
 
     public void Link()
     {
-        foreach (var ptr in Pointers.Values)
+        foreach (var kvp in Pointers)
         {
+            var ptr = kvp.Value;
+            ptr.Name = kvp.Key;
+
             if (Pointers.TryGetValue(ptr.Base, out var parent))
             {
                 ptr.ParentPointer = parent;
@@ -95,6 +98,9 @@ public class PointerDefinition
 
     [JsonPropertyName("offsets")]
     public List<int> Offsets { get; set; } = new();
+
+    [JsonIgnore]
+    public string Name { get; set; } = string.Empty;
 
     [JsonIgnore]
     public PointerDefinition? ParentPointer { get; set; }
