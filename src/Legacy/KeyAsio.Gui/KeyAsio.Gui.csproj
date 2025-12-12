@@ -49,9 +49,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KeyAsio.Audio\KeyAsio.Audio.csproj" />
-    <ProjectReference Include="..\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
-    <ProjectReference Include="..\KeyAsio.Shared\KeyAsio.Shared.csproj" />
+    <ProjectReference Include="..\..\KeyAsio.Audio\KeyAsio.Audio.csproj" />
+    <ProjectReference Include="..\..\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
+    <ProjectReference Include="..\..\KeyAsio.Shared\KeyAsio.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

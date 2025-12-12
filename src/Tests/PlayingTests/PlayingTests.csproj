@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\KeyAsio.Gui\KeyAsio.Gui.csproj" />
+    <ProjectReference Include="..\..\Legacy\KeyAsio.Gui\KeyAsio.Gui.csproj" />
   </ItemGroup>
 
 </Project>

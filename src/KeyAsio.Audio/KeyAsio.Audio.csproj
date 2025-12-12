@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\dependencies\Milki.Extensions\src\Milki.Extensions.Threading\Milki.Extensions.Threading.csproj" />
-    <ProjectReference Include="..\dependencies\NAudio\NAudio.Asio\NAudio.Asio.csproj" />
+    <ProjectReference Include="..\..\dependencies\Milki.Extensions\src\Milki.Extensions.Threading\Milki.Extensions.Threading.csproj" />
+    <ProjectReference Include="..\..\dependencies\NAudio\NAudio.Asio\NAudio.Asio.csproj" />
   </ItemGroup>
 
 </Project>

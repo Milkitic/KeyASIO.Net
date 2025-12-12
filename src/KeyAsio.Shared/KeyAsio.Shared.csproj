@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj" />
-    <ProjectReference Include="..\dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
+    <ProjectReference Include="..\..\dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj" />
+    <ProjectReference Include="..\..\dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
     <ProjectReference Include="..\KeyAsio.Audio\KeyAsio.Audio.csproj" />
     <ProjectReference Include="..\KeyAsio.MemoryReading\KeyAsio.MemoryReading.csproj" />
     <ProjectReference Include="..\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />

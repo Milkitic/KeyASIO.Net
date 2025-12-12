@@ -3,10 +3,10 @@
     <Project Path="Benchmarks\SimdBenchmarks\SimdBenchmarks.csproj" />
   </Folder>
   <Folder Name="/Dependencies/">
-    <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj" />
-    <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
-    <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Threading\Milki.Extensions.Threading.csproj" />
-    <Project Path="dependencies\NAudio\NAudio.Asio\NAudio.Asio.csproj" />
+    <Project Path="..\dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj" />
+    <Project Path="..\dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
+    <Project Path="..\dependencies\Milki.Extensions\src\Milki.Extensions.Threading\Milki.Extensions.Threading.csproj" />
+    <Project Path="..\dependencies\NAudio\NAudio.Asio\NAudio.Asio.csproj" />
   </Folder>
   <Folder Name="/Legacy/">
     <Project Path="Legacy\KeyAsio.Gui\KeyAsio.Gui.csproj" />
