@@ -74,23 +74,23 @@
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 
-      <!--  PAGE 2: AUDIO ENGINE  -->
-      <suki:SukiSideMenuItem x:Name="AudioEngineMenuItem" Classes="Compact" Header="Audio Engine">
-        <suki:SukiSideMenuItem.Icon>
-          <materialIcons:MaterialIcon Kind="Speaker" />
-        </suki:SukiSideMenuItem.Icon>
-        <suki:SukiSideMenuItem.PageContent>
-          <pages:AudioEnginePage />
-        </suki:SukiSideMenuItem.PageContent>
-      </suki:SukiSideMenuItem>
-
-      <!--  PAGE 3: SYNC MODE  -->
+      <!--  PAGE 2: SYNC MODE  -->
       <suki:SukiSideMenuItem Classes="Compact" Header="Sync Mode">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Link" />
         </suki:SukiSideMenuItem.Icon>
         <suki:SukiSideMenuItem.PageContent>
           <pages:SyncModePage />
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
+      <!--  PAGE 3: AUDIO ENGINE  -->
+      <suki:SukiSideMenuItem x:Name="AudioEngineMenuItem" Classes="Compact" Header="Audio Engine">
+        <suki:SukiSideMenuItem.Icon>
+          <materialIcons:MaterialIcon Kind="Speaker" />
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <pages:AudioEnginePage />
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 

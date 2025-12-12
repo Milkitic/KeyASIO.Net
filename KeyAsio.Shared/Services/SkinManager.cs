@@ -312,6 +312,7 @@ public class SkinManager
             {
                 _sharedViewModel.Skins.AddRange(newSkinList);
             }
+
             _sharedViewModel.SelectedSkin = targetSkin;
         });
     }
@@ -358,7 +359,6 @@ public class SkinManager
                     _logger.LogWarning("Resource '{ResourcesKey}' not found in osu!gameplay.dll", resourcesKey);
                 }
             }
-
         }
         catch (Exception ex)
         {

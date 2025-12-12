@@ -7,6 +7,7 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
+  xmlns:system="clr-namespace:System;assembly=System.Runtime"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
 
@@ -193,6 +194,7 @@
       Margin="20"
       Padding="15"
       VerticalAlignment="Bottom"
+      IsOpaque="True"
       IsVisible="{Binding AudioSettings.HasUnsavedAudioChanges}">
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel

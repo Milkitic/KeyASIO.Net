@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
@@ -111,8 +111,14 @@ public partial class AppSettingsRealtime : INotifyPropertyChanged
 
 public partial class AppSettingsRealtimeScanning : INotifyPropertyChanged
 {
-    [Description("Memory scan interval (ms).")]
-    public int ScanInterval { get; set; } = 10;
+    [Description("Lower values update generic fields more promptly. " +
+                 "Intended for delay-insensitive fields; increase to reduce CPU usage.")]
+    public int GeneralScanInterval { get; set; } = 50;
+
+    [Description("Lower values update timing fields more promptly. " +
+                 "Intended for delay‑sensitive fields; keep as low as possible. " +
+                 "Increase if audio cutting occurs.")]
+    public int TimingScanInterval { get; set; } = 2;
 }
 
 public partial class AppSettingsRealtimePlayback : INotifyPropertyChanged

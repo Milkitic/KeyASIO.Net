@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using KeyAsio.Memory;
 using KeyAsio.Memory.Configuration;
+using KeyAsio.Memory.Utils;
 using KeyAsio.MemoryReading.OsuMemoryModels;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +11,8 @@ public class MemoryScan
 {
     private readonly ILogger<MemoryScan> _logger;
 
-    private int _scanInterval;
+    private int _generalInterval;
+    private int _timingInterval;
 
     private Process? _process;
     private SigScan? _sigScan;
@@ -33,11 +35,12 @@ public class MemoryScan
 
     public MemoryReadObject MemoryReadObject { get; } = new();
 
-    public void Start(int scanInterval, int processInterval = 500)
+    public void Start(int generalInterval, int timingInterval)
     {
         if (_isStarted) return;
         _isStarted = true;
-        _scanInterval = scanInterval;
+        _generalInterval = generalInterval;
+        _timingInterval = timingInterval;
 
         try
         {
@@ -72,14 +75,20 @@ public class MemoryScan
         _isStarted = false;
     }
 
-    public void UpdateScanInterval(int scanInterval)
+    public void UpdateIntervals(int generalInterval, int timingInterval)
     {
-        _scanInterval = scanInterval;
+        _generalInterval = generalInterval;
+        _timingInterval = timingInterval;
         _intervalUpdatedEvent.Set();
     }
 
     private void ReadImpl()
     {
+        using var timerScope = new HighPrecisionTimerScope();
+        var nextGeneralScan = 0L;
+        var nextTimingScan = 0L;
+        var stopwatch = Stopwatch.StartNew();
+
         while (!_cts!.IsCancellationRequested)
         {
             if (!EnsureConnected())
@@ -94,10 +103,28 @@ public class MemoryScan
                 continue;
             }
 
-            if (ReadData())
+            EnsureSongsDirectory();
+
+            long now = stopwatch.ElapsedMilliseconds;
+            bool didWork = false;
+
+            if (now >= nextTimingScan)
             {
-                WaitHandle.WaitAny([_cts.Token.WaitHandle, _intervalUpdatedEvent.WaitHandle], _scanInterval);
-                if (_intervalUpdatedEvent.IsSet) _intervalUpdatedEvent.Reset();
+                ReadTiming();
+                nextTimingScan = now + _timingInterval;
+                didWork = true;
+            }
+
+            if (now >= nextGeneralScan)
+            {
+                ReadGeneralData();
+                nextGeneralScan = now + _generalInterval;
+                didWork = true;
+            }
+
+            if (!didWork)
+            {
+                Thread.Sleep(1);
             }
         }
     }
@@ -194,14 +221,13 @@ public class MemoryScan
         }
     }
 
-    private bool ReadData()
+    private bool ReadGeneralData()
     {
         try
         {
             _memoryContext!.BeginUpdate();
             _memoryContext.Populate(_osuMemoryData);
 
-            MemoryReadObject.PlayingTime = _osuMemoryData.AudioTime;
             MemoryReadObject.OsuStatus = (OsuMemoryStatus)_osuMemoryData.RawStatus;
             MemoryReadObject.PlayerName = _osuMemoryData.Username;
             MemoryReadObject.Mods = (Mods)_osuMemoryData.Mods;
@@ -241,6 +267,14 @@ public class MemoryScan
             _logger.LogError(ex, "Error reading memory");
             CleanupProcess();
             return false;
+        }
+    }
+
+    private void ReadTiming()
+    {
+        if (_memoryContext != null && _memoryContext.TryGetValue<int>("AudioTime", out var audioTime))
+        {
+            MemoryReadObject.PlayingTime = audioTime;
         }
     }
 }
