@@ -59,7 +59,13 @@ public partial class MainWindowViewModel
              return;
         }
 
-        var vm = new KeyBindDialogViewModel(_keyboardBindingInitializer.KeyboardHook, key => { BoundKeys.Add(key); },
+        var vm = new KeyBindDialogViewModel(_keyboardBindingInitializer.KeyboardHook, key =>
+        {
+            if (!BoundKeys.Contains(key))
+            {
+                BoundKeys.Add(key);
+            }
+        },
             () => { DialogManager.DismissDialog(); });
 
         DialogManager.CreateDialog()
