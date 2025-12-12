@@ -18,12 +18,14 @@ using SukiUI.Toasts;
 namespace KeyAsio.ViewModels;
 
 [ObservableObject]
-public partial class MainWindowViewModel
+public partial class MainWindowViewModel : IDisposable
 {
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly KeyboardBindingInitializer _keyboardBindingInitializer;
     private bool _isNavigating;
     private CancellationTokenSource? _saveDebounceCts;
+    private readonly List<INotifyPropertyChanged> _observedSettings = new();
+    private bool _disposed;
 
     public MainWindowViewModel()
     {
@@ -37,6 +39,7 @@ public partial class MainWindowViewModel
             AudioSettings = new AudioSettingsViewModel();
             Shared = new SharedViewModel(AppSettings);
             RealtimeSession = new RealtimeSessionContext(AppSettings);
+            RealtimeDisplay = new RealtimeDisplayViewModel(RealtimeSession);
             _keyboardBindingInitializer = null!;
         }
     }
@@ -55,6 +58,7 @@ public partial class MainWindowViewModel
         AudioSettings = audioSettingsViewModel;
         Shared = sharedViewModel;
         RealtimeSession = realtimeSession;
+        RealtimeDisplay = new RealtimeDisplayViewModel(RealtimeSession);
         _keyboardBindingInitializer = keyboardBindingInitializer;
         AudioSettings.ToastManager = MainToastManager;
 
@@ -68,6 +72,7 @@ public partial class MainWindowViewModel
     public AudioSettingsViewModel AudioSettings { get; }
     public SharedViewModel Shared { get; }
     public RealtimeSessionContext RealtimeSession { get; }
+    public RealtimeDisplayViewModel RealtimeDisplay { get; }
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
 
     [ObservableProperty]
@@ -175,6 +180,7 @@ public partial class MainWindowViewModel
             if (obj != null)
             {
                 obj.PropertyChanged += OnSettingsChanged;
+                _observedSettings.Add(obj);
             }
         }
 
@@ -188,6 +194,23 @@ public partial class MainWindowViewModel
         Subscribe(AppSettings.Realtime.Scanning);
         Subscribe(AppSettings.Realtime.Playback);
         Subscribe(AppSettings.Realtime.Filters);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        RealtimeDisplay.Dispose();
+
+        foreach (var obj in _observedSettings)
+        {
+            obj.PropertyChanged -= OnSettingsChanged;
+        }
+
+        _observedSettings.Clear();
+        _saveDebounceCts?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)

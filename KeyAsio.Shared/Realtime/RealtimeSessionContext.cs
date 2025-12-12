@@ -17,8 +17,6 @@ public class RealtimeSessionContext : ViewModelBase
 
     private readonly AppSettings _appSettings;
     private readonly Stopwatch _playTimeStopwatch = new();
-    private readonly Stopwatch _uiUpdateStopwatch = Stopwatch.StartNew();
-    private const long UiUpdateIntervalMs = 33; // ~30fps throttle
 
     public RealtimeSessionContext(AppSettings appSettings)
     {
@@ -74,12 +72,7 @@ public class RealtimeSessionContext : ViewModelBase
             field = value;
 
             OnFetchedPlayTimeChanged?.Invoke(oldValue, value, !changed);
-
-            if (_uiUpdateStopwatch.ElapsedMilliseconds >= UiUpdateIntervalMs)
-            {
-                _uiUpdateStopwatch.Restart();
-                OnPropertyChanged();
-            }
+            OnPropertyChanged();
         }
     }
 

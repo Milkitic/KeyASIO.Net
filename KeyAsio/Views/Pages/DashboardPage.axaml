@@ -92,12 +92,12 @@
               Classes="h2"
               FontWeight="Bold"
               Foreground="{DynamicResource SukiText}"
-              Text="{Binding RealtimeSession.SyncedStatusText}" />
+              Text="{Binding RealtimeDisplay.SyncedStatusText}" />
             <TextBlock
               HorizontalAlignment="Center"
               Classes="Caption"
               Opacity="0.6"
-              Text="{Binding RealtimeSession.ProcessId, StringFormat='PID: {0}'}" />
+              Text="{Binding RealtimeDisplay.ProcessId, StringFormat='PID: {0}'}" />
           </StackPanel>
         </Grid>
       </suki:GlassCard>
@@ -129,9 +129,9 @@
                 Text="Beatmap" />
               <TextBlock
                 FontWeight="DemiBold"
-                Text="{Binding RealtimeSession.Beatmap.Filename}"
+                Text="{Binding RealtimeDisplay.Beatmap.Filename}"
                 TextTrimming="CharacterEllipsis"
-                ToolTip.Tip="{Binding RealtimeSession.Beatmap.Filename}" />
+                ToolTip.Tip="{Binding RealtimeDisplay.Beatmap.Filename}" />
             </StackPanel>
             <StackPanel Grid.Column="1" Margin="0,0,10,0">
               <TextBlock
@@ -142,7 +142,7 @@
               <TextBlock
                 FontFamily="Consolas"
                 FontWeight="DemiBold"
-                Text="{Binding RealtimeSession.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+                Text="{Binding RealtimeDisplay.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
             </StackPanel>
             <StackPanel Grid.Column="2">
               <TextBlock
@@ -150,7 +150,7 @@
                 FontSize="12"
                 Opacity="0.6"
                 Text="Status" />
-              <TextBlock FontWeight="DemiBold" Text="{Binding RealtimeSession.OsuStatus}" />
+              <TextBlock FontWeight="DemiBold" Text="{Binding RealtimeDisplay.OsuStatus}" />
             </StackPanel>
           </Grid>
         </Grid>
