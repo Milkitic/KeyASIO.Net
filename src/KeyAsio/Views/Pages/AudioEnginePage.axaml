@@ -179,6 +179,12 @@
                   Opacity="0.6"
                   Text="Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio."
                   TextWrapping="Wrap" />
+                <TextBlock
+                  Classes="Accent"
+                  FontSize="12"
+                  Opacity="0.6"
+                  Text="Requires more CPU resources. Disable if audio stutters."
+                  TextWrapping="Wrap" />
               </StackPanel>
             </StackPanel>
           </suki:GroupBox>
