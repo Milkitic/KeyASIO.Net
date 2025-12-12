@@ -39,7 +39,7 @@ public class SkinManager
     private CancellationTokenSource? _skinLoadCts;
     private Task? _skinLoadTask;
 
-    private readonly Dictionary<string, byte[]> _dictionary;
+    private readonly Dictionary<string, byte[]> _dictionary = new();
 
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel)
@@ -50,7 +50,7 @@ public class SkinManager
         _sharedViewModel = sharedViewModel;
         _sharedViewModel.PropertyChanged += SharedViewModel_PropertyChanged;
 
-        _dictionary = ResourcesKeys.ToDictionary(k => k, _ => Array.Empty<byte>());
+        //_dictionary = ResourcesKeys.ToDictionary(k => k, _ => Array.Empty<byte>());
     }
 
     public bool TryGetResource(string key, [NotNullWhen(true)] out byte[]? data)
@@ -318,6 +318,7 @@ public class SkinManager
 
     private void ExtractDefaultResources(string osuPath, CancellationToken token)
     {
+        if (_dictionary.Count > 0) return;
         var dllPath = Path.Combine(osuPath, "osu!gameplay.dll");
         if (!File.Exists(dllPath))
         {
