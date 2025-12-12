@@ -8,6 +8,9 @@
     <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Threading\Milki.Extensions.Threading.csproj" />
     <Project Path="dependencies\NAudio\NAudio.Asio\NAudio.Asio.csproj" />
   </Folder>
+  <Folder Name="/Legacy/">
+    <Project Path="Legacy\KeyAsio.Gui\KeyAsio.Gui.csproj" />
+  </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests\AudioTests\AudioTests.csproj" />
     <Project Path="Tests\ColumnTest\ColumnTest.csproj" />
@@ -16,7 +19,6 @@
   </Folder>
   <Project Path="KeyAsio\KeyAsio.csproj" />
   <Project Path="KeyAsio.Audio\KeyAsio.Audio.csproj" />
-  <Project Path="KeyAsio.Gui\KeyAsio.Gui.csproj" />
   <Project Path="KeyAsio.Memory\KeyAsio.Memory.csproj" />
   <Project Path="KeyAsio.MemoryReading\KeyAsio.MemoryReading.csproj" />
   <Project Path="KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
