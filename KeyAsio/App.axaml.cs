@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using KeyAsio.MemoryReading;
 using KeyAsio.Services;
 using KeyAsio.Shared;
@@ -79,24 +80,24 @@ public partial class App : Application
         }
 
         memoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-            realtimeSessionContext.Username = player;
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.Username = player);
         memoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-            realtimeSessionContext.PlayMods = mods;
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.PlayMods = mods);
         memoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-            realtimeSessionContext.Combo = combo;
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.Combo = combo);
         memoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-            realtimeSessionContext.Score = score;
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.Score = score);
         memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-            realtimeSessionContext.IsReplay = isReplay;
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.IsReplay = isReplay);
         memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            realtimeSessionContext.BaseMemoryTime = playTime;
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.BaseMemoryTime = playTime);
         memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-            realtimeSessionContext.Beatmap = beatmap;
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.Beatmap = beatmap);
         memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-            realtimeSessionContext.OsuStatus = current;
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.OsuStatus = current);
         memoryScan.MemoryReadObject.ProcessIdChanged += (_, id) =>
-            realtimeSessionContext.ProcessId = id;
-        
+            Dispatcher.UIThread.InvokeAsync(() => realtimeSessionContext.ProcessId = id);
+
         appSettings.Realtime.Scanning.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(AppSettingsRealtimeScanning.ScanInterval))
