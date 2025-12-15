@@ -1,15 +1,15 @@
-
+﻿
 <suki:SukiWindow
   x:Class="KeyAsio.Views.MainWindow"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:converters="using:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:pages="using:KeyAsio.Views.Pages"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
-  xmlns:converters="using:KeyAsio.Converters"
   Title="KeyAsio"
   Width="900"
   Height="697"
@@ -85,7 +85,10 @@
       </suki:SukiSideMenuItem>
 
       <!--  PAGE 3: AUDIO ENGINE  -->
-      <suki:SukiSideMenuItem x:Name="AudioEngineMenuItem" Classes="Compact" Header="Audio Engine">
+      <suki:SukiSideMenuItem
+        x:Name="AudioEngineMenuItem"
+        Classes="Compact"
+        Header="Audio Engine">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Speaker" />
         </suki:SukiSideMenuItem.Icon>
@@ -95,7 +98,10 @@
       </suki:SukiSideMenuItem>
 
       <!--  PAGE 4: SETTINGS  -->
-      <suki:SukiSideMenuItem x:Name="SettingsMenuItem" Classes="Compact" Header="Settings">
+      <suki:SukiSideMenuItem
+        x:Name="SettingsMenuItem"
+        Classes="Compact"
+        Header="Settings">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Cog" />
         </suki:SukiSideMenuItem.Icon>
@@ -128,7 +134,7 @@
     <!--  FOOTER VOLUME  -->
     <suki:SukiSideMenu.FooterContent>
       <StackPanel Margin="15">
-        <Separator Margin="0,0,0,10" Opacity="0.1" />
+        <Separator Margin="0,0,0,10" Classes="Section" />
 
         <TextBlock
           Margin="0,0,0,5"

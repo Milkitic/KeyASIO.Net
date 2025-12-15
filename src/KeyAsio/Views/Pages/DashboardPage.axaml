@@ -19,14 +19,6 @@
     <converters:HookKeyToDisplayConverter x:Key="HookKeyToDisplayConverter" />
   </UserControl.Resources>
 
-  <UserControl.Styles>
-    <Style Selector="Button.DashboardHeaderButton">
-      <Setter Property="Width" Value="24" />
-      <Setter Property="Height" Value="24" />
-      <Setter Property="Padding" Value="0" />
-    </Style>
-  </UserControl.Styles>
-
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
@@ -124,8 +116,7 @@
             <StackPanel Margin="0,0,10,0">
               <TextBlock
                 Margin="0,0,0,5"
-                FontSize="12"
-                Opacity="0.6"
+                Classes="Label"
                 Text="Beatmap" />
               <TextBlock
                 FontWeight="DemiBold"
@@ -136,8 +127,7 @@
             <StackPanel Grid.Column="1" Margin="0,0,10,0">
               <TextBlock
                 Margin="0,0,0,5"
-                FontSize="12"
-                Opacity="0.6"
+                Classes="Label"
                 Text="Play Time" />
               <TextBlock
                 FontFamily="Consolas"
@@ -147,8 +137,7 @@
             <StackPanel Grid.Column="2">
               <TextBlock
                 Margin="0,0,0,5"
-                FontSize="12"
-                Opacity="0.6"
+                Classes="Label"
                 Text="Status" />
               <TextBlock FontWeight="DemiBold" Text="{Binding RealtimeDisplay.OsuStatus}" />
             </StackPanel>
@@ -200,7 +189,7 @@
                 Spacing="5">
                 <!--  ASIO Settings  -->
                 <Button
-                  Classes="DashboardHeaderButton Flat"
+                  Classes="IconAction Flat"
                   Command="{Binding AudioSettings.OpenAsioPanelCommand}"
                   IsVisible="{Binding AudioSettings.IsAsio}"
                   ToolTip.Tip="Driver Panel">
@@ -213,7 +202,7 @@
 
                 <!--  Refresh  -->
                 <Button
-                  Classes="DashboardHeaderButton"
+                  Classes="IconAction"
                   Command="{Binding AudioSettings.ReloadAudioDeviceCommand}"
                   Cursor="Arrow"
                   IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNotNull}}"
@@ -227,7 +216,7 @@
 
                 <!--  Delete/Clear  -->
                 <Button
-                  Classes="DashboardHeaderButton Danger"
+                  Classes="IconAction Danger"
                   Command="{Binding AudioSettings.ClearAudioDeviceCommand}"
                   Cursor="Arrow"
                   IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNotNull}}"
@@ -368,7 +357,7 @@
               <!--  Add Button  -->
               <Button
                 Margin="5,0,0,0"
-                Classes="DashboardHeaderButton Flat"
+                Classes="IconAction Flat"
                 Command="{Binding AddKeyCommand}"
                 DockPanel.Dock="Right"
                 IsVisible="{Binding !IsEditingKeys}">
@@ -378,14 +367,14 @@
               <!--  Edit/Done Toggle  -->
               <Panel DockPanel.Dock="Right">
                 <Button
-                  Classes="DashboardHeaderButton Flat"
+                  Classes="IconAction Flat"
                   Command="{Binding ToggleEditKeysCommand}"
                   IsVisible="{Binding !IsEditingKeys}"
                   ToolTip.Tip="Edit Bindings">
                   <materialIcons:MaterialIcon Kind="Pencil" />
                 </Button>
                 <Button
-                  Classes="DashboardHeaderButton Flat"
+                  Classes="IconAction Flat"
                   Command="{Binding ToggleEditKeysCommand}"
                   IsVisible="{Binding IsEditingKeys}"
                   ToolTip.Tip="Done">

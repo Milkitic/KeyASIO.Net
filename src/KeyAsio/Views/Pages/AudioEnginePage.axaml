@@ -98,7 +98,7 @@
                   Value="{Binding AudioSettings.ForceAsioBufferSize}" />
               </StackPanel>
 
-              <Separator IsVisible="{Binding AudioSettings.IsWasapi}" Opacity="0.1" />
+              <Separator Classes="Section" IsVisible="{Binding AudioSettings.IsWasapi}" />
 
               <controls:SettingItem
                 Header="Exclusive Mode"

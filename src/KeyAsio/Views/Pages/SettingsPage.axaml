@@ -48,9 +48,7 @@
                 <materialIcons:MaterialIcon Kind="FolderOpen" />
               </Button>
             </Grid>
-
-            <Separator Opacity="0.1" />
-
+            <Separator Classes="Section" />
             <controls:SettingItem Header="Audio Cache Threads" Icon="Cpu64Bit">
               <controls:SettingItem.ActionContent>
                 <NumericUpDown
@@ -131,16 +129,12 @@
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel VerticalAlignment="Center">
                 <TextBlock FontWeight="DemiBold" Text="Updates" />
-                <TextBlock
-                  FontSize="11"
-                  IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                  Opacity="0.6">
+                <TextBlock Classes="Description" IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                   <Run Text="Update available: v" /><Run Text="{Binding UpdateService.NewVersion}" />
                 </TextBlock>
                 <TextBlock
-                  FontSize="11"
+                  Classes="Description"
                   IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                  Opacity="0.6"
                   Text="No updates available." />
               </StackPanel>
               <Button
@@ -149,14 +143,11 @@
                 Command="{Binding UpdateService.CheckForUpdatesCommand}"
                 Content="Check for Updates" />
             </Grid>
-            <Separator Opacity="0.1" />
+            <Separator Classes="Section" />
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel VerticalAlignment="Center">
                 <TextBlock Text="Copyright © 2022-2025 Milkitic (aka. yf_bmp)." />
-                <TextBlock
-                  FontSize="11"
-                  Opacity="0.6"
-                  Text="Licensed under GPL-3.0" />
+                <TextBlock Classes="Description" Text="Licensed under GPL-3.0" />
               </StackPanel>
               <Button
                 Grid.Column="1"
