@@ -1,0 +1,42 @@
+﻿<UserControl
+  x:Class="KeyAsio.Views.Controls.SettingItem"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  x:Name="Root"
+  d:DesignHeight="50"
+  d:DesignWidth="400"
+  ClipToBounds="False"
+  mc:Ignorable="d">
+  <Grid ColumnDefinitions="Auto,*,Auto">
+    <materialIcons:MaterialIcon
+      Width="24"
+      Height="24"
+      Margin="0,0,15,0"
+      VerticalAlignment="Center"
+      Foreground="{DynamicResource SukiText}"
+      Kind="{Binding Icon, ElementName=Root}"
+      Opacity="0.6" />
+
+    <StackPanel
+      Grid.Column="1"
+      VerticalAlignment="Center"
+      Spacing="0">
+      <TextBlock Text="{Binding Header, ElementName=Root}" />
+      <TextBlock
+        FontSize="11"
+        IsVisible="{Binding Description, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+        Opacity="0.6"
+        Text="{Binding Description, ElementName=Root}"
+        TextWrapping="Wrap" />
+    </StackPanel>
+
+    <ContentPresenter
+      Grid.Column="2"
+      VerticalAlignment="Center"
+      ClipToBounds="False"
+      Content="{Binding ActionContent, ElementName=Root}" />
+  </Grid>
+</UserControl>

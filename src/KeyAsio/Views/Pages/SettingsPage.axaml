@@ -1,7 +1,8 @@
-<UserControl
+﻿<UserControl
   x:Class="KeyAsio.Views.Pages.SettingsPage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:controls="using:KeyAsio.Views.Controls"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -19,24 +20,14 @@
       <suki:GlassCard>
         <suki:GroupBox Header="General">
           <StackPanel Margin="0,0,8,0" Spacing="10">
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="LayersTriple"
-                Opacity="0.6" />
-              <TextBlock
-                Grid.Column="1"
-                VerticalAlignment="Center"
-                Text="Allow Multiple Instances" />
-              <ToggleSwitch
-                Grid.Column="2"
-                IsChecked="{Binding AppSettings.General.AllowMultipleInstance}"
-                OffContent="Off"
-                OnContent="On" />
-            </Grid>
+            <controls:SettingItem Header="Allow Multiple Instances" Icon="LayersTriple">
+              <controls:SettingItem.ActionContent>
+                <ToggleSwitch
+                  IsChecked="{Binding AppSettings.General.AllowMultipleInstance}"
+                  OffContent="Off"
+                  OnContent="On" />
+              </controls:SettingItem.ActionContent>
+            </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
@@ -60,26 +51,16 @@
 
             <Separator Opacity="0.1" />
 
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="Cpu64Bit"
-                Opacity="0.6" />
-              <TextBlock
-                Grid.Column="1"
-                VerticalAlignment="Center"
-                Text="Audio Cache Threads" />
-              <NumericUpDown
-                Grid.Column="2"
-                Classes="SettingItem"
-                FormatString="#"
-                Maximum="16"
-                Minimum="1"
-                Value="{Binding AppSettings.Performance.AudioCacheThreadCount}" />
-            </Grid>
+            <controls:SettingItem Header="Audio Cache Threads" Icon="Cpu64Bit">
+              <controls:SettingItem.ActionContent>
+                <NumericUpDown
+                  Classes="SettingItem"
+                  FormatString="#"
+                  Maximum="16"
+                  Minimum="1"
+                  Value="{Binding AppSettings.Performance.AudioCacheThreadCount}" />
+              </controls:SettingItem.ActionContent>
+            </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
@@ -87,105 +68,59 @@
       <suki:GlassCard>
         <suki:GroupBox Header="Input &amp; Performance">
           <StackPanel Margin="0,0,8,0" Spacing="10">
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="KeyboardVariant"
-                Opacity="0.6" />
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Raw Input" />
-                <TextBlock
-                  FontSize="10"
-                  Opacity="0.5"
-                  Text="Uses low-latency key hooks when disabled" />
-              </StackPanel>
-              <ToggleSwitch
-                Grid.Column="2"
-                IsChecked="{Binding AppSettings.Input.UseRawInput}"
-                OffContent="Off"
-                OnContent="On" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="RocketLaunch"
-                Opacity="0.6" />
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Enable AVX-512" />
-                <TextBlock
-                  FontSize="10"
-                  Opacity="0.5"
-                  Text="Performance Boost" />
-              </StackPanel>
-              <ToggleSwitch
-                Grid.Column="2"
-                IsChecked="{Binding AppSettings.Performance.EnableAvx512}"
-                OffContent="Off"
-                OnContent="On" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="VolumeHigh"
-                Opacity="0.6" />
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Extended Volume" />
-                <TextBlock
-                  FontSize="10"
-                  Opacity="0.5"
-                  Text="Allow volume up to 150%" />
-              </StackPanel>
-              <ToggleSwitch
-                Grid.Column="2"
-                IsChecked="{Binding AppSettings.Audio.EnableExtendedVolume}"
-                OffContent="Off"
-                OnContent="On" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="Console"
-                Opacity="0.6" />
-              <TextBlock
-                Grid.Column="1"
-                VerticalAlignment="Center"
-                Text="Debug Console" />
-              <ToggleSwitch
-                Grid.Column="2"
-                IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}"
-                OffContent="Off"
-                OnContent="On" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <materialIcons:MaterialIcon
-                Width="24"
-                Height="24"
-                Margin="0,0,15,0"
-                Foreground="{DynamicResource SukiText}"
-                Kind="Bug"
-                Opacity="0.6" />
-              <TextBlock
-                Grid.Column="1"
-                VerticalAlignment="Center"
-                Text="Error Reporting" />
-              <ToggleSwitch
-                Grid.Column="2"
-                IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}"
-                OffContent="Off"
-                OnContent="On" />
-            </Grid>
+            <controls:SettingItem
+              Description="Uses low-latency key hooks when disabled"
+              Header="Raw Input"
+              Icon="KeyboardVariant">
+              <controls:SettingItem.ActionContent>
+                <ToggleSwitch
+                  IsChecked="{Binding AppSettings.Input.UseRawInput}"
+                  OffContent="Off"
+                  OnContent="On" />
+              </controls:SettingItem.ActionContent>
+            </controls:SettingItem>
+
+            <controls:SettingItem
+              Description="Performance Boost"
+              Header="Enable AVX-512"
+              Icon="RocketLaunch">
+              <controls:SettingItem.ActionContent>
+                <ToggleSwitch
+                  IsChecked="{Binding AppSettings.Performance.EnableAvx512}"
+                  OffContent="Off"
+                  OnContent="On" />
+              </controls:SettingItem.ActionContent>
+            </controls:SettingItem>
+
+            <controls:SettingItem
+              Description="Allow volume up to 150%"
+              Header="Extended Volume"
+              Icon="VolumeHigh">
+              <controls:SettingItem.ActionContent>
+                <ToggleSwitch
+                  IsChecked="{Binding AppSettings.Audio.EnableExtendedVolume}"
+                  OffContent="Off"
+                  OnContent="On" />
+              </controls:SettingItem.ActionContent>
+            </controls:SettingItem>
+
+            <controls:SettingItem Header="Debug Console" Icon="Console">
+              <controls:SettingItem.ActionContent>
+                <ToggleSwitch
+                  IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}"
+                  OffContent="Off"
+                  OnContent="On" />
+              </controls:SettingItem.ActionContent>
+            </controls:SettingItem>
+
+            <controls:SettingItem Header="Error Reporting" Icon="Bug">
+              <controls:SettingItem.ActionContent>
+                <ToggleSwitch
+                  IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}"
+                  OffContent="Off"
+                  OnContent="On" />
+              </controls:SettingItem.ActionContent>
+            </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
