@@ -17,6 +17,17 @@
     <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
     <converters:IntMillisecond2TimeSpanConverter x:Key="IntMillisecond2TimeSpanConverter" />
     <converters:HookKeyToDisplayConverter x:Key="HookKeyToDisplayConverter" />
+
+    <LinearGradientBrush x:Key="PremiumGoldBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+      <GradientStop Offset="0.0" Color="#FFEDC2" />
+      <GradientStop Offset="0.5" Color="#FFD700" />
+      <GradientStop Offset="1.0" Color="#D4AF37" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PremiumGoldBorderBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+      <GradientStop Offset="0.0" Color="#FFF5E1" />
+      <GradientStop Offset="1.0" Color="#C5A028" />
+    </LinearGradientBrush>
   </UserControl.Resources>
 
   <Design.DataContext>
@@ -28,11 +39,194 @@
     <!--  Top: Switcher  -->
     <suki:GlassCard Margin="0,0,0,15" Classes="Surface">
       <DockPanel>
-        <ToggleSwitch
-          DockPanel.Dock="Right"
-          IsChecked="{Binding AppSettings.Realtime.RealtimeMode}"
-          OffContent="Key Only"
-          OnContent="Sync Mode" />
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <ToggleSwitch IsChecked="{Binding AppSettings.Realtime.RealtimeEnableMusic}" IsEnabled="{Binding AppSettings.Realtime.RealtimeMode}">
+            <ToggleSwitch.Styles>
+              <!--<Style Selector="ToggleSwitch:checked">
+                <Style.Resources>
+                  <Color x:Key="SukiPrimaryColor">#FFD700</Color>
+                </Style.Resources>
+              </Style>-->
+            </ToggleSwitch.Styles>
+            <ToggleSwitch.OffContent>
+              <StackPanel
+                Background="Transparent"
+                Orientation="Horizontal"
+                Spacing="8"
+                ToolTip.Tip="Enable memory scanning and correct hitsound playback.">
+                <materialIcons:MaterialIcon
+                  Width="18"
+                  Height="18"
+                  VerticalAlignment="Center"
+                  Kind="MusicNoteOff"
+                  Opacity="{DynamicResource OpacitySecondary}" />
+                <TextBlock VerticalAlignment="Center" Text="SFX" />
+              </StackPanel>
+            </ToggleSwitch.OffContent>
+            <ToggleSwitch.OnContent>
+              <StackPanel
+                Width="96"
+                Background="Transparent"
+                Orientation="Horizontal"
+                Spacing="8"
+                ToolTip.Tip="Enable music‑related functions.">
+                <materialIcons:MaterialIcon
+                  Width="18"
+                  Height="18"
+                  VerticalAlignment="Center"
+                  Kind="Music">
+                  <materialIcons:MaterialIcon.Styles>
+                    <Style Selector="materialIcons|MaterialIcon">
+                      <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
+                      <Setter Property="Opacity" Value="{DynamicResource OpacitySecondary}" />
+                    </Style>
+                    <!--<Style Selector="ToggleSwitch:checked materialIcons|MaterialIcon">
+                      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
+                      <Setter Property="Opacity" Value="1" />
+                    </Style>-->
+                  </materialIcons:MaterialIcon.Styles>
+                </materialIcons:MaterialIcon>
+                <TextBlock VerticalAlignment="Center" Text="MIX (Exp.)">
+                  <TextBlock.Styles>
+                    <Style Selector="TextBlock">
+                      <Setter Property="FontWeight" Value="Normal" />
+                      <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
+                    </Style>
+                    <!--<Style Selector="ToggleSwitch:checked TextBlock">
+                      <Setter Property="FontWeight" Value="Bold" />
+                      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
+                      <Setter Property="Effect">
+                        <DropShadowEffect
+                          BlurRadius="15"
+                          OffsetX="0"
+                          OffsetY="0"
+                          Opacity="0.6"
+                          Color="#FFD700" />
+                      </Setter>
+                    </Style>-->
+                  </TextBlock.Styles>
+                </TextBlock>
+                <Border
+                  Margin="0,0,0,0"
+                  Padding="2,1"
+                  VerticalAlignment="Center"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  IsVisible="False"
+                  RenderTransform="scale(0.9,0.8)">
+                  <Border.Styles>
+                    <Style Selector="Border">
+                      <Setter Property="Background" Value="Transparent" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource SukiText}" />
+                      <Setter Property="Opacity" Value="0.3" />
+                    </Style>
+                    <Style Selector="ToggleSwitch:checked Border">
+                      <Setter Property="Background" Value="{StaticResource PremiumGoldBrush}" />
+                      <Setter Property="BorderBrush" Value="{StaticResource PremiumGoldBorderBrush}" />
+                      <Setter Property="Opacity" Value="1" />
+                    </Style>
+                  </Border.Styles>
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <materialIcons:MaterialIcon
+                      Width="12"
+                      Height="12"
+                      VerticalAlignment="Center"
+                      Kind="Crown">
+                      <materialIcons:MaterialIcon.Styles>
+                        <Style Selector="materialIcons|MaterialIcon">
+                          <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
+                        </Style>
+                        <Style Selector="ToggleSwitch:checked materialIcons|MaterialIcon">
+                          <Setter Property="Foreground" Value="#5A4200" />
+                        </Style>
+                      </materialIcons:MaterialIcon.Styles>
+                    </materialIcons:MaterialIcon>
+                    <TextBlock
+                      VerticalAlignment="Center"
+                      FontSize="9"
+                      FontWeight="Heavy"
+                      Text="PRO">
+                      <TextBlock.Styles>
+                        <Style Selector="TextBlock">
+                          <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
+                        </Style>
+                        <Style Selector="ToggleSwitch:checked TextBlock">
+                          <Setter Property="Foreground" Value="#5A4200" />
+                        </Style>
+                      </TextBlock.Styles>
+                    </TextBlock>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </ToggleSwitch.OnContent>
+          </ToggleSwitch>
+          <!--<ToggleSwitch IsChecked="{Binding AppSettings.Realtime.RealtimeEnableMusic}" IsEnabled="{Binding AppSettings.Realtime.RealtimeMode}">
+            <ToggleSwitch.Styles>
+              <Style Selector="ToggleSwitch:checked">
+                <Style.Resources>
+                  <Color x:Key="SukiPrimaryColor">#FFD700</Color>
+                </Style.Resources>
+              </Style>
+            </ToggleSwitch.Styles>
+            <ToggleSwitch.OffContent>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <materialIcons:MaterialIcon
+                  Width="18"
+                  Height="18"
+                  VerticalAlignment="Center"
+                  Kind="MusicNoteOff"
+                  Opacity="{DynamicResource OpacitySecondary}" />
+                <TextBlock VerticalAlignment="Center" Text="SFX" />
+              </StackPanel>
+            </ToggleSwitch.OffContent>
+            <ToggleSwitch.OnContent>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <materialIcons:MaterialIcon
+                  Width="18"
+                  Height="18"
+                  VerticalAlignment="Center"
+                  Foreground="{StaticResource PremiumGoldBrush}"
+                  Kind="Music" />
+                <TextBlock
+                  VerticalAlignment="Center"
+                  FontWeight="Bold"
+                  Foreground="{StaticResource PremiumGoldBrush}"
+                  Text="MIX">
+                  <TextBlock.Effect>
+                    <DropShadowEffect
+                      BlurRadius="15"
+                      Opacity="0.6"
+                      Color="#FFD700" />
+                  </TextBlock.Effect>
+                </TextBlock>
+                <Border
+                  Margin="0,0,0,0"
+                  Padding="2,1"
+                  VerticalAlignment="Center"
+                  Background="{StaticResource PremiumGoldBrush}"
+                  BorderBrush="{StaticResource PremiumGoldBorderBrush}"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  RenderTransform="scale(0.9,0.8)">
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <materialIcons:MaterialIcon
+                      Width="10"
+                      Height="10"
+                      VerticalAlignment="Center"
+                      Foreground="#5A4200"
+                      Kind="Crown" />
+                    <TextBlock
+                      VerticalAlignment="Center"
+                      FontSize="9"
+                      FontWeight="Heavy"
+                      Foreground="#5A4200"
+                      Text="BEST" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </ToggleSwitch.OnContent>
+          </ToggleSwitch>-->
+        </StackPanel>
         <StackPanel
           VerticalAlignment="Center"
           Orientation="Horizontal"
