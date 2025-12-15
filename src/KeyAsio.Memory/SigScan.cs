@@ -1,5 +1,6 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Reloaded.Memory.Sigscan;
 using Windows.Win32;
@@ -13,6 +14,7 @@ namespace KeyAsio.Memory;
 public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 {
     private readonly Process _process;
+    private int _memoryRegionsMaxSize;
     private readonly List<MemoryRegionMetadata> _memoryRegions = new(256);
     private bool _isDisposed;
 
@@ -29,16 +31,18 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 
         IntPtr foundAddress = IntPtr.Zero;
 
-        // Must be done sequentially
-        foreach (var region in _memoryRegions)
+        var buffer = ArrayPool<byte>.Shared.Rent(_memoryRegionsMaxSize);
+        try
         {
-            int size = (int)region.RegionSize;
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(size);
-
-            try
+            fixed (byte* bufPtr = buffer)
             {
-                fixed (byte* bufPtr = buffer)
+                // Must be done sequentially
+                foreach (ref var region in CollectionsMarshal.AsSpan(_memoryRegions))
                 {
+                    if (region.RegionSize > int.MaxValue) continue;
+
+                    int size = (int)region.RegionSize;
+
                     if (!PInvoke.ReadProcessMemory((HANDLE)_process.Handle, region.BaseAddress, bufPtr, (nuint)size,
                             null))
                     {
@@ -48,18 +52,17 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
                     using var scanner = new Scanner(bufPtr, size);
                     var result = scanner.FindPattern(pattern);
 
-                    if (result.Found)
-                    {
-                        long finalAddress = (long)region.BaseAddress + result.Offset + offset;
-                        foundAddress = new IntPtr(finalAddress);
-                        break;
-                    }
+                    if (!result.Found) continue;
+
+                    long finalAddress = (long)region.BaseAddress + result.Offset + offset;
+                    foundAddress = new IntPtr(finalAddress);
+                    break;
                 }
             }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
 
         return foundAddress;
@@ -74,6 +77,7 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
     public void ResetRegion()
     {
         _memoryRegions.Clear();
+        _memoryRegionsMaxSize = 0;
     }
 
     public bool ReadMemory(IntPtr address, Span<byte> buffer, int size, out int bytesRead)
@@ -120,6 +124,7 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 
         MEMORY_BASIC_INFORMATION memInfo = default;
         var handle = (HANDLE)_process.Handle;
+        var maxSize = 0;
 
         while (currentPtr < maxAddr)
         {
@@ -134,10 +139,13 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
             if (isCommit && isExecutable)
             {
                 _memoryRegions.Add(new MemoryRegionMetadata(memInfo.BaseAddress, memInfo.RegionSize));
+                maxSize = Math.Max(maxSize, (int)memInfo.RegionSize);
             }
 
             currentPtr += memInfo.RegionSize;
         }
+
+        _memoryRegionsMaxSize = maxSize;
     }
 
     public void Dispose()

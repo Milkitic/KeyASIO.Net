@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using FastExpressionCompiler;
 using KeyAsio.Memory.Configuration;
 using KeyAsio.Memory.Utils;
 
@@ -336,6 +337,6 @@ public class MemoryContext<T> : MemoryContext where T : class
         if (expressions.Count == 0) return _ => { };
 
         var finalBlock = Expression.Block(expressions);
-        return Expression.Lambda<Action<T>>(finalBlock, targetParam).Compile();
+        return Expression.Lambda<Action<T>>(finalBlock, targetParam).CompileFast();
     }
 }
