@@ -1,6 +1,8 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using FastExpressionCompiler;
 using KeyAsio.Memory.Configuration;
 using KeyAsio.Memory.Utils;
@@ -57,25 +59,7 @@ public class MemoryContext
         if (!_profile.Values.TryGetValue(valueName, out var def))
             throw new ArgumentException($"Value '{valueName}' not defined.");
 
-        IntPtr basePtr;
-
-        // Resolve Base (can be Signature or Pointer)
-        if (def.ParentPointer != null)
-        {
-            basePtr = ResolvePointerInternal(def.ParentPointer);
-        }
-        else if (_signatureCache.TryGetValue(def.Base, out var value))
-        {
-            basePtr = value;
-        }
-        else if (_profile.Pointers.TryGetValue(def.Base, out var ptrDef))
-        {
-            basePtr = ResolvePointerInternal(ptrDef);
-        }
-        else
-        {
-            return null; // Base not found
-        }
+        var basePtr = ResolveBaseAddress(def);
 
         if (basePtr == IntPtr.Zero) return null;
 
@@ -111,29 +95,37 @@ public class MemoryContext
         return result as string;
     }
 
+    public IntPtr ResolveBaseAddress(ValueDefinition def)
+    {
+        if (def.ParentPointer != null)
+        {
+            return ResolvePointerInternal(def.ParentPointer);
+        }
+
+        if (_signatureCache.TryGetValue(def.Base, out var value))
+        {
+            return value;
+        }
+
+        if (_profile.Pointers.TryGetValue(def.Base, out var ptrDef))
+        {
+            return ResolvePointerInternal(ptrDef);
+        }
+
+        return IntPtr.Zero;
+    }
+
+    public bool ReadBlock(IntPtr basePtr, int offset, byte[] buffer, int length)
+    {
+        if (basePtr == IntPtr.Zero) return false;
+        return _sigScan.ReadMemory(basePtr + offset, buffer, length, out _);
+    }
+
     protected bool TryGetValueInternal<T>(ValueDefinition def, out T result)
     {
         result = default!;
 
-        IntPtr basePtr;
-
-        // Resolve Base (can be Signature or Pointer)
-        if (def.ParentPointer != null)
-        {
-            basePtr = ResolvePointerInternal(def.ParentPointer);
-        }
-        else if (_signatureCache.TryGetValue(def.Base, out var value))
-        {
-            basePtr = value;
-        }
-        else if (_profile.Pointers.TryGetValue(def.Base, out var ptrDef))
-        {
-            basePtr = ResolvePointerInternal(ptrDef);
-        }
-        else
-        {
-            return false; // Base not found
-        }
+        var basePtr = ResolveBaseAddress(def);
 
         if (basePtr == IntPtr.Zero) return false;
 
@@ -291,6 +283,7 @@ public class MemoryContext
 public class MemoryContext<T> : MemoryContext where T : class
 {
     private readonly Action<T> _populateAction;
+    private byte[] _sharedBuffer = Array.Empty<byte>();
 
     public MemoryContext(SigScan sigScan, MemoryProfile profile) : base(sigScan, profile)
     {
@@ -302,41 +295,244 @@ public class MemoryContext<T> : MemoryContext where T : class
         _populateAction(target);
     }
 
+    private record BlockItem(PropertyInfo Property, ValueDefinition Definition);
+
     private Action<T> BuildPopulateAction(MemoryProfile profile)
     {
         var targetParam = Expression.Parameter(typeof(T), "target");
         var expressions = new List<Expression>();
         var contextConstant = Expression.Constant(this, typeof(MemoryContext));
-        var tryGetValueInternalMethod = typeof(MemoryContext).GetMethod(nameof(TryGetValueInternal),
+        var tryGetValueInternalMethod = typeof(MemoryContext).GetMethod("TryGetValueInternal",
             BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic);
+        var readBlockMethod = typeof(MemoryContext).GetMethod(nameof(ReadBlock),
+            BindingFlags.Instance | BindingFlags.Public);
+        var resolveBaseMethod = typeof(MemoryContext).GetMethod(nameof(ResolveBaseAddress),
+            BindingFlags.Instance | BindingFlags.Public);
 
-        foreach (var prop in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.GetSetMethod() != null)
+            .Select(p => new BlockItem(p, profile.Values.TryGetValue(p.Name, out var d) ? d : null!))
+            .Where(x => x.Definition != null)
+            .ToList();
+
+        // Group by Base
+        var groups = properties.GroupBy(x => x.Definition.Base);
+        int maxBufferSize = 0;
+
+        foreach (var group in groups)
         {
-            if (!profile.Values.TryGetValue(prop.Name, out var valDef)) continue;
-            if (prop.GetSetMethod() == null) continue;
+            var candidates = group.Where(x => IsPrimitive(x.Definition.Type)).OrderBy(x => x.Definition.Offset)
+                .ToList();
+            var others = group.Except(candidates).ToList();
 
-            var valVar = Expression.Variable(prop.PropertyType, $"val_{prop.Name}");
-            var genericMethod = tryGetValueInternalMethod!.MakeGenericMethod(prop.PropertyType);
+            foreach (var item in others)
+            {
+                AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!, item.Property,
+                    item.Definition);
+            }
 
-            // Bake ValueDefinition as a constant
-            var defConstant = Expression.Constant(valDef, typeof(ValueDefinition));
+            if (candidates.Count == 0) continue;
 
-            var call = Expression.Call(
-                contextConstant,
-                genericMethod,
-                defConstant,
-                valVar
-            );
+            var blocks = CreateBlocks(candidates);
 
-            var assign = Expression.Assign(Expression.Property(targetParam, prop), valVar);
-            var check = Expression.IfThen(call, assign);
+            foreach (var block in blocks)
+            {
+                if (block.Count == 1)
+                {
+                    AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!,
+                        block[0].Property, block[0].Definition);
+                }
+                else
+                {
+                    int startOffset = block.First().Definition.Offset;
+                    int endOffset = block.Last().Definition.Offset + GetSize(block.Last().Definition.Type);
+                    int blockSize = endOffset - startOffset;
+                    if (blockSize > maxBufferSize) maxBufferSize = blockSize;
 
-            expressions.Add(Expression.Block([valVar], check));
+                    AddBlockRead(expressions, targetParam, contextConstant, readBlockMethod!, resolveBaseMethod!,
+                        block);
+                }
+            }
+        }
+
+        if (maxBufferSize > 0)
+        {
+            _sharedBuffer = new byte[maxBufferSize];
         }
 
         if (expressions.Count == 0) return _ => { };
 
         var finalBlock = Expression.Block(expressions);
         return Expression.Lambda<Action<T>>(finalBlock, targetParam).CompileFast();
+    }
+
+    private static bool IsPrimitive(string type)
+    {
+        return type.ToLower() switch
+        {
+            "int" or "int32" or "float" or "single" or "double" or "bool" or "boolean" or "short" or "int16" or "ushort"
+                or "uint16" => true,
+            _ => false
+        };
+    }
+
+    private static List<List<BlockItem>> CreateBlocks(List<BlockItem> candidates)
+    {
+        var blocks = new List<List<BlockItem>>();
+        if (candidates.Count == 0) return blocks;
+
+        var currentBlock = new List<BlockItem> { candidates[0] };
+        blocks.Add(currentBlock);
+
+        for (int i = 1; i < candidates.Count; i++)
+        {
+            var prev = currentBlock.Last();
+            var curr = candidates[i];
+
+            int prevEnd = prev.Definition.Offset + GetSize(prev.Definition.Type);
+            int currStart = curr.Definition.Offset;
+
+            if (currStart - prevEnd < 512)
+            {
+                currentBlock.Add(curr);
+            }
+            else
+            {
+                currentBlock = [curr];
+                blocks.Add(currentBlock);
+            }
+        }
+
+        return blocks;
+    }
+
+    private static int GetSize(string type)
+    {
+        return type.ToLower() switch
+        {
+            "int" or "int32" or "float" or "single" => 4,
+            "double" => 8,
+            "bool" or "boolean" => 1,
+            "short" or "int16" or "ushort" or "uint16" => 2,
+            _ => 4
+        };
+    }
+
+    private static void AddIndividualRead(List<Expression> expressions, ParameterExpression targetParam,
+        ConstantExpression contextConstant, MethodInfo tryGetValueMethod, PropertyInfo prop, ValueDefinition valDef)
+    {
+        var valVar = Expression.Variable(prop.PropertyType, $"val_{prop.Name}");
+        var genericMethod = tryGetValueMethod.MakeGenericMethod(prop.PropertyType);
+        var defConstant = Expression.Constant(valDef, typeof(ValueDefinition));
+
+        var call = Expression.Call(contextConstant, genericMethod, defConstant, valVar);
+        var assign = Expression.Assign(Expression.Property(targetParam, prop), valVar);
+        var check = Expression.IfThen(call, assign);
+
+        expressions.Add(Expression.Block([valVar], check));
+    }
+
+    private void AddBlockRead(List<Expression> expressions, ParameterExpression targetParam,
+        ConstantExpression contextConstant, MethodInfo readBlockMethod, MethodInfo resolveBaseMethod,
+        List<BlockItem> block)
+    {
+        // 相当于生成以下 C# 代码块：
+        // {
+        //     IntPtr basePtr = ResolveBaseAddress(def);
+        //     if (basePtr != IntPtr.Zero)
+        //     {
+        //         byte[] buffer = this._sharedBuffer;
+        //         if (ReadBlock(basePtr, startOffset, buffer, blockSize))
+        //         {
+        //             // 批量读取
+        //             target.Prop1 = ReadValue<int>(buffer, offset1);
+        //             target.Prop2 = ReadValue<float>(buffer, offset2);
+        //             ...
+        //         }
+        //     }
+        // }
+
+        int startOffset = block.First().Definition.Offset;
+        int endOffset = block.Last().Definition.Offset + GetSize(block.Last().Definition.Type);
+        int blockSize = endOffset - startOffset;
+
+        // IntPtr basePtr;
+        var basePtrVar = Expression.Variable(typeof(IntPtr), "basePtr");
+        // basePtr = ResolveBaseAddress(def);
+        var defConstant = Expression.Constant(block.First().Definition, typeof(ValueDefinition));
+        var resolveCall = Expression.Call(contextConstant, resolveBaseMethod, defConstant);
+
+        // byte[] buffer;
+        var bufferVar = Expression.Variable(typeof(byte[]), "buffer");
+        // buffer = this._sharedBuffer;
+        var bufferAssign = Expression.Assign(bufferVar, Expression.Field(Expression.Constant(this), "_sharedBuffer"));
+
+        // ReadBlock(basePtr, startOffset, buffer, blockSize)
+        var readCall = Expression.Call(contextConstant, readBlockMethod, basePtrVar, Expression.Constant(startOffset),
+            bufferVar, Expression.Constant(blockSize));
+
+        var assignments = new List<Expression>();
+        foreach (var item in block)
+        {
+            var prop = item.Property;
+            var def = item.Definition;
+            int relOffset = def.Offset - startOffset;
+
+            // target.Prop = Unsafe.ReadUnaligned...
+            Expression valueExpr = GetUnsafeReadExpression(bufferVar, relOffset, def.Type);
+
+            if (prop.PropertyType != valueExpr.Type)
+            {
+                valueExpr = Expression.Convert(valueExpr, prop.PropertyType);
+            }
+
+            assignments.Add(Expression.Assign(Expression.Property(targetParam, prop), valueExpr));
+        }
+
+        // if (ReadBlock(...)) { assignments... }
+        var readAndAssign = Expression.IfThen(readCall, Expression.Block(assignments));
+
+        // Block Body
+        var body = Expression.Block(
+            [basePtrVar, bufferVar],
+            Expression.Assign(basePtrVar, resolveCall),
+            Expression.IfThen(
+                Expression.NotEqual(basePtrVar, Expression.Constant(IntPtr.Zero)),
+                Expression.Block(
+                    bufferAssign,
+                    readAndAssign
+                )
+            )
+        );
+
+        expressions.Add(body);
+    }
+
+    private static Expression GetUnsafeReadExpression(ParameterExpression buffer, int offset, string type)
+    {
+        Type targetType = type.ToLower() switch
+        {
+            "int" or "int32" => typeof(int),
+            "float" or "single" => typeof(float),
+            "double" => typeof(double),
+            "bool" or "boolean" => typeof(bool),
+            "short" or "int16" => typeof(short),
+            "ushort" or "uint16" => typeof(ushort),
+            _ => typeof(int)
+        };
+
+        var readMethod = typeof(MemoryContext<T>).GetMethod("ReadValue", BindingFlags.Static | BindingFlags.NonPublic)!
+            .MakeGenericMethod(targetType);
+
+        return Expression.Call(readMethod, buffer, Expression.Constant(offset));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static TVal ReadValue<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields |
+                                    DynamicallyAccessedMemberTypes.NonPublicFields)]
+    TVal>(byte[] buffer, int offset) where TVal : struct
+    {
+        return MemoryMarshal.Read<TVal>(buffer.AsSpan(offset));
     }
 }
