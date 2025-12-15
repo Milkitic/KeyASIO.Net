@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
   x:Class="KeyAsio.Views.Pages.SettingsPage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -25,6 +25,12 @@
               Header="Allow Multiple Instances"
               Icon="LayersTriple"
               IsChecked="{Binding AppSettings.General.AllowMultipleInstance}" />
+            <controls:SettingItem
+              Classes="Switch"
+              Description="Disables memory reading; responds only to raw key presses. Intended for testing purposes."
+              Header="Legacy Mode (Key Only)"
+              Icon="Keyboard"
+              IsChecked="{Binding !AppSettings.Realtime.RealtimeMode}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
@@ -34,9 +40,7 @@
           <StackPanel Spacing="15">
             <TextBlock Text="osu! Folder Path" />
             <Grid ColumnDefinitions="*, Auto">
-              <TextBox
-                Margin="0,0,10,0"
-                Text="{Binding AppSettings.Paths.OsuFolderPath, UpdateSourceTrigger=LostFocus}" />
+              <TextBox Margin="0,0,10,0" Text="{Binding AppSettings.Paths.OsuFolderPath, UpdateSourceTrigger=LostFocus}" />
               <Button
                 Grid.Column="1"
                 Width="35"
