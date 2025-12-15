@@ -27,5 +27,6 @@
     </Style>
     <StyleInclude Source="/Styles/Controls.axaml" />
     <StyleInclude Source="/Styles/SettingItemStyles.axaml" />
+    <StyleInclude Source="/Styles/StatBadgeStyles.axaml" />
   </Application.Styles>
 </Application>

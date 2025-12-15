@@ -1,15 +1,10 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 
 namespace KeyAsio.Views.Controls;
 
-public partial class StatBadge : UserControl
+public class StatBadge : TemplatedControl
 {
-    public StatBadge()
-    {
-        InitializeComponent();
-    }
-
     public static readonly StyledProperty<string> LabelProperty =
         AvaloniaProperty.Register<StatBadge, string>(nameof(Label));
 

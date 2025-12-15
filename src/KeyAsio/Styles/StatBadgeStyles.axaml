@@ -1,0 +1,30 @@
+<Styles
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:controls="using:KeyAsio.Views.Controls">
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <controls:StatBadge Label="Sample Label" Value="Sample Value" />
+    </Border>
+  </Design.PreviewWith>
+
+  <Style Selector="controls|StatBadge">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <Border
+            Background="{DynamicResource SukiPrimaryColor}"
+            CornerRadius="6"
+            Opacity="0.06" />
+          <StackPanel Margin="10,6">
+            <TextBlock
+              FontSize="10"
+              Opacity="0.6"
+              Text="{TemplateBinding Label}" />
+            <ContentPresenter Content="{TemplateBinding Value}" FontWeight="DemiBold" />
+          </StackPanel>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>
