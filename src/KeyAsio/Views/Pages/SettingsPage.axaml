@@ -20,11 +20,11 @@
       <suki:GlassCard>
         <suki:GroupBox Header="General">
           <StackPanel Margin="0,0,8,0" Spacing="10">
-            <controls:SettingItem Header="Allow Multiple Instances" Icon="LayersTriple">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.General.AllowMultipleInstance}" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Allow Multiple Instances"
+              Icon="LayersTriple"
+              IsChecked="{Binding AppSettings.General.AllowMultipleInstance}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
@@ -34,7 +34,9 @@
           <StackPanel Spacing="15">
             <TextBlock Text="osu! Folder Path" />
             <Grid ColumnDefinitions="*, Auto">
-              <TextBox Margin="0,0,10,0" Text="{Binding AppSettings.Paths.OsuFolderPath, UpdateSourceTrigger=LostFocus}" />
+              <TextBox
+                Margin="0,0,10,0"
+                Text="{Binding AppSettings.Paths.OsuFolderPath, UpdateSourceTrigger=LostFocus}" />
               <Button
                 Grid.Column="1"
                 Width="35"
@@ -47,14 +49,12 @@
             </Grid>
             <Separator Classes="Section" />
             <controls:SettingItem Header="Audio Cache Threads" Icon="Cpu64Bit">
-              <controls:SettingItem.ActionContent>
-                <NumericUpDown
-                  Classes="SettingItem"
-                  FormatString="#"
-                  Maximum="16"
-                  Minimum="1"
-                  Value="{Binding AppSettings.Performance.AudioCacheThreadCount}" />
-              </controls:SettingItem.ActionContent>
+              <NumericUpDown
+                Classes="SettingItem"
+                FormatString="#"
+                Maximum="16"
+                Minimum="1"
+                Value="{Binding AppSettings.Performance.AudioCacheThreadCount}" />
             </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>
@@ -64,43 +64,37 @@
         <suki:GroupBox Header="Input &amp; Performance">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
+              Classes="Switch"
               Description="Uses low-latency key hooks when disabled"
               Header="Raw Input"
-              Icon="KeyboardVariant">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Input.UseRawInput}" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+              Icon="KeyboardVariant"
+              IsChecked="{Binding AppSettings.Input.UseRawInput}" />
 
             <controls:SettingItem
+              Classes="Switch"
               Description="Performance Boost"
               Header="Enable AVX-512"
-              Icon="RocketLaunch">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Performance.EnableAvx512}" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+              Icon="RocketLaunch"
+              IsChecked="{Binding AppSettings.Performance.EnableAvx512}" />
 
             <controls:SettingItem
+              Classes="Switch"
               Description="Allow volume up to 150%"
               Header="Extended Volume"
-              Icon="VolumeHigh">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Audio.EnableExtendedVolume}" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+              Icon="VolumeHigh"
+              IsChecked="{Binding AppSettings.Audio.EnableExtendedVolume}" />
 
-            <controls:SettingItem Header="Debug Console" Icon="Console">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Debug Console"
+              Icon="Console"
+              IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}" />
 
-            <controls:SettingItem Header="Error Reporting" Icon="Bug">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Error Reporting"
+              Icon="Bug"
+              IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>

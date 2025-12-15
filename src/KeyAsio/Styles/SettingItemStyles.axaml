@@ -1,0 +1,69 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:KeyAsio.Views.Controls"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+  <Design.PreviewWith>
+    <StackPanel Width="400" Spacing="10">
+      <controls:SettingItem Header="Header" Description="Description" Icon="Home" />
+      <controls:SettingItem Header="Switch" Description="Description" Icon="ToggleSwitch" Classes="Switch" IsChecked="True" />
+    </StackPanel>
+  </Design.PreviewWith>
+
+  <Style Selector="controls|SettingItem">
+    <Setter Property="ClipToBounds" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <materialIcons:MaterialIcon
+            Width="{DynamicResource IconSizeMedium}"
+            Height="{DynamicResource IconSizeMedium}"
+            Margin="{DynamicResource SettingIconMargin}"
+            VerticalAlignment="Center"
+            Foreground="{DynamicResource SukiText}"
+            Kind="{TemplateBinding Icon}"
+            Opacity="{DynamicResource OpacitySecondary}" />
+
+          <StackPanel
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            Spacing="0">
+            <TextBlock Text="{TemplateBinding Header}" />
+            <TextBlock
+              FontSize="{DynamicResource FontSizeSmall}"
+              IsVisible="{TemplateBinding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+              Opacity="{DynamicResource OpacitySecondary}"
+              Text="{TemplateBinding Description}"
+              TextWrapping="Wrap" />
+          </StackPanel>
+
+          <!-- Default Content Presenter -->
+          <ContentPresenter
+            x:Name="PART_ContentPresenter"
+            Grid.Column="2"
+            VerticalAlignment="Center"
+            ClipToBounds="False"
+            Content="{TemplateBinding Content}"
+            ContentTemplate="{TemplateBinding ContentTemplate}" />
+            
+          <!-- ToggleSwitch for Switch Class -->
+           <ToggleSwitch
+             x:Name="PART_ToggleSwitch"
+             Grid.Column="2"
+             IsVisible="False"
+             Classes="SettingItem"
+             IsChecked="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+             Command="{TemplateBinding Command}"
+             CommandParameter="{TemplateBinding CommandParameter}"/>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <!-- Switch Class Style -->
+  <Style Selector="controls|SettingItem.Switch /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="controls|SettingItem.Switch /template/ ToggleSwitch#PART_ToggleSwitch">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+</Styles>

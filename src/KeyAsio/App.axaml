@@ -26,5 +26,6 @@
       <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
     </Style>
     <StyleInclude Source="/Styles/Controls.axaml" />
+    <StyleInclude Source="/Styles/SettingItemStyles.axaml" />
   </Application.Styles>
 </Application>

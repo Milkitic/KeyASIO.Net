@@ -64,35 +64,25 @@
         <suki:GroupBox Header="Music Control">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
+              Classes="Switch"
               Description="Experimental feature"
               Header="Override Game Music"
-              Icon="MusicNote">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Realtime.RealtimeEnableMusic}"
-                  OffContent="Off"
-                  OnContent="On" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+              Icon="MusicNote"
+              IsChecked="{Binding AppSettings.Realtime.RealtimeEnableMusic}" />
 
             <Separator Classes="Section" />
 
-            <controls:SettingItem Header="Force Nightcore Beats" Icon="FastForward">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Realtime.Playback.NightcoreBeats}"
-                  OffContent="Off"
-                  OnContent="On" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Force Nightcore Beats"
+              Icon="FastForward"
+              IsChecked="{Binding AppSettings.Realtime.Playback.NightcoreBeats}" />
 
             <controls:SettingItem Header="Slider Tail Behavior" Icon="VectorCurve">
-              <controls:SettingItem.ActionContent>
-                <ComboBox
-                  MinWidth="120"
-                  ItemsSource="{Binding SliderTailBehaviors}"
-                  SelectedItem="{Binding AppSettings.Realtime.Playback.TailPlaybackBehavior}" />
-              </controls:SettingItem.ActionContent>
+              <ComboBox
+                MinWidth="120"
+                ItemsSource="{Binding SliderTailBehaviors}"
+                SelectedItem="{Binding AppSettings.Realtime.Playback.TailPlaybackBehavior}" />
             </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>
@@ -103,12 +93,10 @@
         <suki:GroupBox Header="Audio Field">
           <StackPanel Spacing="15">
             <controls:SettingItem Header="Stereo Width" Icon="SurroundSound">
-              <controls:SettingItem.ActionContent>
-                <TextBlock
-                  FontWeight="Bold"
-                  Foreground="{DynamicResource SukiPrimaryColor}"
-                  Text="{Binding AppSettings.Realtime.Playback.BalanceFactor, StringFormat='{}{0:0.00}'}" />
-              </controls:SettingItem.ActionContent>
+              <TextBlock
+                FontWeight="Bold"
+                Foreground="{DynamicResource SukiPrimaryColor}"
+                Text="{Binding AppSettings.Realtime.Playback.BalanceFactor, StringFormat='{}{0:0.00}'}" />
             </controls:SettingItem>
             <Slider
               Maximum="1"
@@ -135,50 +123,35 @@
       <suki:GlassCard>
         <suki:GroupBox Header="Audio Filters">
           <StackPanel Margin="0,0,8,0" Spacing="10">
-            <controls:SettingItem Header="Disable Map Hitsounds" Icon="VolumeOff">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Realtime.Filters.DisableBeatmapHitsounds}"
-                  OffContent="Off"
-                  OnContent="On" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Disable Map Hitsounds"
+              Icon="VolumeOff"
+              IsChecked="{Binding AppSettings.Realtime.Filters.DisableBeatmapHitsounds}" />
 
-            <controls:SettingItem Header="Disable Storyboard" Icon="MovieOff">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Realtime.Filters.DisableStoryboardSamples}"
-                  OffContent="Off"
-                  OnContent="On" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Disable Storyboard"
+              Icon="MovieOff"
+              IsChecked="{Binding AppSettings.Realtime.Filters.DisableStoryboardSamples}" />
 
-            <controls:SettingItem Header="Disable Slider Ticks" Icon="Metronome">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Realtime.Filters.DisableSliderTicksAndSlides}"
-                  OffContent="Off"
-                  OnContent="On" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Disable Slider Ticks"
+              Icon="Metronome"
+              IsChecked="{Binding AppSettings.Realtime.Filters.DisableSliderTicksAndSlides}" />
 
-            <controls:SettingItem Header="Disable Combo Break" Icon="HeartBroken">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Realtime.Filters.DisableComboBreakSfx}"
-                  OffContent="Off"
-                  OnContent="On" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Disable Combo Break"
+              Icon="HeartBroken"
+              IsChecked="{Binding AppSettings.Realtime.Filters.DisableComboBreakSfx}" />
 
-            <controls:SettingItem Header="Ignore Volume Changes" Icon="VolumeVariantOff">
-              <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Realtime.Filters.IgnoreLineVolumes}"
-                  OffContent="Off"
-                  OnContent="On" />
-              </controls:SettingItem.ActionContent>
-            </controls:SettingItem>
+            <controls:SettingItem
+              Classes="Switch"
+              Header="Ignore Volume Changes"
+              Icon="VolumeVariantOff"
+              IsChecked="{Binding AppSettings.Realtime.Filters.IgnoreLineVolumes}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
@@ -192,13 +165,11 @@
               Description="Lower values update generic fields more promptly. Increase to reduce CPU usage."
               Header="General Scan Interval (ms)"
               Icon="Radar">
-              <controls:SettingItem.ActionContent>
-                <NumericUpDown
-                  Classes="SettingItem"
-                  Maximum="1000"
-                  Minimum="1"
-                  Value="{Binding AppSettings.Realtime.Scanning.GeneralScanInterval}" />
-              </controls:SettingItem.ActionContent>
+              <NumericUpDown
+                Classes="SettingItem"
+                Maximum="1000"
+                Minimum="1"
+                Value="{Binding AppSettings.Realtime.Scanning.GeneralScanInterval}" />
             </controls:SettingItem>
 
             <!--  Timing Interval  -->
@@ -206,13 +177,11 @@
               Description="Lower values update timing fields more promptly. Increase if audio cutting occurs."
               Header="Timing Scan Interval (ms)"
               Icon="Timer">
-              <controls:SettingItem.ActionContent>
-                <NumericUpDown
-                  Classes="SettingItem"
-                  Maximum="1000"
-                  Minimum="1"
-                  Value="{Binding AppSettings.Realtime.Scanning.TimingScanInterval}" />
-              </controls:SettingItem.ActionContent>
+              <NumericUpDown
+                Classes="SettingItem"
+                Maximum="1000"
+                Minimum="1"
+                Value="{Binding AppSettings.Realtime.Scanning.TimingScanInterval}" />
             </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>

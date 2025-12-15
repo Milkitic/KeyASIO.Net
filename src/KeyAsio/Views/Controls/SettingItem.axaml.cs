@@ -1,16 +1,12 @@
-﻿using Avalonia;
+﻿using System.Windows.Input;
+using Avalonia;
 using Avalonia.Controls;
 using Material.Icons;
 
 namespace KeyAsio.Views.Controls;
 
-public partial class SettingItem : UserControl
+public class SettingItem : ContentControl
 {
-    public SettingItem()
-    {
-        InitializeComponent();
-    }
-
     public static readonly StyledProperty<MaterialIconKind> IconProperty =
         AvaloniaProperty.Register<SettingItem, MaterialIconKind>(nameof(Icon));
 
@@ -38,12 +34,30 @@ public partial class SettingItem : UserControl
         set => SetValue(DescriptionProperty, value);
     }
 
-    public static readonly StyledProperty<object> ActionContentProperty =
-        AvaloniaProperty.Register<SettingItem, object>(nameof(ActionContent));
+    public static readonly StyledProperty<bool?> IsCheckedProperty =
+        AvaloniaProperty.Register<SettingItem, bool?>(nameof(IsChecked));
 
-    public object ActionContent
+    public bool? IsChecked
     {
-        get => GetValue(ActionContentProperty);
-        set => SetValue(ActionContentProperty, value);
+        get => GetValue(IsCheckedProperty);
+        set => SetValue(IsCheckedProperty, value);
+    }
+
+    public static readonly StyledProperty<ICommand> CommandProperty =
+        AvaloniaProperty.Register<SettingItem, ICommand>(nameof(Command));
+
+    public ICommand Command
+    {
+        get => GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly StyledProperty<object> CommandParameterProperty =
+        AvaloniaProperty.Register<SettingItem, object>(nameof(CommandParameter));
+
+    public object CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
     }
 }

@@ -23,39 +23,33 @@
           <suki:GroupBox Header="Backend Selection">
             <StackPanel Spacing="{StaticResource SpacingMedium}">
               <controls:SettingItem Header="Driver Type" Icon="DeveloperBoard">
-                <controls:SettingItem.ActionContent>
-                  <ComboBox
-                    MinWidth="{StaticResource SettingControlWidthMedium}"
-                    Classes="SettingItem"
-                    ItemsSource="{Binding AudioSettings.AvailableDriverTypes}"
-                    SelectedItem="{Binding AudioSettings.SelectedDriverType}" />
-                </controls:SettingItem.ActionContent>
+                <ComboBox
+                  MinWidth="{StaticResource SettingControlWidthMedium}"
+                  Classes="SettingItem"
+                  ItemsSource="{Binding AudioSettings.AvailableDriverTypes}"
+                  SelectedItem="{Binding AudioSettings.SelectedDriverType}" />
               </controls:SettingItem>
 
               <controls:SettingItem Header="Output Device" Icon="Speaker">
-                <controls:SettingItem.ActionContent>
-                  <ComboBox
-                    MinWidth="{StaticResource SettingControlWidthLarge}"
-                    Classes="SettingItem"
-                    ItemsSource="{Binding AudioSettings.AvailableAudioDevices}"
-                    SelectedItem="{Binding AudioSettings.SelectedAudioDevice}">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding FriendlyName}" />
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
-                </controls:SettingItem.ActionContent>
+                <ComboBox
+                  MinWidth="{StaticResource SettingControlWidthLarge}"
+                  Classes="SettingItem"
+                  ItemsSource="{Binding AudioSettings.AvailableAudioDevices}"
+                  SelectedItem="{Binding AudioSettings.SelectedAudioDevice}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding FriendlyName}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
               </controls:SettingItem>
 
               <controls:SettingItem Header="Sample Rate" Icon="Waveform">
-                <controls:SettingItem.ActionContent>
-                  <ComboBox
-                    MinWidth="{StaticResource SettingControlWidthSmall}"
-                    Classes="SettingItem"
-                    ItemsSource="{Binding AudioSettings.SupportedSampleRates}"
-                    SelectedItem="{Binding AudioSettings.SelectedSampleRate}" />
-                </controls:SettingItem.ActionContent>
+                <ComboBox
+                  MinWidth="{StaticResource SettingControlWidthSmall}"
+                  Classes="SettingItem"
+                  ItemsSource="{Binding AudioSettings.SupportedSampleRates}"
+                  SelectedItem="{Binding AudioSettings.SelectedSampleRate}" />
               </controls:SettingItem>
             </StackPanel>
           </suki:GroupBox>
@@ -66,9 +60,7 @@
             <StackPanel Spacing="{StaticResource SpacingLarge}">
               <StackPanel IsVisible="{Binding !AudioSettings.IsAsio}" Spacing="{StaticResource SpacingLarge}">
                 <controls:SettingItem Header="Target Latency" Icon="TimerSand">
-                  <controls:SettingItem.ActionContent>
-                    <TextBlock Classes="Value" Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
-                  </controls:SettingItem.ActionContent>
+                  <TextBlock Classes="Value" Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
                 </controls:SettingItem>
                 <Slider
                   Classes="SettingItem"
@@ -79,9 +71,7 @@
 
               <StackPanel IsVisible="{Binding AudioSettings.IsAsio}" Spacing="{StaticResource SpacingLarge}">
                 <controls:SettingItem Header="Force Buffer Size" Icon="TimerSand">
-                  <controls:SettingItem.ActionContent>
-                    <TextBlock Classes="Value" Text="{Binding AudioSettings.ForceAsioBufferSize, StringFormat='{}{0} samples'}" />
-                  </controls:SettingItem.ActionContent>
+                  <TextBlock Classes="Value" Text="{Binding AudioSettings.ForceAsioBufferSize, StringFormat='{}{0} samples'}" />
                 </controls:SettingItem>
                 <Slider
                   Classes="SettingItem"
@@ -96,9 +86,7 @@
                 Header="Exclusive Mode"
                 Icon="Lock"
                 IsVisible="{Binding AudioSettings.IsWasapi}">
-                <controls:SettingItem.ActionContent>
-                  <CheckBox IsChecked="{Binding AudioSettings.IsExclusiveMode}" />
-                </controls:SettingItem.ActionContent>
+                <CheckBox IsChecked="{Binding AudioSettings.IsExclusiveMode}" />
               </controls:SettingItem>
             </StackPanel>
           </suki:GroupBox>
@@ -110,9 +98,7 @@
               Description="Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters."
               Header="Audio Limiter"
               Icon="Equalizer">
-              <controls:SettingItem.ActionContent>
-                <CheckBox IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
-              </controls:SettingItem.ActionContent>
+              <CheckBox IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
             </controls:SettingItem>
           </suki:GroupBox>
         </suki:GlassCard>
