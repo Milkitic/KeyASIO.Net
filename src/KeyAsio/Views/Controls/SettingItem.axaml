@@ -12,13 +12,13 @@
   mc:Ignorable="d">
   <Grid ColumnDefinitions="Auto,*,Auto">
     <materialIcons:MaterialIcon
-      Width="24"
-      Height="24"
-      Margin="0,0,15,0"
+      Width="{StaticResource IconSizeMedium}"
+      Height="{StaticResource IconSizeMedium}"
+      Margin="{StaticResource SettingIconMargin}"
       VerticalAlignment="Center"
       Foreground="{DynamicResource SukiText}"
       Kind="{Binding Icon, ElementName=Root}"
-      Opacity="0.6" />
+      Opacity="{StaticResource OpacitySecondary}" />
 
     <StackPanel
       Grid.Column="1"
@@ -26,9 +26,9 @@
       Spacing="0">
       <TextBlock Text="{Binding Header, ElementName=Root}" />
       <TextBlock
-        FontSize="11"
+        FontSize="{StaticResource FontSizeSmall}"
         IsVisible="{Binding Description, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-        Opacity="0.6"
+        Opacity="{StaticResource OpacitySecondary}"
         Text="{Binding Description, ElementName=Root}"
         TextWrapping="Wrap" />
     </StackPanel>

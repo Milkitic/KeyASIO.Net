@@ -22,10 +22,7 @@
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem Header="Allow Multiple Instances" Icon="LayersTriple">
               <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.General.AllowMultipleInstance}"
-                  OffContent="Off"
-                  OnContent="On" />
+                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.General.AllowMultipleInstance}" />
               </controls:SettingItem.ActionContent>
             </controls:SettingItem>
           </StackPanel>
@@ -71,10 +68,7 @@
               Header="Raw Input"
               Icon="KeyboardVariant">
               <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Input.UseRawInput}"
-                  OffContent="Off"
-                  OnContent="On" />
+                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Input.UseRawInput}" />
               </controls:SettingItem.ActionContent>
             </controls:SettingItem>
 
@@ -83,10 +77,7 @@
               Header="Enable AVX-512"
               Icon="RocketLaunch">
               <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Performance.EnableAvx512}"
-                  OffContent="Off"
-                  OnContent="On" />
+                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Performance.EnableAvx512}" />
               </controls:SettingItem.ActionContent>
             </controls:SettingItem>
 
@@ -95,28 +86,19 @@
               Header="Extended Volume"
               Icon="VolumeHigh">
               <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Audio.EnableExtendedVolume}"
-                  OffContent="Off"
-                  OnContent="On" />
+                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Audio.EnableExtendedVolume}" />
               </controls:SettingItem.ActionContent>
             </controls:SettingItem>
 
             <controls:SettingItem Header="Debug Console" Icon="Console">
               <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}"
-                  OffContent="Off"
-                  OnContent="On" />
+                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}" />
               </controls:SettingItem.ActionContent>
             </controls:SettingItem>
 
             <controls:SettingItem Header="Error Reporting" Icon="Bug">
               <controls:SettingItem.ActionContent>
-                <ToggleSwitch
-                  IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}"
-                  OffContent="Off"
-                  OnContent="On" />
+                <ToggleSwitch Classes="SettingItem" IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}" />
               </controls:SettingItem.ActionContent>
             </controls:SettingItem>
           </StackPanel>

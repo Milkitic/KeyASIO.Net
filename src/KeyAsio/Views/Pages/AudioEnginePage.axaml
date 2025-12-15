@@ -18,15 +18,15 @@
 
   <Grid>
     <ScrollViewer>
-      <StackPanel Margin="20" Spacing="20">
+      <StackPanel Margin="{StaticResource PagePadding}" Spacing="{StaticResource SpacingLarge}">
         <suki:GlassCard>
           <suki:GroupBox Header="Backend Selection">
-            <StackPanel Spacing="15">
+            <StackPanel Spacing="{StaticResource SpacingMedium}">
               <controls:SettingItem Header="Driver Type" Icon="DeveloperBoard">
                 <controls:SettingItem.ActionContent>
                   <ComboBox
-                    MinWidth="150"
-                    HorizontalAlignment="Stretch"
+                    MinWidth="{StaticResource SettingControlWidthMedium}"
+                    Classes="SettingItem"
                     ItemsSource="{Binding AudioSettings.AvailableDriverTypes}"
                     SelectedItem="{Binding AudioSettings.SelectedDriverType}" />
                 </controls:SettingItem.ActionContent>
@@ -35,8 +35,8 @@
               <controls:SettingItem Header="Output Device" Icon="Speaker">
                 <controls:SettingItem.ActionContent>
                   <ComboBox
-                    MinWidth="200"
-                    HorizontalAlignment="Stretch"
+                    MinWidth="{StaticResource SettingControlWidthLarge}"
+                    Classes="SettingItem"
                     ItemsSource="{Binding AudioSettings.AvailableAudioDevices}"
                     SelectedItem="{Binding AudioSettings.SelectedAudioDevice}">
                     <ComboBox.ItemTemplate>
@@ -51,8 +51,8 @@
               <controls:SettingItem Header="Sample Rate" Icon="Waveform">
                 <controls:SettingItem.ActionContent>
                   <ComboBox
-                    MinWidth="120"
-                    HorizontalAlignment="Stretch"
+                    MinWidth="{StaticResource SettingControlWidthSmall}"
+                    Classes="SettingItem"
                     ItemsSource="{Binding AudioSettings.SupportedSampleRates}"
                     SelectedItem="{Binding AudioSettings.SelectedSampleRate}" />
                 </controls:SettingItem.ActionContent>
@@ -63,38 +63,30 @@
 
         <suki:GlassCard>
           <suki:GroupBox Header="Latency &amp; Buffer">
-            <StackPanel Spacing="20">
-              <StackPanel IsVisible="{Binding !AudioSettings.IsAsio}" Spacing="20">
+            <StackPanel Spacing="{StaticResource SpacingLarge}">
+              <StackPanel IsVisible="{Binding !AudioSettings.IsAsio}" Spacing="{StaticResource SpacingLarge}">
                 <controls:SettingItem Header="Target Latency" Icon="TimerSand">
                   <controls:SettingItem.ActionContent>
-                    <TextBlock
-                      FontWeight="Bold"
-                      Foreground="{DynamicResource SukiPrimaryColor}"
-                      Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
+                    <TextBlock Classes="Value" Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
                   </controls:SettingItem.ActionContent>
                 </controls:SettingItem>
                 <Slider
-                  IsSnapToTickEnabled="True"
+                  Classes="SettingItem"
                   Maximum="200"
                   Minimum="0"
-                  TickFrequency="1"
                   Value="{Binding AudioSettings.TargetBufferSize}" />
               </StackPanel>
 
-              <StackPanel IsVisible="{Binding AudioSettings.IsAsio}" Spacing="20">
+              <StackPanel IsVisible="{Binding AudioSettings.IsAsio}" Spacing="{StaticResource SpacingLarge}">
                 <controls:SettingItem Header="Force Buffer Size" Icon="TimerSand">
                   <controls:SettingItem.ActionContent>
-                    <TextBlock
-                      FontWeight="Bold"
-                      Foreground="{DynamicResource SukiPrimaryColor}"
-                      Text="{Binding AudioSettings.ForceAsioBufferSize, StringFormat='{}{0} samples'}" />
+                    <TextBlock Classes="Value" Text="{Binding AudioSettings.ForceAsioBufferSize, StringFormat='{}{0} samples'}" />
                   </controls:SettingItem.ActionContent>
                 </controls:SettingItem>
                 <Slider
-                  IsSnapToTickEnabled="True"
+                  Classes="SettingItem"
                   Maximum="2048"
                   Minimum="0"
-                  TickFrequency="1"
                   Value="{Binding AudioSettings.ForceAsioBufferSize}" />
               </StackPanel>
 
@@ -132,8 +124,8 @@
 
     <!--  Floating Action Bar  -->
     <suki:GlassCard
-      Margin="20"
-      Padding="15"
+      Margin="{StaticResource FloatingBarMargin}"
+      Padding="{StaticResource CardPadding}"
       VerticalAlignment="Bottom"
       IsOpaque="True"
       IsVisible="{Binding AudioSettings.HasUnsavedAudioChanges}">
@@ -141,15 +133,15 @@
         <StackPanel
           VerticalAlignment="Center"
           Orientation="Horizontal"
-          Spacing="10">
+          Spacing="{StaticResource SpacingSmall}">
           <materialIcons:MaterialIcon
-            Width="20"
-            Height="20"
+            Width="{StaticResource IconSizeSmall}"
+            Height="{StaticResource IconSizeSmall}"
             Kind="InformationOutline"
-            Opacity="0.5" />
+            Opacity="{StaticResource OpacityDisabled}" />
           <TextBlock
             VerticalAlignment="Center"
-            Opacity="0.7"
+            Opacity="{StaticResource OpacityTertiary}"
             Text="Changes require application to take effect" />
         </StackPanel>
         <StackPanel

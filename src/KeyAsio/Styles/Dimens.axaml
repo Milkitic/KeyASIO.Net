@@ -1,0 +1,33 @@
+﻿<ResourceDictionary
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:system="clr-namespace:System;assembly=System.Runtime">
+  <!--  Spacings  -->
+  <system:Double x:Key="SpacingSmall">10</system:Double>
+  <system:Double x:Key="SpacingMedium">15</system:Double>
+  <system:Double x:Key="SpacingLarge">20</system:Double>
+
+  <!--  Margins & Paddings  -->
+  <Thickness x:Key="PagePadding">20</Thickness>
+  <Thickness x:Key="CardPadding">15</Thickness>
+  <Thickness x:Key="FloatingBarMargin">20</Thickness>
+  <Thickness x:Key="SettingIconMargin">0,0,15,0</Thickness>
+
+  <!--  Sizes  -->
+  <system:Double x:Key="IconSizeSmall">20</system:Double>
+  <system:Double x:Key="IconSizeMedium">24</system:Double>
+
+  <!--  Font Sizes  -->
+  <system:Double x:Key="FontSizeSmall">11</system:Double>
+  <system:Double x:Key="FontSizeNormal">14</system:Double>
+
+  <!--  Widths  -->
+  <system:Double x:Key="SettingControlWidthSmall">120</system:Double>
+  <system:Double x:Key="SettingControlWidthMedium">150</system:Double>
+  <system:Double x:Key="SettingControlWidthLarge">200</system:Double>
+
+  <!--  Opacities  -->
+  <system:Double x:Key="OpacityDisabled">0.5</system:Double>
+  <system:Double x:Key="OpacitySecondary">0.6</system:Double>
+  <system:Double x:Key="OpacityTertiary">0.7</system:Double>
+</ResourceDictionary>

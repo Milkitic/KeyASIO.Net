@@ -4,6 +4,25 @@
     <!--<Setter Property="HorizontalAlignment" Value="Right" />-->
   </Style>
 
+  <Style Selector="ComboBox.SettingItem">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+  </Style>
+
+  <Style Selector="ToggleSwitch.SettingItem">
+    <Setter Property="OnContent" Value="On" />
+    <Setter Property="OffContent" Value="Off" />
+  </Style>
+
+  <Style Selector="Slider.SettingItem">
+    <Setter Property="IsSnapToTickEnabled" Value="True" />
+    <Setter Property="TickFrequency" Value="1" />
+  </Style>
+
+  <Style Selector="TextBlock.Value">
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{DynamicResource SukiPrimaryColor}" />
+  </Style>
+
   <Style Selector="TextBlock.Description">
     <Setter Property="FontSize" Value="11" />
     <Setter Property="Opacity" Value="0.6" />
