@@ -1,12 +1,12 @@
-﻿<Window x:Class="MemoryReadingTest.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MemoryReadingTest"
         xmlns:charts="clr-namespace:MemoryReadingTest.Charts"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        mc:Ignorable="d" Width="800" Height="450"
+        x:Class="MemoryReadingTest.MainWindow"
+        Title="MainWindow">
     <Grid>
         <charts:PlayTimeChart></charts:PlayTimeChart>
     </Grid>

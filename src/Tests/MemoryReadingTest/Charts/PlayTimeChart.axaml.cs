@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Controls;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Threading;
 using KeyAsio.Shared.Models;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
@@ -38,12 +39,15 @@ public partial class PlayTimeChart : UserControl
         InitializeComponent();
         DataContext = _viewModel = new PlayTimeChartVm();
 
-        var app = (App)Application.Current;
-        app.MemoryScan.MemoryReadObject.PlayingTimeChanged += MemoryReadObject_PlayingTimeChanged;
+        if (Application.Current is App app)
+        {
+            app.MemoryScan.MemoryReadObject.PlayingTimeChanged += MemoryReadObject_PlayingTimeChanged;
+        }
     }
 
     private void MemoryReadObject_PlayingTimeChanged(int oldValue, int newValue)
     {
-        _viewModel.Collection.Add(new TimeSpanPoint(TimeSpan.FromMicroseconds(newValue), newValue));
+        Dispatcher.UIThread.InvokeAsync(() =>
+            _viewModel.Collection.Add(new TimeSpanPoint(TimeSpan.FromMicroseconds(newValue), newValue)));
     }
 }
