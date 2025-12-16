@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -48,11 +48,11 @@ public static class MemoryReadHelper
         }
     }
 
+    [SkipLocalsInit]
     public static bool TryGetValue<T>(IMemoryReader memoryReader, IntPtr pointer, out T result) where T : struct
     {
         result = default;
         int size = Unsafe.SizeOf<T>();
-        if (typeof(T) == typeof(bool)) size = 1;
 
         byte[]? arrayPoolBuffer = null;
         Span<byte> buffer = size <= 128
@@ -64,7 +64,7 @@ public static class MemoryReadHelper
             if (!memoryReader.ReadMemory(pointer, buffer, size, out _))
                 return false;
 
-            result = MemoryMarshal.Read<T>(buffer);
+            result = Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(buffer));
             return true;
         }
         finally

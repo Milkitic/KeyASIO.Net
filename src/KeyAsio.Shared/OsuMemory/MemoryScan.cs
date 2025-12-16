@@ -14,6 +14,7 @@ public class MemoryScan
     private int _timingInterval;
 
     private Process? _process;
+    private volatile bool _processExited;
     private SigScan? _sigScan;
     private MemoryProfile? _memoryProfile;
     private MemoryContext<OsuMemoryData>? _memoryContext;
@@ -130,7 +131,7 @@ public class MemoryScan
 
     private bool EnsureConnected()
     {
-        if (_process is { HasExited: false })
+        if (_process != null && !_processExited)
             return true;
 
         CleanupProcess();
@@ -141,6 +142,16 @@ public class MemoryScan
             if (processes.Length > 0)
             {
                 _process = processes[0];
+                _process.EnableRaisingEvents = true;
+                _process.Exited += OnProcessExited;
+                _processExited = false;
+
+                if (_process.HasExited)
+                {
+                    CleanupProcess();
+                    return false;
+                }
+
                 _sigScan = new SigScan(_process);
                 _memoryContext = new MemoryContext<OsuMemoryData>(_sigScan, _memoryProfile!);
                 _logger.LogInformation("Connected to osu! process");
@@ -156,9 +167,18 @@ public class MemoryScan
         return false;
     }
 
+    private void OnProcessExited(object? sender, EventArgs e)
+    {
+        _processExited = true;
+    }
+
     private void CleanupProcess()
     {
         var exiting = _process != null;
+        if (_process != null)
+        {
+            _process.Exited -= OnProcessExited;
+        }
         _process?.Dispose();
         _sigScan?.Dispose();
 
