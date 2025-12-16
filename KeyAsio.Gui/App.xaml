@@ -20,6 +20,16 @@
                 <ResourceDictionary Source="pack://application:,,,/KeyAsio.Gui;component/ResourceDictionaries/Buttons.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/KeyAsio.Gui;component/ResourceDictionaries/Sliders.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <LinearGradientBrush x:Key="PremiumGoldBrush" StartPoint="0,0" EndPoint="1,1">
+                <!--<GradientStop Offset="0.0" Color="#FFEDC2" />-->
+                <GradientStop Offset="0" Color="#FFD700" />
+                <GradientStop Offset="1.0" Color="#D4AF37" />
+            </LinearGradientBrush>
+            
+            <LinearGradientBrush x:Key="PremiumGoldBorderBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0.0" Color="#FFF5E1" />
+                <GradientStop Offset="1.0" Color="#C5A028" />
+            </LinearGradientBrush>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

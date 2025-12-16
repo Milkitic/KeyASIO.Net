@@ -48,6 +48,18 @@ public partial class MainWindow : DialogWindow
         BindOptions();
     }
 
+    private void btnV4Released_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (Updater.NewV4Release != null)
+        {
+            Updater.OpenLastV4ReleasePage();
+        }
+        else
+        {
+            Updater.OpenCommonReleasePage();
+        }
+    }
+
     private void CreateShortcuts()
     {
         var ignoreBeatmapHitsound = _appSettings.RealtimeOptions.IgnoreBeatmapHitsoundBindKey;
@@ -347,17 +359,25 @@ public partial class MainWindow : DialogWindow
         var result = await Updater.CheckUpdateAsync();
         if (result == true)
         {
-            Growl.Ask($"Found new version: {Updater.NewRelease!.NewVerString}. " +
-                   $"Click yes to open the release page.",
-                dialogResult =>
-                {
-                    if (dialogResult)
-                    {
-                        Updater.OpenLastReleasePage();
-                    }
+            if (Updater.NewV4Release != null)
+            {
+                UpgradeButton.Visibility = Visibility.Visible;
+            }
 
-                    return true;
-                });
+            if (Updater.NewV3Release != null)
+            {
+                Growl.Ask($"Found new version: {Updater.NewV3Release.NewVerString}. " +
+                          $"Click yes to open the release page.",
+                    dialogResult =>
+                    {
+                        if (dialogResult)
+                        {
+                            Updater.OpenLastV3ReleasePage();
+                        }
+
+                        return true;
+                    });
+            }
         }
     }
 

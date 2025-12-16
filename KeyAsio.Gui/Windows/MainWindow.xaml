@@ -27,6 +27,31 @@
     TextBlock.Foreground="{StaticResource PrimaryTextBrush}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
+    <userControls:DialogWindow.ToolBarContent>
+        <Button
+            x:Name="UpgradeButton"
+            Height="20"
+            Margin="0,0,10,0"
+            Padding="10,0"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Right"
+            Background="{StaticResource PremiumGoldBrush}"
+            BorderBrush="{StaticResource PremiumGoldBorderBrush}"
+            BorderThickness="1"
+            Click="btnV4Released_OnClick"
+            Content="v4 RELEASED!"
+            Cursor="Hand"
+            FontSize="11"
+            FontWeight="Bold"
+            Foreground="#5A4200"
+            Visibility="Collapsed">
+            <Button.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="7" />
+                </Style>
+            </Button.Resources>
+        </Button>
+    </userControls:DialogWindow.ToolBarContent>
     <Grid Margin="25">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />

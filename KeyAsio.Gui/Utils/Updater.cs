@@ -23,7 +23,8 @@ public static class Updater
     private const int RetryCount = 3;
     private static readonly HttpClient HttpClient;
 
-    public static UpdateUtils.GithubRelease? NewRelease { get; private set; }
+    public static UpdateUtils.GithubRelease? NewV3Release { get; private set; }
+    public static UpdateUtils.GithubRelease? NewV4Release { get; private set; }
     public static bool IsRunningChecking { get; private set; }
 
     public static string GetVersion()
@@ -39,6 +40,8 @@ public static class Updater
     public static async Task<bool?> CheckUpdateAsync()
     {
         IsRunningChecking = true;
+        NewV3Release = null;
+        NewV4Release = null;
 
         try
         {
@@ -56,31 +59,66 @@ public static class Updater
             }
 
             var releases = JsonSerializer.Deserialize<List<UpdateUtils.GithubRelease>>(json)!;
-            var latest = releases
+            var validReleases = releases
+                .Where(k => !k.Draft)
                 .OrderByDescending(k => k.PublishedAt)
-                .FirstOrDefault(k => !k.Draft /*&& !k.PreRelease*/);
-            if (latest == null)
+                .ToList();
+
+            if (!validReleases.Any())
             {
-                NewRelease = null;
                 return false;
             }
 
-            var latestVer = latest.TagName.TrimStart('v');
-
-            var latestVerObj = SemVersion.Parse(latestVer, SemVersionStyles.Strict);
             var nowVerObj = SemVersion.Parse(GetVersion(), SemVersionStyles.Strict);
+            var v4VerObj = SemVersion.Parse("4.0.0", SemVersionStyles.Any);
 
-            Logger.LogDebug($"Current version: {nowVerObj}; Got version info: {latestVerObj}");
-
-            if (latestVerObj.ComparePrecedenceTo(nowVerObj) <= 0)
+            // Check for V4
+            var latestV4 = validReleases.FirstOrDefault(k =>
             {
-                NewRelease = null;
-                return false;
+                try
+                {
+                    var ver = SemVersion.Parse(k.TagName.TrimStart('v'), SemVersionStyles.Any);
+                    return ver.ComparePrecedenceTo(v4VerObj) >= 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+
+            if (latestV4 != null)
+            {
+                latestV4.NewVerString = latestV4.TagName.TrimStart('v');
+                NewV4Release = latestV4;
             }
 
-            NewRelease = latest;
-            NewRelease.NewVerString = latestVer;
-            NewRelease.NowVerString = GetVersion();
+            // Check for V3 update
+            var latestV3 = validReleases.FirstOrDefault(k =>
+            {
+                try
+                {
+                    var ver = SemVersion.Parse(k.TagName.TrimStart('v'), SemVersionStyles.Any);
+                    return ver.ComparePrecedenceTo(v4VerObj) < 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+
+            if (latestV3 != null)
+            {
+                var v3VerObj = SemVersion.Parse(latestV3.TagName.TrimStart('v'), SemVersionStyles.Any);
+                if (v3VerObj.ComparePrecedenceTo(nowVerObj) > 0)
+                {
+                    latestV3.NewVerString = v3VerObj.ToString();
+                    latestV3.NowVerString = GetVersion();
+                    NewV3Release = latestV3;
+                }
+            }
+
+            Logger.LogDebug(
+                $"Current version: {nowVerObj}; V3 Update: {NewV3Release?.NewVerString}; V4 Found: {NewV4Release?.NewVerString}");
         }
         catch (Exception ex)
         {
@@ -90,7 +128,7 @@ public static class Updater
         }
 
         IsRunningChecking = false;
-        return true;
+        return NewV3Release != null || NewV4Release != null;
     }
 
     static Updater()
@@ -126,14 +164,33 @@ public static class Updater
         return null;
     }
 
-    public static void OpenLastReleasePage()
+    public static void OpenLastV3ReleasePage()
     {
-        if (NewRelease != null)
+        if (NewV3Release != null)
         {
-            Process.Start(new ProcessStartInfo($"https://github.com/{Repo}/releases/tag/v{NewRelease.NewVerString}")
+            Process.Start(new ProcessStartInfo($"https://github.com/{Repo}/releases/tag/v{NewV3Release.NewVerString}")
             {
                 UseShellExecute = true
             });
         }
+    }
+
+    public static void OpenLastV4ReleasePage()
+    {
+        if (NewV4Release != null)
+        {
+            Process.Start(new ProcessStartInfo($"https://github.com/{Repo}/releases/tag/v{NewV4Release.NewVerString}")
+            {
+                UseShellExecute = true
+            });
+        }
+    }
+
+    public static void OpenCommonReleasePage()
+    {
+        Process.Start(new ProcessStartInfo($"https://github.com/{Repo}/releases")
+        {
+            UseShellExecute = true
+        });
     }
 }
