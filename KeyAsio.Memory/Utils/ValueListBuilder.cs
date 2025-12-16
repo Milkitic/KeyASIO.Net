@@ -14,7 +14,7 @@ namespace KeyAsio.Memory.Utils;
 /// to return the buffer to the shared <see cref="ArrayPool{T}"/>. This type is
 /// not thread-safe and must not be used across async/await boundaries.
 /// </remarks>
-public ref struct ValueListBuilder<T> : IDisposable
+public ref struct ValueListBuilder<T>
 {
     private Span<T> _span;
     private T[]? _arrayFromPool;

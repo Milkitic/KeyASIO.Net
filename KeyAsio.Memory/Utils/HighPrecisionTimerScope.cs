@@ -2,7 +2,7 @@
 
 namespace KeyAsio.Memory.Utils;
 
-public ref struct HighPrecisionTimerScope : IDisposable
+public ref struct HighPrecisionTimerScope
 {
     private bool _disposed;
 
