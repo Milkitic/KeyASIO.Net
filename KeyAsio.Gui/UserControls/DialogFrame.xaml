@@ -46,6 +46,10 @@
                 <local:MaxButton IconSize="11" Visibility="{Binding ElementName=Self, Path=HasMax, Converter={StaticResource Boolean2VisibilityConverter}}" />
                 <local:CloseButton Height="31" IconSize="14" />
             </StackPanel>
+            <ContentPresenter
+                DockPanel.Dock="Right"
+                WindowChrome.IsHitTestVisibleInChrome="True"
+                Content="{Binding ElementName=Self, Path=ToolBarContent}" />
         </DockPanel>
         <Grid
             Grid.Row="1"

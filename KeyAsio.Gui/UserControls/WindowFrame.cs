@@ -13,6 +13,11 @@ public class WindowFrame : UserControl, INotifyPropertyChanged
         typeof(WindowFrame),
         new PropertyMetadata(default(object)));
 
+    public static readonly DependencyProperty ToolBarContentProperty = DependencyProperty.Register(nameof(ToolBarContent),
+        typeof(object),
+        typeof(WindowFrame),
+        new PropertyMetadata(default(object)));
+
     public static readonly DependencyProperty IsMaxProperty = DependencyProperty.Register(nameof(IsMax),
         typeof(bool),
         typeof(WindowFrame),
@@ -68,6 +73,12 @@ public class WindowFrame : UserControl, INotifyPropertyChanged
     {
         get => GetValue(ChildProperty);
         set => SetValue(ChildProperty, value);
+    }
+
+    public object ToolBarContent
+    {
+        get => GetValue(ToolBarContentProperty);
+        set => SetValue(ToolBarContentProperty, value);
     }
 
     public bool HasIcon

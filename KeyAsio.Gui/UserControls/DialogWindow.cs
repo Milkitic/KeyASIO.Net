@@ -11,6 +11,23 @@ public class DialogWindow : FrameWindow
 {
     private readonly DialogFrame _frame;
 
+    public static readonly DependencyProperty ToolBarContentProperty = DependencyProperty.Register(nameof(ToolBarContent),
+        typeof(object),
+        typeof(DialogWindow),
+        new PropertyMetadata(default(object), (d, e) =>
+        {
+            if (d is DialogWindow w && w.Frame != null)
+            {
+                w.Frame.ToolBarContent = e.NewValue;
+            }
+        }));
+
+    public object ToolBarContent
+    {
+        get => GetValue(ToolBarContentProperty);
+        set => SetValue(ToolBarContentProperty, value);
+    }
+
     // ReSharper disable IdentifierTypo
     // ReSharper disable InconsistentNaming
     private const int WM_WINDOWPOSCHANGING = 0x0046;
