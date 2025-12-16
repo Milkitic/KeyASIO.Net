@@ -3,10 +3,12 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Reloaded.Memory.Sigscan;
+using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.SystemInformation;
+using Windows.Win32.System.Threading;
 
 namespace KeyAsio.Memory;
 
@@ -14,6 +16,7 @@ namespace KeyAsio.Memory;
 public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 {
     private readonly Process _process;
+    private HANDLE _processHandle;
     private int _memoryRegionsMaxSize;
     private readonly List<MemoryRegionMetadata> _memoryRegions = new(256);
     private bool _isDisposed;
@@ -21,6 +24,10 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
     public SigScan(Process process)
     {
         _process = process ?? throw new ArgumentNullException(nameof(process));
+        _processHandle = PInvoke.OpenProcess(
+            PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ | PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION,
+            false,
+            (uint)process.Id);
 
         RefreshMemoryRegions();
     }
@@ -31,26 +38,31 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 
         IntPtr foundAddress = IntPtr.Zero;
 
-        var buffer = ArrayPool<byte>.Shared.Rent(_memoryRegionsMaxSize);
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(_memoryRegionsMaxSize);
         try
         {
             fixed (byte* bufPtr = buffer)
             {
                 // Must be done sequentially
-                foreach (ref var region in CollectionsMarshal.AsSpan(_memoryRegions))
+                foreach (ref MemoryRegionMetadata region in CollectionsMarshal.AsSpan(_memoryRegions))
                 {
                     if (region.RegionSize > int.MaxValue) continue;
 
                     int size = (int)region.RegionSize;
 
-                    if (!PInvoke.ReadProcessMemory((HANDLE)_process.Handle, region.BaseAddress, bufPtr, (nuint)size,
-                            null))
+                    BOOL success = PInvoke.ReadProcessMemory(
+                        _processHandle,
+                        region.BaseAddress,
+                        bufPtr,
+                        (nuint)size,
+                        null);
+                    if (!success)
                     {
                         continue;
                     }
 
-                    using var scanner = new Scanner(bufPtr, size);
-                    var result = scanner.FindPattern(pattern);
+                    using Scanner scanner = new Scanner(bufPtr, size);
+                    PatternScanResult result = scanner.FindPattern(pattern);
 
                     if (!result.Found) continue;
 
@@ -82,16 +94,15 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 
     public bool ReadMemory(IntPtr address, Span<byte> buffer, int size, out int bytesRead)
     {
-        return ReadProcessMemory(_process.Handle, address, buffer, (uint)size, out bytesRead);
+        return ReadProcessMemory(_processHandle, address, buffer, (uint)size, out bytesRead);
     }
 
-    private static unsafe bool ReadProcessMemory(IntPtr hProcess,
+    private static unsafe bool ReadProcessMemory(HANDLE hProcess,
         IntPtr lpBaseAddress,
         Span<byte> lpBuffer,
         uint dwSize,
         out int lpNumberOfBytesRead)
     {
-        HANDLE handle = (HANDLE)hProcess;
         void* baseAddr = (void*)lpBaseAddress;
 
         nuint bytesReadNative = 0;
@@ -99,7 +110,7 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
         fixed (byte* bufferPtr = lpBuffer)
         {
             BOOL success = PInvoke.ReadProcessMemory(
-                handle,
+                hProcess,
                 baseAddr,
                 bufferPtr,
                 dwSize,
@@ -118,17 +129,20 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
         if (_process.HasExited) return;
 
         PInvoke.GetSystemInfo(out SYSTEM_INFO sysInfo);
-        var minAddr = (byte*)sysInfo.lpMinimumApplicationAddress;
-        var maxAddr = (byte*)sysInfo.lpMaximumApplicationAddress;
-        var currentPtr = minAddr;
+        byte* minAddr = (byte*)sysInfo.lpMinimumApplicationAddress;
+        byte* maxAddr = (byte*)sysInfo.lpMaximumApplicationAddress;
+        byte* currentPtr = minAddr;
 
         MEMORY_BASIC_INFORMATION memInfo = default;
-        var handle = (HANDLE)_process.Handle;
-        var maxSize = 0;
+        int maxSize = 0;
 
         while (currentPtr < maxAddr)
         {
-            var size = PInvoke.VirtualQueryEx(handle, currentPtr, &memInfo, (nuint)sizeof(MEMORY_BASIC_INFORMATION));
+            UIntPtr size = PInvoke.VirtualQueryEx(
+                _processHandle,
+                currentPtr,
+                &memInfo,
+                (nuint)sizeof(MEMORY_BASIC_INFORMATION));
             if (size == 0) break;
 
             bool isCommit = memInfo.State == VIRTUAL_ALLOCATION_TYPE.MEM_COMMIT;
@@ -155,15 +169,20 @@ public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 
     private void Dispose(bool disposing)
     {
-        if (!_isDisposed)
-        {
-            if (disposing)
-            {
-                ResetRegion();
-            }
+        if (_isDisposed) return;
 
-            _isDisposed = true;
+        if (disposing)
+        {
+            ResetRegion();
         }
+
+        if (_processHandle != HANDLE.Null)
+        {
+            PInvoke.CloseHandle(_processHandle);
+            _processHandle = default;
+        }
+
+        _isDisposed = true;
     }
 
     private readonly unsafe struct MemoryRegionMetadata(void* baseAddress, UIntPtr regionSize)

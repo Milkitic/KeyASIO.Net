@@ -3,6 +3,7 @@ CloseHandle
 ReadProcessMemory
 GetSystemInfo
 VirtualQueryEx
+GetExitCodeProcess
 QueryFullProcessImageName
 
 timeBeginPeriod
