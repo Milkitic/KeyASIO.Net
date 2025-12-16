@@ -5,11 +5,14 @@ on:
   create:
     tags:
       - "v*.*.*"
+  push:
+    branches:
+      - "maint/3.x"
   
 jobs:
   build:
     name: Build and Release
-    if: ${{ StartsWith(github.ref, 'refs/tags/') }}
+    if: ${{ startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/maint/3.x' }}
     runs-on: windows-latest
 
     steps:
@@ -68,23 +71,30 @@ jobs:
         .\KeyAsio.Gui\afterbuild.ps1 .\ci-publish-win64\KeyAsio.Gui.exe
         .\KeyAsio.Gui\afterbuild.ps1 .\ci-publish-win32\KeyAsio.Gui.exe
 
-    - name: Get tag
-      uses: dawidd6/action-get-tag@v1
-      if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
-      id: tag
+    - name: Determine Version
+      id: version
+      shell: pwsh
+      run: |
+        if ("${{ github.ref }}".StartsWith("refs/tags/")) {
+          $tag = "${{ github.ref }}".Substring(10)
+          echo "tag=$tag" >> $env:GITHUB_OUTPUT
+        } else {
+          $tag = "maint-3.x-b${{ github.run_number }}"
+          echo "tag=$tag" >> $env:GITHUB_OUTPUT
+        }
         
-    # 7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}.7z" "./ci-publish/*" -x!"${{ env.ProjectName }}" -r
+    # 7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ steps.version.outputs.tag }}.7z" "./ci-publish/*" -x!"${{ env.ProjectName }}" -r
     - name: Pack via 7z
-      if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ success() }}
       run: |
         mkdir -p ./ci-pack/
-        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}-win64.7z" "./ci-publish-win64/*" -x!"${{ env.ProjectName }}" -r
-        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}-win32.7z" "./ci-publish-win32/*" -x!"${{ env.ProjectName }}" -r
+        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ steps.version.outputs.tag }}-win64.7z" "./ci-publish-win64/*" -x!"${{ env.ProjectName }}" -r
+        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ steps.version.outputs.tag }}-win32.7z" "./ci-publish-win32/*" -x!"${{ env.ProjectName }}" -r
         
-    # ./ci-pack/${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}.7z
-    - name: Create a new GitHub release if a new tag is pushed
+    # ./ci-pack/${{ env.ProjectName }}-${{ steps.version.outputs.tag }}.7z
+    - name: Create a new GitHub release
       uses: softprops/action-gh-release@v1
-      if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ success() }}
       env:
         GITHUB_TOKEN: ${{secrets.RELEASE_TOKEN}}
       with:
@@ -93,12 +103,13 @@ jobs:
 
           ## Release notes
           1. Place holder
-        name: ${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: ${{ env.ProjectName }}-${{ steps.version.outputs.tag }}
         prerelease: true
         draft: false
         files: |
-          ./ci-pack/${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}-win64.7z
-          ./ci-pack/${{ env.ProjectName }}-${{ steps.tag.outputs.tag }}-win32.7z
+          ./ci-pack/${{ env.ProjectName }}-${{ steps.version.outputs.tag }}-win64.7z
+          ./ci-pack/${{ env.ProjectName }}-${{ steps.version.outputs.tag }}-win32.7z
           
     #      ### Installation
     #      .NET 8.0 Desktop Runtime is required for the smallest asset.
