@@ -227,21 +227,21 @@ public class MemoryContext
         return false;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsUnmanaged<T>()
-    {
-        return !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
-    }
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //private static bool IsUnmanaged<T>()
+    //{
+    //    return !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+    //}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe bool TryGetValueUnmanaged<T>(SigScan sigScan, IntPtr address, out T result)
-    {
-        result = default;
-        if (!MemoryReadHelper.TryGetValue<T>(sigScan, address, out var val)) return false;
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //public static unsafe bool TryGetValueUnmanaged<T>(SigScan sigScan, IntPtr address, out T result)
+    //{
+    //    result = default;
+    //    if (!MemoryReadHelper.TryGetValue<T>(sigScan, address, out var val)) return false;
 
-        result = Unsafe.ReadUnaligned<T>(Unsafe.AsPointer(ref val));
-        return true;
-    }
+    //    result = Unsafe.ReadUnaligned<T>(Unsafe.AsPointer(ref val));
+    //    return true;
+    //}
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IntPtr ResolvePointer(string pointerName)
