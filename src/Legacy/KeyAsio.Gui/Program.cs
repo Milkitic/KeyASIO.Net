@@ -16,7 +16,7 @@ using KeyAsio.Gui.Utils;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -72,7 +72,7 @@ public static class Program
                 .AddSingleton<Updater>()
                 .AddSingleton<MemoryScan>()
                 .AddAudioModule()
-                .AddRealtimeModule()
+                .AddSyncModule()
                 .AddGuiModule()
                 .AddSingleton(provider => ConfigurationFactory.GetConfiguration<AppSettings>(
                     ".", "appsettings.yaml", MyYamlConfigurationConverter.Instance)))

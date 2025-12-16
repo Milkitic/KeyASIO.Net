@@ -4,9 +4,9 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Utils;
 
-namespace KeyAsio.Shared.Realtime;
+namespace KeyAsio.Shared.Sync;
 
-public class RealtimeSessionContext : ViewModelBase
+public class SyncSessionContext : ViewModelBase
 {
     public Func<int, int, Task>? OnComboChanged;
     public Func<Mods, Mods, Task>? OnPlayModsChanged;
@@ -17,7 +17,7 @@ public class RealtimeSessionContext : ViewModelBase
     private readonly AppSettings _appSettings;
     private readonly Stopwatch _playTimeStopwatch = new();
 
-    public RealtimeSessionContext(AppSettings appSettings)
+    public SyncSessionContext(AppSettings appSettings)
     {
         _appSettings = appSettings;
     }

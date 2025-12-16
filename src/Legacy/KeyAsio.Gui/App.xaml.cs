@@ -9,8 +9,8 @@ using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
 using KeyAsio.Shared;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Services;
+using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,21 +26,21 @@ public partial class App : Application
     private readonly IServiceProvider _serviceProvider;
     private readonly AppSettings _appSettings;
     private readonly MemoryScan _memoryScan;
-    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly SyncSessionContext _syncSessionContext;
     private readonly SkinManager _skinManager;
 
     public App(ILogger<App> logger,
         IServiceProvider serviceProvider,
         AppSettings appSettings,
         MemoryScan memoryScan,
-        RealtimeSessionContext realtimeSessionContext,
+        SyncSessionContext syncSessionContext,
         SkinManager skinManager)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _appSettings = appSettings;
         _memoryScan = memoryScan;
-        _realtimeSessionContext = realtimeSessionContext;
+        _syncSessionContext = syncSessionContext;
         _skinManager = skinManager;
     }
 
@@ -68,12 +68,12 @@ public partial class App : Application
 
     private void StartMemoryScan()
     {
-        if (!_appSettings.Realtime.RealtimeMode) return;
+        if (!_appSettings.Sync.EnableSync) return;
 
         try
         {
             var player = EncodeUtils.FromBase64String(_appSettings.Logging.PlayerBase64 ?? "", Encoding.ASCII);
-            _realtimeSessionContext.Username = player;
+            _syncSessionContext.Username = player;
         }
         catch (Exception ex)
         {
@@ -82,23 +82,23 @@ public partial class App : Application
 
         var dispatcher = Current.Dispatcher;
         _memoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-            dispatcher.InvokeAsync(() => _realtimeSessionContext.Username = player);
+            dispatcher.InvokeAsync(() => _syncSessionContext.Username = player);
         _memoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-            dispatcher.InvokeAsync(() => _realtimeSessionContext.PlayMods = mods);
+            dispatcher.InvokeAsync(() => _syncSessionContext.PlayMods = mods);
         _memoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-            dispatcher.InvokeAsync(() => _realtimeSessionContext.Combo = combo);
+            dispatcher.InvokeAsync(() => _syncSessionContext.Combo = combo);
         _memoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-            dispatcher.InvokeAsync(() => _realtimeSessionContext.Score = score);
+            dispatcher.InvokeAsync(() => _syncSessionContext.Score = score);
         _memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-            dispatcher.InvokeAsync(() => _realtimeSessionContext.IsReplay = isReplay);
+            dispatcher.InvokeAsync(() => _syncSessionContext.IsReplay = isReplay);
         _memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            dispatcher.InvokeAsync(() => _realtimeSessionContext.BaseMemoryTime = playTime);
+            dispatcher.InvokeAsync(() => _syncSessionContext.BaseMemoryTime = playTime);
         _memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-            dispatcher.InvokeAsync(() => _realtimeSessionContext.Beatmap = beatmap);
+            dispatcher.InvokeAsync(() => _syncSessionContext.Beatmap = beatmap);
         _memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-            dispatcher.InvokeAsync(() => _realtimeSessionContext.OsuStatus = current);
-        _memoryScan.Start(_appSettings.Realtime.Scanning.GeneralScanInterval,
-            _appSettings.Realtime.Scanning.TimingScanInterval);
+            dispatcher.InvokeAsync(() => _syncSessionContext.OsuStatus = current);
+        _memoryScan.Start(_appSettings.Sync.Scanning.GeneralScanInterval,
+            _appSettings.Sync.Scanning.TimingScanInterval);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

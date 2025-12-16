@@ -2,10 +2,10 @@
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime.Tracks;
+using KeyAsio.Shared.Sync.Tracks;
 using Microsoft.Extensions.Logging;
 
-namespace KeyAsio.Shared.Realtime.Services;
+namespace KeyAsio.Shared.Sync.Services;
 
 public class BackgroundMusicManager
 {

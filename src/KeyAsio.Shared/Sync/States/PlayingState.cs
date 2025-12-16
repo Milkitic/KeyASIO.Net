@@ -4,9 +4,9 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync.Services;
 
-namespace KeyAsio.Shared.Realtime.States;
+namespace KeyAsio.Shared.Sync.States;
 
 public class PlayingState : IGameState
 {
@@ -42,7 +42,7 @@ public class PlayingState : IGameState
         _gameplayAudioService = gameplayAudioService;
     }
 
-    public async Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
+    public async Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
         _backgroundMusicManager.StartLowPass(200, 800);
         _backgroundMusicManager.SetResultFlag(false);
@@ -56,12 +56,12 @@ public class PlayingState : IGameState
         await _gameplaySessionManager.StartAsync(ctx.Beatmap.FilenameFull, ctx.Beatmap.Filename);
     }
 
-    public void Exit(RealtimeSessionContext ctx, OsuMemoryStatus to)
+    public void Exit(SyncSessionContext ctx, OsuMemoryStatus to)
     {
         // Exit behavior will be handled by the next state's Enter.
     }
 
-    public async Task OnPlayTimeChanged(RealtimeSessionContext ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
         _backgroundMusicManager.UpdatePauseCount(paused);
@@ -83,7 +83,7 @@ public class PlayingState : IGameState
             return;
         }
 
-        if (_appSettings.Realtime.RealtimeEnableMusic)
+        if (_appSettings.Sync.EnableMixSync)
         {
             if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
                 _backgroundMusicManager.GetMainTrackPath() != null &&
@@ -124,9 +124,9 @@ public class PlayingState : IGameState
         PlayManualPlaybackIfNeeded(ctx);
     }
 
-    public void OnComboChanged(RealtimeSessionContext ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(SyncSessionContext ctx, int oldCombo, int newCombo)
     {
-        if (_appSettings.Realtime.Filters.DisableComboBreakSfx) return;
+        if (_appSettings.Sync.Filters.DisableComboBreakSfx) return;
         if (!ctx.IsStarted) return;
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;
@@ -137,15 +137,15 @@ public class PlayingState : IGameState
         }
     }
 
-    public void OnBeatmapChanged(RealtimeSessionContext ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(SyncSessionContext ctx, BeatmapIdentifier beatmap)
     {
     }
 
-    public void OnModsChanged(RealtimeSessionContext ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(SyncSessionContext ctx, Mods oldMods, Mods newMods)
     {
     }
 
-    private void PlayAutoPlaybackIfNeeded(RealtimeSessionContext ctx)
+    private void PlayAutoPlaybackIfNeeded(SyncSessionContext ctx)
     {
         if (!_sharedViewModel.AutoMode && (ctx.PlayMods & Mods.Autoplay) == 0 && !ctx.IsReplay) return;
         _playbackBuffer.Clear();
@@ -156,7 +156,7 @@ public class PlayingState : IGameState
         }
     }
 
-    private void PlayManualPlaybackIfNeeded(RealtimeSessionContext ctx)
+    private void PlayManualPlaybackIfNeeded(SyncSessionContext ctx)
     {
         _playbackBuffer.Clear();
         _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, true);

@@ -6,8 +6,8 @@ using Avalonia.Markup.Xaml;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Services;
+using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,7 +47,7 @@ public partial class App : Application
             keyboardBindingInitializer.RegisterKeys(appSettings.Input.Keys);
             //_ = keyboardBindingInitializer.InitializeKeyAudioAsync();
 
-            var realtimeController = Program.Host.Services.GetRequiredService<RealtimeController>();
+            var syncController = Program.Host.Services.GetRequiredService<SyncController>();
 
             var mainWindow = Program.Host.Services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
@@ -62,16 +62,16 @@ public partial class App : Application
     private void StartMemoryScan()
     {
         var appSettings = Program.Host.Services.GetRequiredService<AppSettings>();
-        if (!appSettings.Realtime.RealtimeMode) return;
+        if (!appSettings.Sync.EnableSync) return;
 
         var logger = Program.Host.Services.GetRequiredService<ILogger<App>>();
-        var realtimeSessionContext = Program.Host.Services.GetRequiredService<RealtimeSessionContext>();
+        var syncSessionContext = Program.Host.Services.GetRequiredService<SyncSessionContext>();
         var memoryScan = Program.Host.Services.GetRequiredService<MemoryScan>();
 
         try
         {
             var player = EncodeUtils.FromBase64String(appSettings.Logging.PlayerBase64 ?? "", Encoding.ASCII);
-            realtimeSessionContext.Username = player;
+            syncSessionContext.Username = player;
         }
         catch (Exception ex)
         {
@@ -79,36 +79,36 @@ public partial class App : Application
         }
 
         memoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-            realtimeSessionContext.Username = player;
+            syncSessionContext.Username = player;
         memoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-            realtimeSessionContext.PlayMods = mods;
+            syncSessionContext.PlayMods = mods;
         memoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-            realtimeSessionContext.Combo = combo;
+            syncSessionContext.Combo = combo;
         memoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-            realtimeSessionContext.Score = score;
+            syncSessionContext.Score = score;
         memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-            realtimeSessionContext.IsReplay = isReplay;
+            syncSessionContext.IsReplay = isReplay;
         memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            realtimeSessionContext.BaseMemoryTime = playTime;
+            syncSessionContext.BaseMemoryTime = playTime;
         memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-            realtimeSessionContext.Beatmap = beatmap;
+            syncSessionContext.Beatmap = beatmap;
         memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-            realtimeSessionContext.OsuStatus = current;
+            syncSessionContext.OsuStatus = current;
         memoryScan.MemoryReadObject.ProcessIdChanged += (_, id) =>
-            realtimeSessionContext.ProcessId = id;
+            syncSessionContext.ProcessId = id;
 
-        appSettings.Realtime.Scanning.PropertyChanged += (_, e) =>
+        appSettings.Sync.Scanning.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName is nameof(AppSettingsRealtimeScanning.GeneralScanInterval)
-                or nameof(AppSettingsRealtimeScanning.TimingScanInterval))
+            if (e.PropertyName is nameof(AppSettingsSyncScanning.GeneralScanInterval)
+                or nameof(AppSettingsSyncScanning.TimingScanInterval))
             {
-                memoryScan.UpdateIntervals(appSettings.Realtime.Scanning.GeneralScanInterval,
-                    appSettings.Realtime.Scanning.TimingScanInterval);
+                memoryScan.UpdateIntervals(appSettings.Sync.Scanning.GeneralScanInterval,
+                    appSettings.Sync.Scanning.TimingScanInterval);
             }
         };
 
-        memoryScan.Start(appSettings.Realtime.Scanning.GeneralScanInterval,
-            appSettings.Realtime.Scanning.TimingScanInterval);
+        memoryScan.Start(appSettings.Sync.Scanning.GeneralScanInterval,
+            appSettings.Sync.Scanning.TimingScanInterval);
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

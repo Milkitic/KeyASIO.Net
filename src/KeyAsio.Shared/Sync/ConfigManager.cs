@@ -1,7 +1,7 @@
-using Coosu.Shared.IO;
+﻿using Coosu.Shared.IO;
 using Milki.Extensions.MouseKeyHook;
 
-namespace KeyAsio.Shared.Realtime;
+namespace KeyAsio.Shared.Sync;
 
 internal class ConfigManager
 {

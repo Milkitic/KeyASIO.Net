@@ -2,9 +2,10 @@
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync;
+using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.DependencyInjection;
+using NLog.Extensions.Logging;
 
 namespace MemoryReadingTest
 {
@@ -13,11 +14,12 @@ namespace MemoryReadingTest
     /// </summary>
     public partial class App : Application
     {
-        private readonly RealtimeSessionContext _realtimeSessionContext;
+        private readonly SyncSessionContext _syncSessionContext;
 
         public App()
         {
             var services = new ServiceCollection();
+            services.AddNLog();
             services.AddSingleton(new AppSettings());
             services.AddSingleton<SharedViewModel>();
             services.AddSingleton<GameplayAudioService>();
@@ -25,10 +27,10 @@ namespace MemoryReadingTest
             services.AddSingleton<BeatmapHitsoundLoader>();
             services.AddSingleton<BackgroundMusicManager>();
             services.AddSingleton<SfxPlaybackService>();
-            services.AddSingleton<RealtimeController>();
-            services.AddSingleton<RealtimeSessionContext>();
+            services.AddSingleton<SyncController>();
+            services.AddSingleton<SyncSessionContext>();
             var provider = services.BuildServiceProvider();
-            _realtimeSessionContext = provider.GetRequiredService<RealtimeSessionContext>();
+            _syncSessionContext = provider.GetRequiredService<SyncSessionContext>();
             MemoryScan = provider.GetRequiredService<MemoryScan>();
         }
 
@@ -36,14 +38,14 @@ namespace MemoryReadingTest
 
         private void App_OnStartup(object sender, StartupEventArgs e)
         {
-            MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) => _realtimeSessionContext.Username = player;
-            MemoryScan.MemoryReadObject.ModsChanged += (_, mods) => _realtimeSessionContext.PlayMods = mods;
-            MemoryScan.MemoryReadObject.ComboChanged += (_, combo) => _realtimeSessionContext.Combo = combo;
-            MemoryScan.MemoryReadObject.ScoreChanged += (_, score) => _realtimeSessionContext.Score = score;
-            MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) => _realtimeSessionContext.BaseMemoryTime = playTime;
-            MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) => _realtimeSessionContext.Beatmap = beatmap;
-            MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) => _realtimeSessionContext.OsuStatus = current;
-            MemoryScan.Start(50, 2);
+            MemoryScan.MemoryReadObject.PlayerNameChanged += (_, player) => _syncSessionContext.Username = player;
+            MemoryScan.MemoryReadObject.ModsChanged += (_, mods) => _syncSessionContext.PlayMods = mods;
+            MemoryScan.MemoryReadObject.ComboChanged += (_, combo) => _syncSessionContext.Combo = combo;
+            MemoryScan.MemoryReadObject.ScoreChanged += (_, score) => _syncSessionContext.Score = score;
+            MemoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) => _syncSessionContext.BaseMemoryTime = playTime;
+            MemoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) => _syncSessionContext.Beatmap = beatmap;
+            MemoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) => _syncSessionContext.OsuStatus = current;
+            MemoryScan.Start(50, 1);
         }
     }
 }

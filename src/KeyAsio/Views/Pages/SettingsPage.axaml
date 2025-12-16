@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
   x:Class="KeyAsio.Views.Pages.SettingsPage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -30,7 +30,7 @@
               Description="Disables memory reading; responds only to raw key presses. Intended for testing purposes."
               Header="Legacy Mode (Key Only)"
               Icon="Keyboard"
-              IsChecked="{Binding !AppSettings.Realtime.RealtimeMode}" />
+              IsChecked="{Binding !AppSettings.Sync.EnableSync}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>

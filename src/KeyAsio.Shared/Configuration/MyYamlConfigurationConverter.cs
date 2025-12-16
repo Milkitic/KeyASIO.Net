@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Milki.Extensions.Configuration.Converters;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -50,7 +50,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
 
     private static bool LooksLikeNewYaml(string content)
     {
-        var tokens = new[] { "input", "paths", "audio", "logging", "performance", "realtime" };
+        var tokens = new[] { "input", "paths", "audio", "logging", "performance", "sync" };
         using var sr = new StringReader(content);
         string? line;
         while ((line = sr.ReadLine()) != null)
@@ -121,22 +121,22 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             {
                 AudioCacheThreadCount = s.AudioCachingThreads
             },
-            Realtime = new AppSettingsRealtime
+            Sync = new AppSettingsSync
             {
-                RealtimeMode = s.RealtimeOptions.RealtimeMode,
-                RealtimeEnableMusic = s.RealtimeOptions.EnableMusicFunctions,
-                Scanning = new AppSettingsRealtimeScanning
+                EnableSync = s.RealtimeOptions.RealtimeMode,
+                EnableMixSync = s.RealtimeOptions.EnableMusicFunctions,
+                Scanning = new AppSettingsSyncScanning
                 {
                     GeneralScanInterval = s.RealtimeOptions.GeneralScanInterval,
                     TimingScanInterval = s.RealtimeOptions.TimingScanInterval
                 },
-                Playback = new AppSettingsRealtimePlayback
+                Playback = new AppSettingsSyncPlayback
                 {
                     TailPlaybackBehavior = s.RealtimeOptions.SliderTailPlaybackBehavior,
                     NightcoreBeats = s.RealtimeOptions.ForceNightcoreBeats,
                     BalanceFactor = s.RealtimeOptions.BalanceFactor,
                 },
-                Filters = new AppSettingsRealtimeFilters
+                Filters = new AppSettingsSyncFilters
                 {
                     DisableBeatmapHitsounds = s.RealtimeOptions.IgnoreBeatmapHitsound,
                     DisableStoryboardSamples = s.RealtimeOptions.IgnoreStoryboardSamples,
@@ -182,28 +182,28 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         {
             s.AudioCachingThreads = y.Performance.AudioCacheThreadCount;
         }
-        if (y.Realtime != null)
+        if (y.Sync != null)
         {
-            s.RealtimeOptions.RealtimeMode = y.Realtime.RealtimeMode;
-            if (y.Realtime.Scanning != null)
+            s.RealtimeOptions.RealtimeMode = y.Sync.EnableSync;
+            if (y.Sync.Scanning != null)
             {
-                s.RealtimeOptions.GeneralScanInterval = y.Realtime.Scanning.GeneralScanInterval;
-                s.RealtimeOptions.TimingScanInterval = y.Realtime.Scanning.TimingScanInterval;
+                s.RealtimeOptions.GeneralScanInterval = y.Sync.Scanning.GeneralScanInterval;
+                s.RealtimeOptions.TimingScanInterval = y.Sync.Scanning.TimingScanInterval;
             }
-            if (y.Realtime.Playback != null)
+            if (y.Sync.Playback != null)
             {
-                s.RealtimeOptions.SliderTailPlaybackBehavior = y.Realtime.Playback.TailPlaybackBehavior;
-                s.RealtimeOptions.ForceNightcoreBeats = y.Realtime.Playback.NightcoreBeats;
-                s.RealtimeOptions.BalanceFactor = y.Realtime.Playback.BalanceFactor;
-                s.RealtimeOptions.EnableMusicFunctions = y.Realtime.RealtimeEnableMusic;
+                s.RealtimeOptions.SliderTailPlaybackBehavior = y.Sync.Playback.TailPlaybackBehavior;
+                s.RealtimeOptions.ForceNightcoreBeats = y.Sync.Playback.NightcoreBeats;
+                s.RealtimeOptions.BalanceFactor = y.Sync.Playback.BalanceFactor;
+                s.RealtimeOptions.EnableMusicFunctions = y.Sync.EnableMixSync;
             }
-            if (y.Realtime.Filters != null)
+            if (y.Sync.Filters != null)
             {
-                s.RealtimeOptions.IgnoreBeatmapHitsound = y.Realtime.Filters.DisableBeatmapHitsounds;
-                s.RealtimeOptions.IgnoreStoryboardSamples = y.Realtime.Filters.DisableStoryboardSamples;
-                s.RealtimeOptions.IgnoreSliderTicksAndSlides = y.Realtime.Filters.DisableSliderTicksAndSlides;
-                s.RealtimeOptions.IgnoreComboBreak = y.Realtime.Filters.DisableComboBreakSfx;
-                s.RealtimeOptions.IgnoreLineVolumes = y.Realtime.Filters.IgnoreLineVolumes;
+                s.RealtimeOptions.IgnoreBeatmapHitsound = y.Sync.Filters.DisableBeatmapHitsounds;
+                s.RealtimeOptions.IgnoreStoryboardSamples = y.Sync.Filters.DisableStoryboardSamples;
+                s.RealtimeOptions.IgnoreSliderTicksAndSlides = y.Sync.Filters.DisableSliderTicksAndSlides;
+                s.RealtimeOptions.IgnoreComboBreak = y.Sync.Filters.DisableComboBreakSfx;
+                s.RealtimeOptions.IgnoreLineVolumes = y.Sync.Filters.IgnoreLineVolumes;
             }
         }
         return s;

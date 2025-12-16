@@ -5,7 +5,7 @@ using KeyAsio.Shared.OsuMemory;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 
-namespace KeyAsio.Shared.Realtime.Tracks;
+namespace KeyAsio.Shared.Sync.Tracks;
 
 public class SynchronizedMusicPlayer
 {
@@ -34,7 +34,7 @@ public class SynchronizedMusicPlayer
 
     public void SyncAudio(CachedAudio? cachedAudio, int playTime)
     {
-        if (!_appSettings.Realtime.RealtimeEnableMusic) return;
+        if (!_appSettings.Sync.EnableMixSync) return;
         if (_cachedAudio?.SourceHash != cachedAudio?.SourceHash)
         {
             ClearAudio();

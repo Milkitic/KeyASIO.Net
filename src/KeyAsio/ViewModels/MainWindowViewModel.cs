@@ -9,7 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Sync;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using SukiUI.Dialogs;
@@ -38,8 +38,8 @@ public partial class MainWindowViewModel : IDisposable
             AppSettings = new AppSettings();
             AudioSettings = new AudioSettingsViewModel();
             Shared = new SharedViewModel(AppSettings);
-            RealtimeSession = new RealtimeSessionContext(AppSettings);
-            RealtimeDisplay = new RealtimeDisplayViewModel(RealtimeSession);
+            SyncSession = new SyncSessionContext(AppSettings);
+            SyncDisplay = new SyncDisplayViewModel(SyncSession);
             _keyboardBindingInitializer = null!;
         }
     }
@@ -49,7 +49,7 @@ public partial class MainWindowViewModel : IDisposable
         UpdateService updateService,
         AudioSettingsViewModel audioSettingsViewModel,
         SharedViewModel sharedViewModel,
-        RealtimeSessionContext realtimeSession,
+        SyncSessionContext syncSession,
         KeyboardBindingInitializer keyboardBindingInitializer)
     {
         AppSettings = appSettings;
@@ -57,8 +57,8 @@ public partial class MainWindowViewModel : IDisposable
         _logger = logger;
         AudioSettings = audioSettingsViewModel;
         Shared = sharedViewModel;
-        RealtimeSession = realtimeSession;
-        RealtimeDisplay = new RealtimeDisplayViewModel(RealtimeSession);
+        SyncSession = syncSession;
+        SyncDisplay = new SyncDisplayViewModel(SyncSession);
         _keyboardBindingInitializer = keyboardBindingInitializer;
         AudioSettings.ToastManager = MainToastManager;
 
@@ -71,8 +71,8 @@ public partial class MainWindowViewModel : IDisposable
     public UpdateService UpdateService { get; }
     public AudioSettingsViewModel AudioSettings { get; }
     public SharedViewModel Shared { get; }
-    public RealtimeSessionContext RealtimeSession { get; }
-    public RealtimeDisplayViewModel RealtimeDisplay { get; }
+    public SyncSessionContext SyncSession { get; }
+    public SyncDisplayViewModel SyncDisplay { get; }
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
 
     [ObservableProperty]
@@ -190,10 +190,10 @@ public partial class MainWindowViewModel : IDisposable
         Subscribe(AppSettings.Audio);
         Subscribe(AppSettings.Logging);
         Subscribe(AppSettings.Performance);
-        Subscribe(AppSettings.Realtime);
-        Subscribe(AppSettings.Realtime.Scanning);
-        Subscribe(AppSettings.Realtime.Playback);
-        Subscribe(AppSettings.Realtime.Filters);
+        Subscribe(AppSettings.Sync);
+        Subscribe(AppSettings.Sync.Scanning);
+        Subscribe(AppSettings.Sync.Playback);
+        Subscribe(AppSettings.Sync.Filters);
     }
 
     public void Dispose()
@@ -201,7 +201,7 @@ public partial class MainWindowViewModel : IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        RealtimeDisplay.Dispose();
+        SyncDisplay.Dispose();
 
         foreach (var obj in _observedSettings)
         {
@@ -230,7 +230,7 @@ public partial class MainWindowViewModel : IDisposable
             AudioSettings.AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
             DebounceSave();
         }
-        else if (e.PropertyName == nameof(AppSettingsRealtimePlayback.BalanceFactor))
+        else if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceFactor))
         {
             DebounceSave();
         }

@@ -1,4 +1,4 @@
-<userControls:DialogWindow
+﻿<userControls:DialogWindow
   x:Class="KeyAsio.Gui.Windows.MainWindow"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -347,7 +347,7 @@
           <Style TargetType="StackPanel">
             <Setter Property="Visibility" Value="Collapsed" />
             <Style.Triggers>
-              <DataTrigger Binding="{Binding ElementName=Self, Path=AppSettings.RealtimeOptions.RealtimeMode}" Value="True">
+              <DataTrigger Binding="{Binding ElementName=Self, Path=AppSettings.Sync.EnableSync}" Value="True">
                 <Setter Property="Visibility" Value="Visible" />
               </DataTrigger>
             </Style.Triggers>
@@ -425,7 +425,7 @@
             Grid.Row="1"
             Grid.Column="1"
             Margin="0,0,0,0"
-            Text="{Binding ElementName=Self, Path=RealtimeController.PlayTime, IsAsync=True, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+            Text="{Binding ElementName=Self, Path=SyncController.PlayTime, IsAsync=True, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
           <TextBlock
             Grid.Row="2"
             Grid.Column="0"
@@ -433,7 +433,7 @@
           <TextBlock
             Grid.Row="2"
             Grid.Column="1"
-            Text="{Binding ElementName=Self, Path=RealtimeController.OsuStatus}" />
+            Text="{Binding ElementName=Self, Path=SyncController.OsuStatus}" />
           <TextBlock
             Grid.Row="3"
             Grid.Column="0"
@@ -441,7 +441,7 @@
           <TextBlock
             Grid.Row="3"
             Grid.Column="1"
-            Text="{Binding ElementName=Self, Path=RealtimeController.Beatmap.Filename}"
+            Text="{Binding ElementName=Self, Path=SyncController.Beatmap.Filename}"
             TextWrapping="Wrap" />
         </Grid>
       </StackPanel>
@@ -588,7 +588,7 @@
           <ToggleButton
             Grid.Row="1"
             Grid.Column="1"
-            IsChecked="{Binding ElementName=Self, Path=AppSettings.RealtimeOptions.RealtimeMode}" />
+            IsChecked="{Binding ElementName=Self, Path=AppSettings.Sync.EnableSync}" />
 
           <TextBlock
             Grid.Row="2"

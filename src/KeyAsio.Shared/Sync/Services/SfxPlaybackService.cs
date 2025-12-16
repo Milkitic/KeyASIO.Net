@@ -1,4 +1,4 @@
-using Coosu.Beatmap.Extensions.Playback;
+﻿using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
@@ -7,7 +7,7 @@ using KeyAsio.Audio.Utils;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
 
-namespace KeyAsio.Shared.Realtime.Services;
+namespace KeyAsio.Shared.Sync.Services;
 
 public class SfxPlaybackService
 {
@@ -31,12 +31,12 @@ public class SfxPlaybackService
             return;
         }
 
-        if (_appSettings.Realtime.Filters.IgnoreLineVolumes)
+        if (_appSettings.Sync.Filters.IgnoreLineVolumes)
         {
             volume = 1;
         }
 
-        balance *= _appSettings.Realtime.Playback.BalanceFactor;
+        balance *= _appSettings.Sync.Playback.BalanceFactor;
 
         try
         {
@@ -58,7 +58,7 @@ public class SfxPlaybackService
     public void PlayLoopAudio(CachedAudio cachedAudio, ControlNode controlNode)
     {
         var effectMixer = _audioEngine.EffectMixer;
-        var volume = _appSettings.Realtime.Filters.IgnoreLineVolumes ? 1 : controlNode.Volume;
+        var volume = _appSettings.Sync.Filters.IgnoreLineVolumes ? 1 : controlNode.Volume;
 
         if (controlNode.ControlType == ControlType.StartSliding)
         {
@@ -99,7 +99,7 @@ public class SfxPlaybackService
         if (hitsoundNode is PlayableNode playableNode)
         {
             float volume;
-            if (_appSettings.Realtime.Filters.IgnoreLineVolumes)
+            if (_appSettings.Sync.Filters.IgnoreLineVolumes)
             {
                 volume = 1;
             }

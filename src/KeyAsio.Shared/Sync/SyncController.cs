@@ -2,20 +2,20 @@
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime.AudioProviders;
-using KeyAsio.Shared.Realtime.Services;
-using KeyAsio.Shared.Realtime.States;
+using KeyAsio.Shared.Sync.AudioProviders;
+using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Shared.Sync.States;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace KeyAsio.Shared.Realtime;
+namespace KeyAsio.Shared.Sync;
 
-public class RealtimeController
+public class SyncController
 {
-    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly SyncSessionContext _syncSessionContext;
     private readonly GameStateMachine _stateMachine;
 
-    public RealtimeController(IServiceProvider serviceProvider,
+    public SyncController(IServiceProvider serviceProvider,
         AppSettings appSettings,
         AudioEngine audioEngine,
         SharedViewModel sharedViewModel,
@@ -25,21 +25,21 @@ public class RealtimeController
         SfxPlaybackService sfxPlaybackService,
         AudioCacheManager audioCacheManager,
         GameplaySessionManager gameplaySessionManager,
-        RealtimeSessionContext realtimeSessionContext)
+        SyncSessionContext syncSessionContext)
     {
-        _realtimeSessionContext = realtimeSessionContext;
-        _realtimeSessionContext.OnBeatmapChanged = OnBeatmapChanged;
-        _realtimeSessionContext.OnComboChanged = OnComboChanged;
-        _realtimeSessionContext.OnStatusChanged = OnStatusChanged;
-        _realtimeSessionContext.OnPlayModsChanged = OnPlayModsChanged;
-        _realtimeSessionContext.OnFetchedPlayTimeChanged = OnFetchedPlayTimeChanged;
+        _syncSessionContext = syncSessionContext;
+        _syncSessionContext.OnBeatmapChanged = OnBeatmapChanged;
+        _syncSessionContext.OnComboChanged = OnComboChanged;
+        _syncSessionContext.OnStatusChanged = OnStatusChanged;
+        _syncSessionContext.OnPlayModsChanged = OnPlayModsChanged;
+        _syncSessionContext.OnFetchedPlayTimeChanged = OnFetchedPlayTimeChanged;
 
         var standardAudioProvider = new StandardHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<StandardHitsoundSequencer>>(),
-            appSettings, realtimeSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
+            appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
         var maniaAudioProvider = new ManiaHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<ManiaHitsoundSequencer>>(),
-            appSettings, realtimeSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
+            appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
         gameplaySessionManager.InitializeProviders(standardAudioProvider, maniaAudioProvider);
 
         // Initialize realtime state machine with scene mappings
@@ -60,30 +60,30 @@ public class RealtimeController
 
     private Task OnComboChanged(int oldCombo, int newCombo)
     {
-        _stateMachine.Current?.OnComboChanged(_realtimeSessionContext, oldCombo, newCombo);
+        _stateMachine.Current?.OnComboChanged(_syncSessionContext, oldCombo, newCombo);
         return Task.CompletedTask;
     }
 
     private async Task OnStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus)
     {
-        await _stateMachine.TransitionToAsync(_realtimeSessionContext, newStatus);
+        await _stateMachine.TransitionToAsync(_syncSessionContext, newStatus);
     }
 
     private Task OnBeatmapChanged(BeatmapIdentifier oldBeatmap, BeatmapIdentifier newBeatmap)
     {
-        _stateMachine.Current?.OnBeatmapChanged(_realtimeSessionContext, newBeatmap);
+        _stateMachine.Current?.OnBeatmapChanged(_syncSessionContext, newBeatmap);
         return Task.CompletedTask;
     }
 
     private Task OnPlayModsChanged(Mods oldMods, Mods newMods)
     {
-        _stateMachine.Current?.OnModsChanged(_realtimeSessionContext, oldMods, newMods);
+        _stateMachine.Current?.OnModsChanged(_syncSessionContext, oldMods, newMods);
         return Task.CompletedTask;
     }
 
     private Task OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
     {
-        _stateMachine.Current?.OnPlayTimeChanged(_realtimeSessionContext, oldMs, newMs, paused);
+        _stateMachine.Current?.OnPlayTimeChanged(_syncSessionContext, oldMs, newMs, paused);
         return Task.CompletedTask;
     }
 }

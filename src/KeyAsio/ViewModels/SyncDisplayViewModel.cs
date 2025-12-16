@@ -1,16 +1,16 @@
 ﻿using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Sync;
 
 namespace KeyAsio.ViewModels;
 
-public partial class RealtimeDisplayViewModel : ObservableObject, IDisposable
+public partial class SyncDisplayViewModel : ObservableObject, IDisposable
 {
-    private readonly RealtimeSessionContext _session;
+    private readonly SyncSessionContext _session;
     private readonly DispatcherTimer _timer;
 
-    public RealtimeDisplayViewModel(RealtimeSessionContext session)
+    public SyncDisplayViewModel(SyncSessionContext session)
     {
         _session = session;
         _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(1000 / 30), DispatcherPriority.Background, Tick);

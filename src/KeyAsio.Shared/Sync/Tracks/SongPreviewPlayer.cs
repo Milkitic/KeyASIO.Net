@@ -1,4 +1,4 @@
-using Coosu.Beatmap;
+﻿using Coosu.Beatmap;
 using KeyAsio.Audio;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.Utils;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace KeyAsio.Shared.Realtime.Tracks;
+namespace KeyAsio.Shared.Sync.Tracks;
 
 public class SongPreviewPlayer
 {
@@ -33,7 +33,7 @@ public class SongPreviewPlayer
 
     public async Task Play(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
     {
-        if (!_appSettings.Realtime.RealtimeEnableMusic) return;
+        if (!_appSettings.Sync.EnableMixSync) return;
         if (Mixer is null || WaveFormat is null) return;
 
         AudioFileReader? audioFileReader;

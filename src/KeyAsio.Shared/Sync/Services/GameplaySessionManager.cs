@@ -1,10 +1,10 @@
-using Coosu.Beatmap;
+﻿using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
 using Microsoft.Extensions.Logging;
 
-namespace KeyAsio.Shared.Realtime.Services;
+namespace KeyAsio.Shared.Sync.Services;
 
 public class GameplaySessionManager
 {
@@ -12,7 +12,7 @@ public class GameplaySessionManager
     private readonly IServiceProvider _serviceProvider;
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly AudioEngine _audioEngine;
-    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly SyncSessionContext _syncSessionContext;
     private readonly BeatmapHitsoundLoader _beatmapHitsoundLoader;
     private readonly BackgroundMusicManager _backgroundMusicManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
@@ -23,7 +23,7 @@ public class GameplaySessionManager
         IServiceProvider serviceProvider,
         GameplayAudioService gameplayAudioService,
         AudioEngine audioEngine,
-        RealtimeSessionContext realtimeSessionContext,
+        SyncSessionContext syncSessionContext,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
         BackgroundMusicManager backgroundMusicManager,
         SfxPlaybackService sfxPlaybackService)
@@ -32,7 +32,7 @@ public class GameplaySessionManager
         _serviceProvider = serviceProvider;
         _gameplayAudioService = gameplayAudioService;
         _audioEngine = audioEngine;
-        _realtimeSessionContext = realtimeSessionContext;
+        _syncSessionContext = syncSessionContext;
         _beatmapHitsoundLoader = beatmapHitsoundLoader;
         _backgroundMusicManager = backgroundMusicManager;
         _sfxPlaybackService = sfxPlaybackService;
@@ -66,7 +66,7 @@ public class GameplaySessionManager
         try
         {
             _logger.LogInformation("Start playing.");
-            _realtimeSessionContext.IsStarted = true;
+            _syncSessionContext.IsStarted = true;
             OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
@@ -76,18 +76,21 @@ public class GameplaySessionManager
             }
 
             var osuFile = await _beatmapHitsoundLoader.InitializeNodeListsAsync(folder, beatmapFilename,
-                CurrentHitsoundSequencer, _realtimeSessionContext.PlayMods);
+                CurrentHitsoundSequencer, _syncSessionContext.PlayMods);
             OsuFile = osuFile;
             AudioFilename = osuFile?.General?.AudioFilename;
 
             var previousFolder = _backgroundMusicManager.GetMainTrackFolder();
             _backgroundMusicManager.UpdateMainTrackContext(folder, AudioFilename);
             PerformCache(previousFolder, folder);
-            ResetNodes(_realtimeSessionContext.PlayTime);
+            ResetNodes(_syncSessionContext.PlayTime);
+
+            var result = GC.TryStartNoGCRegion(250 * 1024 * 1024);
+            if (result) _logger.LogWarning("!!!PAUSED GC!!!");
         }
         catch (Exception ex)
         {
-            _realtimeSessionContext.IsStarted = false;
+            _syncSessionContext.IsStarted = false;
             _logger.LogError(ex, "Error while starting a beatmap. Filename: {BeatmapFilename}. FilenameReal: {OsuFile}",
                 beatmapFilename, OsuFile);
             LogUtils.LogToSentry(LogLevel.Error, "Error while starting a beatmap", ex, k =>
@@ -126,8 +129,10 @@ public class GameplaySessionManager
 
     public void Stop()
     {
+        GC.EndNoGCRegion();
+        _logger.LogWarning("!!!RESUMED GC!!!");
         _logger.LogInformation("Stop playing.");
-        _realtimeSessionContext.IsStarted = false;
+        _syncSessionContext.IsStarted = false;
         _backgroundMusicManager.SetFirstStartInitialized(false);
         var mixer = _audioEngine.EffectMixer;
         _sfxPlaybackService.ClearAllLoops(mixer);
@@ -140,8 +145,8 @@ public class GameplaySessionManager
                 OsuFile.General.PreviewTime);
         }
 
-        _realtimeSessionContext.PlayTime = 0;
-        _realtimeSessionContext.Combo = 0;
+        _syncSessionContext.PlayTime = 0;
+        _syncSessionContext.Combo = 0;
     }
 
     private void ResetNodes(int playTime)

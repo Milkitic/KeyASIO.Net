@@ -1,17 +1,17 @@
-using Coosu.Beatmap.Extensions.Playback;
+﻿using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 
-namespace KeyAsio.Shared.Realtime.AudioProviders;
+namespace KeyAsio.Shared.Sync.AudioProviders;
 
 public class ManiaHitsoundSequencer : IHitsoundSequencer
 {
     private readonly ILogger<ManiaHitsoundSequencer> _logger;
     private readonly AppSettings _appSettings;
-    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly SyncSessionContext _syncSessionContext;
     private readonly AudioEngine _audioEngine;
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly GameplaySessionManager _gameplaySessionManager;
@@ -27,14 +27,14 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
 
     public ManiaHitsoundSequencer(ILogger<ManiaHitsoundSequencer> logger,
         AppSettings appSettings,
-        RealtimeSessionContext realtimeSessionContext,
+        SyncSessionContext syncSessionContext,
         AudioEngine audioEngine,
         GameplayAudioService gameplayAudioService,
         GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
         _appSettings = appSettings;
-        _realtimeSessionContext = realtimeSessionContext;
+        _syncSessionContext = syncSessionContext;
         _audioEngine = audioEngine;
         _gameplayAudioService = gameplayAudioService;
         _gameplaySessionManager = gameplaySessionManager;
@@ -42,8 +42,8 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
 
     public void ProcessAutoPlay(List<PlaybackInfo> buffer, bool processHitQueueAsAuto)
     {
-        var playTime = _realtimeSessionContext.PlayTime;
-        var isStarted = _realtimeSessionContext.IsStarted;
+        var playTime = _syncSessionContext.PlayTime;
+        var isStarted = _syncSessionContext.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -76,8 +76,8 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
     public void ProcessInteraction(List<PlaybackInfo> buffer, int keyIndex, int keyTotal)
     {
         using var _ = DebugUtils.CreateTimer($"GetSoundOnClick", _logger);
-        var playTime = _realtimeSessionContext.PlayTime;
-        var isStarted = _realtimeSessionContext.IsStarted;
+        var playTime = _syncSessionContext.PlayTime;
+        var isStarted = _syncSessionContext.IsStarted;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -158,7 +158,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
 
             if (playableNode.PlayablePriority is PlayablePriority.Sampling)
             {
-                if (!_appSettings.Realtime.Filters.DisableStoryboardSamples)
+                if (!_appSettings.Sync.Filters.DisableStoryboardSamples)
                 {
                     playbackList.Add(playableNode);
                 }

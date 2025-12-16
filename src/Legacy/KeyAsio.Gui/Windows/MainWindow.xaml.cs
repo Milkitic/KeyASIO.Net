@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
@@ -14,7 +14,7 @@ using KeyAsio.Gui.UserControls;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Realtime;
+using KeyAsio.Shared.Sync;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
@@ -43,7 +43,7 @@ public partial class MainWindow : DialogWindow
         AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
-        RealtimeController realtimeController,
+        SyncController syncController,
         AudioDeviceManager audioDeviceManager,
         SharedViewModel viewModel,
         KeyboardBindingInitializer keyboardBindingInitializer,
@@ -56,7 +56,7 @@ public partial class MainWindow : DialogWindow
         _logger = logger;
         _serviceProvider = serviceProvider;
         _audioCacheManager = audioCacheManager;
-        RealtimeController = realtimeController;
+        SyncController = syncController;
         _audioDeviceManager = audioDeviceManager;
 
         _bindingInitializer = keyboardBindingInitializer;
@@ -66,7 +66,7 @@ public partial class MainWindow : DialogWindow
     }
 
     public AppSettings AppSettings { get; }
-    public RealtimeController RealtimeController { get; }
+    public SyncController SyncController { get; }
     public AudioEngine AudioEngine { get; }
 
     private async Task SelectDevice()
@@ -217,14 +217,14 @@ public partial class MainWindow : DialogWindow
                 AppSettings.Save();
             }
         };
-        AppSettings.Realtime.PropertyChanged += (_, e) =>
+        AppSettings.Sync.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(AppSettings.Realtime.RealtimeMode))
+            if (e.PropertyName == nameof(AppSettings.Sync.EnableSync))
             {
                 NotifyRestart(e.PropertyName);
                 AppSettings.Save();
             }
-            else if (e.PropertyName == nameof(AppSettings.Realtime.RealtimeEnableMusic))
+            else if (e.PropertyName == nameof(AppSettings.Sync.EnableMixSync))
             {
                 AppSettings.Save();
             }

@@ -1,13 +1,13 @@
-// See https://aka.ms/new-console-template for more information
+﻿// See https://aka.ms/new-console-template for more information
 
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Audio;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Realtime;
-using KeyAsio.Shared.Realtime.AudioProviders;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync;
+using KeyAsio.Shared.Sync.AudioProviders;
+using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -20,12 +20,12 @@ services.AddSingleton<BeatmapHitsoundLoader>();
 services.AddSingleton<BackgroundMusicManager>();
 services.AddSingleton<SfxPlaybackService>();
 services.AddSingleton<GameplaySessionManager>();
-services.AddSingleton<RealtimeSessionContext>();
-services.AddSingleton<RealtimeController>();
+services.AddSingleton<SyncSessionContext>();
+services.AddSingleton<SyncController>();
 var provider = services.BuildServiceProvider();
 
 var audioEngine = provider.GetRequiredService<AudioEngine>();
-var realtimeProperties = provider.GetRequiredService<RealtimeSessionContext>();
+var realtimeProperties = provider.GetRequiredService<SyncSessionContext>();
 var playSessionService = provider.GetRequiredService<GameplaySessionManager>();
 var hitsoundNodeService = provider.GetRequiredService<BeatmapHitsoundLoader>();
 var osuDir = new OsuDirectory(@"E:\Games\osu!\Songs\807527 IOSYS - Miracle Hinacle");

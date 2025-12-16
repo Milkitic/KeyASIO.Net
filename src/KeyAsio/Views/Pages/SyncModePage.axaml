@@ -68,7 +68,7 @@
               Description="Experimental feature"
               Header="Override Game Music"
               Icon="MusicNote"
-              IsChecked="{Binding AppSettings.Realtime.RealtimeEnableMusic}" />
+              IsChecked="{Binding AppSettings.Sync.EnableMixSync}" />
 
             <Separator Classes="Section" />
 
@@ -76,13 +76,13 @@
               Classes="Switch"
               Header="Force Nightcore Beats"
               Icon="FastForward"
-              IsChecked="{Binding AppSettings.Realtime.Playback.NightcoreBeats}" />
+              IsChecked="{Binding AppSettings.Sync.Playback.NightcoreBeats}" />
 
             <controls:SettingItem Header="Slider Tail Behavior" Icon="VectorCurve">
               <ComboBox
                 MinWidth="120"
                 ItemsSource="{Binding SliderTailBehaviors}"
-                SelectedItem="{Binding AppSettings.Realtime.Playback.TailPlaybackBehavior}" />
+                SelectedItem="{Binding AppSettings.Sync.Playback.TailPlaybackBehavior}" />
             </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>
@@ -96,13 +96,13 @@
               <TextBlock
                 FontWeight="Bold"
                 Foreground="{DynamicResource SukiPrimaryColor}"
-                Text="{Binding AppSettings.Realtime.Playback.BalanceFactor, StringFormat='{}{0:0.00}'}" />
+                Text="{Binding AppSettings.Sync.Playback.BalanceFactor, StringFormat='{}{0:0.00}'}" />
             </controls:SettingItem>
             <Slider
               Maximum="1"
               Minimum="0"
               TickFrequency="0.01"
-              Value="{Binding AppSettings.Realtime.Playback.BalanceFactor}" />
+              Value="{Binding AppSettings.Sync.Playback.BalanceFactor}" />
             <Grid Margin="0,-10,0,0" ColumnDefinitions="Auto,*,Auto">
               <TextBlock Classes="SmallHeader" Text="Narrow" />
               <TextBlock
@@ -127,31 +127,31 @@
               Classes="Switch"
               Header="Disable Map Hitsounds"
               Icon="VolumeOff"
-              IsChecked="{Binding AppSettings.Realtime.Filters.DisableBeatmapHitsounds}" />
+              IsChecked="{Binding AppSettings.Sync.Filters.DisableBeatmapHitsounds}" />
 
             <controls:SettingItem
               Classes="Switch"
               Header="Disable Storyboard"
               Icon="MovieOff"
-              IsChecked="{Binding AppSettings.Realtime.Filters.DisableStoryboardSamples}" />
+              IsChecked="{Binding AppSettings.Sync.Filters.DisableStoryboardSamples}" />
 
             <controls:SettingItem
               Classes="Switch"
               Header="Disable Slider Ticks"
               Icon="Metronome"
-              IsChecked="{Binding AppSettings.Realtime.Filters.DisableSliderTicksAndSlides}" />
+              IsChecked="{Binding AppSettings.Sync.Filters.DisableSliderTicksAndSlides}" />
 
             <controls:SettingItem
               Classes="Switch"
               Header="Disable Combo Break"
               Icon="HeartBroken"
-              IsChecked="{Binding AppSettings.Realtime.Filters.DisableComboBreakSfx}" />
+              IsChecked="{Binding AppSettings.Sync.Filters.DisableComboBreakSfx}" />
 
             <controls:SettingItem
               Classes="Switch"
               Header="Ignore Volume Changes"
               Icon="VolumeVariantOff"
-              IsChecked="{Binding AppSettings.Realtime.Filters.IgnoreLineVolumes}" />
+              IsChecked="{Binding AppSettings.Sync.Filters.IgnoreLineVolumes}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
@@ -169,7 +169,7 @@
                 Classes="SettingItem"
                 Maximum="1000"
                 Minimum="1"
-                Value="{Binding AppSettings.Realtime.Scanning.GeneralScanInterval}" />
+                Value="{Binding AppSettings.Sync.Scanning.GeneralScanInterval}" />
             </controls:SettingItem>
 
             <!--  Timing Interval  -->
@@ -181,7 +181,7 @@
                 Classes="SettingItem"
                 Maximum="1000"
                 Minimum="1"
-                Value="{Binding AppSettings.Realtime.Scanning.TimingScanInterval}" />
+                Value="{Binding AppSettings.Sync.Scanning.TimingScanInterval}" />
             </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>

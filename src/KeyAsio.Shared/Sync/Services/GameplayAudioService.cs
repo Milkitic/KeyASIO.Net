@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Coosu.Beatmap.Extensions;
@@ -11,7 +11,7 @@ using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 
-namespace KeyAsio.Shared.Realtime.Services;
+namespace KeyAsio.Shared.Sync.Services;
 
 public class GameplayAudioService
 {
@@ -26,7 +26,7 @@ public class GameplayAudioService
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
     private readonly ILogger<GameplayAudioService> _logger;
-    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly SyncSessionContext _syncSessionContext;
     private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
@@ -36,7 +36,7 @@ public class GameplayAudioService
     private string? _audioFilename;
 
     public GameplayAudioService(ILogger<GameplayAudioService> logger,
-        RealtimeSessionContext realtimeSessionContext,
+        SyncSessionContext syncSessionContext,
         AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
@@ -44,7 +44,7 @@ public class GameplayAudioService
         SkinManager skinManager)
     {
         _logger = logger;
-        _realtimeSessionContext = realtimeSessionContext;
+        _syncSessionContext = syncSessionContext;
         _appSettings = appSettings;
         _audioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
@@ -227,7 +227,7 @@ public class GameplayAudioService
         string skinFolder,
         WaveFormat waveFormat)
     {
-        if (!_realtimeSessionContext.IsStarted)
+        if (!_syncSessionContext.IsStarted)
         {
             _logger.LogWarning("Isn't started, stop adding cache.");
             return;

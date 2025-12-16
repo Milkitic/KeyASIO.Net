@@ -1,12 +1,12 @@
-using KeyAsio.Shared.Realtime.Services;
-using KeyAsio.Shared.Services;
+﻿using KeyAsio.Shared.Services;
+using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace KeyAsio.Shared.Realtime;
+namespace KeyAsio.Shared.Sync;
 
 public static class DependencyInjectionExtensions
 {
-    public static IServiceCollection AddRealtimeModule(this IServiceCollection services)
+    public static IServiceCollection AddSyncModule(this IServiceCollection services)
     {
         services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
@@ -14,8 +14,8 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<SfxPlaybackService>();
         services.AddSingleton<GameplaySessionManager>();
 
-        services.AddSingleton<RealtimeSessionContext>();
-        services.AddSingleton<RealtimeController>();
+        services.AddSingleton<SyncSessionContext>();
+        services.AddSingleton<SyncController>();
 
         services.AddSingleton<SkinManager>();
         return services;

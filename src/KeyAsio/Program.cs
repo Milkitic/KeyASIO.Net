@@ -6,7 +6,6 @@ using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Utils;
 using KeyAsio.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +17,7 @@ using Sentry.Extensibility;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using KeyAsio.Shared.Sync;
 
 namespace KeyAsio;
 
@@ -91,7 +91,7 @@ internal sealed class Program
                 .AddSingleton<MemoryScan>()
                 .AddSingleton<ISentryEventProcessor, KeyAsioSentryEventProcessor>()
                 .AddAudioModule()
-                .AddRealtimeModule()
+                .AddSyncModule()
                 .AddGuiModule()
                 .AddSingleton(appSettings))
             .Build();

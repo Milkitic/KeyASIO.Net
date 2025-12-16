@@ -1,7 +1,7 @@
 ﻿using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Shared.Models;
 
-namespace KeyAsio.Shared.Realtime;
+namespace KeyAsio.Shared.Sync;
 
 public interface IHitsoundSequencer
 {

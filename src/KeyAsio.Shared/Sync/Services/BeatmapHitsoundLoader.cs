@@ -4,7 +4,7 @@ using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 
-namespace KeyAsio.Shared.Realtime.Services;
+namespace KeyAsio.Shared.Sync.Services;
 
 public class BeatmapHitsoundLoader
 {
@@ -37,7 +37,7 @@ public class BeatmapHitsoundLoader
         using (DebugUtils.CreateTimer("InitFolder", _logger))
         {
             await osuDir.InitializeAsync(diffFilename,
-                ignoreWaveFiles: _appSettings.Realtime.Filters.DisableBeatmapHitsounds);
+                ignoreWaveFiles: _appSettings.Sync.Filters.DisableBeatmapHitsounds);
         }
 
         if (osuDir.OsuFiles.Count <= 0)
@@ -54,7 +54,7 @@ public class BeatmapHitsoundLoader
         await Task.Delay(100);
 
         var isNightcore = playMods != Mods.Unknown && (playMods & Mods.Nightcore) != 0;
-        if (isNightcore || _appSettings.Realtime.Playback.NightcoreBeats)
+        if (isNightcore || _appSettings.Sync.Playback.NightcoreBeats)
         {
             if (isNightcore)
             {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MouseKeyHook;
 
@@ -103,7 +103,7 @@ public class KeyboardBindingInitializer
             if (action != KeyAction.KeyDown) return;
             _logger.LogDebug($"{hookKey} {action}");
 
-            if (!_appSettings.Realtime.RealtimeMode)
+            if (!_appSettings.Sync.EnableSync)
             {
                 if (_cacheSound != null)
                 {

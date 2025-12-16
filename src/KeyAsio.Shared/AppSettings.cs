@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
@@ -14,7 +14,7 @@ public class AppSettings : IConfigurationBase
     public AppSettingsAudio Audio { get => field ??= new(); init; }
     public AppSettingsLogging Logging { get => field ??= new(); init; }
     public AppSettingsPerformance Performance { get => field ??= new(); init; }
-    public AppSettingsRealtime Realtime { get => field ??= new(); init; }
+    public AppSettingsSync Sync { get => field ??= new(); init; }
 }
 
 public partial class AppSettingsGeneral : INotifyPropertyChanged
@@ -41,7 +41,7 @@ public partial class AppSettingsPaths : INotifyPropertyChanged
     [Description("Default hitsound file path (relative or absolute).")]
     public string? HitsoundPath { get; set; } = "./resources/default/normal-hitnormal.ogg";
 
-    [Description("Skin used when realtime mode is enabled.")]
+    [Description("Skin used when sync mode is enabled.")]
     public string? SelectedSkinName { get; set; }
 
     [Description("Allow automatic loading of skins from osu! folder.")]
@@ -96,20 +96,20 @@ public partial class AppSettingsPerformance : INotifyPropertyChanged
     public bool EnableAvx512 { get; set; } = true;
 }
 
-public partial class AppSettingsRealtime : INotifyPropertyChanged
+public partial class AppSettingsSync : INotifyPropertyChanged
 {
     [Description("Enable memory scanning and correct hitsound playback.")]
-    public bool RealtimeMode { get; set; } = true;
+    public bool EnableSync { get; set; } = true;
 
     [Description("[Experimental] Enable music‑related functions.")]
-    public bool RealtimeEnableMusic { get; set; }
+    public bool EnableMixSync { get; set; }
 
-    public AppSettingsRealtimeScanning Scanning { get => field ??= new(); init; }
-    public AppSettingsRealtimePlayback Playback { get => field ??= new(); init; }
-    public AppSettingsRealtimeFilters Filters { get => field ??= new(); init; }
+    public AppSettingsSyncScanning Scanning { get => field ??= new(); init; }
+    public AppSettingsSyncPlayback Playback { get => field ??= new(); init; }
+    public AppSettingsSyncFilters Filters { get => field ??= new(); init; }
 }
 
-public partial class AppSettingsRealtimeScanning : INotifyPropertyChanged
+public partial class AppSettingsSyncScanning : INotifyPropertyChanged
 {
     [Description("Lower values update generic fields more promptly. " +
                  "Intended for delay-insensitive fields; increase to reduce CPU usage.")]
@@ -118,10 +118,10 @@ public partial class AppSettingsRealtimeScanning : INotifyPropertyChanged
     [Description("Lower values update timing fields more promptly. " +
                  "Intended for delay‑sensitive fields; keep as low as possible. " +
                  "Increase if audio cutting occurs.")]
-    public int TimingScanInterval { get; set; } = 15;
+    public int TimingScanInterval { get; set; } = 2;
 }
 
-public partial class AppSettingsRealtimePlayback : INotifyPropertyChanged
+public partial class AppSettingsSyncPlayback : INotifyPropertyChanged
 {
     [Description("Slider‑tail playback behavior. " +
                  "Normal: always play; KeepReverse: play only on multi‑reverse sliders; Ignore: never play.")]
@@ -134,7 +134,7 @@ public partial class AppSettingsRealtimePlayback : INotifyPropertyChanged
     public float BalanceFactor { get; set; } = 0.6666667f;
 }
 
-public partial class AppSettingsRealtimeFilters : INotifyPropertyChanged
+public partial class AppSettingsSyncFilters : INotifyPropertyChanged
 {
     [Description("Ignore beatmap hitsounds and use user skin instead.")]
     public bool DisableBeatmapHitsounds { get; set; }

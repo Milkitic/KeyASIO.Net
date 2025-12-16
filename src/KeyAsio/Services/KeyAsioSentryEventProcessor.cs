@@ -1,7 +1,7 @@
-using System.Text;
+﻿using System.Text;
 using KeyAsio.Shared;
-using KeyAsio.Shared.Realtime;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync;
+using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Utils;
 using Sentry.Extensibility;
 
@@ -9,16 +9,16 @@ namespace KeyAsio.Services;
 
 public class KeyAsioSentryEventProcessor : ISentryEventProcessor
 {
-    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly SyncSessionContext _syncSessionContext;
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly AppSettings _appSettings;
 
     public KeyAsioSentryEventProcessor(
-        RealtimeSessionContext realtimeSessionContext,
+        SyncSessionContext syncSessionContext,
         GameplaySessionManager gameplaySessionManager,
         AppSettings appSettings)
     {
-        _realtimeSessionContext = realtimeSessionContext;
+        _syncSessionContext = syncSessionContext;
         _gameplaySessionManager = gameplaySessionManager;
         _appSettings = appSettings;
     }
@@ -34,9 +34,9 @@ public class KeyAsioSentryEventProcessor : ISentryEventProcessor
         }
 
         @event.SetTag("osu.filename_real", _gameplaySessionManager.OsuFile?.ToString() ?? "");
-        @event.SetTag("osu.status", _realtimeSessionContext.OsuStatus.ToString());
+        @event.SetTag("osu.status", _syncSessionContext.OsuStatus.ToString());
 
-        var username = _realtimeSessionContext.Username;
+        var username = _syncSessionContext.Username;
         var finalUsername = string.IsNullOrEmpty(username)
             ? EncodeUtils.FromBase64StringEmptyIfError(_appSettings.Logging.PlayerBase64 ?? "", Encoding.ASCII)
             : username;

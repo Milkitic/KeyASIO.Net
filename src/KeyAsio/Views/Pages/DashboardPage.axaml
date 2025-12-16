@@ -40,7 +40,7 @@
     <suki:GlassCard Margin="0,0,0,15" Classes="Surface">
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-          <ToggleSwitch IsChecked="{Binding AppSettings.Realtime.RealtimeEnableMusic}" IsEnabled="{Binding AppSettings.Realtime.RealtimeMode}">
+          <ToggleSwitch IsChecked="{Binding AppSettings.Sync.EnableMixSync}" IsEnabled="{Binding AppSettings.Sync.EnableSync}">
             <ToggleSwitch.Styles>
               <!--<Style Selector="ToggleSwitch:checked">
                 <Style.Resources>
@@ -280,12 +280,12 @@
               Classes="h2"
               FontWeight="Bold"
               Foreground="{DynamicResource SukiText}"
-              Text="{Binding RealtimeDisplay.SyncedStatusText}" />
+              Text="{Binding SyncDisplay.SyncedStatusText}" />
             <TextBlock
               HorizontalAlignment="Center"
               Classes="Caption"
               Opacity="0.6"
-              Text="{Binding RealtimeDisplay.ProcessId, StringFormat='PID: {0}'}" />
+              Text="{Binding SyncDisplay.ProcessId, StringFormat='PID: {0}'}" />
           </StackPanel>
         </Grid>
       </suki:GlassCard>
@@ -296,11 +296,11 @@
       Grid.Row="2"
       Margin="0,20,0,0"
       Spacing="15">
-      <!--  Realtime Info  -->
-      <suki:GlassCard Classes="Surface" IsVisible="{Binding AppSettings.Realtime.RealtimeMode}">
+      <!--  Sync Info  -->
+      <suki:GlassCard Classes="Surface" IsVisible="{Binding AppSettings.Sync.EnableSync}">
         <Grid RowDefinitions="Auto,*">
           <DockPanel LastChildFill="False">
-            <TextBlock FontWeight="Bold" Text="Realtime Status" />
+            <TextBlock FontWeight="Bold" Text="Sync Status" />
           </DockPanel>
 
           <Grid
@@ -314,9 +314,9 @@
                 Text="Beatmap" />
               <TextBlock
                 FontWeight="DemiBold"
-                Text="{Binding RealtimeDisplay.Beatmap.Filename}"
+                Text="{Binding SyncDisplay.Beatmap.Filename}"
                 TextTrimming="CharacterEllipsis"
-                ToolTip.Tip="{Binding RealtimeDisplay.Beatmap.Filename}" />
+                ToolTip.Tip="{Binding SyncDisplay.Beatmap.Filename}" />
             </StackPanel>
             <StackPanel Grid.Column="1" Margin="0,0,10,0">
               <TextBlock
@@ -326,14 +326,14 @@
               <TextBlock
                 FontFamily="Consolas"
                 FontWeight="DemiBold"
-                Text="{Binding RealtimeDisplay.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+                Text="{Binding SyncDisplay.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
             </StackPanel>
             <StackPanel Grid.Column="2">
               <TextBlock
                 Margin="0,0,0,5"
                 Classes="Label"
                 Text="Status" />
-              <TextBlock FontWeight="DemiBold" Text="{Binding RealtimeDisplay.OsuStatus}" />
+              <TextBlock FontWeight="DemiBold" Text="{Binding SyncDisplay.OsuStatus}" />
             </StackPanel>
           </Grid>
         </Grid>

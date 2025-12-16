@@ -1,10 +1,10 @@
 ﻿using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
 
-namespace KeyAsio.Shared.Realtime.AudioProviders;
+namespace KeyAsio.Shared.Sync.AudioProviders;
 
 public class StandardHitsoundSequencer : IHitsoundSequencer
 {
@@ -12,7 +12,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
 
     private readonly ILogger<StandardHitsoundSequencer> _logger;
     private readonly AppSettings _appSettings;
-    private readonly RealtimeSessionContext _realtimeSessionContext;
+    private readonly SyncSessionContext _syncSessionContext;
     private readonly AudioEngine _audioEngine;
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly GameplaySessionManager _gameplaySessionManager;
@@ -22,14 +22,14 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
 
     public StandardHitsoundSequencer(ILogger<StandardHitsoundSequencer> logger,
         AppSettings appSettings,
-        RealtimeSessionContext realtimeSessionContext,
+        SyncSessionContext syncSessionContext,
         AudioEngine audioEngine,
         GameplayAudioService gameplayAudioService,
         GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
         _appSettings = appSettings;
-        _realtimeSessionContext = realtimeSessionContext;
+        _syncSessionContext = syncSessionContext;
         _audioEngine = audioEngine;
         _gameplayAudioService = gameplayAudioService;
         _gameplaySessionManager = gameplaySessionManager;
@@ -41,7 +41,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     {
         _hitQueue = new Queue<PlayableNode>(_gameplaySessionManager.KeyList);
         _playbackQueue = new Queue<HitsoundNode>(_gameplaySessionManager.PlaybackList
-            .Where(k => k.Offset >= _realtimeSessionContext.PlayTime));
+            .Where(k => k.Offset >= _syncSessionContext.PlayTime));
     }
 
     public void ProcessAutoPlay(List<PlaybackInfo> buffer, bool processHitQueueAsAuto)
@@ -57,7 +57,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
             return;
         }
 
-        var playTime = _realtimeSessionContext.PlayTime;
+        var playTime = _syncSessionContext.PlayTime;
         if (playTime < first.Offset)
         {
             return;
@@ -78,7 +78,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     {
         if (!IsEngineReady()) return;
 
-        var playTime = _realtimeSessionContext.PlayTime;
+        var playTime = _syncSessionContext.PlayTime;
 
         // 用于处理同组音符（堆叠/Chord）
         bool hasHit = false;
@@ -153,7 +153,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
             return false;
         }
 
-        if (!_realtimeSessionContext.IsStarted)
+        if (!_syncSessionContext.IsStarted)
         {
             _logger.LogWarning("Game hasn't started.");
             return false;
@@ -166,7 +166,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         List<HitsoundNode> playbackList)
     {
         var secondaryCache = new List<PlayableNode>();
-        var options = _appSettings.Realtime;
+        var options = _appSettings.Sync;
 
         foreach (var hitsoundNode in nodeList)
         {

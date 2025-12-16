@@ -1,7 +1,7 @@
 ﻿using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime.States;
+using KeyAsio.Shared.Sync.States;
 
-namespace KeyAsio.Shared.Realtime;
+namespace KeyAsio.Shared.Sync;
 
 public class GameStateMachine
 {
@@ -16,7 +16,7 @@ public class GameStateMachine
         CurrentStatus = OsuMemoryStatus.NotRunning;
     }
 
-    public async Task TransitionToAsync(RealtimeSessionContext ctx, OsuMemoryStatus next)
+    public async Task TransitionToAsync(SyncSessionContext ctx, OsuMemoryStatus next)
     {
         var from = CurrentStatus;
         if (!_states.TryGetValue(next, out var target))

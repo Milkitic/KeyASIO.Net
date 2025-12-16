@@ -11,8 +11,8 @@ using KeyAsio.Audio.Utils;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync;
+using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
@@ -27,7 +27,7 @@ static class Program
     {
         var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>();
         appSettings.Logging.EnableDebugConsole = true;
-        appSettings.Realtime.RealtimeEnableMusic = true;
+        appSettings.Sync.EnableMixSync = true;
         appSettings.Audio.MasterVolume = 5;
         var context = new SingleSynchronizationContext("AudioPlaybackEngine_STA", true,
             ThreadPriority.AboveNormal);
@@ -43,7 +43,7 @@ static class Program
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<BackgroundMusicManager>();
         services.AddSingleton<SfxPlaybackService>();
-        services.AddSingleton<RealtimeSessionContext>();
+        services.AddSingleton<SyncSessionContext>();
         var provider = services.BuildServiceProvider();
         var sharedViewModel = provider.GetRequiredService<SharedViewModel>();
         sharedViewModel.AutoMode = true;
@@ -57,13 +57,13 @@ static class Program
             WavePlayerType = WavePlayerType.ASIO,
             Latency = 1
         });
-        appSettings.Realtime.Playback.BalanceFactor = 0.5f;
+        appSettings.Sync.Playback.BalanceFactor = 0.5f;
 
         var filenameFull =
             @"C:\Users\milkitic\Downloads\1680421 EBIMAYO - GOODTEK [no video]\EBIMAYO - GOODTEK (yf_bmp) [Maboyu's Another].osu";
         var filename = Path.GetFileName(filenameFull);
 
-        var realtimeModeManager = provider.GetRequiredService<RealtimeSessionContext>();
+        var realtimeModeManager = provider.GetRequiredService<SyncSessionContext>();
         realtimeModeManager.BaseMemoryTime = -1;
         realtimeModeManager.PlayMods = Mods.None;
         realtimeModeManager.OsuStatus = OsuMemoryStatus.SongSelection;

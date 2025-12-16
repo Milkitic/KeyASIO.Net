@@ -1,8 +1,8 @@
 ﻿using Coosu.Beatmap;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Realtime.Services;
+using KeyAsio.Shared.Sync.Services;
 
-namespace KeyAsio.Shared.Realtime.States;
+namespace KeyAsio.Shared.Sync.States;
 
 public class BrowsingState : IGameState
 {
@@ -19,7 +19,7 @@ public class BrowsingState : IGameState
         _gameplaySessionManager = gameplaySessionManager;
     }
 
-    public Task EnterAsync(RealtimeSessionContext ctx, OsuMemoryStatus from)
+    public Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
         _backgroundMusicManager.StartLowPass(200, 16000);
         _backgroundMusicManager.SetResultFlag(false);
@@ -27,14 +27,14 @@ public class BrowsingState : IGameState
         return Task.CompletedTask;
     }
 
-    public void Exit(RealtimeSessionContext ctx, OsuMemoryStatus to)
+    public void Exit(SyncSessionContext ctx, OsuMemoryStatus to)
     {
     }
 
-    public async Task OnPlayTimeChanged(RealtimeSessionContext ctx, int oldMs, int newMs, bool paused)
+    public async Task OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int selectSongPauseThreshold = 20;
-        if (!_appSettings.Realtime.RealtimeEnableMusic) return;
+        if (!_appSettings.Sync.EnableMixSync) return;
 
         // Maintain pause state lifecycle for song-select preview
         _backgroundMusicManager.UpdatePauseCount(paused);
@@ -53,11 +53,11 @@ public class BrowsingState : IGameState
         }
     }
 
-    public void OnComboChanged(RealtimeSessionContext ctx, int oldCombo, int newCombo)
+    public void OnComboChanged(SyncSessionContext ctx, int oldCombo, int newCombo)
     {
     }
 
-    public void OnBeatmapChanged(RealtimeSessionContext ctx, BeatmapIdentifier beatmap)
+    public void OnBeatmapChanged(SyncSessionContext ctx, BeatmapIdentifier beatmap)
     {
         if (beatmap == default || string.IsNullOrEmpty(beatmap.Folder))
         {
@@ -94,7 +94,7 @@ public class BrowsingState : IGameState
         _backgroundMusicManager.ResetPauseState();
     }
 
-    public void OnModsChanged(RealtimeSessionContext ctx, Mods oldMods, Mods newMods)
+    public void OnModsChanged(SyncSessionContext ctx, Mods oldMods, Mods newMods)
     {
     }
 }
