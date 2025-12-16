@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\KeyAsio.MemoryReading\KeyAsio.MemoryReading.csproj" />
     <ProjectReference Include="..\..\KeyAsio.Shared\KeyAsio.Shared.csproj" />
   </ItemGroup>
 

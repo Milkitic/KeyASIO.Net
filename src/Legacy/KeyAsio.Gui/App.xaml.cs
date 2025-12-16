@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
@@ -7,8 +7,8 @@ using KeyAsio.Audio.SampleProviders.BalancePans;
 using KeyAsio.Audio.Utils;
 using KeyAsio.Gui.Utils;
 using KeyAsio.Gui.Windows;
-using KeyAsio.MemoryReading;
 using KeyAsio.Shared;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Utils;

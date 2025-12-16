@@ -1,11 +1,10 @@
-using Coosu.Beatmap.Extensions.Playback;
+﻿using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
-using KeyAsio.MemoryReading;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Realtime.Services;
-using KeyAsio.MemoryReading.OsuMemoryModels;
 
 namespace KeyAsio.Shared.Realtime.States;
 

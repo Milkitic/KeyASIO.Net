@@ -1,4 +1,4 @@
-namespace KeyAsio.MemoryReading.OsuMemoryModels;
+﻿namespace KeyAsio.Shared.OsuMemory;
 
 public enum OsuMemoryStatus
 {

@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Utils;
 
 namespace KeyAsio.Shared.Realtime;

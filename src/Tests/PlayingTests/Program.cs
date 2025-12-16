@@ -1,4 +1,4 @@
-// See https://aka.ms/new-console-template for more information
+﻿// See https://aka.ms/new-console-template for more information
 
 using System;
 using System.IO;
@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.Utils;
-using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Realtime.Services;
 using Microsoft.Extensions.DependencyInjection;

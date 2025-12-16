@@ -1,7 +1,7 @@
-using KeyAsio.Audio;
+﻿using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
-using KeyAsio.MemoryReading;
+using KeyAsio.Shared.OsuMemory;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 

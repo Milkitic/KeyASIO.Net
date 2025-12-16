@@ -1,8 +1,7 @@
-using System.ComponentModel;
-using KeyAsio.MemoryReading.OsuMemoryModels;
+﻿using System.ComponentModel;
 using PropertyChanged;
 
-namespace KeyAsio.MemoryReading;
+namespace KeyAsio.Shared.OsuMemory;
 
 public delegate void NotifyPropertyChangedEventHandler<in T>(T oldValue, T newValue);
 

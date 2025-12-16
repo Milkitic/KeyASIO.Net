@@ -1,4 +1,4 @@
-namespace KeyAsio.MemoryReading;
+﻿namespace KeyAsio.Shared.OsuMemory;
 
 public record OsuMemoryData
 {

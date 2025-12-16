@@ -1,7 +1,6 @@
 ﻿using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.OsuMemoryModels;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Realtime;
 
 namespace KeyAsio.ViewModels;

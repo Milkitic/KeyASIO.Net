@@ -1,7 +1,7 @@
-using System.Windows;
-using KeyAsio.MemoryReading;
+﻿using System.Windows;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Realtime;
 using KeyAsio.Shared.Realtime.Services;
 using Microsoft.Extensions.DependencyInjection;

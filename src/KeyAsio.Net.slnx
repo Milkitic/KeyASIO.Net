@@ -20,7 +20,6 @@
   <Project Path="KeyAsio\KeyAsio.csproj" />
   <Project Path="KeyAsio.Audio\KeyAsio.Audio.csproj" />
   <Project Path="KeyAsio.Memory\KeyAsio.Memory.csproj" />
-  <Project Path="KeyAsio.MemoryReading\KeyAsio.MemoryReading.csproj" />
   <Project Path="KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
   <Project Path="KeyAsio.Shared\KeyAsio.Shared.csproj" />
 </Solution>

@@ -1,8 +1,7 @@
-using KeyAsio.Audio;
+﻿using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
-using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Realtime.AudioProviders;
 using KeyAsio.Shared.Realtime.Services;
 using KeyAsio.Shared.Realtime.States;

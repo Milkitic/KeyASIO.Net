@@ -1,6 +1,5 @@
-using Coosu.Beatmap;
-using KeyAsio.MemoryReading;
-using KeyAsio.MemoryReading.OsuMemoryModels;
+﻿using Coosu.Beatmap;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Realtime.Services;
 
 namespace KeyAsio.Shared.Realtime.States;

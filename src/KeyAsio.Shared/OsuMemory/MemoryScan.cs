@@ -2,10 +2,9 @@
 using KeyAsio.Memory;
 using KeyAsio.Memory.Configuration;
 using KeyAsio.Memory.Utils;
-using KeyAsio.MemoryReading.OsuMemoryModels;
 using Microsoft.Extensions.Logging;
 
-namespace KeyAsio.MemoryReading;
+namespace KeyAsio.Shared.OsuMemory;
 
 public class MemoryScan
 {

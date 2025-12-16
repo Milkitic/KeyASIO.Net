@@ -1,7 +1,7 @@
-using Coosu.Beatmap;
+﻿using Coosu.Beatmap;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
-using KeyAsio.MemoryReading;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Realtime.Tracks;
 using Microsoft.Extensions.Logging;
 
