@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using KeyAsio.Memory;
 using KeyAsio.Memory.Configuration;
 using KeyAsio.Memory.Utils;
@@ -27,13 +28,14 @@ public class MemoryScan
     private CancellationTokenSource? _cts;
     private bool _isStarted;
     private readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
+    private ValueDefinition? _valueDefinition;
 
     public MemoryScan(ILogger<MemoryScan> logger)
     {
         _logger = logger;
     }
 
-    public MemoryReadObject MemoryReadObject { get; } = new();
+    public MemoryReadObject MemoryReadObject { [MethodImpl(MethodImplOptions.AggressiveInlining)] get; } = new();
 
     public void Start(int generalInterval, int timingInterval)
     {
@@ -68,7 +70,7 @@ public class MemoryScan
         if (_readTask != null)
             await _readTask;
 
-        CleanupProcess();
+        CleanupProcess(MemoryReadObject);
         _cts.Dispose();
         _intervalUpdatedEvent.Reset();
 
@@ -84,6 +86,7 @@ public class MemoryScan
 
     private void ReadImpl()
     {
+        var memoryReadObject = MemoryReadObject;
         using var timerScope = new HighPrecisionTimerScope();
         var nextGeneralScan = 0L;
         var nextTimingScan = 0L;
@@ -91,7 +94,7 @@ public class MemoryScan
 
         while (!_cts!.IsCancellationRequested)
         {
-            if (!EnsureConnected())
+            if (!EnsureConnected(memoryReadObject))
             {
                 Thread.Sleep(500);
                 continue;
@@ -110,14 +113,14 @@ public class MemoryScan
 
             if (now >= nextTimingScan)
             {
-                ReadTiming();
+                ReadTiming(memoryReadObject);
                 nextTimingScan = now + _timingInterval;
                 didWork = true;
             }
 
             if (now >= nextGeneralScan)
             {
-                ReadGeneralData();
+                ReadGeneralData(memoryReadObject);
                 nextGeneralScan = now + _generalInterval;
                 didWork = true;
             }
@@ -129,12 +132,12 @@ public class MemoryScan
         }
     }
 
-    private bool EnsureConnected()
+    private bool EnsureConnected(MemoryReadObject memoryReadObject)
     {
         if (_process != null && !_processExited)
             return true;
 
-        CleanupProcess();
+        CleanupProcess(memoryReadObject);
 
         try
         {
@@ -148,12 +151,17 @@ public class MemoryScan
 
                 if (_process.HasExited)
                 {
-                    CleanupProcess();
+                    CleanupProcess(memoryReadObject);
                     return false;
                 }
 
                 _sigScan = new SigScan(_process);
                 _memoryContext = new MemoryContext<OsuMemoryData>(_sigScan, _memoryProfile!);
+                if (!_memoryContext.TryGetProfile("AudioTime", out _valueDefinition))
+                {
+                    _logger.LogWarning("Memory profile is missing required 'AudioTime' definition");
+                }
+
                 _logger.LogInformation("Connected to osu! process");
                 MemoryReadObject.ProcessId = _process.Id;
                 return true;
@@ -167,18 +175,20 @@ public class MemoryScan
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void OnProcessExited(object? sender, EventArgs e)
     {
         _processExited = true;
     }
 
-    private void CleanupProcess()
+    private void CleanupProcess(MemoryReadObject memoryReadObject)
     {
         var exiting = _process != null;
         if (_process != null)
         {
             _process.Exited -= OnProcessExited;
         }
+
         _process?.Dispose();
         _sigScan?.Dispose();
 
@@ -199,6 +209,7 @@ public class MemoryScan
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool EnsureScanned()
     {
         if (_scanSuccessful) return true;
@@ -207,7 +218,7 @@ public class MemoryScan
         _memoryContext.Scan();
         _memoryContext.BeginUpdate();
 
-        if (_memoryContext.TryGetValue<int>("AudioTime", out _))
+        if (_memoryContext.TryGetValueDef<int>(_valueDefinition, out _))
         {
             _scanSuccessful = true;
             EnsureSongsDirectory();
@@ -218,6 +229,7 @@ public class MemoryScan
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureSongsDirectory()
     {
         if (_songsDirectory != null) return;
@@ -240,27 +252,27 @@ public class MemoryScan
         }
     }
 
-    private bool ReadGeneralData()
+    private bool ReadGeneralData(MemoryReadObject memoryReadObject)
     {
         try
         {
             _memoryContext!.BeginUpdate();
             _memoryContext.Populate(_osuMemoryData);
 
-            MemoryReadObject.OsuStatus = (OsuMemoryStatus)_osuMemoryData.RawStatus;
-            MemoryReadObject.PlayerName = _osuMemoryData.Username;
-            MemoryReadObject.Mods = (Mods)_osuMemoryData.Mods;
+            memoryReadObject.OsuStatus = (OsuMemoryStatus)_osuMemoryData.RawStatus;
+            memoryReadObject.PlayerName = _osuMemoryData.Username;
+            memoryReadObject.Mods = (Mods)_osuMemoryData.Mods;
 
-            if (MemoryReadObject.OsuStatus == OsuMemoryStatus.Playing)
+            if (memoryReadObject.OsuStatus == OsuMemoryStatus.Playing)
             {
-                MemoryReadObject.IsReplay = _osuMemoryData.IsReplay;
-                MemoryReadObject.Score = _osuMemoryData.Score;
-                MemoryReadObject.Combo = _osuMemoryData.Combo;
+                memoryReadObject.IsReplay = _osuMemoryData.IsReplay;
+                memoryReadObject.Score = _osuMemoryData.Score;
+                memoryReadObject.Combo = _osuMemoryData.Combo;
             }
             else
             {
-                MemoryReadObject.Score = 0;
-                MemoryReadObject.Combo = 0;
+                memoryReadObject.Score = 0;
+                memoryReadObject.Combo = 0;
             }
 
             if (_songsDirectory != null)
@@ -271,10 +283,10 @@ public class MemoryScan
                 if (!string.IsNullOrEmpty(osuFileName))
                 {
                     var directory = Path.Combine(_songsDirectory, folderName);
-                    if (MemoryReadObject.BeatmapIdentifier.Filename != osuFileName ||
-                        MemoryReadObject.BeatmapIdentifier.Folder != directory)
+                    if (memoryReadObject.BeatmapIdentifier.Filename != osuFileName ||
+                        memoryReadObject.BeatmapIdentifier.Folder != directory)
                     {
-                        MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, osuFileName);
+                        memoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, osuFileName);
                     }
                 }
             }
@@ -284,16 +296,17 @@ public class MemoryScan
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reading memory");
-            CleanupProcess();
+            CleanupProcess(memoryReadObject);
             return false;
         }
     }
 
-    private void ReadTiming()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ReadTiming(MemoryReadObject memoryReadObject)
     {
-        if (_memoryContext != null && _memoryContext.TryGetValue<int>("AudioTime", out var audioTime))
+        if (_memoryContext != null && _memoryContext.TryGetValueDef<int>(_valueDefinition, out var audioTime))
         {
-            MemoryReadObject.PlayingTime = audioTime;
+            memoryReadObject.PlayingTime = audioTime;
         }
     }
 }

@@ -23,6 +23,7 @@ public class MemoryContext
         _profile = profile;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void BeginUpdate()
     {
         _currentTick = unchecked(_currentTick + 1);
@@ -43,17 +44,25 @@ public class MemoryContext
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetValue<T>(string valueName, out T result)
     {
-        if (!_profile.Values.TryGetValue(valueName, out var def))
+        if (!TryGetProfile(valueName, out var def))
         {
             result = default!;
-            return false; // Don't throw
+            return false;
         }
 
-        return TryGetValueInternal(def, out result);
+        return TryGetValueDef(def, out result);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetProfile(string valueName, [NotNullWhen(true)] out ValueDefinition? def)
+    {
+        return _profile.Values.TryGetValue(valueName, out def);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object? GetValue(string valueName)
     {
         if (!_profile.Values.TryGetValue(valueName, out var def))
@@ -89,12 +98,14 @@ public class MemoryContext
         return null;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string? GetString(string valueName)
     {
         var result = GetValue(valueName);
         return result as string;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IntPtr ResolveBaseAddress(ValueDefinition def)
     {
         if (def.ParentPointer != null)
@@ -115,15 +126,17 @@ public class MemoryContext
         return IntPtr.Zero;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ReadBlock(IntPtr basePtr, int offset, byte[] buffer, int length)
     {
         if (basePtr == IntPtr.Zero) return false;
         return _sigScan.ReadMemory(basePtr + offset, buffer, length, out _);
     }
 
-    protected bool TryGetValueInternal<T>(ValueDefinition def, out T result)
+    public bool TryGetValueDef<T>(ValueDefinition? def, out T result)
     {
         result = default!;
+        if (def == null) return false;
 
         var basePtr = ResolveBaseAddress(def);
 
@@ -207,9 +220,30 @@ public class MemoryContext
             }
         }
 
+        //if (IsUnmanaged<T>())
+        //{
+        //    return TryGetValueUnmanaged<T>(_sigScan, finalAddr, out result);
+        //}
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsUnmanaged<T>()
+    {
+        return !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe bool TryGetValueUnmanaged<T>(SigScan sigScan, IntPtr address, out T result)
+    {
+        result = default;
+        if (!MemoryReadHelper.TryGetValue<T>(sigScan, address, out var val)) return false;
+
+        result = Unsafe.ReadUnaligned<T>(Unsafe.AsPointer(ref val));
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IntPtr ResolvePointer(string pointerName)
     {
         if (!_profile.Pointers.TryGetValue(pointerName, out var def))
@@ -218,6 +252,7 @@ public class MemoryContext
         return ResolvePointerInternal(def);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private CachedStringReader GetCachedStringReader(ValueDefinition def)
     {
         if (!_stringCache.TryGetValue(def, out var reader))
@@ -302,8 +337,8 @@ public class MemoryContext<T> : MemoryContext where T : class
         var targetParam = Expression.Parameter(typeof(T), "target");
         var expressions = new List<Expression>();
         var contextConstant = Expression.Constant(this, typeof(MemoryContext));
-        var tryGetValueInternalMethod = typeof(MemoryContext).GetMethod("TryGetValueInternal",
-            BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic);
+        var tryGetValueInternalMethod = typeof(MemoryContext).GetMethod(nameof(TryGetValueDef),
+            BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
         var readBlockMethod = typeof(MemoryContext).GetMethod(nameof(ReadBlock),
             BindingFlags.Instance | BindingFlags.Public);
         var resolveBaseMethod = typeof(MemoryContext).GetMethod(nameof(ResolveBaseAddress),

@@ -1,4 +1,6 @@
-﻿namespace KeyAsio.Shared.OsuMemory;
+﻿using System.Runtime.CompilerServices;
+
+namespace KeyAsio.Shared.OsuMemory;
 
 public delegate void NotifyPropertyChangedEventHandler<in T>(T oldValue, T newValue);
 
@@ -16,7 +18,9 @@ public class MemoryReadObject
 
     public string? PlayerName
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (field == value) return;
@@ -28,7 +32,9 @@ public class MemoryReadObject
 
     public int Combo
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (field == value) return;
@@ -40,7 +46,9 @@ public class MemoryReadObject
 
     public int Score
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (field == value) return;
@@ -52,7 +60,9 @@ public class MemoryReadObject
 
     public bool IsReplay
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (field == value) return;
@@ -64,7 +74,9 @@ public class MemoryReadObject
 
     public OsuMemoryStatus OsuStatus
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (field == value) return;
@@ -76,7 +88,9 @@ public class MemoryReadObject
 
     public int PlayingTime
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (field == value) return;
@@ -88,7 +102,9 @@ public class MemoryReadObject
 
     public Mods Mods
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (field == value) return;
@@ -100,7 +116,9 @@ public class MemoryReadObject
 
     public int ProcessId
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (field == value) return;
@@ -115,7 +133,9 @@ public class MemoryReadObject
 
     public BeatmapIdentifier BeatmapIdentifier
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (EqualityComparer<BeatmapIdentifier>.Default.Equals(field, value)) return;
