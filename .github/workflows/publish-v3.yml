@@ -1,18 +1,15 @@
-name: publish
+name: publish-v3
 env:
   ProjectName: KeyAsio.Net
 on:
-  create:
+  push:
     tags:
       - "v*.*.*"
-  push:
-    branches:
-      - "maint/3.x"
   
 jobs:
   build:
     name: Build and Release
-    if: ${{ startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/maint/3.x' }}
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
     runs-on: windows-latest
 
     steps:
@@ -75,13 +72,8 @@ jobs:
       id: version
       shell: pwsh
       run: |
-        if ("${{ github.ref }}".StartsWith("refs/tags/")) {
-          $tag = "${{ github.ref }}".Substring(10)
-          echo "tag=$tag" >> $env:GITHUB_OUTPUT
-        } else {
-          $tag = "maint-3.x-b${{ github.run_number }}"
-          echo "tag=$tag" >> $env:GITHUB_OUTPUT
-        }
+        $tag = "${{ github.ref }}".Substring(10)
+        echo "tag=$tag" >> $env:GITHUB_OUTPUT
         
     # 7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ steps.version.outputs.tag }}.7z" "./ci-publish/*" -x!"${{ env.ProjectName }}" -r
     - name: Pack via 7z
