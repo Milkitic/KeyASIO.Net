@@ -9,6 +9,7 @@ using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Realtime.AudioProviders;
@@ -17,7 +18,6 @@ using KeyAsio.Shared.Utils;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
 using NAudio.Wave;
-using OsuMemoryDataProvider;
 using BalanceSampleProvider = KeyAsio.Shared.Audio.BalanceSampleProvider;
 
 namespace KeyAsio.Shared.Realtime;
@@ -663,9 +663,10 @@ public class RealtimeModeManager : ViewModelBase
 
     private void OnBeatmapChanged(BeatmapIdentifier beatmap)
     {
-        if (OsuStatus is OsuMemoryStatus.SongSelect or OsuMemoryStatus.SongSelectEdit or
-                OsuMemoryStatus.MainMenu or OsuMemoryStatus.MultiplayerSongSelect && beatmap != default)
+        if (OsuStatus is OsuMemoryStatus.SongSelection or OsuMemoryStatus.EditSongSelection or
+                OsuMemoryStatus.MainView or OsuMemoryStatus.MultiSongSelection && beatmap != default)
         {
+            if (!File.Exists(beatmap.FilenameFull)) return;
             var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
             {
                 k.IncludeSection("General");
@@ -706,8 +707,8 @@ public class RealtimeModeManager : ViewModelBase
         }
 
         var enableMusicFunctions = AppSettings.RealtimeOptions.EnableMusicFunctions;
-        if (enableMusicFunctions && OsuStatus is OsuMemoryStatus.SongSelect or OsuMemoryStatus.SongSelectEdit or
-                OsuMemoryStatus.MainMenu)
+        if (enableMusicFunctions && OsuStatus is OsuMemoryStatus.SongSelection or OsuMemoryStatus.EditSongSelection or
+                OsuMemoryStatus.MainView)
         {
             if (_pauseCount >= selectSongPauseThreshold && _previousSelectSongStatus)
             {

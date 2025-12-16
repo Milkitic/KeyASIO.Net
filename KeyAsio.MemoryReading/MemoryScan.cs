@@ -1,66 +1,52 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
+using KeyAsio.Memory;
+using KeyAsio.Memory.Configuration;
+using KeyAsio.Memory.Utils;
 using KeyAsio.MemoryReading.OsuMemoryModels;
-using KeyAsio.MemoryReading.OsuMemoryModels.Direct;
-using OsuMemoryDataProvider;
-using ProcessMemoryDataFinder.API;
 
 namespace KeyAsio.MemoryReading;
 
 public static class MemoryScan
 {
-    private const string FieldMemoryReader1 = "_memoryReader";
-    private const string FieldMemoryReader2 = "_memoryReader";
+    private static int _generalInterval;
+    private static int _timingInterval;
 
-    private static int _timingScanInterval;
-    private static int _generalScanInterval;
-    private static StructuredOsuMemoryReader? _reader;
+    private static Process? _process;
+    private static SigScan? _sigScan;
+    private static MemoryProfile? _memoryProfile;
+    private static MemoryContext<OsuMemoryData>? _memoryContext;
+
+    private static string? _songsDirectory;
+    private static bool _scanSuccessful;
+    private static readonly OsuMemoryData _osuMemoryData = new();
+
     private static Task? _readTask;
     private static CancellationTokenSource? _cts;
     private static bool _isStarted;
-
-    private static MemoryReader? _innerMemoryReader;
+    private static readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
 
     public static MemoryReadObject MemoryReadObject { get; } = new();
 
-    public static void Start(int generalScanInterval, int timingScanInterval, int processInterval = 500)
+    public static void Start(int generalInterval, int timingInterval, int processInterval = 500)
     {
         if (_isStarted) return;
         _isStarted = true;
-        _generalScanInterval = generalScanInterval;
-        _timingScanInterval = timingScanInterval;
-        _reader = new StructuredOsuMemoryReader
-        {
-            ProcessWatcherDelayMs = processInterval
-        };
+        _generalInterval = generalInterval;
+        _timingInterval = timingInterval;
 
-        var type1 = _reader.GetType();
-        var fieldMemoryReader1 = type1.GetField(FieldMemoryReader1, BindingFlags.Instance | BindingFlags.NonPublic);
-        if (fieldMemoryReader1 == null)
+        try
         {
-            throw new ArgumentNullException(FieldMemoryReader1, $"Could not find internal field of {type1.Name}");
+            // Load from the output directory or adjacent to the assembly
+            var assemblyPath = Path.GetDirectoryName(typeof(MemoryScan).Assembly.Location) ?? string.Empty;
+            var rulesPath = Path.Combine(assemblyPath, "osu_memory_rules.json");
+            _memoryProfile = MemoryProfile.Load(rulesPath);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Failed to load memory rules: " + ex.Message);
+            throw;
         }
 
-        var memoryReader = fieldMemoryReader1.GetValue(_reader);
-        if (memoryReader == null)
-        {
-            throw new ArgumentNullException(FieldMemoryReader1, $"Internal field of {type1.Name} is null.");
-        }
-
-        var type2 = memoryReader.GetType();
-        var fieldMemoryReader2 = type2.GetField(FieldMemoryReader2, BindingFlags.Instance | BindingFlags.NonPublic);
-        if (fieldMemoryReader2 == null)
-        {
-            throw new ArgumentNullException(FieldMemoryReader2, $"Could not find internal field of {type2.FullName}");
-        }
-
-        _innerMemoryReader = (MemoryReader?)fieldMemoryReader2.GetValue(memoryReader);
-        if (_innerMemoryReader == null)
-        {
-            throw new ArgumentNullException(FieldMemoryReader1, $"Internal field of {type2.Name} is null.");
-        }
-
-        _reader.InvalidRead += Reader_InvalidRead;
         _cts = new CancellationTokenSource();
         _readTask = Task.Factory.StartNew(ReadImpl,
             TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
@@ -70,154 +56,208 @@ public static class MemoryScan
     {
         if (!_isStarted) return;
         await _cts!.CancelAsync();
-        await _readTask!;
 
-        _reader!.InvalidRead -= Reader_InvalidRead;
-        await CastAndDispose(_reader);
-        await CastAndDispose(_readTask);
-        await CastAndDispose(_cts);
+        if (_readTask != null)
+            await _readTask;
+
+        CleanupProcess();
+        _cts.Dispose();
+        _intervalUpdatedEvent.Reset();
 
         _isStarted = false;
-        return;
-
-        static ValueTask CastAndDispose(IDisposable resource)
-        {
-            if (resource is IAsyncDisposable resourceAsyncDisposable)
-                return resourceAsyncDisposable.DisposeAsync();
-            resource.Dispose();
-            return ValueTask.CompletedTask;
-        }
     }
 
     private static void ReadImpl()
     {
-        var generalScanLimiter = Stopwatch.StartNew();
-        var timingScanLimiter = Stopwatch.StartNew();
-
-        var internalTimerScanLimiter = Stopwatch.StartNew();
-        var internalTimer = new Stopwatch();
-
-        var allData = new OsuBaseAddresses();
-        var audioTimeData = new GeneralDataSlim();
-
-        var canRead = false;
-        string? songsDirectory = null;
-        int lastFetchPlayingTime = 0;
+        using var timerScope = new HighPrecisionTimerScope();
+        var nextGeneralScan = 0L;
+        var nextTimingScan = 0L;
+        var stopwatch = Stopwatch.StartNew();
 
         while (!_cts!.IsCancellationRequested)
         {
-            var ratio = GetRatio(allData.GeneralData.OsuStatus, allData.GeneralData.Mods);
-            var playingTime = lastFetchPlayingTime + internalTimer.ElapsedMilliseconds * ratio;
-            if (timingScanLimiter.Elapsed.TotalMilliseconds > _timingScanInterval)
+            if (!EnsureConnected())
             {
-                timingScanLimiter.Restart();
-
-                if (_reader!.TryRead(audioTimeData))
-                {
-                    if (audioTimeData.AudioTime == lastFetchPlayingTime)
-                    {
-                        MemoryReadObject.PlayingTime = audioTimeData.AudioTime;
-                        internalTimer.Reset();
-                    }
-                    else
-                    {
-                        MemoryReadObject.PlayingTime = audioTimeData.AudioTime;
-                        lastFetchPlayingTime = audioTimeData.AudioTime;
-                        internalTimer.Restart();
-                    }
-                }
-                else if (_timingScanInterval >= 16 && internalTimer.IsRunning &&
-                         internalTimerScanLimiter.ElapsedMilliseconds > 16)
-                {
-                    internalTimerScanLimiter.Restart();
-                    MemoryReadObject.PlayingTime = lastFetchPlayingTime;
-                    internalTimer.Reset();
-                }
-            }
-            else if (_timingScanInterval >= 16 && internalTimer.IsRunning &&
-                     internalTimerScanLimiter.ElapsedMilliseconds > 16)
-            {
-                internalTimerScanLimiter.Restart();
-                MemoryReadObject.PlayingTime = (int)playingTime;
+                Thread.Sleep(500);
+                continue;
             }
 
-            if (generalScanLimiter.Elapsed.TotalMilliseconds > _generalScanInterval)
+            if (!EnsureScanned())
             {
-                generalScanLimiter.Restart();
-                if (!_reader!.CanRead)
-                {
-                    MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
-                }
-
-                if (_reader.TryRead(allData.BanchoUser))
-                {
-                    MemoryReadObject.PlayerName = allData.BanchoUser.Username;
-                }
-
-                if (_reader.TryRead(allData.GeneralData))
-                {
-                    MemoryReadObject.Mods = (Mods)allData.GeneralData.Mods;
-                    if (_reader.CanRead)
-                    {
-                        MemoryReadObject.OsuStatus = allData.GeneralData.OsuStatus;
-                    }
-                }
-
-                if (MemoryReadObject.OsuStatus is OsuMemoryStatus.Playing)
-                {
-                    if (_reader.TryRead(allData.Player))
-                    {
-                        MemoryReadObject.IsReplay = allData.Player.IsReplay;
-                        MemoryReadObject.Score = allData.Player.Score;
-                        MemoryReadObject.Combo = allData.Player.Combo;
-                    }
-                }
-                else
-                {
-                    MemoryReadObject.Score = 0;
-                    MemoryReadObject.Combo = 0;
-                }
-
-                if (canRead != _reader.CanRead)
-                {
-                    if (_reader.CanRead)
-                    {
-                        var baseDirectory =
-                            Path.GetDirectoryName(_innerMemoryReader!.CurrentProcess.MainModule!.FileName);
-                        songsDirectory = Path.Combine(baseDirectory!, "Songs");
-                    }
-
-                    canRead = _reader.CanRead;
-                }
-
-                if (_reader.TryRead(allData.Beatmap))
-                {
-                    var beatmapFolderName = allData.Beatmap.FolderName;
-                    var beatmapOsuFileName = allData.Beatmap.OsuFileName;
-                    if (beatmapFolderName != null && beatmapOsuFileName != null)
-                    {
-                        var directory = Path.Combine(songsDirectory!, beatmapFolderName);
-                        MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, beatmapOsuFileName);
-                    }
-                }
+                Thread.Sleep(100);
+                continue;
             }
 
-            Thread.Sleep(1);
+            EnsureSongsDirectory();
+
+            long now = stopwatch.ElapsedMilliseconds;
+            bool didWork = false;
+
+            if (now >= nextTimingScan)
+            {
+                ReadTiming();
+                nextTimingScan = now + _timingInterval;
+                didWork = true;
+            }
+
+            if (now >= nextGeneralScan)
+            {
+                ReadGeneralData();
+                nextGeneralScan = now + _generalInterval;
+                didWork = true;
+            }
+
+            if (!didWork)
+            {
+                Thread.Sleep(1);
+            }
         }
     }
 
-    private static double GetRatio(OsuMemoryStatus osuStatus, int rawMods)
+    private static bool EnsureConnected()
     {
-        if (osuStatus != OsuMemoryStatus.Playing) return 1;
-        var mods = (Mods)rawMods;
+        if (_process is { HasExited: false })
+            return true;
 
-        if ((mods & Mods.DoubleTime) != 0) return 1.5;
-        if ((mods & Mods.HalfTime) != 0) return 0.75;
-        return 1;
+        CleanupProcess();
+
+        try
+        {
+            var processes = Process.GetProcessesByName("osu!");
+            if (processes.Length > 0)
+            {
+                _process = processes[0];
+                _sigScan = new SigScan(_process);
+                _memoryContext = new MemoryContext<OsuMemoryData>(_sigScan, _memoryProfile!);
+                Logger.Info("Connected to osu! process");
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Error finding osu! process: " + ex.Message);
+        }
+
+        return false;
     }
 
-    private static void Reader_InvalidRead(object? sender, (object readObject, string propPath) e)
+    private static void CleanupProcess()
     {
-        if (_reader is { CanRead: true }) Logger.Error($"Invalid reading {e.readObject?.GetType()}: {e.propPath}");
+        var exiting = _process != null;
+        _process?.Dispose();
+        _sigScan?.Dispose();
+
+        _process = null;
+        _sigScan = null;
+        _memoryContext = null;
+        _songsDirectory = null;
+        _scanSuccessful = false;
+
+        MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
+        MemoryReadObject.PlayingTime = 0;
+        MemoryReadObject.BeatmapIdentifier = default;
+        if (exiting)
+        {
+            Logger.Info("Disconnected from osu! process");
+            Thread.Sleep(2000);
+        }
+    }
+
+    private static bool EnsureScanned()
+    {
+        if (_scanSuccessful) return true;
+        if (_memoryContext == null) return false;
+
+        _memoryContext.Scan();
+        _memoryContext.BeginUpdate();
+
+        if (_memoryContext.TryGetValue<int>("AudioTime", out _))
+        {
+            _scanSuccessful = true;
+            EnsureSongsDirectory();
+            return true;
+        }
+
+        _sigScan?.Reload();
+        return false;
+    }
+
+    private static void EnsureSongsDirectory()
+    {
+        if (_songsDirectory != null) return;
+
+        try
+        {
+            var mainModuleFileName = _process?.MainModule?.FileName;
+            if (string.IsNullOrEmpty(mainModuleFileName)) return;
+
+            var baseDirectory = Path.GetDirectoryName(mainModuleFileName);
+            if (baseDirectory != null)
+            {
+                _songsDirectory = Path.Combine(baseDirectory, "Songs");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Error getting osu! main module path: " + ex.Message);
+            // Ignore exceptions when accessing MainModule
+        }
+    }
+
+    private static bool ReadGeneralData()
+    {
+        try
+        {
+            _memoryContext!.BeginUpdate();
+            _memoryContext.Populate(_osuMemoryData);
+
+            MemoryReadObject.OsuStatus = (OsuMemoryStatus)_osuMemoryData.RawStatus;
+            MemoryReadObject.PlayerName = _osuMemoryData.Username;
+            MemoryReadObject.Mods = (Mods)_osuMemoryData.Mods;
+
+            if (MemoryReadObject.OsuStatus == OsuMemoryStatus.Playing)
+            {
+                MemoryReadObject.IsReplay = _osuMemoryData.IsReplay;
+                MemoryReadObject.Score = _osuMemoryData.Score;
+                MemoryReadObject.Combo = _osuMemoryData.Combo;
+            }
+            else
+            {
+                MemoryReadObject.Score = 0;
+                MemoryReadObject.Combo = 0;
+            }
+
+            if (_songsDirectory != null)
+            {
+                var folderName = _osuMemoryData.FolderName;
+                var osuFileName = _osuMemoryData.OsuFileName;
+
+                if (!string.IsNullOrEmpty(osuFileName))
+                {
+                    var directory = Path.Combine(_songsDirectory, folderName);
+                    if (MemoryReadObject.BeatmapIdentifier.Filename != osuFileName ||
+                        MemoryReadObject.BeatmapIdentifier.Folder != directory)
+                    {
+                        MemoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, osuFileName);
+                    }
+                }
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Error reading memory: " + ex.Message);
+            CleanupProcess();
+            return false;
+        }
+    }
+
+    private static void ReadTiming()
+    {
+        if (_memoryContext != null && _memoryContext.TryGetValue<int>("AudioTime", out var audioTime))
+        {
+            MemoryReadObject.PlayingTime = audioTime;
+        }
     }
 }

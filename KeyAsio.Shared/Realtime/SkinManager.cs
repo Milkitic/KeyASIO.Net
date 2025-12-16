@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics;
-using System.IO;
 using KeyAsio.MemoryReading;
 using KeyAsio.MemoryReading.Logging;
+using KeyAsio.MemoryReading.OsuMemoryModels;
 using KeyAsio.Shared.Models;
 using Microsoft.Win32;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MixPlayer.NAudioExtensions.Wave;
-using OsuMemoryDataProvider;
 
 namespace KeyAsio.Shared.Realtime;
 
