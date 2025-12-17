@@ -35,7 +35,7 @@ public class SettingItem : ContentControl
     }
 
     public static readonly StyledProperty<bool?> IsCheckedProperty =
-        AvaloniaProperty.Register<SettingItem, bool?>(nameof(IsChecked));
+        AvaloniaProperty.Register<SettingItem, bool?>(nameof(IsChecked), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public bool? IsChecked
     {

@@ -236,8 +236,28 @@ public partial class MainWindowViewModel : IDisposable
         }
         else
         {
-            AppSettings.Save();
+            try
+            {
+                AppSettings.Save();
+            }
+            catch (Exception ex)
+            {
+                HandleSaveException(ex);
+            }
         }
+    }
+
+    private void HandleSaveException(Exception ex)
+    {
+        _logger?.LogError(ex, "Failed to save settings");
+        Dispatcher.UIThread.Post(() =>
+        {
+            MainToastManager.CreateToast()
+                .OfType(NotificationType.Error)
+                .WithTitle("Settings Save Failed")
+                .WithContent($"Could not save configuration: {ex.Message}")
+                .Queue();
+        });
     }
 
     private void DebounceSave()
@@ -257,7 +277,7 @@ public partial class MainWindowViewModel : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogError(ex, "Failed to save settings");
+                    HandleSaveException(ex);
                 }
             });
         });

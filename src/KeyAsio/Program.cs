@@ -33,8 +33,35 @@ internal sealed class Program
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
+        var configFolder = ".";
+        if (!IsDirectoryWritable(configFolder))
+        {
+            var appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyAsio");
+            if (!Directory.Exists(appData))
+            {
+                Directory.CreateDirectory(appData);
+            }
+
+            // Migrate existing config if local is readable but not writable
+            var localConfig = Path.Combine(configFolder, "appsettings.yaml");
+            var appDataConfig = Path.Combine(appData, "appsettings.yaml");
+            if (File.Exists(localConfig) && !File.Exists(appDataConfig))
+            {
+                try
+                {
+                    File.Copy(localConfig, appDataConfig);
+                }
+                catch
+                {
+                    // Ignore copy errors
+                }
+            }
+
+            configFolder = appData;
+        }
+
         var appSettings = ConfigurationFactory.GetConfiguration<AppSettings>(
-            ".", "appsettings.yaml", MyYamlConfigurationConverter.Instance);
+            configFolder, "appsettings.yaml", MyYamlConfigurationConverter.Instance);
         Mutex? mutex = null;
         if (!appSettings.General.AllowMultipleInstance)
         {
@@ -134,5 +161,19 @@ internal sealed class Program
                 ? "Unhandled error occurs while starting KeyASIO..."
                 : "Unhandled error occurs while KeyASIO is running...", "Program critical error",
             title: "KeyASIO.Net", detail: exception.ToFullTypeMessage());
+    }
+
+    private static bool IsDirectoryWritable(string dirPath)
+    {
+        try
+        {
+            using (File.Create(Path.Combine(dirPath, Path.GetRandomFileName()), 1, FileOptions.DeleteOnClose))
+            { }
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
