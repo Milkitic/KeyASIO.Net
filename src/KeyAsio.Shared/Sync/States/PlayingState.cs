@@ -64,7 +64,7 @@ public class PlayingState : IGameState
     public async Task OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
-        if (_appSettings.Sync.EnableMixSync)
+        if (_appSettings.Sync.EnableMixSync) // slow
         {
             _backgroundMusicManager.UpdatePauseCount(paused);
         }
@@ -90,11 +90,11 @@ public class PlayingState : IGameState
             }
 
             mixer?.RemoveAllMixerInputs();
-            _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);
+            _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime); // slow, but less
             return;
         }
 
-        if (_appSettings.Sync.EnableMixSync)
+        if (_appSettings.Sync.EnableMixSync)// slow
         {
             if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
                 _backgroundMusicManager.GetMainTrackPath() != null &&
@@ -130,9 +130,9 @@ public class PlayingState : IGameState
             }
         }
 
-        _beatmapHitsoundLoader.AdvanceCachingWindow(newMs);
-        PlayAutoPlaybackIfNeeded(ctx);
-        PlayManualPlaybackIfNeeded(ctx);
+        _beatmapHitsoundLoader.AdvanceCachingWindow(newMs); // slow
+        PlayAutoPlaybackIfNeeded(ctx); // slow
+        PlayManualPlaybackIfNeeded(ctx); // critical
     }
 
     public void OnComboChanged(SyncSessionContext ctx, int oldCombo, int newCombo)
@@ -170,6 +170,7 @@ public class PlayingState : IGameState
     private void PlayManualPlaybackIfNeeded(SyncSessionContext ctx)
     {
         _playbackBuffer.Clear();
+        // _gameplaySessionManager.CurrentHitsoundSequencer very slow!
         _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, true);
         foreach (var playbackObject in _playbackBuffer)
         {

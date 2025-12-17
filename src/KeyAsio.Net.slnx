@@ -12,6 +12,9 @@
     <Project Path="Legacy\KeyAsio.Gui\KeyAsio.Gui.csproj" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="Tests/StressTest/StressTest.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Tests\AudioTests\AudioTests.csproj" />
     <Project Path="Tests\ColumnTest\ColumnTest.csproj" />
     <Project Path="Tests\MemoryReadingTest\MemoryReadingTest.csproj" />
