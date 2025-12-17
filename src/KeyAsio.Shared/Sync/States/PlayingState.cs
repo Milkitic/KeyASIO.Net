@@ -64,20 +64,31 @@ public class PlayingState : IGameState
     public async Task OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
-        _backgroundMusicManager.UpdatePauseCount(paused);
+        if (_appSettings.Sync.EnableMixSync)
+        {
+            _backgroundMusicManager.UpdatePauseCount(paused);
+        }
 
         if (!ctx.IsStarted) return;
 
         // Retry: song time moved backward during playing
         if (oldMs > newMs)
         {
-            _backgroundMusicManager.SetPauseCount(0);
-            _backgroundMusicManager.StopCurrentMusic();
-            _backgroundMusicManager.StartLowPass(200, 16000);
-            _backgroundMusicManager.SetFirstStartInitialized(true);
+            if (_appSettings.Sync.EnableMixSync)
+            {
+                _backgroundMusicManager.SetPauseCount(0);
+                _backgroundMusicManager.StopCurrentMusic();
+                _backgroundMusicManager.StartLowPass(200, 16000);
+                _backgroundMusicManager.SetFirstStartInitialized(true);
+            }
+
             var mixer = _audioEngine.EffectMixer;
             _sfxPlaybackService.ClearAllLoops(mixer);
-            _backgroundMusicManager.ClearMainTrackAudio();
+            if (_appSettings.Sync.EnableMixSync)
+            {
+                _backgroundMusicManager.ClearMainTrackAudio();
+            }
+
             mixer?.RemoveAllMixerInputs();
             _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);
             return;
