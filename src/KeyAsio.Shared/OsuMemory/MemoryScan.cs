@@ -29,6 +29,7 @@ public class MemoryScan
     private bool _isStarted;
     private readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
     private ValueDefinition? _valueDefinition;
+    private string? _folderName;
 
     public MemoryScan(ILogger<MemoryScan> logger)
     {
@@ -198,6 +199,7 @@ public class MemoryScan
         _songsDirectory = null;
         _scanSuccessful = false;
 
+        _folderName = null;
         MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
         MemoryReadObject.PlayingTime = 0;
         MemoryReadObject.ProcessId = 0;
@@ -280,15 +282,19 @@ public class MemoryScan
                 var folderName = _osuMemoryData.FolderName;
                 var osuFileName = _osuMemoryData.OsuFileName;
 
-                if (!string.IsNullOrEmpty(osuFileName))
+                if (string.IsNullOrEmpty(osuFileName))
                 {
-                    var directory = Path.Combine(_songsDirectory, folderName);
-                    if (memoryReadObject.BeatmapIdentifier.Filename != osuFileName ||
-                        memoryReadObject.BeatmapIdentifier.Folder != directory)
-                    {
-                        memoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, osuFileName);
-                    }
+                    return true;
                 }
+
+                if (memoryReadObject.BeatmapIdentifier.Filename == osuFileName && _folderName == folderName)
+                {
+                    return true;
+                }
+
+                _folderName = folderName;
+                var directory = Path.Combine(_songsDirectory, folderName);
+                memoryReadObject.BeatmapIdentifier = new BeatmapIdentifier(directory, osuFileName);
             }
 
             return true;
