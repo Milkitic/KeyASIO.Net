@@ -45,7 +45,19 @@ public class MemoryContext
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryGetValue<T>(string valueName, out T result)
+    public bool TryGetString(string valueName, [NotNullWhen(true)] out string? result)
+    {
+        if (!TryGetProfile(valueName, out var def) || def.Type != "managed_string")
+        {
+            result = null;
+            return false;
+        }
+
+        return TryGetStringDef(def, out result);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetValue<T>(string valueName, out T result) where T : struct
     {
         if (!TryGetProfile(valueName, out var def))
         {
@@ -101,8 +113,12 @@ public class MemoryContext
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string? GetString(string valueName)
     {
-        var result = GetValue(valueName);
-        return result as string;
+        if (TryGetString(valueName, out var result))
+        {
+            return result;
+        }
+
+        return null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -133,7 +149,27 @@ public class MemoryContext
         return _sigScan.ReadMemory(basePtr + offset, buffer, length, out _);
     }
 
-    public bool TryGetValueDef<T>(ValueDefinition? def, out T result)
+    public bool TryGetStringDef(ValueDefinition? def, [NotNullWhen(true)] out string? result)
+    {
+        result = null!;
+        if (def == null) return false;
+
+        var basePtr = ResolveBaseAddress(def);
+
+        if (basePtr == IntPtr.Zero) return false;
+
+        var finalAddr = basePtr + def.Offset;
+
+        if (GetCachedStringReader(def).TryGet(_sigScan, finalAddr, out result))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    [SkipLocalsInit]
+    public bool TryGetValueDef<T>(ValueDefinition? def, out T result) where T : struct
     {
         result = default!;
         if (def == null) return false;
@@ -144,104 +180,29 @@ public class MemoryContext
 
         var finalAddr = basePtr + def.Offset;
 
-        // Fast path for supported value types to avoid boxing using Unsafe.As
-        if (typeof(T) == typeof(int))
+        if (IsUnmanaged<T>())
         {
-            if (MemoryReadHelper.TryGetValue<int>(_sigScan, finalAddr, out var val))
-            {
-                result = Unsafe.As<int, T>(ref val);
-                return true;
-            }
-
-            return false;
+            return TryGetValueUnmanaged(_sigScan, finalAddr, out result);
         }
 
-        if (typeof(T) == typeof(float))
-        {
-            if (MemoryReadHelper.TryGetValue<float>(_sigScan, finalAddr, out var val))
-            {
-                result = Unsafe.As<float, T>(ref val);
-                return true;
-            }
-
-            return false;
-        }
-
-        if (typeof(T) == typeof(double))
-        {
-            if (MemoryReadHelper.TryGetValue<double>(_sigScan, finalAddr, out var val))
-            {
-                result = Unsafe.As<double, T>(ref val);
-                return true;
-            }
-
-            return false;
-        }
-
-        if (typeof(T) == typeof(bool))
-        {
-            if (MemoryReadHelper.TryGetValue<bool>(_sigScan, finalAddr, out var val))
-            {
-                result = Unsafe.As<bool, T>(ref val);
-                return true;
-            }
-
-            return false;
-        }
-
-        if (typeof(T) == typeof(short))
-        {
-            if (MemoryReadHelper.TryGetValue<short>(_sigScan, finalAddr, out var val))
-            {
-                result = Unsafe.As<short, T>(ref val);
-                return true;
-            }
-
-            return false;
-        }
-
-        if (typeof(T) == typeof(ushort))
-        {
-            if (MemoryReadHelper.TryGetValue<ushort>(_sigScan, finalAddr, out var val))
-            {
-                result = Unsafe.As<ushort, T>(ref val);
-                return true;
-            }
-
-            return false;
-        }
-
-        if (typeof(T) == typeof(string))
-        {
-            if (GetCachedStringReader(def).TryGet(_sigScan, finalAddr, out var val))
-            {
-                result = Unsafe.As<string, T>(ref val);
-                return true;
-            }
-        }
-
-        //if (IsUnmanaged<T>())
-        //{
-        //    return TryGetValueUnmanaged<T>(_sigScan, finalAddr, out result);
-        //}
         return false;
     }
 
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-    //private static bool IsUnmanaged<T>()
-    //{
-    //    return !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
-    //}
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsUnmanaged<T>()
+    {
+        return !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+    }
 
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-    //public static unsafe bool TryGetValueUnmanaged<T>(SigScan sigScan, IntPtr address, out T result)
-    //{
-    //    result = default;
-    //    if (!MemoryReadHelper.TryGetValue<T>(sigScan, address, out var val)) return false;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe bool TryGetValueUnmanaged<T>(SigScan sigScan, IntPtr address, out T result) where T : struct
+    {
+        result = default;
+        if (!MemoryReadHelper.TryGetValue<T>(sigScan, address, out var val)) return false;
 
-    //    result = Unsafe.ReadUnaligned<T>(Unsafe.AsPointer(ref val));
-    //    return true;
-    //}
+        result = Unsafe.ReadUnaligned<T>(Unsafe.AsPointer(ref val));
+        return true;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IntPtr ResolvePointer(string pointerName)
@@ -339,6 +300,8 @@ public class MemoryContext<T> : MemoryContext where T : class
         var contextConstant = Expression.Constant(this, typeof(MemoryContext));
         var tryGetValueInternalMethod = typeof(MemoryContext).GetMethod(nameof(TryGetValueDef),
             BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
+        var tryGetStringInternalMethod = typeof(MemoryContext).GetMethod(nameof(TryGetStringDef),
+            BindingFlags.Instance | BindingFlags.Public);
         var readBlockMethod = typeof(MemoryContext).GetMethod(nameof(ReadBlock),
             BindingFlags.Instance | BindingFlags.Public);
         var resolveBaseMethod = typeof(MemoryContext).GetMethod(nameof(ResolveBaseAddress),
@@ -362,7 +325,7 @@ public class MemoryContext<T> : MemoryContext where T : class
 
             foreach (var item in others)
             {
-                AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!, item.Property,
+                AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!, tryGetStringInternalMethod!, item.Property,
                     item.Definition);
             }
 
@@ -374,7 +337,7 @@ public class MemoryContext<T> : MemoryContext where T : class
             {
                 if (block.Count == 1)
                 {
-                    AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!,
+                    AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!, tryGetStringInternalMethod!,
                         block[0].Property, block[0].Definition);
                 }
                 else
@@ -454,13 +417,22 @@ public class MemoryContext<T> : MemoryContext where T : class
     }
 
     private static void AddIndividualRead(List<Expression> expressions, ParameterExpression targetParam,
-        ConstantExpression contextConstant, MethodInfo tryGetValueMethod, PropertyInfo prop, ValueDefinition valDef)
+        ConstantExpression contextConstant, MethodInfo tryGetValueMethod, MethodInfo tryGetStringMethod, PropertyInfo prop, ValueDefinition valDef)
     {
         var valVar = Expression.Variable(prop.PropertyType, $"val_{prop.Name}");
-        var genericMethod = tryGetValueMethod.MakeGenericMethod(prop.PropertyType);
         var defConstant = Expression.Constant(valDef, typeof(ValueDefinition));
+        MethodCallExpression call;
 
-        var call = Expression.Call(contextConstant, genericMethod, defConstant, valVar);
+        if (prop.PropertyType == typeof(string))
+        {
+            call = Expression.Call(contextConstant, tryGetStringMethod, defConstant, valVar);
+        }
+        else
+        {
+            var genericMethod = tryGetValueMethod.MakeGenericMethod(prop.PropertyType);
+            call = Expression.Call(contextConstant, genericMethod, defConstant, valVar);
+        }
+
         var assign = Expression.Assign(Expression.Property(targetParam, prop), valVar);
         var check = Expression.IfThen(call, assign);
 
