@@ -1,4 +1,4 @@
-using KeyAsio.Audio.Caching;
+﻿using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
 
 namespace KeyAsio.Audio;

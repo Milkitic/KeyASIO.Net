@@ -1,136 +1,121 @@
-﻿using System.Collections.Concurrent;
-using System.Numerics.Tensors;
+﻿using System.Numerics.Tensors;
 using KeyAsio.Audio.Utils;
 using NAudio.Utils;
 using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public sealed class EnhancedMixingSampleProvider : ISampleProvider, IDisposable
+/// <summary>
+/// A sample provider mixer, allowing inputs to be added and removed
+/// </summary>
+public class EnhancedMixingSampleProvider : ISampleProvider
 {
+    private readonly Lock _sourcesLock = new();
+    private readonly List<ISampleProvider> _sources;
+    private float[]? _sourceBuffer;
     private const int MaxInputs = 1024;
 
-    private readonly List<ISampleProvider> _sources = new(64);
-    private readonly ConcurrentQueue<ISampleProvider> _pendingAdditions = new();
-    private readonly ConcurrentQueue<ISampleProvider> _pendingRemovals = new();
-
-    private int _estimatedSourceCount;
-
-    private bool _clearRequested;
-    private float[] _mixerBuffer = new float[1024];
-    private bool _isDisposed;
-
+    /// <summary>
+    /// Creates a new MixingSampleProvider, with no inputs, but a specified WaveFormat
+    /// </summary>
+    /// <param name="waveFormat">The WaveFormat of this mixer. All inputs must be in this format</param>
     public EnhancedMixingSampleProvider(WaveFormat waveFormat)
     {
         if (waveFormat.Encoding != WaveFormatEncoding.IeeeFloat)
+        {
             throw new ArgumentException("Mixer wave format must be IEEE float");
+        }
+
+        _sources = new List<ISampleProvider>(64);
         WaveFormat = waveFormat;
     }
 
+    /// <summary>
+    /// Creates a new MixingSampleProvider, based on the given inputs
+    /// </summary>
+    /// <param name="sources">Mixer inputs - must all have the same waveformat, and must
+    /// all be of the same WaveFormat. There must be at least one input</param>
     public EnhancedMixingSampleProvider(IEnumerable<ISampleProvider> sources)
     {
-        _sources = new List<ISampleProvider>();
-        ISampleProvider? firstSource = null;
-        foreach (var mixerInput in sources)
+        _sources = new List<ISampleProvider>(64);
+        foreach (var source in sources)
         {
-            AddMixerInput(mixerInput);
-            if (firstSource == null)
-            {
-                WaveFormat = mixerInput.WaveFormat;
-                firstSource = mixerInput;
-            }
-            else
-            {
-                EnsureWaveFormat(mixerInput);
-            }
+            AddMixerInput(source);
         }
-
-        if (firstSource == null) throw new ArgumentException("Must provide at least one input");
-    }
-
-    public WaveFormat? WaveFormat { get; }
-
-    public bool ReadFully { get; set; }
-
-    public void AddMixerInput(ISampleProvider mixerInput)
-    {
-        if (_isDisposed) return;
-
-        EnsureWaveFormat(mixerInput);
-
-        int currentCount = Interlocked.Increment(ref _estimatedSourceCount);
-        if (currentCount > MaxInputs)
-        {
-            Interlocked.Decrement(ref _estimatedSourceCount);
-            throw new InvalidOperationException("Too many mixer inputs");
-        }
-
-        _pendingAdditions.Enqueue(mixerInput);
-    }
-
-    public void RemoveMixerInput(ISampleProvider mixerInput)
-    {
-        _pendingRemovals.Enqueue(mixerInput);
-    }
-
-    public void RemoveAllMixerInputs()
-    {
-        _clearRequested = true;
-    }
-
-    public int Read(float[] buffer, int offset, int count)
-    {
-        ProcessPendingChanges();
 
         if (_sources.Count == 0)
         {
-            if (ReadFully)
-            {
-                Array.Clear(buffer, offset, count);
-                return count;
-            }
-
-            return 0;
+            throw new ArgumentException("Must provide at least one input in this constructor");
         }
-
-        int maxSamplesRead = 0;
-
-        _mixerBuffer = BufferHelpers.Ensure(_mixerBuffer, count);
-
-        var outSpan = buffer.AsSpan(offset, count);
-        outSpan.Clear();
-
-        for (int index = _sources.Count - 1; index >= 0; index--)
-        {
-            var source = _sources[index];
-
-            int samplesRead = source.Read(_mixerBuffer, 0, count);
-            if (samplesRead > 0)
-            {
-                var srcSpan = _mixerBuffer.AsSpan(0, samplesRead);
-                var dstSpan = outSpan.Slice(0, samplesRead);
-
-                TensorPrimitives.Add(dstSpan, srcSpan, dstSpan);
-
-                if (samplesRead > maxSamplesRead)
-                {
-                    maxSamplesRead = samplesRead;
-                }
-            }
-
-            if (samplesRead < count)
-            {
-                RemoveSourceAt(index);
-                AudioRecycling.QueueForRecycle(source);
-            }
-        }
-
-        return ReadFully ? count : maxSamplesRead;
     }
 
-    private void ProcessPendingChanges()
+    /// <summary>
+    /// Returns the mixer inputs (read-only - use AddMixerInput to add an input
+    /// </summary>
+    public IEnumerable<ISampleProvider> MixerInputs => _sources;
+
+    /// <summary>
+    /// When set to true, the Read method always returns the number
+    /// of samples requested, even if there are no inputs, or if the
+    /// current inputs reach their end. Setting this to true effectively
+    /// makes this a never-ending sample provider, so take care if you plan
+    /// to write it out to a file.
+    /// </summary>
+    public bool ReadFully { get; set; }
+
+    /// <summary>
+    /// Adds a new mixer input
+    /// </summary>
+    /// <param name="mixerInput">Mixer input</param>
+    public void AddMixerInput(ISampleProvider mixerInput)
     {
-        if (_clearRequested)
+        // we'll just call the lock around add since we are protecting against an AddMixerInput at
+        // the same time as a Read, rather than two AddMixerInput calls at the same time
+        lock (_sourcesLock)
+        {
+            if (_sources.Count >= MaxInputs)
+            {
+                throw new InvalidOperationException("Too many mixer inputs");
+            }
+
+            _sources.Add(mixerInput);
+        }
+
+        if (WaveFormat == null)
+        {
+            WaveFormat = mixerInput.WaveFormat;
+        }
+        else
+        {
+            if (WaveFormat.SampleRate != mixerInput.WaveFormat.SampleRate ||
+                WaveFormat.Channels != mixerInput.WaveFormat.Channels)
+            {
+                throw new ArgumentException("All mixer inputs must have the same WaveFormat");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes a mixer input
+    /// </summary>
+    /// <param name="mixerInput">Mixer input to remove</param>
+    public void RemoveMixerInput(ISampleProvider mixerInput)
+    {
+        lock (_sourcesLock)
+        {
+            if (_sources.Remove(mixerInput))
+            {
+                AudioRecycling.QueueForRecycle(mixerInput);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes all mixer inputs
+    /// </summary>
+    public void RemoveAllMixerInputs()
+    {
+        lock (_sourcesLock)
         {
             for (var i = _sources.Count - 1; i >= 0; i--)
             {
@@ -138,45 +123,6 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider, IDisposable
                 _sources.RemoveAt(i);
                 AudioRecycling.QueueForRecycle(source);
             }
-
-            while (_pendingAdditions.TryDequeue(out var pending))
-            {
-                AudioRecycling.QueueForRecycle(pending);
-            }
-
-            Interlocked.Exchange(ref _estimatedSourceCount, 0);
-            _clearRequested = false;
-        }
-
-        while (_pendingRemovals.TryDequeue(out var toRemove))
-        {
-            if (_sources.Remove(toRemove))
-            {
-                AudioRecycling.QueueForRecycle(toRemove);
-            }
-        }
-
-        while (_pendingAdditions.TryDequeue(out var source))
-        {
-            if (_sources.Count < MaxInputs)
-            {
-                _sources.Add(source);
-            }
-            else
-            {
-                // 理论上 AddMixerInput 已经拦截了，但这作为防御性编程
-                AudioRecycling.QueueForRecycle(source);
-                Interlocked.Decrement(ref _estimatedSourceCount);
-            }
-        }
-    }
-
-    private void EnsureWaveFormat(ISampleProvider mixerInput)
-    {
-        if (WaveFormat.SampleRate != mixerInput.WaveFormat.SampleRate ||
-            WaveFormat.Channels != mixerInput.WaveFormat.Channels)
-        {
-            throw new ArgumentException("All mixer inputs must have the same WaveFormat");
         }
     }
 
@@ -189,12 +135,70 @@ public sealed class EnhancedMixingSampleProvider : ISampleProvider, IDisposable
         }
 
         _sources.RemoveAt(lastIndex);
-        Interlocked.Decrement(ref _estimatedSourceCount);
     }
 
-    public void Dispose()
+    /// <summary>
+    /// The output WaveFormat of this sample provider
+    /// </summary>
+    public WaveFormat? WaveFormat { get; private set; }
+
+    /// <summary>
+    /// Reads samples from this sample provider
+    /// </summary>
+    /// <param name="buffer">Sample buffer</param>
+    /// <param name="offset">Offset into sample buffer</param>
+    /// <param name="count">Number of samples required</param>
+    /// <returns>Number of samples read</returns>
+    public int Read(float[] buffer, int offset, int count)
     {
-        _isDisposed = true;
-        _clearRequested = true;
+        var outputSamples = 0;
+        _sourceBuffer = BufferHelpers.Ensure(_sourceBuffer, count);
+        var sourceBufferSpan = _sourceBuffer.AsSpan(0, count);
+        var outputBufferSpan = buffer.AsSpan(offset, count);
+
+        lock (_sourcesLock)
+        {
+            var index = _sources.Count - 1;
+            while (index >= 0)
+            {
+                var source = _sources[index];
+                var samplesRead = source.Read(_sourceBuffer, 0, count);
+
+                var samplesToAdd = Math.Min(samplesRead, outputSamples);
+                var samplesToCopy = samplesRead - samplesToAdd;
+
+                if (samplesToAdd > 0)
+                {
+                    TensorPrimitives.Add(
+                        outputBufferSpan.Slice(0, samplesToAdd),
+                        sourceBufferSpan.Slice(0, samplesToAdd),
+                        outputBufferSpan.Slice(0, samplesToAdd));
+                }
+
+                if (samplesToCopy > 0)
+                {
+                    sourceBufferSpan.Slice(samplesToAdd, samplesToCopy)
+                        .CopyTo(outputBufferSpan.Slice(samplesToAdd, samplesToCopy));
+                }
+
+                outputSamples = Math.Max(samplesRead, outputSamples);
+                if (samplesRead < count)
+                {
+                    RemoveSourceAt(index);
+                    AudioRecycling.QueueForRecycle(source);
+                }
+
+                index--;
+            }
+        }
+
+        // optionally ensure we return a full buffer
+        if (ReadFully && outputSamples < count)
+        {
+            Array.Clear(buffer, offset + outputSamples, count - outputSamples);
+            outputSamples = count;
+        }
+
+        return outputSamples;
     }
 }

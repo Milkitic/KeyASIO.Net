@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Avalonia;
 using KeyAsio.Audio;
 using KeyAsio.Memory.Utils;
@@ -89,6 +89,7 @@ internal sealed class Program
                 .AddSingleton<App>()
                 .AddSingleton<UpdateService>()
                 .AddSingleton<MemoryScan>()
+                .AddSingleton<MemorySyncBridge>()
                 .AddSingleton<ISentryEventProcessor, KeyAsioSentryEventProcessor>()
                 .AddAudioModule()
                 .AddSyncModule()
