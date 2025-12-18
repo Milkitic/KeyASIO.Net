@@ -2,7 +2,6 @@
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Threading;
 
 namespace KeyAsio.Shared.OsuMemory;
 
@@ -12,7 +11,6 @@ public class MemorySyncBridge
     private readonly SyncSessionContext _syncSessionContext;
     private readonly AppSettings _appSettings;
     private readonly ILogger<MemorySyncBridge> _logger;
-    private readonly SingleSynchronizationContext _singleSynchronizationContext = new("Memory events callback thread");
 
     public MemorySyncBridge(
         MemoryScan memoryScan,
@@ -59,22 +57,22 @@ public class MemorySyncBridge
     private void BindEvents()
     {
         _memoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.Username = player, null);
+            _syncSessionContext.Username = player;
         _memoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.PlayMods = mods, null);
+            _syncSessionContext.PlayMods = mods;
         _memoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.Combo = combo, null);
+            _syncSessionContext.Combo = combo;
         _memoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.Score = score, null);
+            _syncSessionContext.Score = score;
         _memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.IsReplay = isReplay, null);
+            _syncSessionContext.IsReplay = isReplay;
         _memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.BaseMemoryTime = playTime, null);
+            _syncSessionContext.BaseMemoryTime = playTime;
         _memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.Beatmap = beatmap, null);
+            _syncSessionContext.Beatmap = beatmap;
         _memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.OsuStatus = current, null);
+            _syncSessionContext.OsuStatus = current;
         _memoryScan.MemoryReadObject.ProcessIdChanged += (_, id) =>
-            _singleSynchronizationContext.Post(_ => _syncSessionContext.ProcessId = id, null);
+            _syncSessionContext.ProcessId = id;
     }
 }
