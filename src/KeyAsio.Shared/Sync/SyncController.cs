@@ -1,5 +1,7 @@
-﻿using KeyAsio.Audio;
+﻿using System.Diagnostics;
+using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
+using KeyAsio.Memory.Utils;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.AudioProviders;
@@ -10,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Sync;
 
-public class SyncController
+public class SyncController : IDisposable
 {
     private readonly SyncSessionContext _syncSessionContext;
     private readonly GameStateMachine _stateMachine;
@@ -33,7 +35,6 @@ public class SyncController
         _syncSessionContext.OnComboChanged = OnComboChanged;
         _syncSessionContext.OnStatusChanged = OnStatusChanged;
         _syncSessionContext.OnPlayModsChanged = OnPlayModsChanged;
-        _syncSessionContext.OnFetchedPlayTimeChanged = OnFetchedPlayTimeChanged;
 
         var standardAudioProvider = new StandardHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<StandardHitsoundSequencer>>(),
@@ -61,6 +62,55 @@ public class SyncController
         });
     }
 
+    private CancellationTokenSource? _syncLoopCts;
+
+    public void Start()
+    {
+        if (_syncLoopCts != null) return;
+        _syncLoopCts = new CancellationTokenSource();
+        var token = _syncLoopCts.Token;
+
+        Task.Factory.StartNew(() => RunSyncLoop(token), token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+    }
+
+    public void Stop()
+    {
+        _syncLoopCts?.Cancel();
+        _syncLoopCts?.Dispose();
+        _syncLoopCts = null;
+    }
+
+    private void RunSyncLoop(CancellationToken token)
+    {
+        using var highPrecisionTimerScope = new HighPrecisionTimerScope();
+
+        const long intervalMs = 2; // 500Hz
+        var stopwatch = Stopwatch.StartNew();
+        var nextTrigger = stopwatch.ElapsedMilliseconds;
+        var oldTime = _syncSessionContext.PlayTime;
+
+        while (!token.IsCancellationRequested)
+        {
+            var current = stopwatch.ElapsedMilliseconds;
+            var wait = nextTrigger - current;
+
+            if (wait > 0)
+            {
+                Thread.Sleep(Math.Max(0, (int)wait));
+            }
+
+            var newTime = _syncSessionContext.PlayTime;
+            _stateMachine.Current?.OnPlayTimeChanged(_syncSessionContext, oldTime, newTime, oldTime == newTime);
+            oldTime = newTime;
+
+            nextTrigger += intervalMs;
+
+            if (stopwatch.ElapsedMilliseconds > nextTrigger + 50)
+            {
+                nextTrigger = stopwatch.ElapsedMilliseconds;
+            }
+        }
+    }
 
     private Task OnComboChanged(int oldCombo, int newCombo)
     {
@@ -85,9 +135,8 @@ public class SyncController
         return Task.CompletedTask;
     }
 
-    private Task OnFetchedPlayTimeChanged(int oldMs, int newMs, bool paused = false)
+    public void Dispose()
     {
-        _stateMachine.Current?.OnPlayTimeChanged(_syncSessionContext, oldMs, newMs, paused);
-        return Task.CompletedTask;
+        Stop();
     }
 }
