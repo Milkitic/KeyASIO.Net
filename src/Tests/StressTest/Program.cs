@@ -26,7 +26,7 @@ public class Program
         var services = new ServiceCollection();
 
         // Register Logger
-        services.AddLogging(builder => {});
+        services.AddLogging(builder => { });
 
         // Register Core Services
         services.AddSingleton<AppSettings>();
@@ -54,24 +54,26 @@ public class Program
         // 2. Setup Context and State
         var ctx = provider.GetRequiredService<SyncSessionContext>();
         var gameplaySessionManager = provider.GetRequiredService<GameplaySessionManager>();
+        var audioCacheManager = provider.GetRequiredService<AudioCacheManager>();
+        var gameplayAudioService = provider.GetRequiredService<GameplayAudioService>();
+
         var playingState = new PlayingState(
             provider.GetRequiredService<AppSettings>(),
             audioEngine,
-            provider.GetRequiredService<AudioCacheManager>(),
+            audioCacheManager,
             provider.GetRequiredService<BackgroundMusicManager>(),
             provider.GetRequiredService<BeatmapHitsoundLoader>(),
             provider.GetRequiredService<SfxPlaybackService>(),
             provider.GetRequiredService<SharedViewModel>(),
             gameplaySessionManager,
-            provider.GetRequiredService<GameplayAudioService>()
+            gameplayAudioService
         );
-
         // 3. Prepare Dummy Data
         Console.WriteLine("Preparing Dummy Data...");
 
         // Setup OsuFile
         var osuFile = OsuFile.CreateEmpty();
-        osuFile.General.Mode = GameMode.Mania;
+        osuFile.General.Mode = GameMode.Circle;
         osuFile.Difficulty.CircleSize = 4;
 
         // Manually set OsuFile on GameplaySessionManager
@@ -94,7 +96,7 @@ public class Program
             provider.GetRequiredService<AppSettings>(),
             ctx,
             audioEngine,
-            provider.GetRequiredService<GameplayAudioService>(),
+            gameplayAudioService,
             gameplaySessionManager
         );
         var stdSequencer = new KeyAsio.Shared.Sync.AudioProviders.StandardHitsoundSequencer(
@@ -102,7 +104,7 @@ public class Program
             provider.GetRequiredService<AppSettings>(),
             ctx,
             audioEngine,
-            provider.GetRequiredService<GameplayAudioService>(),
+            gameplayAudioService,
             gameplaySessionManager
         );
 
@@ -119,6 +121,9 @@ public class Program
 
         var fieldPlaybackList = typeof(BeatmapHitsoundLoader).GetField("_playbackList", BindingFlags.NonPublic | BindingFlags.Instance);
         var playbackList = (List<HitsoundNode>)fieldPlaybackList!.GetValue(loader)!;
+
+        await audioCacheManager.GetOrCreateOrEmptyFromFileAsync("test.wav", audioEngine.EngineWaveFormat);
+        await audioCacheManager.GetOrCreateOrEmptyFromFileAsync("effect.wav", audioEngine.EngineWaveFormat);
 
         // Add 1000 nodes
         for (int i = 0; i < 1000; i++)
@@ -183,8 +188,11 @@ public class Program
 
         long totalUpdates = 0;
         int songLength = 10000; // 10 seconds loop
-        
+
         var interactionBuffer = new List<PlaybackInfo>(64);
+
+        await gameplayAudioService.AddHitsoundCacheAsync(loader.KeyList[0], ".", ".", audioEngine.EngineWaveFormat);
+        await gameplayAudioService.AddHitsoundCacheAsync(playbackList[0], ".", ".", audioEngine.EngineWaveFormat);
 
         while (true)
         {
@@ -195,11 +203,11 @@ public class Program
 
             int oldMs = (int)((totalUpdates == 0 ? 0 : totalUpdates - 1) % songLength);
             int newMs = (int)(totalUpdates % songLength);
-            
-            ctx.PlayTime = newMs; // Update context
-            
+
+            ctx.BaseMemoryTime = newMs; // Update context
+
             // Call OnPlayTimeChanged
-            await playingState.OnPlayTimeChanged(ctx, oldMs, newMs, false);
+            playingState.OnPlayTimeChanged(ctx, oldMs, newMs, false);
 
             // Simulate key presses
             // Check if there are keys mapped at this timestamp
@@ -208,7 +216,7 @@ public class Program
                 foreach (var col in columns)
                 {
                     interactionBuffer.Clear();
-                    maniaSequencer.ProcessInteraction(interactionBuffer, col, 4);
+                    stdSequencer.ProcessInteraction(interactionBuffer, col, 4);
                     foreach (var playbackInfo in interactionBuffer)
                     {
                         // Dispatch to SfxPlaybackService
@@ -220,9 +228,10 @@ public class Program
 
             if (totalUpdates % 1000 == 0)
             {
-                 //Console.WriteLine($"Processed {totalUpdates} updates (Current time: {newMs}ms)...");
+                //Console.WriteLine($"Processed {totalUpdates} updates (Current time: {newMs}ms)...");
             }
 
+            //Thread.Sleep(2);
             totalUpdates++;
         }
 

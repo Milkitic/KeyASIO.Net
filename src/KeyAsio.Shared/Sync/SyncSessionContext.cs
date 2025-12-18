@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
-using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Utils;
 
 namespace KeyAsio.Shared.Sync;
 
-public class SyncSessionContext : ViewModelBase
+public class SyncSessionContext
 {
     public Func<int, int, Task>? OnComboChanged;
     public Func<Mods, Mods, Task>? OnPlayModsChanged;
@@ -15,7 +15,8 @@ public class SyncSessionContext : ViewModelBase
     public Func<BeatmapIdentifier, BeatmapIdentifier, Task>? OnBeatmapChanged;
 
     private readonly AppSettings _appSettings;
-    private readonly Stopwatch _playTimeStopwatch = new();
+    private long _startTick;
+    private static readonly double TickToMs = 1000.0 / Stopwatch.Frequency;
 
     public SyncSessionContext(AppSettings appSettings)
     {
@@ -25,11 +26,7 @@ public class SyncSessionContext : ViewModelBase
     public bool IsStarted { get; set; }
     public bool IsReplay { get; set; }
 
-    public int ProcessId
-    {
-        get;
-        set => SetField(ref field, value);
-    }
+    public int ProcessId { get; set; }
 
     public string? Username
     {
@@ -42,8 +39,6 @@ public class SyncSessionContext : ViewModelBase
             {
                 _appSettings.Logging.PlayerBase64 = EncodeUtils.GetBase64String(value, Encoding.ASCII);
             }
-
-            OnPropertyChanged();
         }
     }
 
@@ -52,11 +47,10 @@ public class SyncSessionContext : ViewModelBase
         get;
         set
         {
-            var val = field;
-            if (SetField(ref field, value))
-            {
-                OnPlayModsChanged?.Invoke(val, value);
-            }
+            if (field == value) return;
+            var oldValue = field;
+            field = value;
+            OnPlayModsChanged?.Invoke(oldValue, value);
         }
     }
 
@@ -65,13 +59,18 @@ public class SyncSessionContext : ViewModelBase
         get;
         set
         {
-            value += (int)_playTimeStopwatch.ElapsedMilliseconds;
+            var currentTick = Stopwatch.GetTimestamp();
+            LastUpdateTimestamp = currentTick;
+            if (_startTick != 0)
+            {
+                value += (int)((currentTick - _startTick) * TickToMs);
+            }
+
             var oldValue = field;
             var changed = field != value;
             field = value;
 
             OnFetchedPlayTimeChanged?.Invoke(oldValue, value, !changed);
-            OnPropertyChanged();
         }
     }
 
@@ -83,15 +82,7 @@ public class SyncSessionContext : ViewModelBase
             bool changed = field != value;
             field = value;
 
-            if (changed)
-            {
-                _playTimeStopwatch.Restart();
-                OnPropertyChanged();
-            }
-            else
-            {
-                _playTimeStopwatch.Reset();
-            }
+            _startTick = changed ? Stopwatch.GetTimestamp() : 0;
 
             PlayTime = value;
         }
@@ -102,31 +93,24 @@ public class SyncSessionContext : ViewModelBase
         get;
         set
         {
-            var val = field;
-            if (SetField(ref field, value))
-            {
-                OnComboChanged?.Invoke(val, value);
-            }
+            if (field == value) return;
+            var oldValue = field;
+            field = value;
+            OnComboChanged?.Invoke(oldValue, value);
         }
     }
 
-    public int Score
-    {
-        get;
-        set => SetField(ref field, value);
-    }
+    public int Score { get; set; }
 
     public OsuMemoryStatus OsuStatus
     {
         get;
         set
         {
-            var val = field;
-            if (SetField(ref field, value))
-            {
-                OnStatusChanged?.Invoke(val, value);
-                OnPropertyChanged(nameof(SyncedStatusText));
-            }
+            if (field == value) return;
+            var oldValue = field;
+            field = value;
+            OnStatusChanged?.Invoke(oldValue, value);
         }
     }
 
@@ -139,11 +123,17 @@ public class SyncSessionContext : ViewModelBase
         get;
         set
         {
-            var val = field;
-            if (SetField(ref field, value))
-            {
-                OnBeatmapChanged?.Invoke(val, value);
-            }
+            if (field == value) return;
+            var oldValue = field;
+            field = value;
+            OnBeatmapChanged?.Invoke(oldValue, value);
         }
+    }
+
+    public long LastUpdateTimestamp
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+        private set;
     }
 }

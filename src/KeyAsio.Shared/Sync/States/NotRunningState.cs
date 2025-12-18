@@ -1,4 +1,4 @@
-﻿using KeyAsio.Shared.OsuMemory;
+﻿﻿using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.Services;
 
 namespace KeyAsio.Shared.Sync.States;
@@ -28,7 +28,7 @@ public class NotRunningState : IGameState
     {
     }
 
-    public async Task OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
+    public void OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
     }
 

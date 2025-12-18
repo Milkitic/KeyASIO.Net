@@ -1,4 +1,4 @@
-﻿using Coosu.Beatmap;
+﻿﻿using Coosu.Beatmap;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.Services;
 
@@ -31,7 +31,7 @@ public class BrowsingState : IGameState
     {
     }
 
-    public async Task OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
+    public void OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int selectSongPauseThreshold = 20;
         if (!_appSettings.Sync.EnableMixSync) return;

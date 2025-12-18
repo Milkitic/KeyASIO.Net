@@ -1,4 +1,5 @@
-﻿using Coosu.Beatmap.Extensions.Playback;
+﻿using System.Diagnostics;
+using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
@@ -10,6 +11,9 @@ namespace KeyAsio.Shared.Sync.States;
 
 public class PlayingState : IGameState
 {
+    private static readonly long HitsoundSyncIntervalTicks = Stopwatch.Frequency / 1000; // 1000hz
+    private static readonly long MusicSyncIntervalTicks = Stopwatch.Frequency / 1000;
+
     private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
@@ -21,8 +25,18 @@ public class PlayingState : IGameState
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
+
+    private volatile bool _isSyncingMusic;
+    private long _lastMusicSyncTimestamp;
+    private volatile bool _isSyncingHitsounds;
+    private long _lastHitsoundSyncTimestamp;
+    private readonly WaitCallback _hitsoundSyncCallback;
+
     private bool _enableMixSync;
     private bool _disableComboBreakSfx;
+
+    private SyncSessionContext _pendingCtx;
+    private int _pendingMs;
 
     public PlayingState(AppSettings appSettings,
         AudioEngine audioEngine,
@@ -43,6 +57,8 @@ public class PlayingState : IGameState
         _sharedViewModel = sharedViewModel;
         _gameplaySessionManager = gameplaySessionManager;
         _gameplayAudioService = gameplayAudioService;
+
+        _hitsoundSyncCallback = _ => HitsoundSyncWorkItem();
 
         _enableMixSync = _appSettings.Sync.EnableMixSync;
         _disableComboBreakSfx = _appSettings.Sync.Filters.DisableComboBreakSfx;
@@ -81,7 +97,7 @@ public class PlayingState : IGameState
         // Exit behavior will be handled by the next state's Enter.
     }
 
-    public async Task OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
+    public void OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
         var enableMixSync = _enableMixSync;
@@ -99,12 +115,50 @@ public class PlayingState : IGameState
             return;
         }
 
+        var currentTimestamp = ctx.LastUpdateTimestamp;
         if (enableMixSync)
         {
-            await SyncMusicAsync(ctx, newMs, playingPauseThreshold);
+            var elapsed = currentTimestamp - Interlocked.Read(ref _lastMusicSyncTimestamp);
+            if (elapsed >= MusicSyncIntervalTicks && !_isSyncingMusic)
+            {
+                if (Interlocked.CompareExchange(ref _lastMusicSyncTimestamp, currentTimestamp,
+                    currentTimestamp - elapsed) == currentTimestamp - elapsed)
+                {
+                    _isSyncingMusic = true;
+                    _ = SyncMusicAsync(ctx, newMs, playingPauseThreshold).ContinueWith(_ =>
+                    {
+                        _isSyncingMusic = false;
+                    }, TaskScheduler.Default);
+                }
+            }
         }
 
-        SyncHitsounds(ctx, newMs);
+        var hitsoundElapsed = currentTimestamp - Interlocked.Read(ref _lastHitsoundSyncTimestamp);
+        if (hitsoundElapsed >= HitsoundSyncIntervalTicks && !_isSyncingHitsounds)
+        {
+            if (Interlocked.CompareExchange(ref _lastHitsoundSyncTimestamp, currentTimestamp,
+                currentTimestamp - hitsoundElapsed) == currentTimestamp - hitsoundElapsed)
+            {
+                _isSyncingHitsounds = true;
+
+                _pendingCtx = ctx;
+                _pendingMs = newMs;
+
+                ThreadPool.UnsafeQueueUserWorkItem(_hitsoundSyncCallback, null);
+            }
+        }
+    }
+
+    private void HitsoundSyncWorkItem()
+    {
+        try
+        {
+            SyncHitsounds(_pendingCtx, _pendingMs);
+        }
+        finally
+        {
+            _isSyncingHitsounds = false;
+        }
     }
 
     public void OnComboChanged(SyncSessionContext ctx, int oldCombo, int newCombo)
@@ -146,7 +200,7 @@ public class PlayingState : IGameState
         }
 
         mixer?.RemoveAllMixerInputs();
-        _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime); // slow, but less
+        _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);
     }
 
     private async Task SyncMusicAsync(SyncSessionContext ctx, int newMs, int playingPauseThreshold)
@@ -187,9 +241,9 @@ public class PlayingState : IGameState
 
     private void SyncHitsounds(SyncSessionContext ctx, int newMs)
     {
-        _beatmapHitsoundLoader.AdvanceCachingWindow(newMs); // slow
-        PlayAutoPlaybackIfNeeded(ctx); // slow
-        PlayManualPlaybackIfNeeded(ctx); // critical
+        _beatmapHitsoundLoader.AdvanceCachingWindow(newMs);
+        PlayAutoPlaybackIfNeeded(ctx);
+        PlayManualPlaybackIfNeeded(ctx);
     }
 
     private void PlayAutoPlaybackIfNeeded(SyncSessionContext ctx)
@@ -197,8 +251,11 @@ public class PlayingState : IGameState
         if (!_sharedViewModel.AutoMode && (ctx.PlayMods & Mods.Autoplay) == 0 && !ctx.IsReplay) return;
         _playbackBuffer.Clear();
         _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, false);
-        foreach (var playbackObject in _playbackBuffer)
+
+        var count = _playbackBuffer.Count;
+        for (int i = 0; i < count; i++)
         {
+            var playbackObject = _playbackBuffer[i];
             _sfxPlaybackService.DispatchPlayback(playbackObject);
         }
     }
@@ -206,10 +263,12 @@ public class PlayingState : IGameState
     private void PlayManualPlaybackIfNeeded(SyncSessionContext ctx)
     {
         _playbackBuffer.Clear();
-        // _gameplaySessionManager.CurrentHitsoundSequencer very slow!
         _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, true);
-        foreach (var playbackObject in _playbackBuffer)
+
+        var count = _playbackBuffer.Count;
+        for (int i = 0; i < count; i++)
         {
+            var playbackObject = _playbackBuffer[i];
             if (_gameplaySessionManager.OsuFile.General.Mode == GameMode.Mania &&
                 playbackObject.HitsoundNode is PlayableNode { PlayablePriority: PlayablePriority.Sampling })
             {

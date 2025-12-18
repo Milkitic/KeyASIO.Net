@@ -1,4 +1,5 @@
-﻿using Coosu.Beatmap.Extensions.Playback;
+﻿using System.Runtime.CompilerServices;
+using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync.Services;
@@ -145,6 +146,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsEngineReady()
     {
         if (_audioEngine.CurrentDevice == null)
