@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
@@ -27,18 +28,15 @@ public class PlayingState : IGameState
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
-    private volatile bool _isSyncingMusic;
-    private long _lastMusicSyncTimestamp;
+    private readonly SyncThrottler _musicThrottler;
     private readonly WaitCallback _musicSyncCallback;
     private SyncSessionContext _pendingMusicCtx;
     private int _pendingMusicMs;
-    private int _pendingMusicPauseThreshold;
 
-    private volatile bool _isSyncingHitsounds;
-    private long _lastHitsoundSyncTimestamp;
+    private readonly SyncThrottler _hitsoundThrottler;
     private readonly WaitCallback _hitsoundSyncCallback;
     private SyncSessionContext _pendingHitsoundCtx;
-    private int _pendinghitsoundMs;
+    private int _pendingHitsoundMs;
 
     private bool _enableMixSync;
     private bool _disableComboBreakSfx;
@@ -68,6 +66,9 @@ public class PlayingState : IGameState
 
         _hitsoundSyncCallback = _ => HitsoundSyncWorkItem();
         _musicSyncCallback = _ => MusicSyncWorkItem();
+
+        _musicThrottler = new SyncThrottler(MusicSyncIntervalTicks);
+        _hitsoundThrottler = new SyncThrottler(HitsoundSyncIntervalTicks);
 
         _enableMixSync = _appSettings.Sync.EnableMixSync;
         _disableComboBreakSfx = _appSettings.Sync.Filters.DisableComboBreakSfx;
@@ -125,38 +126,20 @@ public class PlayingState : IGameState
         }
 
         var currentTimestamp = ctx.LastUpdateTimestamp;
-        if (enableMixSync)
+        if (enableMixSync && _musicThrottler.TryAcquire(currentTimestamp))
         {
-            var elapsed = currentTimestamp - Interlocked.Read(ref _lastMusicSyncTimestamp);
-            if (elapsed >= MusicSyncIntervalTicks && !_isSyncingMusic)
-            {
-                if (Interlocked.CompareExchange(ref _lastMusicSyncTimestamp, currentTimestamp,
-                        currentTimestamp - elapsed) == currentTimestamp - elapsed)
-                {
-                    _isSyncingMusic = true;
+            _pendingMusicCtx = ctx;
+            _pendingMusicMs = newMs;
 
-                    _pendingMusicCtx = ctx;
-                    _pendingMusicMs = newMs;
-                    _pendingMusicPauseThreshold = playingPauseThreshold;
-
-                    ThreadPool.UnsafeQueueUserWorkItem(_musicSyncCallback, null);
-                }
-            }
+            ThreadPool.UnsafeQueueUserWorkItem(_musicSyncCallback, null);
         }
 
-        var hitsoundElapsed = currentTimestamp - Interlocked.Read(ref _lastHitsoundSyncTimestamp);
-        if (hitsoundElapsed >= HitsoundSyncIntervalTicks && !_isSyncingHitsounds)
+        if (_hitsoundThrottler.TryAcquire(currentTimestamp))
         {
-            if (Interlocked.CompareExchange(ref _lastHitsoundSyncTimestamp, currentTimestamp,
-                    currentTimestamp - hitsoundElapsed) == currentTimestamp - hitsoundElapsed)
-            {
-                _isSyncingHitsounds = true;
+            _pendingHitsoundCtx = ctx;
+            _pendingHitsoundMs = newMs;
 
-                _pendingHitsoundCtx = ctx;
-                _pendinghitsoundMs = newMs;
-
-                ThreadPool.UnsafeQueueUserWorkItem(_hitsoundSyncCallback, null);
-            }
+            ThreadPool.UnsafeQueueUserWorkItem(_hitsoundSyncCallback, null);
         }
     }
 
@@ -164,7 +147,7 @@ public class PlayingState : IGameState
     {
         try
         {
-            SyncMusic(_pendingMusicCtx, _pendingMusicMs, _pendingMusicPauseThreshold);
+            SyncMusic(_pendingMusicCtx, _pendingMusicMs);
         }
         catch (Exception ex)
         {
@@ -172,7 +155,7 @@ public class PlayingState : IGameState
         }
         finally
         {
-            _isSyncingMusic = false;
+            _musicThrottler.Release();
         }
     }
 
@@ -180,7 +163,7 @@ public class PlayingState : IGameState
     {
         try
         {
-            SyncHitsounds(_pendingHitsoundCtx, _pendinghitsoundMs);
+            SyncHitsounds(_pendingHitsoundCtx, _pendingHitsoundMs);
         }
         catch (Exception ex)
         {
@@ -188,7 +171,7 @@ public class PlayingState : IGameState
         }
         finally
         {
-            _isSyncingHitsounds = false;
+            _hitsoundThrottler.Release();
         }
     }
 
@@ -234,43 +217,36 @@ public class PlayingState : IGameState
         _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);
     }
 
-    private void SyncMusic(SyncSessionContext ctx, int newMs, int playingPauseThreshold)
+    private void SyncMusic(SyncSessionContext ctx, int newMs)
     {
-        if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
-            _backgroundMusicManager.GetMainTrackPath() != null &&
-            _audioEngine.CurrentDevice != null)
-        {
-            if (_backgroundMusicManager.GetPauseCount() >= playingPauseThreshold)
-            {
-                _backgroundMusicManager.ClearMainTrackAudio();
-            }
-            else
-            {
-                var musicPath = _backgroundMusicManager.GetMainTrackPath();
-                if (musicPath != null)
-                {
-                    if (_audioCacheManager.TryGet(musicPath, out var cachedAudio))
-                    {
-                        const int codeLatency = -1;
-                        const int osuForceLatency = 15;
-                        var oldMapForceOffset = _gameplaySessionManager.OsuFile.Version < 5 ? 24 : 0;
-                        _backgroundMusicManager.SetMainTrackOffsetAndLeadIn(
-                            osuForceLatency + codeLatency + oldMapForceOffset,
-                            _gameplaySessionManager.OsuFile.General.AudioLeadIn);
-                        if (!_backgroundMusicManager.IsResultFlag())
-                        {
-                            _backgroundMusicManager.SetSingleTrackPlayMods(ctx.PlayMods);
-                        }
+        const int playingPauseThreshold = 5;
+        if (!_backgroundMusicManager.GetFirstStartInitialized()) return;
+        if (_gameplaySessionManager.OsuFile == null) return;
+        if (_backgroundMusicManager.GetMainTrackPath() == null) return;
+        if (_audioEngine.CurrentDevice == null) return;
 
-                        _backgroundMusicManager.SyncMainTrackAudio(cachedAudio, newMs);
-                    }
-                    else
-                    {
-                        // ...
-                    }
-                }
-            }
+        if (_backgroundMusicManager.GetPauseCount() >= playingPauseThreshold)
+        {
+            _backgroundMusicManager.ClearMainTrackAudio();
+            return;
         }
+
+        var musicPath = _backgroundMusicManager.GetMainTrackPath();
+        if (musicPath == null) return;
+
+        if (!_audioCacheManager.TryGet(musicPath, out var cachedAudio)) return;
+
+        const int codeLatency = -1;
+        const int osuForceLatency = 15;
+        var oldMapForceOffset = _gameplaySessionManager.OsuFile.Version < 5 ? 24 : 0;
+        _backgroundMusicManager.SetMainTrackOffsetAndLeadIn(osuForceLatency + codeLatency + oldMapForceOffset,
+            _gameplaySessionManager.OsuFile.General.AudioLeadIn);
+        if (!_backgroundMusicManager.IsResultFlag())
+        {
+            _backgroundMusicManager.SetSingleTrackPlayMods(ctx.PlayMods);
+        }
+
+        _backgroundMusicManager.SyncMainTrackAudio(cachedAudio, newMs);
     }
 
     private void SyncHitsounds(SyncSessionContext ctx, int newMs)
@@ -311,6 +287,33 @@ public class PlayingState : IGameState
             }
 
             _sfxPlaybackService.DispatchPlayback(playbackObject);
+        }
+    }
+
+    private sealed class SyncThrottler(long intervalTicks)
+    {
+        private long _lastTimestamp;
+        private volatile int _isSyncing;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAcquire(long currentTimestamp)
+        {
+            if (_isSyncing == 1) return false;
+
+            var last = Interlocked.Read(ref _lastTimestamp);
+            var elapsed = currentTimestamp - last;
+
+            if (elapsed < intervalTicks) return false;
+            if (Interlocked.CompareExchange(ref _lastTimestamp, currentTimestamp, last) != last) return false;
+
+            _isSyncing = 1;
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Release()
+        {
+            _isSyncing = 0;
         }
     }
 }
