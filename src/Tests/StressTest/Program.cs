@@ -181,7 +181,7 @@ public class Program
 
         // Set Started
         ctx.IsStarted = true;
-        ctx.PlayTime = 0;
+        ctx.BaseMemoryTime = 0;
 
         // 4. Run Stress Test
         Console.WriteLine("Starting Stress Test. Press 'Q' to stop...");

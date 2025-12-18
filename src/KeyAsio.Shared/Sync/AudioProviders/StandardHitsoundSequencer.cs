@@ -40,9 +40,11 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
 
     public void SeekTo(int playTime)
     {
-        _hitQueue = new Queue<PlayableNode>(_gameplaySessionManager.KeyList);
+        _hitQueue = new Queue<PlayableNode>(
+            _gameplaySessionManager.KeyList.Where(k => k.Offset >= playTime - KeyThresholdMilliseconds)
+        );
         _playbackQueue = new Queue<HitsoundNode>(_gameplaySessionManager.PlaybackList
-            .Where(k => k.Offset >= _syncSessionContext.PlayTime));
+            .Where(k => k.Offset >= playTime));
     }
 
     public void ProcessAutoPlay(List<PlaybackInfo> buffer, bool processHitQueueAsAuto)

@@ -70,6 +70,12 @@ public class BeatmapHitsoundLoader
         return osuFile;
     }
 
+    public void CacheAllHitsounds()
+    {
+        _gameplayAudioService.PrecacheHitsoundsRangeInBackground(0, int.MaxValue, _keyList);
+        _gameplayAudioService.PrecacheHitsoundsRangeInBackground(0, int.MaxValue, _playbackList);
+    }
+
     public void ResetNodes(IHitsoundSequencer hitsoundSequencer, int playTime)
     {
         hitsoundSequencer.SeekTo(playTime); // slow

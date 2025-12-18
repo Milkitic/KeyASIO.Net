@@ -100,6 +100,7 @@ public class PlayingState : IGameState
         }
 
         await _gameplaySessionManager.StartAsync(ctx.Beatmap.FilenameFull, ctx.Beatmap.Filename);
+        _beatmapHitsoundLoader.CacheAllHitsounds();
     }
 
     public void Exit(SyncSessionContext ctx, OsuMemoryStatus to)
@@ -109,7 +110,6 @@ public class PlayingState : IGameState
 
     public void OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
-        const int playingPauseThreshold = 5;
         var enableMixSync = _enableMixSync;
         if (enableMixSync)
         {
@@ -251,7 +251,7 @@ public class PlayingState : IGameState
 
     private void SyncHitsounds(SyncSessionContext ctx, int newMs)
     {
-        _beatmapHitsoundLoader.AdvanceCachingWindow(newMs);
+        //_beatmapHitsoundLoader.AdvanceCachingWindow(newMs);
         PlayAutoPlaybackIfNeeded(ctx);
         PlayManualPlaybackIfNeeded(ctx);
     }

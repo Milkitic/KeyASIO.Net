@@ -111,7 +111,7 @@ public class GameplaySessionManager
             PerformCache(previousFolder, folder);
             ResetNodes(_syncSessionContext.PlayTime);
 
-            var result = GC.TryStartNoGCRegion(250 * 1024 * 1024);
+            var result = GC.TryStartNoGCRegion(256 * 1024 * 1024);
             if (result) _logger.LogWarning("!!!PAUSED GC!!!");
         }
         catch (Exception ex)
@@ -171,7 +171,7 @@ public class GameplaySessionManager
                 OsuFile.General.PreviewTime);
         }
 
-        _syncSessionContext.PlayTime = 0;
+        _syncSessionContext.BaseMemoryTime = 0;
         _syncSessionContext.Combo = 0;
     }
 
