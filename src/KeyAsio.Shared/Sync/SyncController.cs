@@ -15,7 +15,8 @@ public class SyncController
     private readonly SyncSessionContext _syncSessionContext;
     private readonly GameStateMachine _stateMachine;
 
-    public SyncController(IServiceProvider serviceProvider,
+    public SyncController(ILogger<PlayingState> playingStateLogger,
+        IServiceProvider serviceProvider,
         AppSettings appSettings,
         AudioEngine audioEngine,
         SharedViewModel sharedViewModel,
@@ -45,12 +46,15 @@ public class SyncController
         // Initialize realtime state machine with scene mappings
         _stateMachine = new GameStateMachine(new Dictionary<OsuMemoryStatus, IGameState>
         {
-            [OsuMemoryStatus.Playing] = new PlayingState(appSettings, audioEngine, audioCacheManager, backgroundMusicManager,
-                beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel, gameplaySessionManager, gameplayAudioService),
+            [OsuMemoryStatus.Playing] = new PlayingState(playingStateLogger, appSettings, audioEngine,
+                audioCacheManager, backgroundMusicManager, beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel,
+                gameplaySessionManager, gameplayAudioService),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(backgroundMusicManager),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(appSettings, backgroundMusicManager),
-            [OsuMemoryStatus.SongSelection] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
-            [OsuMemoryStatus.EditSongSelection] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
+            [OsuMemoryStatus.SongSelection] =
+                new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
+            [OsuMemoryStatus.EditSongSelection] =
+                new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
             [OsuMemoryStatus.MainView] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
             [OsuMemoryStatus.MultiSongSelection] =
                 new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),

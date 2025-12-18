@@ -6,6 +6,7 @@ using KeyAsio.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.Services;
+using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Sync.States;
 
@@ -14,6 +15,7 @@ public class PlayingState : IGameState
     private static readonly long HitsoundSyncIntervalTicks = Stopwatch.Frequency / 1000; // 1000hz
     private static readonly long MusicSyncIntervalTicks = Stopwatch.Frequency / 1000;
 
+    private readonly ILogger<PlayingState> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioEngine _audioEngine;
     private readonly AudioCacheManager _audioCacheManager;
@@ -25,20 +27,25 @@ public class PlayingState : IGameState
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
-
     private volatile bool _isSyncingMusic;
     private long _lastMusicSyncTimestamp;
+    private readonly WaitCallback _musicSyncCallback;
+    private SyncSessionContext _pendingMusicCtx;
+    private int _pendingMusicMs;
+    private int _pendingMusicPauseThreshold;
+
     private volatile bool _isSyncingHitsounds;
     private long _lastHitsoundSyncTimestamp;
     private readonly WaitCallback _hitsoundSyncCallback;
+    private SyncSessionContext _pendingHitsoundCtx;
+    private int _pendinghitsoundMs;
 
     private bool _enableMixSync;
     private bool _disableComboBreakSfx;
 
-    private SyncSessionContext _pendingCtx;
-    private int _pendingMs;
-
-    public PlayingState(AppSettings appSettings,
+    public PlayingState(
+        ILogger<PlayingState> logger,
+        AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
         BackgroundMusicManager backgroundMusicManager,
@@ -48,6 +55,7 @@ public class PlayingState : IGameState
         GameplaySessionManager gameplaySessionManager,
         GameplayAudioService gameplayAudioService)
     {
+        _logger = logger;
         _appSettings = appSettings;
         _audioEngine = audioEngine;
         _audioCacheManager = audioCacheManager;
@@ -59,6 +67,7 @@ public class PlayingState : IGameState
         _gameplayAudioService = gameplayAudioService;
 
         _hitsoundSyncCallback = _ => HitsoundSyncWorkItem();
+        _musicSyncCallback = _ => MusicSyncWorkItem();
 
         _enableMixSync = _appSettings.Sync.EnableMixSync;
         _disableComboBreakSfx = _appSettings.Sync.Filters.DisableComboBreakSfx;
@@ -122,13 +131,15 @@ public class PlayingState : IGameState
             if (elapsed >= MusicSyncIntervalTicks && !_isSyncingMusic)
             {
                 if (Interlocked.CompareExchange(ref _lastMusicSyncTimestamp, currentTimestamp,
-                    currentTimestamp - elapsed) == currentTimestamp - elapsed)
+                        currentTimestamp - elapsed) == currentTimestamp - elapsed)
                 {
                     _isSyncingMusic = true;
-                    _ = SyncMusicAsync(ctx, newMs, playingPauseThreshold).ContinueWith(_ =>
-                    {
-                        _isSyncingMusic = false;
-                    }, TaskScheduler.Default);
+
+                    _pendingMusicCtx = ctx;
+                    _pendingMusicMs = newMs;
+                    _pendingMusicPauseThreshold = playingPauseThreshold;
+
+                    ThreadPool.UnsafeQueueUserWorkItem(_musicSyncCallback, null);
                 }
             }
         }
@@ -137,15 +148,31 @@ public class PlayingState : IGameState
         if (hitsoundElapsed >= HitsoundSyncIntervalTicks && !_isSyncingHitsounds)
         {
             if (Interlocked.CompareExchange(ref _lastHitsoundSyncTimestamp, currentTimestamp,
-                currentTimestamp - hitsoundElapsed) == currentTimestamp - hitsoundElapsed)
+                    currentTimestamp - hitsoundElapsed) == currentTimestamp - hitsoundElapsed)
             {
                 _isSyncingHitsounds = true;
 
-                _pendingCtx = ctx;
-                _pendingMs = newMs;
+                _pendingHitsoundCtx = ctx;
+                _pendinghitsoundMs = newMs;
 
                 ThreadPool.UnsafeQueueUserWorkItem(_hitsoundSyncCallback, null);
             }
+        }
+    }
+
+    private void MusicSyncWorkItem()
+    {
+        try
+        {
+            SyncMusic(_pendingMusicCtx, _pendingMusicMs, _pendingMusicPauseThreshold);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error syncing music.");
+        }
+        finally
+        {
+            _isSyncingMusic = false;
         }
     }
 
@@ -153,7 +180,11 @@ public class PlayingState : IGameState
     {
         try
         {
-            SyncHitsounds(_pendingCtx, _pendingMs);
+            SyncHitsounds(_pendingHitsoundCtx, _pendinghitsoundMs);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error syncing hitsounds.");
         }
         finally
         {
@@ -203,7 +234,7 @@ public class PlayingState : IGameState
         _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);
     }
 
-    private async Task SyncMusicAsync(SyncSessionContext ctx, int newMs, int playingPauseThreshold)
+    private void SyncMusic(SyncSessionContext ctx, int newMs, int playingPauseThreshold)
     {
         if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
             _backgroundMusicManager.GetMainTrackPath() != null &&
@@ -218,8 +249,7 @@ public class PlayingState : IGameState
                 var musicPath = _backgroundMusicManager.GetMainTrackPath();
                 if (musicPath != null)
                 {
-                    var cachedAudio = await _audioCacheManager.TryGetAsync(musicPath);
-                    if (cachedAudio != null)
+                    if (_audioCacheManager.TryGet(musicPath, out var cachedAudio))
                     {
                         const int codeLatency = -1;
                         const int osuForceLatency = 15;
@@ -233,6 +263,10 @@ public class PlayingState : IGameState
                         }
 
                         _backgroundMusicManager.SyncMainTrackAudio(cachedAudio, newMs);
+                    }
+                    else
+                    {
+                        // ...
                     }
                 }
             }

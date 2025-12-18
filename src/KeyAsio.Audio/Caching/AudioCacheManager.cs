@@ -1,5 +1,6 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using KeyAsio.Audio.Utils;
 using KeyAsio.Audio.Wave;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,30 @@ public class AudioCacheManager
     public AudioCacheManager(ILogger<AudioCacheManager> logger)
     {
         _logger = logger;
+    }
+
+    public bool TryGet(string cacheKey, [NotNullWhen(true)] out CachedAudio? cachedAudio, string? category = null)
+    {
+        cachedAudio = null;
+
+        if (!_categoryDictionary.TryGetValue(category ?? DefaultCategory, out var categoryCache))
+            return false;
+        if (!categoryCache.PathHashCaches.TryGetValue(cacheKey, out var hash))
+            return false;
+        if (!categoryCache.AudioCachesByHash.TryGetValue(hash, out var lazyTask))
+            return false;
+        if (!lazyTask.IsValueCreated)
+            return false;
+
+        var task = lazyTask.Value;
+
+        if (task.IsCompletedSuccessfully)
+        {
+            cachedAudio = task.Result;
+            return true;
+        }
+
+        return false;
     }
 
     public async ValueTask<CachedAudio?> TryGetAsync(string cacheKey, string? category = null)

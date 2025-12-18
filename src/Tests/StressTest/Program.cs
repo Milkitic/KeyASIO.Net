@@ -58,6 +58,7 @@ public class Program
         var gameplayAudioService = provider.GetRequiredService<GameplayAudioService>();
 
         var playingState = new PlayingState(
+            provider.GetRequiredService<ILogger<PlayingState>>(),
             provider.GetRequiredService<AppSettings>(),
             audioEngine,
             audioCacheManager,
