@@ -1,4 +1,5 @@
-﻿using Coosu.Beatmap;
+﻿using System.Runtime.CompilerServices;
+using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
@@ -18,6 +19,8 @@ public class GameplaySessionManager
     private readonly SfxPlaybackService _sfxPlaybackService;
 
     private readonly Dictionary<GameMode, IHitsoundSequencer> _audioProviderDictionary = new();
+    private OsuFile? _osuFile;
+    private IHitsoundSequencer? _cachedHitsoundSequencer;
 
     public GameplaySessionManager(ILogger<GameplaySessionManager> logger,
         IServiceProvider serviceProvider,
@@ -38,26 +41,49 @@ public class GameplaySessionManager
         _sfxPlaybackService = sfxPlaybackService;
     }
 
-    public OsuFile? OsuFile { get; internal set; }
-    public string? AudioFilename { get; internal set; }
+    public OsuFile? OsuFile
+    {
+        get => _osuFile;
+        internal set
+        {
+            _osuFile = value;
+            UpdateCachedSequencer();
+        }
+    }
 
+    public string? AudioFilename { get; internal set; }
     public IReadOnlyList<HitsoundNode> PlaybackList => _beatmapHitsoundLoader.PlaybackList;
     public List<PlayableNode> KeyList => _beatmapHitsoundLoader.KeyList;
 
-    public void InitializeProviders(IHitsoundSequencer standardHitsoundSequencer, IHitsoundSequencer maniaHitsoundSequencer)
+    public void InitializeProviders(IHitsoundSequencer standardHitsoundSequencer,
+        IHitsoundSequencer maniaHitsoundSequencer)
     {
         _audioProviderDictionary[GameMode.Circle] = standardHitsoundSequencer;
         _audioProviderDictionary[GameMode.Taiko] = standardHitsoundSequencer;
         _audioProviderDictionary[GameMode.Catch] = standardHitsoundSequencer;
         _audioProviderDictionary[GameMode.Mania] = maniaHitsoundSequencer;
+        UpdateCachedSequencer();
     }
 
     public IHitsoundSequencer CurrentHitsoundSequencer
     {
-        get
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _cachedHitsoundSequencer ?? _audioProviderDictionary[GameMode.Circle];
+    }
+
+    private void UpdateCachedSequencer()
+    {
+        if (_audioProviderDictionary.Count == 0) return;
+
+        if (_osuFile == null)
         {
-            if (OsuFile == null) return _audioProviderDictionary[GameMode.Circle];
-            return _audioProviderDictionary[OsuFile.General.Mode];
+            _cachedHitsoundSequencer = _audioProviderDictionary[GameMode.Circle];
+        }
+        else
+        {
+            _cachedHitsoundSequencer = _audioProviderDictionary.TryGetValue(_osuFile.General.Mode, out var sequencer)
+                ? sequencer
+                : _audioProviderDictionary[GameMode.Circle];
         }
     }
 

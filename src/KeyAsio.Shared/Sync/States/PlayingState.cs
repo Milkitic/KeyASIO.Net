@@ -21,6 +21,9 @@ public class PlayingState : IGameState
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
+    private bool _enableMixSync;
+    private bool _disableComboBreakSfx;
+
     public PlayingState(AppSettings appSettings,
         AudioEngine audioEngine,
         AudioCacheManager audioCacheManager,
@@ -40,6 +43,23 @@ public class PlayingState : IGameState
         _sharedViewModel = sharedViewModel;
         _gameplaySessionManager = gameplaySessionManager;
         _gameplayAudioService = gameplayAudioService;
+
+        _enableMixSync = _appSettings.Sync.EnableMixSync;
+        _disableComboBreakSfx = _appSettings.Sync.Filters.DisableComboBreakSfx;
+        _appSettings.Sync.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppSettings.Sync.EnableMixSync))
+            {
+                _enableMixSync = _appSettings.Sync.EnableMixSync;
+            }
+        };
+        _appSettings.Sync.Filters.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppSettings.Sync.Filters.DisableComboBreakSfx))
+            {
+                _disableComboBreakSfx = _appSettings.Sync.Filters.DisableComboBreakSfx;
+            }
+        };
     }
 
     public async Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
@@ -64,7 +84,8 @@ public class PlayingState : IGameState
     public async Task OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
     {
         const int playingPauseThreshold = 5;
-        if (_appSettings.Sync.EnableMixSync) // slow
+        var enableMixSync = _enableMixSync;
+        if (enableMixSync)
         {
             _backgroundMusicManager.UpdatePauseCount(paused);
         }
@@ -74,70 +95,21 @@ public class PlayingState : IGameState
         // Retry: song time moved backward during playing
         if (oldMs > newMs)
         {
-            if (_appSettings.Sync.EnableMixSync)
-            {
-                _backgroundMusicManager.SetPauseCount(0);
-                _backgroundMusicManager.StopCurrentMusic();
-                _backgroundMusicManager.StartLowPass(200, 16000);
-                _backgroundMusicManager.SetFirstStartInitialized(true);
-            }
-
-            var mixer = _audioEngine.EffectMixer;
-            _sfxPlaybackService.ClearAllLoops(mixer);
-            if (_appSettings.Sync.EnableMixSync)
-            {
-                _backgroundMusicManager.ClearMainTrackAudio();
-            }
-
-            mixer?.RemoveAllMixerInputs();
-            _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime); // slow, but less
+            OnRetry(ctx, enableMixSync);
             return;
         }
 
-        if (_appSettings.Sync.EnableMixSync)// slow
+        if (enableMixSync)
         {
-            if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
-                _backgroundMusicManager.GetMainTrackPath() != null &&
-                _audioEngine.CurrentDevice != null)
-            {
-                if (_backgroundMusicManager.GetPauseCount() >= playingPauseThreshold)
-                {
-                    _backgroundMusicManager.ClearMainTrackAudio();
-                }
-                else
-                {
-                    var musicPath = _backgroundMusicManager.GetMainTrackPath();
-                    if (musicPath != null)
-                    {
-                        var cachedAudio = await _audioCacheManager.TryGetAsync(musicPath);
-                        if (cachedAudio != null)
-                        {
-                            const int codeLatency = -1;
-                            const int osuForceLatency = 15;
-                            var oldMapForceOffset = _gameplaySessionManager.OsuFile.Version < 5 ? 24 : 0;
-                            _backgroundMusicManager.SetMainTrackOffsetAndLeadIn(
-                                osuForceLatency + codeLatency + oldMapForceOffset,
-                                _gameplaySessionManager.OsuFile.General.AudioLeadIn);
-                            if (!_backgroundMusicManager.IsResultFlag())
-                            {
-                                _backgroundMusicManager.SetSingleTrackPlayMods(ctx.PlayMods);
-                            }
-
-                            _backgroundMusicManager.SyncMainTrackAudio(cachedAudio, newMs);
-                        }
-                    }
-                }
-            }
+            await SyncMusicAsync(ctx, newMs, playingPauseThreshold);
         }
 
-        _beatmapHitsoundLoader.AdvanceCachingWindow(newMs); // slow
-        PlayAutoPlaybackIfNeeded(ctx); // slow
-        PlayManualPlaybackIfNeeded(ctx); // critical
+        SyncHitsounds(ctx, newMs);
     }
 
     public void OnComboChanged(SyncSessionContext ctx, int oldCombo, int newCombo)
     {
-        if (_appSettings.Sync.Filters.DisableComboBreakSfx) return;
+        if (_disableComboBreakSfx) return;
         if (!ctx.IsStarted) return;
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;
@@ -154,6 +126,70 @@ public class PlayingState : IGameState
 
     public void OnModsChanged(SyncSessionContext ctx, Mods oldMods, Mods newMods)
     {
+    }
+
+    private void OnRetry(SyncSessionContext ctx, bool enableMixSync)
+    {
+        if (enableMixSync)
+        {
+            _backgroundMusicManager.SetPauseCount(0);
+            _backgroundMusicManager.StopCurrentMusic();
+            _backgroundMusicManager.StartLowPass(200, 16000);
+            _backgroundMusicManager.SetFirstStartInitialized(true);
+        }
+
+        var mixer = _audioEngine.EffectMixer;
+        _sfxPlaybackService.ClearAllLoops(mixer);
+        if (enableMixSync)
+        {
+            _backgroundMusicManager.ClearMainTrackAudio();
+        }
+
+        mixer?.RemoveAllMixerInputs();
+        _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime); // slow, but less
+    }
+
+    private async Task SyncMusicAsync(SyncSessionContext ctx, int newMs, int playingPauseThreshold)
+    {
+        if (_backgroundMusicManager.GetFirstStartInitialized() && _gameplaySessionManager.OsuFile != null &&
+            _backgroundMusicManager.GetMainTrackPath() != null &&
+            _audioEngine.CurrentDevice != null)
+        {
+            if (_backgroundMusicManager.GetPauseCount() >= playingPauseThreshold)
+            {
+                _backgroundMusicManager.ClearMainTrackAudio();
+            }
+            else
+            {
+                var musicPath = _backgroundMusicManager.GetMainTrackPath();
+                if (musicPath != null)
+                {
+                    var cachedAudio = await _audioCacheManager.TryGetAsync(musicPath);
+                    if (cachedAudio != null)
+                    {
+                        const int codeLatency = -1;
+                        const int osuForceLatency = 15;
+                        var oldMapForceOffset = _gameplaySessionManager.OsuFile.Version < 5 ? 24 : 0;
+                        _backgroundMusicManager.SetMainTrackOffsetAndLeadIn(
+                            osuForceLatency + codeLatency + oldMapForceOffset,
+                            _gameplaySessionManager.OsuFile.General.AudioLeadIn);
+                        if (!_backgroundMusicManager.IsResultFlag())
+                        {
+                            _backgroundMusicManager.SetSingleTrackPlayMods(ctx.PlayMods);
+                        }
+
+                        _backgroundMusicManager.SyncMainTrackAudio(cachedAudio, newMs);
+                    }
+                }
+            }
+        }
+    }
+
+    private void SyncHitsounds(SyncSessionContext ctx, int newMs)
+    {
+        _beatmapHitsoundLoader.AdvanceCachingWindow(newMs); // slow
+        PlayAutoPlaybackIfNeeded(ctx); // slow
+        PlayManualPlaybackIfNeeded(ctx); // critical
     }
 
     private void PlayAutoPlaybackIfNeeded(SyncSessionContext ctx)
