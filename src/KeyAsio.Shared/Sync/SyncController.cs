@@ -19,8 +19,10 @@ public class SyncController : IDisposable
     private readonly SyncSessionContext _syncSessionContext;
     private readonly GameStateMachine _stateMachine;
     private readonly IPluginManager _pluginManager;
+    private readonly ILogger<SyncController> _logger;
 
     public SyncController(ILogger<PlayingState> playingStateLogger,
+        ILogger<SyncController> logger,
         IServiceProvider serviceProvider,
         AppSettings appSettings,
         AudioEngine audioEngine,
@@ -36,6 +38,7 @@ public class SyncController : IDisposable
     {
         _syncSessionContext = syncSessionContext;
         _pluginManager = pluginManager;
+        _logger = logger;
         _syncSessionContext.OnBeatmapChanged = OnBeatmapChanged;
         _syncSessionContext.OnComboChanged = OnComboChanged;
         _syncSessionContext.OnStatusChanged = OnStatusChanged;
@@ -84,8 +87,7 @@ public class SyncController : IDisposable
             }
             catch (Exception ex)
             {
-                // Should log here, but no logger for SyncController directly?
-                // playingStateLogger is specific. Ideally inject ILogger<SyncController>
+                _logger.LogError(ex, "Error starting sync plugin {PluginName} ({PluginId})", plugin.Name, plugin.Id);
             }
         }
 
@@ -106,9 +108,9 @@ public class SyncController : IDisposable
             {
                 plugin.OnSyncStop();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Ignore
+                _logger.LogError(ex, "Error stopping sync plugin {PluginName} ({PluginId})", plugin.Name, plugin.Id);
             }
         }
     }
