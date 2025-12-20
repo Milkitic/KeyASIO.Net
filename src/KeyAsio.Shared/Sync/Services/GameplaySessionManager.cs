@@ -165,7 +165,7 @@ public class GameplaySessionManager
 
         _logger.LogInformation("Stop playing.");
         _syncSessionContext.IsStarted = false;
-        _backgroundMusicManager.SetFirstStartInitialized(false);
+        _backgroundMusicManager.FirstStartInitialized = false;
         var mixer = _audioEngine.EffectMixer;
         _sfxPlaybackService.ClearAllLoops(mixer);
         _backgroundMusicManager.ClearMainTrackAudio();

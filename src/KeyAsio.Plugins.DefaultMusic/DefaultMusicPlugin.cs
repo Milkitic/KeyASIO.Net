@@ -22,10 +22,6 @@ public class DefaultMusicPlugin : ISyncPlugin, IMusicManagerPlugin
     private SynchronizedMusicPlayer? _synchronizedMusicPlayer;
     private SongPreviewPlayer? _songPreviewPlayer;
 
-    private bool _previousSelectSongStatus = true;
-    private int _pauseCount;
-    private bool _firstStartInitialized;
-
     public void Initialize(IPluginContext context)
     {
         _context = context;
@@ -108,30 +104,4 @@ public class DefaultMusicPlugin : ISyncPlugin, IMusicManagerPlugin
 
     public void ClearMainTrackAudio()
         => _synchronizedMusicPlayer?.ClearAudio();
-
-    public void ResetPauseState()
-    {
-        _previousSelectSongStatus = true;
-        _pauseCount = 0;
-    }
-
-    public void UpdatePauseCount(bool paused)
-    {
-        if (paused && _previousSelectSongStatus)
-        {
-            _pauseCount++;
-        }
-        else if (!paused)
-        {
-            _pauseCount = 0;
-        }
-    }
-
-    public bool GetPreviousSelectSongStatus() => _previousSelectSongStatus;
-    public void SetPreviousSelectSongStatus(bool value) => _previousSelectSongStatus = value;
-    public int GetPauseCount() => _pauseCount;
-    public void SetPauseCount(int value) => _pauseCount = value;
-
-    public bool GetFirstStartInitialized() => _firstStartInitialized;
-    public void SetFirstStartInitialized(bool value) => _firstStartInitialized = value;
 }

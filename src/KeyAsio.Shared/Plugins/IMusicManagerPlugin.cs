@@ -1,4 +1,4 @@
-using Coosu.Beatmap;
+﻿using Coosu.Beatmap;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Shared.OsuMemory;
@@ -16,14 +16,4 @@ public interface IMusicManagerPlugin : IPlugin
     void SetMainTrackOffsetAndLeadIn(int offset, int leadInMs);
     void SyncMainTrackAudio(CachedAudio sound, int positionMs);
     void ClearMainTrackAudio();
-
-    // State Management
-    void ResetPauseState();
-    void UpdatePauseCount(bool paused);
-    bool GetPreviousSelectSongStatus();
-    void SetPreviousSelectSongStatus(bool value);
-    int GetPauseCount();
-    void SetPauseCount(int value);
-    bool GetFirstStartInitialized();
-    void SetFirstStartInitialized(bool value);
 }

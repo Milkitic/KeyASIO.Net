@@ -40,17 +40,17 @@ public class BrowsingState : IGameState
         // Maintain pause state lifecycle for song-select preview
         _backgroundMusicManager.UpdatePauseCount(isPaused);
 
-        if (_backgroundMusicManager.GetPauseCount() >= selectSongPauseThreshold &&
-            _backgroundMusicManager.GetPreviousSelectSongStatus())
+        if (_backgroundMusicManager.PauseCount >= selectSongPauseThreshold &&
+            _backgroundMusicManager.PreviousSelectSongStatus)
         {
             _backgroundMusicManager.PauseCurrentMusic();
-            _backgroundMusicManager.SetPreviousSelectSongStatus(false);
+            _backgroundMusicManager.PreviousSelectSongStatus = false;
         }
-        else if (_backgroundMusicManager.GetPauseCount() < selectSongPauseThreshold &&
-                 !_backgroundMusicManager.GetPreviousSelectSongStatus())
+        else if (_backgroundMusicManager.PauseCount < selectSongPauseThreshold &&
+                 !_backgroundMusicManager.PreviousSelectSongStatus)
         {
             _backgroundMusicManager.RecoverCurrentMusic();
-            _backgroundMusicManager.SetPreviousSelectSongStatus(true);
+            _backgroundMusicManager.PreviousSelectSongStatus = true;
         }
     }
 

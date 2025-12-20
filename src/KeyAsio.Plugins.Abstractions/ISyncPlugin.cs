@@ -1,6 +1,4 @@
-using System;
-
-namespace KeyAsio.Plugins.Abstractions;
+﻿namespace KeyAsio.Plugins.Abstractions;
 
 /// <summary>
 /// Sync plugin interface, used to take over SyncController events and logic
@@ -33,25 +31,4 @@ public interface ISyncPlugin : IPlugin
     /// Called when the beatmap changes
     /// </summary>
     void OnBeatmapChanged(BeatmapIdentifier beatmap);
-}
-
-public enum OsuMemoryStatus
-{
-    NotRunning = -1,
-    Playing = 0,
-    SongSelection = 1,
-    ResultsScreen = 2,
-    MultiplayerRoom = 3,
-    EditSongSelection = 4,
-    MainView = 5,
-    MultiSongSelection = 6
-}
-
-public class BeatmapIdentifier
-{
-    public int SetId { get; set; }
-    public int MapId { get; set; }
-    public string? Md5 { get; set; }
-    public string? Folder { get; set; }
-    public string? Filename { get; set; }
 }

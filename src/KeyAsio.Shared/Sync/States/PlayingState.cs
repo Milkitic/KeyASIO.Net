@@ -172,10 +172,10 @@ public class PlayingState : IGameState
     {
         if (enableMixSync)
         {
-            _backgroundMusicManager.SetPauseCount(0);
+            _backgroundMusicManager.PauseCount = 0;
             _backgroundMusicManager.StopCurrentMusic();
             _backgroundMusicManager.StartLowPass(200, 16000);
-            _backgroundMusicManager.SetFirstStartInitialized(true);
+            _backgroundMusicManager.FirstStartInitialized = true;
         }
 
         var mixer = _audioEngine.EffectMixer;
@@ -192,7 +192,7 @@ public class PlayingState : IGameState
     private void SyncMusic(SyncSessionContext ctx, int newMs)
     {
         const int playingPauseThreshold = 5;
-        if (!_backgroundMusicManager.GetFirstStartInitialized()) return;
+        if (!_backgroundMusicManager.FirstStartInitialized) return;
         if (_gameplaySessionManager.OsuFile == null) return;
 
         var folder = _gameplaySessionManager.BeatmapFolder;
@@ -201,7 +201,7 @@ public class PlayingState : IGameState
         if (folder == null || filename == null) return;
         if (_audioEngine.CurrentDevice == null) return;
 
-        if (_backgroundMusicManager.GetPauseCount() >= playingPauseThreshold)
+        if (_backgroundMusicManager.PauseCount >= playingPauseThreshold)
         {
             _backgroundMusicManager.ClearMainTrackAudio();
             return;

@@ -19,6 +19,10 @@ public class BackgroundMusicManager
         _pluginManager = pluginManager;
     }
 
+    public bool PreviousSelectSongStatus { get; set; } = true;
+    public int PauseCount { get; set; }
+    public bool FirstStartInitialized { get; set; }
+
     private IMusicManagerPlugin? MusicManager
     {
         get
@@ -56,15 +60,21 @@ public class BackgroundMusicManager
     public void ClearMainTrackAudio()
         => MusicManager?.ClearMainTrackAudio();
 
-    public void ResetPauseState() => MusicManager?.ResetPauseState();
+    public void ResetPauseState()
+    {
+        PreviousSelectSongStatus = true;
+        PauseCount = 0;
+    }
 
-    public void UpdatePauseCount(bool paused) => MusicManager?.UpdatePauseCount(paused);
-
-    public bool GetPreviousSelectSongStatus() => MusicManager?.GetPreviousSelectSongStatus() ?? true;
-    public void SetPreviousSelectSongStatus(bool value) => MusicManager?.SetPreviousSelectSongStatus(value);
-    public int GetPauseCount() => MusicManager?.GetPauseCount() ?? 0;
-    public void SetPauseCount(int value) => MusicManager?.SetPauseCount(value);
-
-    public bool GetFirstStartInitialized() => MusicManager?.GetFirstStartInitialized() ?? false;
-    public void SetFirstStartInitialized(bool value) => MusicManager?.SetFirstStartInitialized(value);
+    public void UpdatePauseCount(bool paused)
+    {
+        if (paused && PreviousSelectSongStatus)
+        {
+            PauseCount++;
+        }
+        else if (!paused)
+        {
+            PauseCount = 0;
+        }
+    }
 }
