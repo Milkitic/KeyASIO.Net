@@ -1,26 +1,9 @@
 ﻿using System.Text;
-using KeyAsio.Audio;
 
 namespace KeyAsio.Plugins.DefaultMusic.SoundTouch;
 
 internal class SoundTouch : IDisposable
 {
-    static SoundTouch()
-    {
-        var is64Bit = Environment.Is64BitProcess;
-        var libDir = Path.Combine(Configuration.Instance.SoundTouchDir);
-        var os = Environment.OSVersion;
-        if (os.Platform != PlatformID.Win32NT)
-        {
-            throw new PlatformNotSupportedException("Platform not support for SoundTouch: " + os.VersionString);
-        }
-
-        AddEnvironmentPaths(libDir, is64Bit
-            ? Path.Combine(libDir, "win-x64", "SoundTouch")
-            : Path.Combine(libDir, "win-x86", "SoundTouch")
-        );
-    }
-
     private IntPtr _handle;
     private string? _versionString;
     public SoundTouch()
@@ -135,12 +118,4 @@ internal class SoundTouch : IDisposable
         return SoundTouchInterop.soundtouch_getSetting(_handle, SoundTouchSettings.UseQuickSeek);
     }
 
-    private static void AddEnvironmentPaths(params string[] paths)
-    {
-        var path = new[] { Environment.GetEnvironmentVariable("PATH") ?? string.Empty };
-
-        string newPath = string.Join(Path.PathSeparator.ToString(), path.Concat(paths));
-
-        Environment.SetEnvironmentVariable("PATH", newPath);
-    }
 }
