@@ -31,13 +31,13 @@ public class BrowsingState : IGameState
     {
     }
 
-    public void OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
+    public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isPaused)
     {
         const int selectSongPauseThreshold = 20;
         if (!_appSettings.Sync.EnableMixSync) return;
 
         // Maintain pause state lifecycle for song-select preview
-        _backgroundMusicManager.UpdatePauseCount(paused);
+        _backgroundMusicManager.UpdatePauseCount(isPaused);
 
         if (_backgroundMusicManager.GetPauseCount() >= selectSongPauseThreshold &&
             _backgroundMusicManager.GetPreviousSelectSongStatus())

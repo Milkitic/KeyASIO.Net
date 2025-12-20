@@ -100,7 +100,7 @@ public class SyncController : IDisposable
             }
 
             var newTime = _syncSessionContext.PlayTime;
-            _stateMachine.Current?.OnPlayTimeChanged(_syncSessionContext, oldTime, newTime, oldTime == newTime);
+            _stateMachine.Current?.OnTick(_syncSessionContext, oldTime, newTime, oldTime == newTime);
             oldTime = newTime;
 
             nextTrigger += intervalMs;

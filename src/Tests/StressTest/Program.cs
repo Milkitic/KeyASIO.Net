@@ -208,7 +208,7 @@ public class Program
             ctx.BaseMemoryTime = newMs; // Update context
 
             // Call OnPlayTimeChanged
-            playingState.OnPlayTimeChanged(ctx, oldMs, newMs, false);
+            playingState.OnTick(ctx, oldMs, newMs, false);
 
             // Simulate key presses
             // Check if there are keys mapped at this timestamp

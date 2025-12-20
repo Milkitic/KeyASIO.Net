@@ -23,7 +23,7 @@ public class ResultsState : IGameState
     {
     }
 
-    public void OnPlayTimeChanged(SyncSessionContext ctx, int oldMs, int newMs, bool paused)
+    public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isPaused)
     {
     }
 
