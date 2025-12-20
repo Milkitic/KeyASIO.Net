@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Runtime;
+using System.Runtime.CompilerServices;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
@@ -22,6 +23,8 @@ public class GameplaySessionManager
     private OsuFile? _osuFile;
     private IHitsoundSequencer? _cachedHitsoundSequencer;
     private string? _lastCachedFolder;
+    private GCLatencyMode _oldLatencyMode;
+    private bool _isLowLatencyModeActive;
 
     public GameplaySessionManager(ILogger<GameplaySessionManager> logger,
         IServiceProvider serviceProvider,
@@ -94,7 +97,7 @@ public class GameplaySessionManager
         try
         {
             _logger.LogInformation("Start playing.");
-             OsuFile = null;
+            OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
             if (folder == null)
@@ -112,8 +115,11 @@ public class GameplaySessionManager
             //ResetNodes(_syncSessionContext.PlayTime);
 
             _syncSessionContext.IsStarted = true;
-            var result = GC.TryStartNoGCRegion(256 * 1024 * 1024);
-            if (result) _logger.LogWarning("!!!PAUSED GC!!!");
+
+            _oldLatencyMode = GCSettings.LatencyMode;
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            _isLowLatencyModeActive = true;
+            _logger.LogInformation("GC LatencyMode set to SustainedLowLatency");
         }
         catch (Exception ex)
         {
@@ -143,15 +149,20 @@ public class GameplaySessionManager
             _logger.LogWarning($"AudioEngine is null, stop adding cache.");
             return;
         }
-         
+
         _gameplayAudioService.SetContext(newFolder, audioFilename);
         _gameplayAudioService.PrecacheMusicAndSkinInBackground();
     }
 
     public void Stop()
     {
-        GC.EndNoGCRegion();
-        _logger.LogWarning("!!!RESUMED GC!!!");
+        if (_isLowLatencyModeActive)
+        {
+            GCSettings.LatencyMode = _oldLatencyMode;
+            _isLowLatencyModeActive = false;
+            _logger.LogInformation("GC LatencyMode restored to {Mode}", _oldLatencyMode);
+        }
+
         _logger.LogInformation("Stop playing.");
         _syncSessionContext.IsStarted = false;
         _backgroundMusicManager.SetFirstStartInitialized(false);
