@@ -123,6 +123,10 @@ public class SyncController : IDisposable
         var nextTrigger = stopwatch.ElapsedMilliseconds;
         var oldTime = _syncSessionContext.PlayTime;
 
+        // Cache variables
+        IGameStateHandler? cachedHandler = null;
+        var cachedStatus = (KeyAsio.Plugins.Abstractions.OsuMemoryStatus)(-2); // Invalid initial status
+
         while (!token.IsCancellationRequested)
         {
             var current = stopwatch.ElapsedMilliseconds;
@@ -134,6 +138,14 @@ public class SyncController : IDisposable
             }
 
             var newTime = _syncSessionContext.PlayTime;
+            var currentStatus = (KeyAsio.Plugins.Abstractions.OsuMemoryStatus)_syncSessionContext.OsuStatus;
+
+            // Update cache if status changed
+            if (currentStatus != cachedStatus)
+            {
+                cachedHandler = _pluginManager.GetActiveHandler(currentStatus);
+                cachedStatus = currentStatus;
+            }
 
             // Invoke plugins
             foreach (var plugin in plugins)
@@ -149,12 +161,9 @@ public class SyncController : IDisposable
             }
 
             // Check if any plugin overrides the current state
-            var overrideHandler =
-                _pluginManager.GetActiveHandler(
-                    (KeyAsio.Plugins.Abstractions.OsuMemoryStatus)_syncSessionContext.OsuStatus);
-            if (overrideHandler != null)
+            if (cachedHandler != null)
             {
-                overrideHandler.OnTick(contextWrapper);
+                cachedHandler.OnTick(contextWrapper);
             }
             else
             {
