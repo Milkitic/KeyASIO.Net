@@ -57,22 +57,42 @@ public class MemorySyncBridge
     private void BindEvents()
     {
         _memoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-            _syncSessionContext.Username = player;
+            SafeUpdate(() => _syncSessionContext.Username = player, nameof(_syncSessionContext.Username));
+
         _memoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-            _syncSessionContext.PlayMods = mods;
+            SafeUpdate(() => _syncSessionContext.PlayMods = mods, nameof(_syncSessionContext.PlayMods));
+
         _memoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-            _syncSessionContext.Combo = combo;
+            SafeUpdate(() => _syncSessionContext.Combo = combo, nameof(_syncSessionContext.Combo));
+
         _memoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-            _syncSessionContext.Score = score;
+            SafeUpdate(() => _syncSessionContext.Score = score, nameof(_syncSessionContext.Score));
+
         _memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-            _syncSessionContext.IsReplay = isReplay;
-        _memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            _syncSessionContext.BaseMemoryTime = playTime;
+            SafeUpdate(() => _syncSessionContext.IsReplay = isReplay, nameof(_syncSessionContext.IsReplay));
+
         _memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-            _syncSessionContext.Beatmap = beatmap;
+            SafeUpdate(() => _syncSessionContext.Beatmap = beatmap, nameof(_syncSessionContext.Beatmap));
+
         _memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-            _syncSessionContext.OsuStatus = current;
+            SafeUpdate(() => _syncSessionContext.OsuStatus = current, nameof(_syncSessionContext.OsuStatus));
+
         _memoryScan.MemoryReadObject.ProcessIdChanged += (_, id) =>
-            _syncSessionContext.ProcessId = id;
+            SafeUpdate(() => _syncSessionContext.ProcessId = id, nameof(_syncSessionContext.ProcessId));
+
+        _memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
+            SafeUpdate(() => _syncSessionContext.BaseMemoryTime = playTime, nameof(_syncSessionContext.BaseMemoryTime));
+    }
+
+    private void SafeUpdate(Action action, string propertyName)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.{PropertyName}", propertyName);
+        }
     }
 }
