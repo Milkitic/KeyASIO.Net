@@ -88,9 +88,6 @@ public partial class AppSettingsLogging : INotifyPropertyChanged
 
 public partial class AppSettingsPerformance : INotifyPropertyChanged
 {
-    [Description("Number of threads for audio caching.")]
-    public int AudioCacheThreadCount { get; set; } = 2;
-
     [Description("Accelerates processing using AVX-512. " +
                  "Disable on older Intel CPUs (pre-11th Gen) to avoid clock speed throttling.")]
     public bool EnableAvx512 { get; set; } = true;

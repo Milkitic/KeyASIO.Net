@@ -51,15 +51,6 @@
                 <materialIcons:MaterialIcon Kind="FolderOpen" />
               </Button>
             </Grid>
-            <Separator Classes="Section" />
-            <controls:SettingItem Header="Audio Cache Threads" Icon="Cpu64Bit">
-              <NumericUpDown
-                Classes="SettingItem"
-                FormatString="#"
-                Maximum="16"
-                Minimum="1"
-                Value="{Binding AppSettings.Performance.AudioCacheThreadCount}" />
-            </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>

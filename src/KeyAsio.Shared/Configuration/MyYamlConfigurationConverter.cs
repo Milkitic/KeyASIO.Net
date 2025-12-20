@@ -119,7 +119,6 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             },
             Performance = new AppSettingsPerformance
             {
-                AudioCacheThreadCount = s.AudioCachingThreads
             },
             Sync = new AppSettingsSync
             {
@@ -180,7 +179,6 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         }
         if (y.Performance != null)
         {
-            s.AudioCachingThreads = y.Performance.AudioCacheThreadCount;
         }
         if (y.Sync != null)
         {

@@ -13,14 +13,13 @@ using NAudio.Wave;
 
 namespace KeyAsio.Shared.Sync.Services;
 
-public class GameplayAudioService
+public class GameplayAudioService : IDisposable
 {
     private const string BeatmapCacheIdentifier = "default";
     private const string UserCacheIdentifier = "internal";
 
     private static readonly string[] SkinAudioFiles = ["combobreak"];
 
-    private readonly ParallelOptions _parallelOptions;
     private readonly HitsoundFileCache _hitsoundFileCache = new();
     private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedAudioMapping = new();
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
@@ -34,6 +33,8 @@ public class GameplayAudioService
     private readonly SkinManager _skinManager;
     private string? _beatmapFolder;
     private string? _audioFilename;
+
+    private readonly AsyncSequentialWorker _cachingWorker;
 
     public GameplayAudioService(ILogger<GameplayAudioService> logger,
         SyncSessionContext syncSessionContext,
@@ -50,10 +51,8 @@ public class GameplayAudioService
         _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
         _skinManager = skinManager;
-        _parallelOptions = new ParallelOptions
-        {
-            MaxDegreeOfParallelism = appSettings.Performance.AudioCacheThreadCount,
-        };
+
+        _cachingWorker = new AsyncSequentialWorker(_logger, "GameplayAudioServiceWorker");
     }
 
     public void SetContext(string? beatmapFolder, string? audioFilename)
@@ -98,7 +97,7 @@ public class GameplayAudioService
         var waveFormat = _audioEngine.EngineWaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
-        Task.Run(async () =>
+        _cachingWorker.Enqueue(async token =>
         {
             if (folder != null && _audioFilename != null)
             {
@@ -123,20 +122,15 @@ public class GameplayAudioService
 
             try
             {
-                _parallelOptions.MaxDegreeOfParallelism = _appSettings.Performance.AudioCacheThreadCount;
-                await Parallel.ForEachAsync(SkinAudioFiles, _parallelOptions,
-                    async (skinAudioFile, _) =>
-                    {
-                        await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);
-                    });
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("Hitsound caching was cancelled.");
+                foreach (var skinAudioFile in SkinAudioFiles)
+                {
+                    if (token.IsCancellationRequested) break;
+                    await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred during parallel hitsound caching.");
+                _logger.LogError(ex, "An error occurred during skin caching.");
             }
         });
     }
@@ -170,24 +164,22 @@ public class GameplayAudioService
         var waveFormat = _audioEngine.SourceWaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
-        Task.Run(async () =>
+        _cachingWorker.Enqueue(async token =>
         {
             using var _ = DebugUtils.CreateTimer($"CacheAudio {startTime}~{endTime}", _logger);
-            var nodesToCache = playableNodes.Where(k => k.Offset >= startTime && k.Offset < endTime);
+            var nodesToCache = playableNodes.Where(k => k.Offset >= startTime && k.Offset < endTime).ToList();
 
             try
             {
-                _parallelOptions.MaxDegreeOfParallelism = _appSettings.Performance.AudioCacheThreadCount;
-                await Parallel.ForEachAsync(nodesToCache, _parallelOptions,
-                    async (node, _) => { await AddHitsoundCacheAsync(node, folder!, skinFolder, waveFormat); });
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("Hitsound caching was cancelled.");
+                foreach (var node in nodesToCache)
+                {
+                    if (token.IsCancellationRequested) break;
+                    await AddHitsoundCacheAsync(node, folder!, skinFolder, waveFormat);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred during parallel hitsound caching.");
+                _logger.LogError(ex, "An error occurred during hitsound caching.");
             }
         });
     }
@@ -324,5 +316,10 @@ public class GameplayAudioService
         }
 
         return result!;
+    }
+
+    public void Dispose()
+    {
+        _cachingWorker.Dispose();
     }
 }

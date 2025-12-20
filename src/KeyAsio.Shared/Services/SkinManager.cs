@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet;
 using KeyAsio.Audio.Caching;
@@ -37,7 +37,8 @@ public class SkinManager
     private CancellationTokenSource? _processPollingCts;
     private Task? _processPollingTask;
     private CancellationTokenSource? _skinLoadCts;
-    private Task? _skinLoadTask;
+
+    private readonly AsyncSequentialWorker _skinLoadingWorker;
 
     private readonly Dictionary<string, byte[]> _dictionary = new();
 
@@ -50,7 +51,7 @@ public class SkinManager
         _sharedViewModel = sharedViewModel;
         _sharedViewModel.PropertyChanged += SharedViewModel_PropertyChanged;
 
-        //_dictionary = ResourcesKeys.ToDictionary(k => k, _ => Array.Empty<byte>());
+        _skinLoadingWorker = new AsyncSequentialWorker(_logger, "SkinManagerWorker");
     }
 
     public bool TryGetResource(string key, [NotNullWhen(true)] out byte[]? data)
@@ -76,6 +77,7 @@ public class SkinManager
     public void Stop()
     {
         StopProcessListener();
+        _skinLoadingWorker.Dispose();
     }
 
     public void ListenPropertyChanging()
@@ -222,7 +224,7 @@ public class SkinManager
     {
         using var @lock = await _asyncLock.LockAsync();
 
-        await StopRefreshTask();
+        StopRefreshTask();
 
         if (_appSettings.Paths.AllowAutoLoadSkins != true)
         {
@@ -238,7 +240,7 @@ public class SkinManager
         _skinLoadCts = new CancellationTokenSource();
         var token = _skinLoadCts.Token;
 
-        _skinLoadTask = Task.Run(() => LoadSkinsInternal(token));
+        _skinLoadingWorker.Enqueue(async () => await LoadSkinsInternal(token));
     }
 
     private void CheckOsuRegistry()
@@ -259,7 +261,7 @@ public class SkinManager
         }
     }
 
-    private void LoadSkinsInternal(CancellationToken token)
+    private async Task LoadSkinsInternal(CancellationToken token)
     {
         if (string.IsNullOrEmpty(_appSettings.Paths.OsuFolderPath)) return;
 
@@ -269,25 +271,23 @@ public class SkinManager
         if (!Directory.Exists(skinsDir)) return;
 
         var directories = Directory.EnumerateDirectories(skinsDir);
-        var loadedSkins = directories
-            .AsParallel()
-            .Select(dir =>
-            {
-                if (token.IsCancellationRequested) return null!;
-                var iniPath = Path.Combine(dir, "skin.ini");
-                string? name = null;
-                string? author = null;
-                if (File.Exists(iniPath))
-                {
-                    (name, author) = ReadIniFile(iniPath);
-                }
+        var loadedSkins = new List<SkinDescription>();
 
-                var skinDescription = new SkinDescription(Path.GetFileName(dir), dir, name, author);
-                _logger.LogDebug("Find skin: {SkinDescription}", skinDescription);
-                return skinDescription;
-            })
-            .Where(x => x != null!)
-            .ToList();
+        foreach (var dir in directories)
+        {
+            if (token.IsCancellationRequested) return;
+            var iniPath = Path.Combine(dir, "skin.ini");
+            string? name = null;
+            string? author = null;
+            if (File.Exists(iniPath))
+            {
+                (name, author) = ReadIniFile(iniPath);
+            }
+
+            var skinDescription = new SkinDescription(Path.GetFileName(dir), dir, name, author);
+            _logger.LogDebug("Find skin: {SkinDescription}", skinDescription);
+            loadedSkins.Add(skinDescription);
+        }
 
         var newSkinList = new List<SkinDescription> { SkinDescription.Default };
         newSkinList.AddRange(loadedSkins);
@@ -296,7 +296,7 @@ public class SkinManager
         var targetSkin = newSkinList.FirstOrDefault(k => k.FolderName == selectedName)
                          ?? SkinDescription.Default;
 
-        _ = UiDispatcher.InvokeAsync(() =>
+        await UiDispatcher.InvokeAsync(() =>
         {
             if (token.IsCancellationRequested) return;
             _sharedViewModel.Skins.Clear();
@@ -407,17 +407,12 @@ public class SkinManager
         return (name, author);
     }
 
-    private async Task StopRefreshTask()
+    private void StopRefreshTask()
     {
         if (_skinLoadCts != null)
         {
-            await _skinLoadCts.CancelAsync();
+            _skinLoadCts.Cancel();
             _skinLoadCts.Dispose();
-        }
-
-        if (_skinLoadTask != null)
-        {
-            await _skinLoadTask;
         }
 
         _skinLoadCts = null;
