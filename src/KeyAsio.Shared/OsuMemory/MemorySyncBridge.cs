@@ -56,43 +56,122 @@ public class MemorySyncBridge
 
     private void BindEvents()
     {
-        _memoryScan.MemoryReadObject.PlayerNameChanged += (_, player) =>
-            SafeUpdate(() => _syncSessionContext.Username = player, nameof(_syncSessionContext.Username));
-
-        _memoryScan.MemoryReadObject.ModsChanged += (_, mods) =>
-            SafeUpdate(() => _syncSessionContext.PlayMods = mods, nameof(_syncSessionContext.PlayMods));
-
-        _memoryScan.MemoryReadObject.ComboChanged += (_, combo) =>
-            SafeUpdate(() => _syncSessionContext.Combo = combo, nameof(_syncSessionContext.Combo));
-
-        _memoryScan.MemoryReadObject.ScoreChanged += (_, score) =>
-            SafeUpdate(() => _syncSessionContext.Score = score, nameof(_syncSessionContext.Score));
-
-        _memoryScan.MemoryReadObject.IsReplayChanged += (_, isReplay) =>
-            SafeUpdate(() => _syncSessionContext.IsReplay = isReplay, nameof(_syncSessionContext.IsReplay));
-
-        _memoryScan.MemoryReadObject.BeatmapIdentifierChanged += (_, beatmap) =>
-            SafeUpdate(() => _syncSessionContext.Beatmap = beatmap, nameof(_syncSessionContext.Beatmap));
-
-        _memoryScan.MemoryReadObject.OsuStatusChanged += (pre, current) =>
-            SafeUpdate(() => _syncSessionContext.OsuStatus = current, nameof(_syncSessionContext.OsuStatus));
-
-        _memoryScan.MemoryReadObject.ProcessIdChanged += (_, id) =>
-            SafeUpdate(() => _syncSessionContext.ProcessId = id, nameof(_syncSessionContext.ProcessId));
-
-        _memoryScan.MemoryReadObject.PlayingTimeChanged += (_, playTime) =>
-            SafeUpdate(() => _syncSessionContext.BaseMemoryTime = playTime, nameof(_syncSessionContext.BaseMemoryTime));
+        _memoryScan.MemoryReadObject.PlayerNameChanged += OnPlayerNameChanged;
+        _memoryScan.MemoryReadObject.ModsChanged += OnModsChanged;
+        _memoryScan.MemoryReadObject.ComboChanged += OnComboChanged;
+        _memoryScan.MemoryReadObject.ScoreChanged += OnScoreChanged;
+        _memoryScan.MemoryReadObject.IsReplayChanged += OnIsReplayChanged;
+        _memoryScan.MemoryReadObject.BeatmapIdentifierChanged += OnBeatmapIdentifierChanged;
+        _memoryScan.MemoryReadObject.OsuStatusChanged += OnOsuStatusChanged;
+        _memoryScan.MemoryReadObject.ProcessIdChanged += OnProcessIdChanged;
+        _memoryScan.MemoryReadObject.PlayingTimeChanged += OnPlayingTimeChanged;
     }
 
-    private void SafeUpdate(Action action, string propertyName)
+    private void OnPlayerNameChanged(string? oldName, string? newName)
     {
         try
         {
-            action();
+            _syncSessionContext.Username = newName;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.{PropertyName}", propertyName);
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Username");
+        }
+    }
+
+    private void OnModsChanged(Mods oldMods, Mods newMods)
+    {
+        try
+        {
+            _syncSessionContext.PlayMods = newMods;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.PlayMods");
+        }
+    }
+
+    private void OnIsReplayChanged(bool oldIsReplay, bool newIsReplay)
+    {
+        try
+        {
+            _syncSessionContext.IsReplay = newIsReplay;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.IsReplay");
+        }
+    }
+
+    private void OnBeatmapIdentifierChanged(BeatmapIdentifier oldBeatmap, BeatmapIdentifier newBeatmap)
+    {
+        try
+        {
+            _syncSessionContext.Beatmap = newBeatmap;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Beatmap");
+        }
+    }
+
+    private void OnOsuStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus)
+    {
+        try
+        {
+            _syncSessionContext.OsuStatus = newStatus;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.OsuStatus");
+        }
+    }
+
+    private void OnProcessIdChanged(int oldId, int newId)
+    {
+        try
+        {
+            _syncSessionContext.ProcessId = newId;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.ProcessId");
+        }
+    }
+
+    private void OnPlayingTimeChanged(int oldTime, int newTime)
+    {
+        try
+        {
+            _syncSessionContext.BaseMemoryTime = newTime;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.BaseMemoryTime");
+        }
+    }
+
+    private void OnComboChanged(int oldCombo, int newCombo)
+    {
+        try
+        {
+            _syncSessionContext.Combo = newCombo;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Combo");
+        }
+    }
+
+    private void OnScoreChanged(int oldScore, int newScore)
+    {
+        try
+        {
+            _syncSessionContext.Score = newScore;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Score");
         }
     }
 }
