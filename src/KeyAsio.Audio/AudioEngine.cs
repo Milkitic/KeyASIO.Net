@@ -53,9 +53,9 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
 
     public WaveFormat SourceWaveFormat { get; private set; } = null!;
 
-    public EnhancedMixingSampleProvider EffectMixer { get; private set; } = null!;
-    public EnhancedMixingSampleProvider MusicMixer { get; private set; } = null!;
-    public EnhancedMixingSampleProvider RootMixer { get; private set; } = null!;
+    public IMixingSampleProvider EffectMixer { get; private set; } = null!;
+    public IMixingSampleProvider MusicMixer { get; private set; } = null!;
+    public IMixingSampleProvider RootMixer { get; private set; } = null!;
     public ISampleProvider RootSampleProvider { get; private set; } = null!;
 
     public float MainVolume
@@ -87,17 +87,17 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
         SourceWaveFormat = waveFormat;
         EngineWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
 
-        RootMixer = new EnhancedMixingSampleProvider(EngineWaveFormat)
+        RootMixer = new QueueMixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };
-        EffectMixer = new EnhancedMixingSampleProvider(EngineWaveFormat)
+        EffectMixer = new QueueMixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };
         _effectVolumeSampleProvider.Source = EffectMixer;
 
-        MusicMixer = new EnhancedMixingSampleProvider(EngineWaveFormat)
+        MusicMixer = new QueueMixingSampleProvider(EngineWaveFormat)
         {
             ReadFully = true
         };

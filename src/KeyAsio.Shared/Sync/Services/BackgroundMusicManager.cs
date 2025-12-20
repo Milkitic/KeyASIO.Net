@@ -29,9 +29,9 @@ public class BackgroundMusicManager
         _songPreviewPlayer = new SongPreviewPlayer(pLogger, appSettings, audioEngine);
     }
 
-    public void StartLowPass(int lower, int upper)
+    public void StartLowPass(int fadeMilliseconds, int targetFrequency)
     {
-        _songPreviewPlayer.StartLowPass(lower, upper);
+        _songPreviewPlayer.StartLowPass(fadeMilliseconds, targetFrequency);
     }
 
     public void StopCurrentMusic(int fadeMs = 0)

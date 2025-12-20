@@ -86,7 +86,7 @@ public class SfxPlaybackService
         }
     }
 
-    public void ClearAllLoops(EnhancedMixingSampleProvider? mixingSampleProvider = null)
+    public void ClearAllLoops(IMixingSampleProvider? mixingSampleProvider = null)
     {
         mixingSampleProvider ??= _audioEngine.EffectMixer;
         _loopProviderManager.RemoveAll(mixingSampleProvider);

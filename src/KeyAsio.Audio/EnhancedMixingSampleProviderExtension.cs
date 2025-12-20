@@ -7,7 +7,7 @@ namespace KeyAsio.Audio;
 
 internal static class EnhancedMixingSampleProviderExtension
 {
-    extension(EnhancedMixingSampleProvider mixer)
+    extension(IMixingSampleProvider mixer)
     {
         [Obsolete]
         public ISampleProvider? PlayAudio(CachedAudio cachedAudio, SampleControl? sampleControl)
@@ -78,14 +78,14 @@ internal static class EnhancedMixingSampleProviderExtension
     }
     
     [Obsolete]
-    private static void PlayAudio(EnhancedMixingSampleProvider mixer, CachedAudio cachedAudio, SampleControl? sampleControl,
+    private static void PlayAudio(IMixingSampleProvider mixer, CachedAudio cachedAudio, SampleControl? sampleControl,
         out ISampleProvider? rootSample)
     {
         mixer.AddMixerInput(new CachedAudioProvider1(cachedAudio), sampleControl, out rootSample);
     }
     
     [Obsolete]
-    private static void PlayAudio(EnhancedMixingSampleProvider mixer, CachedAudio cachedAudio, float volume, float balance,
+    private static void PlayAudio(IMixingSampleProvider mixer, CachedAudio cachedAudio, float volume, float balance,
         out ISampleProvider? rootSample)
     {
         mixer.AddMixerInput(new CachedAudioProvider1(cachedAudio), volume, balance, out rootSample);

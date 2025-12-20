@@ -50,7 +50,7 @@ public class LoopProviderManager
         return true;
     }
 
-    public bool Remove(int slideChannel, EnhancedMixingSampleProvider? mixer)
+    public bool Remove(int slideChannel, IMixingSampleProvider? mixer)
     {
         if (_dictionary.TryGetValue(slideChannel, out var loopProvider))
         {
@@ -62,7 +62,7 @@ public class LoopProviderManager
         return false;
     }
 
-    public void RemoveAll(EnhancedMixingSampleProvider? mixer)
+    public void RemoveAll(IMixingSampleProvider? mixer)
     {
         foreach (var kvp in _dictionary.ToList())
         {
@@ -75,7 +75,7 @@ public class LoopProviderManager
         }
     }
 
-    public void PauseAll(EnhancedMixingSampleProvider? mixer)
+    public void PauseAll(IMixingSampleProvider? mixer)
     {
         foreach (var kvp in _dictionary)
         {
@@ -86,7 +86,7 @@ public class LoopProviderManager
         }
     }
 
-    public void RecoverAll(EnhancedMixingSampleProvider? mixer)
+    public void RecoverAll(IMixingSampleProvider? mixer)
     {
         foreach (var kvp in _dictionary)
         {
@@ -99,7 +99,7 @@ public class LoopProviderManager
 
     public void Create(int slideChannel,
         CachedAudio cachedAudio,
-        EnhancedMixingSampleProvider mixingSampleProvider,
+        IMixingSampleProvider mixingSampleProvider,
         float volume,
         float balance,
         float volumeFactor = 1.25f,

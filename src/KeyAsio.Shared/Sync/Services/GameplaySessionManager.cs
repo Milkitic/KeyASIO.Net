@@ -92,8 +92,7 @@ public class GameplaySessionManager
         try
         {
             _logger.LogInformation("Start playing.");
-            _syncSessionContext.IsStarted = true;
-            OsuFile = null;
+             OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
             if (folder == null)
@@ -109,8 +108,9 @@ public class GameplaySessionManager
             var previousFolder = _backgroundMusicManager.GetMainTrackFolder();
             _backgroundMusicManager.UpdateMainTrackContext(folder, AudioFilename);
             PerformCache(previousFolder, folder);
-            ResetNodes(_syncSessionContext.PlayTime);
+            //ResetNodes(_syncSessionContext.PlayTime);
 
+            _syncSessionContext.IsStarted = true;
             var result = GC.TryStartNoGCRegion(256 * 1024 * 1024);
             if (result) _logger.LogWarning("!!!PAUSED GC!!!");
         }

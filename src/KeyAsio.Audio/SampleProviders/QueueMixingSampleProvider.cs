@@ -6,7 +6,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Audio.SampleProviders;
 
-public sealed class QueueMixingSampleProvider : ISampleProvider, IDisposable
+public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposable
 {
     private const int MaxInputs = 1024;
 

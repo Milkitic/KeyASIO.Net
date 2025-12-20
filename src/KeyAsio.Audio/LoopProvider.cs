@@ -12,7 +12,7 @@ internal sealed class LoopProvider : IDisposable
     private readonly EnhancedVolumeSampleProvider _volumeProvider;
     private readonly ProfessionalBalanceProvider _balanceProvider;
 
-    private EnhancedMixingSampleProvider? _baseMixer;
+    private IMixingSampleProvider? _baseMixer;
 
     public LoopProvider(CachedAudio cachedAudio, float initialVolume, float initialBalance)
     {
@@ -33,14 +33,14 @@ internal sealed class LoopProvider : IDisposable
         _volumeProvider.Volume = volume;
     }
 
-    public void AddTo(EnhancedMixingSampleProvider? mixer)
+    public void AddTo(IMixingSampleProvider? mixer)
     {
         if (_baseMixer != null) return;
         mixer?.AddMixerInput(_balanceProvider);
         _baseMixer = mixer;
     }
 
-    public void RemoveFrom(EnhancedMixingSampleProvider? mixer)
+    public void RemoveFrom(IMixingSampleProvider? mixer)
     {
         if (_baseMixer == null) return;
         mixer?.RemoveMixerInput(_balanceProvider);

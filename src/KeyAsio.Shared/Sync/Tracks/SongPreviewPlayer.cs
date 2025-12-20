@@ -28,7 +28,7 @@ public class SongPreviewPlayer
         _audioEngine = audioEngine;
     }
 
-    private EnhancedMixingSampleProvider? Mixer => _audioEngine.MusicMixer;
+    private IMixingSampleProvider? Mixer => _audioEngine.MusicMixer;
     private WaveFormat? WaveFormat => _audioEngine.EngineWaveFormat;
 
     public async Task Play(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
@@ -111,23 +111,23 @@ public class SongPreviewPlayer
         await audioFileReader.DisposeAsync();
     }
 
-    public void StartLowPass(int fadeMilliseconds, int targetVol)
+    public void StartLowPass(int fadeMilliseconds, int targetFrequency)
     {
         var lowPass = _lowPassSampleProvider;
         if (lowPass is null) return;
         Task.Run(() =>
         {
-            var currentVol = lowPass.Frequency;
+            var frequency = lowPass.Frequency;
             var sw = HighPrecisionTimer.StartNew();
             while (sw.ElapsedMilliseconds < fadeMilliseconds)
             {
                 var ratio = sw.ElapsedMilliseconds / (double)fadeMilliseconds;
-                var val = currentVol + (targetVol - currentVol) * ratio;
+                var val = frequency + (targetFrequency - frequency) * ratio;
                 lowPass.SetFrequency((int)val);
                 Thread.Sleep(10);
             }
 
-            lowPass.SetFrequency(targetVol);
+            lowPass.SetFrequency(targetFrequency);
         });
     }
 

@@ -8,7 +8,7 @@ namespace KeyAsio.Audio.SampleProviders;
 /// <summary>
 /// A sample provider mixer, allowing inputs to be added and removed
 /// </summary>
-public class EnhancedMixingSampleProvider : ISampleProvider
+public sealed class EnhancedMixingSampleProvider : IMixingSampleProvider
 {
     private readonly Lock _sourcesLock = new();
     private readonly List<ISampleProvider> _sources;
