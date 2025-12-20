@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Plugins.DefaultMusic;
 
 public class VariableSpeedSampleProvider : ISampleProvider, IDisposable
 {

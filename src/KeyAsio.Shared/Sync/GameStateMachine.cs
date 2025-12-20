@@ -38,4 +38,31 @@ public class GameStateMachine
         CurrentStatus = next;
         await target.EnterAsync(ctx, from);
     }
+
+    public void ExitCurrent(SyncSessionContext ctx, OsuMemoryStatus next)
+    {
+        Current?.Exit(ctx, next);
+        Current = null;
+        CurrentStatus = next;
+    }
+
+    public async Task EnterFromAsync(SyncSessionContext ctx, OsuMemoryStatus from, OsuMemoryStatus next)
+    {
+        if (_states.TryGetValue(next, out var target))
+        {
+            Current = target;
+            CurrentStatus = next;
+            await target.EnterAsync(ctx, from);
+        }
+        else
+        {
+            // Fallback logic similar to TransitionToAsync if needed, or just ignore
+            if (_states.TryGetValue(OsuMemoryStatus.SongSelection, out var songSelect))
+            {
+                Current = songSelect;
+                CurrentStatus = OsuMemoryStatus.SongSelection;
+                await songSelect.EnterAsync(ctx, from);
+            }
+        }
+    }
 }

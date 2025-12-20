@@ -1,14 +1,20 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using KeyAsio.Audio;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.OsuMemory;
+using KeyAsio.Shared.Plugins;
 using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace KeyAsio;
 
@@ -43,7 +49,19 @@ public partial class App : Application
             keyboardBindingInitializer.Setup();
             var appSettings = Program.Host.Services.GetRequiredService<AppSettings>();
             keyboardBindingInitializer.RegisterKeys(appSettings.Input.Keys);
-            //_ = keyboardBindingInitializer.InitializeKeyAudioAsync();
+
+            var pluginManager = Program.Host.Services.GetRequiredService<IPluginManager>();
+            var audioEngine = Program.Host.Services.GetRequiredService<AudioEngine>();
+
+            // InternalPlugins
+            pluginManager.LoadPlugins(AppDomain.CurrentDomain.BaseDirectory, "KeyAsio.Plugins.*.dll", SearchOption.TopDirectoryOnly);
+
+            // // 加载外部插件
+            // var pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+            // pluginManager.LoadPlugins(pluginDir, "*.dll", SearchOption.AllDirectories);
+
+            pluginManager.InitializePlugins(new AudioEngineWrapper(audioEngine));
+            pluginManager.StartupPlugins();
 
             var syncController = Program.Host.Services.GetRequiredService<SyncController>();
             syncController.Start();

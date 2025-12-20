@@ -3,11 +3,13 @@ using KeyAsio.Audio;
 using KeyAsio.Audio.SampleProviders;
 using KeyAsio.Audio.Utils;
 using KeyAsio.Audio.Wave;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace KeyAsio.Shared.Sync.Tracks;
+namespace KeyAsio.Plugins.DefaultMusic.Tracks;
 
 public class SongPreviewPlayer
 {
@@ -19,22 +21,22 @@ public class SongPreviewPlayer
 
     private readonly ILogger<SongPreviewPlayer> _logger;
     private readonly AppSettings _appSettings;
-    private readonly AudioEngine _audioEngine;
+    private readonly IAudioEngine _audioEngine;
 
-    public SongPreviewPlayer(ILogger<SongPreviewPlayer> logger, AppSettings appSettings, AudioEngine audioEngine)
+    public SongPreviewPlayer(ILogger<SongPreviewPlayer> logger, AppSettings appSettings, IAudioEngine audioEngine)
     {
         _logger = logger;
         _appSettings = appSettings;
         _audioEngine = audioEngine;
     }
 
-    private IMixingSampleProvider? Mixer => _audioEngine.MusicMixer;
+    private IMixingSampleProvider? Mixer => _audioEngine.MusicMixer as IMixingSampleProvider;
     private WaveFormat? WaveFormat => _audioEngine.EngineWaveFormat;
 
-    public async Task Play(OsuFile osuFile, string path, int playTime, int fadeInMilliseconds = 1000)
+    public async Task Play(OsuFile osuFile, string? path, int playTime, int fadeInMilliseconds = 1000)
     {
         if (!_appSettings.Sync.EnableMixSync) return;
-        if (Mixer is null || WaveFormat is null) return;
+        if (Mixer is null || WaveFormat is null || path is null) return;
 
         AudioFileReader? audioFileReader;
         EnhancedFadeInOutSampleProvider? fadeInOutSampleProvider = null;
@@ -84,7 +86,7 @@ public class SongPreviewPlayer
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, $"Preview error: {osuFile}", true);
-                Mixer.RemoveMixerInput(fadeInOutSampleProvider);
+                if (fadeInOutSampleProvider != null) Mixer.RemoveMixerInput(fadeInOutSampleProvider);
                 return;
             }
         }

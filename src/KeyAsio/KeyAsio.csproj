@@ -66,6 +66,7 @@
   <ItemGroup>
     <ProjectReference Include="..\KeyAsio.Shared\KeyAsio.Shared.csproj" />
     <ProjectReference Include="..\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
+    <ProjectReference Include="..\KeyAsio.Plugins.DefaultMusic\KeyAsio.Plugins.DefaultMusic.csproj" />
   </ItemGroup>
 
   <ItemGroup>

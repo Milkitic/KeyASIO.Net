@@ -1,7 +1,7 @@
 ﻿using NAudio.Dsp;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Plugins.DefaultMusic;
 
 public sealed class LowPassSampleProvider : ISampleProvider
 {

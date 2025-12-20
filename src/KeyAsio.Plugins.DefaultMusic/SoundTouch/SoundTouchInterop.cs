@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 
-namespace KeyAsio.Audio.SoundTouch;
+namespace KeyAsio.Plugins.DefaultMusic.SoundTouch;
 
 internal static class SoundTouchInterop
 {

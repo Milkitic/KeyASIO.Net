@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Audio.SoundTouch;
+﻿namespace KeyAsio.Plugins.DefaultMusic.SoundTouch;
 
 internal enum SoundTouchSettings
 {

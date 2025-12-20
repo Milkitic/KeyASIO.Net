@@ -1,11 +1,13 @@
 ﻿using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared;
 using KeyAsio.Shared.OsuMemory;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 
-namespace KeyAsio.Shared.Sync.Tracks;
+namespace KeyAsio.Plugins.DefaultMusic.Tracks;
 
 public class SynchronizedMusicPlayer
 {
@@ -17,11 +19,11 @@ public class SynchronizedMusicPlayer
 
     private CachedAudio? _cachedAudio;
 
-    private readonly ILogger<SynchronizedMusicPlayer> _logger;
+    private readonly ILogger _logger;
     private readonly AppSettings _appSettings;
-    private readonly AudioEngine _audioEngine;
+    private readonly IAudioEngine _audioEngine;
 
-    public SynchronizedMusicPlayer(ILogger<SynchronizedMusicPlayer> logger, AppSettings appSettings, AudioEngine audioEngine)
+    public SynchronizedMusicPlayer(ILogger logger, AppSettings appSettings, IAudioEngine audioEngine)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -59,7 +61,7 @@ public class SynchronizedMusicPlayer
 
     public void ClearAudio()
     {
-        if (_baseSampleProvider != null) _audioEngine.MusicMixer.RemoveMixerInput(_baseSampleProvider);
+        if (_baseSampleProvider != null) (_audioEngine.MusicMixer as IMixingSampleProvider)?.RemoveMixerInput(_baseSampleProvider);
         if (_variableSampleProvider != null)
         {
             _variableSampleProvider.Dispose();
@@ -93,7 +95,7 @@ public class SynchronizedMusicPlayer
         }
 
         _baseSampleProvider = builder.CurrentSampleProvider;
-        _audioEngine.MusicMixer.AddMixerInput(_baseSampleProvider);
+        (_audioEngine.MusicMixer as IMixingSampleProvider)?.AddMixerInput(_baseSampleProvider);
     }
 
     private void UpdateCurrentMixerInput(CachedAudioProvider sampleProvider, int playTime)

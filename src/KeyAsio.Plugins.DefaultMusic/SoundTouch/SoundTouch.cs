@@ -1,6 +1,7 @@
 ﻿using System.Text;
+using KeyAsio.Audio;
 
-namespace KeyAsio.Audio.SoundTouch;
+namespace KeyAsio.Plugins.DefaultMusic.SoundTouch;
 
 internal class SoundTouch : IDisposable
 {

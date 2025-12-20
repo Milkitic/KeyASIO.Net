@@ -1,4 +1,4 @@
-namespace KeyAsio.Audio.SampleProviders;
+﻿namespace KeyAsio.Plugins.DefaultMusic;
 
 public class VariableSpeedOptions
 {
