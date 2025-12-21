@@ -58,15 +58,12 @@ public class SyncController : IDisposable
             [OsuMemoryStatus.Playing] = new PlayingState(playingStateLogger, appSettings, audioEngine,
                 beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel, gameplaySessionManager,
                 gameplayAudioService),
-            [OsuMemoryStatus.ResultsScreen] = new ResultsState(backgroundMusicManager),
-            [OsuMemoryStatus.NotRunning] = new NotRunningState(appSettings, backgroundMusicManager),
-            [OsuMemoryStatus.SongSelection] =
-                new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
-            [OsuMemoryStatus.EditSongSelection] =
-                new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
-            [OsuMemoryStatus.MainView] = new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
-            [OsuMemoryStatus.MultiSongSelection] =
-                new BrowsingState(appSettings, backgroundMusicManager, gameplaySessionManager),
+            [OsuMemoryStatus.ResultsScreen] = new ResultsState(),
+            [OsuMemoryStatus.NotRunning] = new NotRunningState(),
+            [OsuMemoryStatus.SongSelection] = new BrowsingState(gameplaySessionManager),
+            [OsuMemoryStatus.EditSongSelection] = new BrowsingState(gameplaySessionManager),
+            [OsuMemoryStatus.MainView] = new BrowsingState(gameplaySessionManager),
+            [OsuMemoryStatus.MultiSongSelection] = new BrowsingState(gameplaySessionManager),
         });
     }
 

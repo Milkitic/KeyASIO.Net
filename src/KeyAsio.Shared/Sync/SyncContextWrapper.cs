@@ -12,7 +12,6 @@ public class SyncContextWrapper : ISyncContext
     }
 
     public int PlayTime => _context.PlayTime;
-    public bool IsPaused => !_context.IsStarted;
     public bool IsStarted => _context.IsStarted;
 
     public SyncOsuStatus OsuStatus => (SyncOsuStatus)_context.OsuStatus;
@@ -21,11 +20,11 @@ public class SyncContextWrapper : ISyncContext
 
     public int PlayMods => (int)_context.PlayMods;
 
-    public SyncBeatmapInfo? Beatmap => _context.Beatmap.Folder == null 
-        ? null 
-        : new SyncBeatmapInfo 
-        { 
-            Folder = _context.Beatmap.Folder, 
-            Filename = _context.Beatmap.Filename 
+    public SyncBeatmapInfo? Beatmap => _context.Beatmap.Folder == null
+        ? null
+        : new SyncBeatmapInfo
+        {
+            Folder = _context.Beatmap.Folder,
+            Filename = _context.Beatmap.Filename
         };
 }

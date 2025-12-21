@@ -5,16 +5,10 @@ namespace KeyAsio.Shared.Sync.States;
 
 public class BrowsingState : IGameState
 {
-    private readonly AppSettings _appSettings;
-    private readonly BackgroundMusicManager _backgroundMusicManager;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
-    public BrowsingState(AppSettings appSettings,
-        BackgroundMusicManager backgroundMusicManager,
-        GameplaySessionManager gameplaySessionManager)
+    public BrowsingState(GameplaySessionManager gameplaySessionManager)
     {
-        _appSettings = appSettings;
-        _backgroundMusicManager = backgroundMusicManager;
         _gameplaySessionManager = gameplaySessionManager;
     }
 

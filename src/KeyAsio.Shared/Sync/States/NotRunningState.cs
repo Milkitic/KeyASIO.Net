@@ -1,26 +1,15 @@
-﻿﻿using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Sync.Services;
+﻿using KeyAsio.Shared.OsuMemory;
 
 namespace KeyAsio.Shared.Sync.States;
 
 public class NotRunningState : IGameState
 {
-    private readonly AppSettings _appSettings;
-    private readonly BackgroundMusicManager _backgroundMusicManager;
-
-    public NotRunningState(AppSettings appSettings, BackgroundMusicManager backgroundMusicManager)
+    public NotRunningState()
     {
-        _appSettings = appSettings;
-        _backgroundMusicManager = backgroundMusicManager;
     }
 
     public Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
-        if (_appSettings.Sync.EnableMixSync)
-        {
-            _backgroundMusicManager.StopCurrentMusic(2000);
-        }
-
         return Task.CompletedTask;
     }
 

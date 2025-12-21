@@ -8,11 +8,6 @@ public interface ISyncContext
     int PlayTime { get; }
 
     /// <summary>
-    /// Whether paused
-    /// </summary>
-    bool IsPaused { get; }
-
-    /// <summary>
     /// Whether started (Gameplay session active)
     /// </summary>
     bool IsStarted { get; }

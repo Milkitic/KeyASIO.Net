@@ -19,8 +19,6 @@ public class BackgroundMusicManager
         _pluginManager = pluginManager;
     }
 
-    public bool PreviousSelectSongStatus { get; set; } = true;
-    public int PauseCount { get; set; }
     public bool FirstStartInitialized { get; set; }
 
     private IMusicManagerPlugin? MusicManager
@@ -59,22 +57,4 @@ public class BackgroundMusicManager
 
     public void ClearMainTrackAudio()
         => MusicManager?.ClearMainTrackAudio();
-
-    public void ResetPauseState()
-    {
-        PreviousSelectSongStatus = true;
-        PauseCount = 0;
-    }
-
-    public void UpdatePauseCount(bool paused)
-    {
-        if (paused && PreviousSelectSongStatus)
-        {
-            PauseCount++;
-        }
-        else if (!paused)
-        {
-            PauseCount = 0;
-        }
-    }
 }

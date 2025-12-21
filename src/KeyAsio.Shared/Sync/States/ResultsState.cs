@@ -1,20 +1,15 @@
 ﻿using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Sync.Services;
 
 namespace KeyAsio.Shared.Sync.States;
 
 public class ResultsState : IGameState
 {
-    private readonly BackgroundMusicManager _backgroundMusicManager;
-
-    public ResultsState(BackgroundMusicManager backgroundMusicManager)
+    public ResultsState()
     {
-        _backgroundMusicManager = backgroundMusicManager;
     }
 
     public Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
-        _backgroundMusicManager.SetSingleTrackPlayMods(Mods.None);
         return Task.CompletedTask;
     }
 
