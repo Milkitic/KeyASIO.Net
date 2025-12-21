@@ -15,12 +15,21 @@ public class PluginContext : IPluginContext
     public IAudioEngine AudioEngine { get; }
     public string PluginDirectory { get; }
 
-    private readonly Dictionary<SyncOsuStatus, IGameStateHandler> _stateHandlers = new();
+    private readonly Dictionary<SyncOsuStatus, List<IGameStateHandler>> _stateHandlers = new();
 
     public void RegisterStateHandler(SyncOsuStatus status, IGameStateHandler handler)
     {
-        _stateHandlers[status] = handler;
-        // Logic to hook this into the main game state machine will be handled by the controller
+        if (!_stateHandlers.TryGetValue(status, out var list))
+        {
+            list = new List<IGameStateHandler>();
+            _stateHandlers[status] = list;
+        }
+
+        // Avoid duplicate registration of same instance
+        if (!list.Contains(handler))
+        {
+            list.Add(handler);
+        }
     }
 
     public void UnregisterStateHandler(SyncOsuStatus status)
@@ -28,8 +37,13 @@ public class PluginContext : IPluginContext
         _stateHandlers.Remove(status);
     }
 
-    internal IGameStateHandler? GetHandler(SyncOsuStatus status)
+    internal IReadOnlyList<IGameStateHandler> GetHandlers(SyncOsuStatus status)
     {
-        return _stateHandlers.GetValueOrDefault(status);
+        if (_stateHandlers.TryGetValue(status, out var list))
+        {
+            return list;
+        }
+
+        return Array.Empty<IGameStateHandler>();
     }
 }

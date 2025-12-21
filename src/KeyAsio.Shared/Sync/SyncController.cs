@@ -126,8 +126,8 @@ public class SyncController : IDisposable
         var oldTime = _syncSessionContext.PlayTime;
 
         // Cache variables
-        IGameStateHandler? cachedHandler = null;
-        var cachedStatus = (KeyAsio.Plugins.Abstractions.SyncOsuStatus)(-2); // Invalid initial status
+        List<IGameStateHandler> cachedHandlers = new();
+        var cachedStatus = SyncOsuStatus.Unknown;
 
         while (!token.IsCancellationRequested)
         {
@@ -140,12 +140,12 @@ public class SyncController : IDisposable
             }
 
             var newTime = _syncSessionContext.PlayTime;
-            var currentStatus = (KeyAsio.Plugins.Abstractions.SyncOsuStatus)_syncSessionContext.OsuStatus;
+            var currentStatus = (SyncOsuStatus)_syncSessionContext.OsuStatus;
 
             // Update cache if status changed
             if (currentStatus != cachedStatus)
             {
-                cachedHandler = _pluginManager.GetActiveHandler(currentStatus);
+                cachedHandlers = _pluginManager.GetActiveHandlers(currentStatus).ToList();
                 cachedStatus = currentStatus;
             }
 
@@ -163,11 +163,17 @@ public class SyncController : IDisposable
             }
 
             // Check if any plugin overrides the current state
-            if (cachedHandler != null)
+            bool handled = false;
+            foreach (var handler in cachedHandlers)
             {
-                cachedHandler.OnTick(contextWrapper);
+                if (handler.OnTick(contextWrapper))
+                {
+                    handled = true;
+                    break;
+                }
             }
-            else
+
+            if (!handled)
             {
                 _stateMachine.Current?.OnTick(_syncSessionContext, oldTime, newTime, oldTime == newTime);
             }
@@ -185,63 +191,60 @@ public class SyncController : IDisposable
 
     private Task OnComboChanged(int oldCombo, int newCombo)
     {
-        if (_pluginManager.GetActiveHandler(
-                (KeyAsio.Plugins.Abstractions.SyncOsuStatus)_syncSessionContext.OsuStatus) == null)
-        {
-            _stateMachine.Current?.OnComboChanged(_syncSessionContext, oldCombo, newCombo);
-        }
-
+        _stateMachine.Current?.OnComboChanged(_syncSessionContext, oldCombo, newCombo);
         return Task.CompletedTask;
     }
 
     private async Task OnStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus)
     {
         var contextWrapper = new SyncContextWrapper(_syncSessionContext);
-        var oldOverride = _pluginManager.GetActiveHandler((KeyAsio.Plugins.Abstractions.SyncOsuStatus)oldStatus);
-        var newOverride = _pluginManager.GetActiveHandler((KeyAsio.Plugins.Abstractions.SyncOsuStatus)newStatus);
+        var oldHandlers = _pluginManager.GetActiveHandlers((SyncOsuStatus)oldStatus);
+        var newHandlers = _pluginManager.GetActiveHandlers((SyncOsuStatus)newStatus);
 
         // 1. Exit Old State
-        if (oldOverride != null)
+        bool exitBlocked = false;
+        foreach (var handler in oldHandlers)
         {
             try
             {
-                oldOverride.OnExit(contextWrapper);
+                if (handler.OnExit(contextWrapper))
+                {
+                    exitBlocked = true;
+                    break;
+                }
             }
             catch
             {
                 // Ignore
             }
         }
-        else if (newOverride != null)
+
+        if (!exitBlocked)
         {
-            // If going to Override from Default, exit Default
             _stateMachine.ExitCurrent(_syncSessionContext, newStatus);
         }
 
         // 2. Enter New State
-        if (newOverride != null)
+        bool enterBlocked = false;
+        foreach (var handler in newHandlers)
         {
             try
             {
-                newOverride.OnEnter(contextWrapper);
+                if (handler.OnEnter(contextWrapper))
+                {
+                    enterBlocked = true;
+                    break;
+                }
             }
             catch
             {
                 // Ignore
             }
         }
-        else
+
+        if (!enterBlocked)
         {
-            if (oldOverride != null)
-            {
-                // Coming from Override -> Default
-                await _stateMachine.EnterFromAsync(_syncSessionContext, oldStatus, newStatus);
-            }
-            else
-            {
-                // Default -> Default
-                await _stateMachine.TransitionToAsync(_syncSessionContext, newStatus);
-            }
+            await _stateMachine.EnterFromAsync(_syncSessionContext, oldStatus, newStatus);
         }
 
         var plugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>();
@@ -249,8 +252,7 @@ public class SyncController : IDisposable
         {
             try
             {
-                plugin.OnStatusChanged((KeyAsio.Plugins.Abstractions.SyncOsuStatus)oldStatus,
-                    (KeyAsio.Plugins.Abstractions.SyncOsuStatus)newStatus);
+                plugin.OnStatusChanged((SyncOsuStatus)oldStatus, (SyncOsuStatus)newStatus);
             }
             catch
             {
@@ -259,17 +261,13 @@ public class SyncController : IDisposable
         }
     }
 
-    private Task OnBeatmapChanged(KeyAsio.Shared.OsuMemory.BeatmapIdentifier oldBeatmap,
-        KeyAsio.Shared.OsuMemory.BeatmapIdentifier newBeatmap)
+    private Task OnBeatmapChanged(BeatmapIdentifier oldBeatmap,
+        BeatmapIdentifier newBeatmap)
     {
-        if (_pluginManager.GetActiveHandler(
-                (KeyAsio.Plugins.Abstractions.SyncOsuStatus)_syncSessionContext.OsuStatus) == null)
-        {
-            _stateMachine.Current?.OnBeatmapChanged(_syncSessionContext, newBeatmap);
-        }
+        _stateMachine.Current?.OnBeatmapChanged(_syncSessionContext, newBeatmap);
 
         var plugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>();
-        var absBeatmap = new KeyAsio.Plugins.Abstractions.SyncBeatmapInfo
+        var absBeatmap = new SyncBeatmapInfo
         {
             Folder = newBeatmap.Folder,
             Filename = newBeatmap.Filename
@@ -292,12 +290,7 @@ public class SyncController : IDisposable
 
     private Task OnPlayModsChanged(Mods oldMods, Mods newMods)
     {
-        if (_pluginManager.GetActiveHandler(
-                (KeyAsio.Plugins.Abstractions.SyncOsuStatus)_syncSessionContext.OsuStatus) == null)
-        {
-            _stateMachine.Current?.OnModsChanged(_syncSessionContext, oldMods, newMods);
-        }
-
+        _stateMachine.Current?.OnModsChanged(_syncSessionContext, oldMods, newMods);
         return Task.CompletedTask;
     }
 

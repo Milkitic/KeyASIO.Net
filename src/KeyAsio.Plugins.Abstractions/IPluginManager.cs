@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 
 namespace KeyAsio.Plugins.Abstractions;
@@ -19,11 +19,11 @@ public interface IPluginManager
     T? GetPlugin<T>() where T : class, IPlugin;
 
     /// <summary>
-    /// Gets the active handler for the specified state (if any plugin registered an override)
+    /// Gets active handlers for the specified state, sorted by priority (Descending)
     /// </summary>
     /// <param name="status">Game state</param>
-    /// <returns>Handler instance or null</returns>
-    IGameStateHandler? GetActiveHandler(SyncOsuStatus status);
+    /// <returns>List of handlers</returns>
+    IEnumerable<IGameStateHandler> GetActiveHandlers(SyncOsuStatus status);
 
     /// <summary>
     /// Loads plugins from the specified directory

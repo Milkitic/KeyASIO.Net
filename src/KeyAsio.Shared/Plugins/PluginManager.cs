@@ -1,4 +1,4 @@
-﻿using System.Runtime.Loader;
+using System.Runtime.Loader;
 using KeyAsio.Plugins.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -27,18 +27,20 @@ public class PluginManager : IPluginManager, IDisposable
         return _plugins.Select(p => p.Instance).OfType<T>().FirstOrDefault();
     }
 
-    public IGameStateHandler? GetActiveHandler(SyncOsuStatus status)
+    public IEnumerable<IGameStateHandler> GetActiveHandlers(SyncOsuStatus status)
     {
+        var handlers = new List<IGameStateHandler>();
         foreach (var wrapper in _plugins)
         {
-            var handler = wrapper.Context?.GetHandler(status);
-            if (handler != null)
+            if (wrapper.Context is PluginContext ctx)
             {
-                return handler;
+                handlers.AddRange(ctx.GetHandlers(status));
             }
         }
 
-        return null;
+        // Sort by Priority Descending (Higher priority first)
+        handlers.Sort((a, b) => b.Priority.CompareTo(a.Priority));
+        return handlers;
     }
 
     public void LoadPlugins(string pluginDirectory, string searchPattern = "*.dll",
