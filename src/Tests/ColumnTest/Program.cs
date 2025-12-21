@@ -1,4 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
@@ -8,6 +8,8 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Sync.AudioProviders;
 using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -17,8 +19,8 @@ services.AddSingleton(appSettings);
 services.AddSingleton<SharedViewModel>();
 services.AddSingleton<GameplayAudioService>();
 services.AddSingleton<BeatmapHitsoundLoader>();
-services.AddSingleton<BackgroundMusicManager>();
 services.AddSingleton<SfxPlaybackService>();
+services.AddSingleton<IPluginManager, PluginManager>();
 services.AddSingleton<GameplaySessionManager>();
 services.AddSingleton<SyncSessionContext>();
 services.AddSingleton<SyncController>();

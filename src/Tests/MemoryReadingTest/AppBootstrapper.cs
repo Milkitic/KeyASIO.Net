@@ -3,6 +3,8 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using NLog.Extensions.Logging;
 using System;
@@ -20,8 +22,8 @@ namespace MemoryReadingTest
             services.AddSingleton<GameplayAudioService>();
             services.AddSingleton<MemoryScan>();
             services.AddSingleton<BeatmapHitsoundLoader>();
-            services.AddSingleton<BackgroundMusicManager>();
             services.AddSingleton<SfxPlaybackService>();
+            services.AddSingleton<IPluginManager, PluginManager>();
             services.AddSingleton<SyncController>();
             services.AddSingleton<SyncSessionContext>();
             return services.BuildServiceProvider();

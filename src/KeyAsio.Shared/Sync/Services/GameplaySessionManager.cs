@@ -1,9 +1,11 @@
-﻿using System.Runtime;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Audio;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.Plugins;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Sync.Services;
@@ -16,7 +18,7 @@ public class GameplaySessionManager
     private readonly AudioEngine _audioEngine;
     private readonly SyncSessionContext _syncSessionContext;
     private readonly BeatmapHitsoundLoader _beatmapHitsoundLoader;
-    private readonly BackgroundMusicManager _backgroundMusicManager;
+    private readonly IPluginManager _pluginManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
 
     private readonly Dictionary<GameMode, IHitsoundSequencer> _audioProviderDictionary = new();
@@ -32,7 +34,7 @@ public class GameplaySessionManager
         AudioEngine audioEngine,
         SyncSessionContext syncSessionContext,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
-        BackgroundMusicManager backgroundMusicManager,
+        IPluginManager pluginManager,
         SfxPlaybackService sfxPlaybackService)
     {
         _logger = logger;
@@ -41,9 +43,11 @@ public class GameplaySessionManager
         _audioEngine = audioEngine;
         _syncSessionContext = syncSessionContext;
         _beatmapHitsoundLoader = beatmapHitsoundLoader;
-        _backgroundMusicManager = backgroundMusicManager;
+        _pluginManager = pluginManager;
         _sfxPlaybackService = sfxPlaybackService;
     }
+
+    private IMusicManagerPlugin? MusicManager => _pluginManager.GetAllPlugins().OfType<IMusicManagerPlugin>().FirstOrDefault();
 
     public OsuFile? OsuFile
     {
@@ -165,10 +169,9 @@ public class GameplaySessionManager
 
         _logger.LogInformation("Stop playing.");
         _syncSessionContext.IsStarted = false;
-        _backgroundMusicManager.FirstStartInitialized = false;
         var mixer = _audioEngine.EffectMixer;
         _sfxPlaybackService.ClearAllLoops(mixer);
-        _backgroundMusicManager.ClearMainTrackAudio();
+        MusicManager?.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();
 
         if (OsuFile != null && BeatmapFolder != null)
@@ -176,7 +179,7 @@ public class GameplaySessionManager
             var audioPath = OsuFile.General.AudioFilename == null
                 ? null
                 : Path.Combine(BeatmapFolder, OsuFile.General.AudioFilename);
-            _backgroundMusicManager.PlaySingleAudioPreview(OsuFile, audioPath,
+            MusicManager?.PlaySingleAudioPreview(OsuFile, audioPath,
                 OsuFile.General.PreviewTime);
         }
 

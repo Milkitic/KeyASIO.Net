@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
@@ -11,6 +11,8 @@ using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Sync.States;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
@@ -38,8 +40,8 @@ public class Program
         services.AddSingleton<SharedViewModel>();
         services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
-        services.AddSingleton<BackgroundMusicManager>();
         services.AddSingleton<SfxPlaybackService>();
+        services.AddSingleton<IPluginManager, PluginManager>();
         services.AddSingleton<GameplaySessionManager>();
         services.AddSingleton<SyncSessionContext>();
         services.AddSingleton<SyncController>();
@@ -61,8 +63,6 @@ public class Program
             provider.GetRequiredService<ILogger<PlayingState>>(),
             provider.GetRequiredService<AppSettings>(),
             audioEngine,
-            audioCacheManager,
-            provider.GetRequiredService<BackgroundMusicManager>(),
             provider.GetRequiredService<BeatmapHitsoundLoader>(),
             provider.GetRequiredService<SfxPlaybackService>(),
             provider.GetRequiredService<SharedViewModel>(),

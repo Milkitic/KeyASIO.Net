@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
 using KeyAsio.Memory.Utils;
@@ -29,7 +29,6 @@ public class SyncController : IDisposable
         SharedViewModel sharedViewModel,
         GameplayAudioService gameplayAudioService,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
-        BackgroundMusicManager backgroundMusicManager,
         SfxPlaybackService sfxPlaybackService,
         AudioCacheManager audioCacheManager,
         GameplaySessionManager gameplaySessionManager,

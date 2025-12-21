@@ -1,4 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 
 using System;
 using System.IO;
@@ -13,6 +13,8 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
@@ -41,8 +43,8 @@ static class Program
         services.AddSingleton<SharedViewModel>();
         services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
-        services.AddSingleton<BackgroundMusicManager>();
         services.AddSingleton<SfxPlaybackService>();
+        services.AddSingleton<IPluginManager, PluginManager>();
         services.AddSingleton<SyncSessionContext>();
         var provider = services.BuildServiceProvider();
         var sharedViewModel = provider.GetRequiredService<SharedViewModel>();
