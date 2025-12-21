@@ -56,8 +56,8 @@ public class SyncController : IDisposable
         _stateMachine = new GameStateMachine(new Dictionary<OsuMemoryStatus, IGameState>
         {
             [OsuMemoryStatus.Playing] = new PlayingState(playingStateLogger, appSettings, audioEngine,
-                audioCacheManager, backgroundMusicManager, beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel,
-                gameplaySessionManager, gameplayAudioService),
+                beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel, gameplaySessionManager,
+                gameplayAudioService),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(backgroundMusicManager),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(appSettings, backgroundMusicManager),
             [OsuMemoryStatus.SongSelection] =
@@ -163,17 +163,22 @@ public class SyncController : IDisposable
             }
 
             // Check if any plugin overrides the current state
-            bool handled = false;
+            bool blockBase = false;
             foreach (var handler in cachedHandlers)
             {
-                if (handler.OnTick(contextWrapper))
+                var result = handler.OnTick(contextWrapper);
+                if ((result & HandleResult.BlockBaseLogic) != 0)
                 {
-                    handled = true;
+                    blockBase = true;
+                }
+
+                if ((result & HandleResult.BlockLowerPriority) != 0)
+                {
                     break;
                 }
             }
 
-            if (!handled)
+            if (!blockBase)
             {
                 _stateMachine.Current?.OnTick(_syncSessionContext, oldTime, newTime, oldTime == newTime);
             }
@@ -202,14 +207,19 @@ public class SyncController : IDisposable
         var newHandlers = _pluginManager.GetActiveHandlers((SyncOsuStatus)newStatus);
 
         // 1. Exit Old State
-        bool exitBlocked = false;
+        bool blockBaseExit = false;
         foreach (var handler in oldHandlers)
         {
             try
             {
-                if (handler.OnExit(contextWrapper))
+                var result = handler.OnExit(contextWrapper);
+                if ((result & HandleResult.BlockBaseLogic) != 0)
                 {
-                    exitBlocked = true;
+                    blockBaseExit = true;
+                }
+
+                if ((result & HandleResult.BlockLowerPriority) != 0)
+                {
                     break;
                 }
             }
@@ -219,20 +229,25 @@ public class SyncController : IDisposable
             }
         }
 
-        if (!exitBlocked)
+        if (!blockBaseExit)
         {
             _stateMachine.ExitCurrent(_syncSessionContext, newStatus);
         }
 
         // 2. Enter New State
-        bool enterBlocked = false;
+        bool blockBaseEnter = false;
         foreach (var handler in newHandlers)
         {
             try
             {
-                if (handler.OnEnter(contextWrapper))
+                var result = handler.OnEnter(contextWrapper);
+                if ((result & HandleResult.BlockBaseLogic) != 0)
                 {
-                    enterBlocked = true;
+                    blockBaseEnter = true;
+                }
+
+                if ((result & HandleResult.BlockLowerPriority) != 0)
+                {
                     break;
                 }
             }
@@ -242,7 +257,7 @@ public class SyncController : IDisposable
             }
         }
 
-        if (!enterBlocked)
+        if (!blockBaseEnter)
         {
             await _stateMachine.EnterFromAsync(_syncSessionContext, oldStatus, newStatus);
         }

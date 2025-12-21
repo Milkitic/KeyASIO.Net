@@ -13,18 +13,18 @@ public interface IGameStateHandler
     /// <summary>
     /// Called when entering the state
     /// </summary>
-    /// <returns>True to stop propagation to lower priority handlers and default logic.</returns>
-    bool OnEnter(ISyncContext context);
+    /// <returns>Result controlling the propagation.</returns>
+    HandleResult OnEnter(ISyncContext context);
 
     /// <summary>
     /// Called when the state updates
     /// </summary>
-    /// <returns>True to stop propagation to lower priority handlers and default logic.</returns>
-    bool OnTick(ISyncContext context);
+    /// <returns>Result controlling the propagation.</returns>
+    HandleResult OnTick(ISyncContext context);
 
     /// <summary>
     /// Called when exiting the state
     /// </summary>
-    /// <returns>True to stop propagation to lower priority handlers and default logic.</returns>
-    bool OnExit(ISyncContext context);
+    /// <returns>Result controlling the propagation.</returns>
+    HandleResult OnExit(ISyncContext context);
 }
