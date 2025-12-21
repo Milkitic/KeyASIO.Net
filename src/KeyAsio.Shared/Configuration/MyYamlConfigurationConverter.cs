@@ -30,7 +30,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
     {
         if (type == typeof(AppSettings))
         {
-            if (!LooksLikeNewYaml(content))
+            if (!content.StartsWith("default:") && !LooksLikeNewYaml(content))
             {
                 return ToYaml((LegacyAppSettings)base.DeserializeSettings(content, typeof(LegacyAppSettings)));
             }
