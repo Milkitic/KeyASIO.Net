@@ -1,5 +1,4 @@
-﻿using Coosu.Beatmap;
-using KeyAsio.Shared.OsuMemory;
+﻿using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.Services;
 
 namespace KeyAsio.Shared.Sync.States;
@@ -9,8 +8,6 @@ public class BrowsingState : IGameState
     private readonly AppSettings _appSettings;
     private readonly BackgroundMusicManager _backgroundMusicManager;
     private readonly GameplaySessionManager _gameplaySessionManager;
-
-    private string? _lastPreviewAudioPath;
 
     public BrowsingState(AppSettings appSettings,
         BackgroundMusicManager backgroundMusicManager,
@@ -23,7 +20,6 @@ public class BrowsingState : IGameState
 
     public Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
-        _backgroundMusicManager.StartLowPass(200, 16000);
         _gameplaySessionManager.Stop();
         return Task.CompletedTask;
     }
@@ -34,24 +30,6 @@ public class BrowsingState : IGameState
 
     public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isPaused)
     {
-        const int selectSongPauseThreshold = 20;
-        if (!_appSettings.Sync.EnableMixSync) return;
-
-        // Maintain pause state lifecycle for song-select preview
-        _backgroundMusicManager.UpdatePauseCount(isPaused);
-
-        if (_backgroundMusicManager.PauseCount >= selectSongPauseThreshold &&
-            _backgroundMusicManager.PreviousSelectSongStatus)
-        {
-            _backgroundMusicManager.PauseCurrentMusic();
-            _backgroundMusicManager.PreviousSelectSongStatus = false;
-        }
-        else if (_backgroundMusicManager.PauseCount < selectSongPauseThreshold &&
-                 !_backgroundMusicManager.PreviousSelectSongStatus)
-        {
-            _backgroundMusicManager.RecoverCurrentMusic();
-            _backgroundMusicManager.PreviousSelectSongStatus = true;
-        }
     }
 
     public void OnComboChanged(SyncSessionContext ctx, int oldCombo, int newCombo)
@@ -60,39 +38,6 @@ public class BrowsingState : IGameState
 
     public void OnBeatmapChanged(SyncSessionContext ctx, BeatmapIdentifier beatmap)
     {
-        if (beatmap == default || string.IsNullOrEmpty(beatmap.Folder))
-        {
-            return;
-        }
-
-        if (ctx.OsuStatus is not (
-            OsuMemoryStatus.SongSelection or
-            OsuMemoryStatus.EditSongSelection or
-            OsuMemoryStatus.MainView or
-            OsuMemoryStatus.MultiSongSelection)
-           ) return;
-
-        if (!File.Exists(beatmap.FilenameFull)) return;
-
-        var coosu = OsuFile.ReadFromFile(beatmap.FilenameFull, k =>
-        {
-            k.IncludeSection("General");
-            k.IncludeSection("Metadata");
-        });
-
-        var audioFilePath = coosu.General?.AudioFilename == null
-            ? null
-            : Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
-
-        if (audioFilePath == _lastPreviewAudioPath)
-        {
-            return;
-        }
-
-        _lastPreviewAudioPath = audioFilePath;
-        _backgroundMusicManager.StopCurrentMusic(200);
-        _backgroundMusicManager.PlaySingleAudioPreview(coosu, audioFilePath, coosu.General.PreviewTime);
-        _backgroundMusicManager.ResetPauseState();
     }
 
     public void OnModsChanged(SyncSessionContext ctx, Mods oldMods, Mods newMods)

@@ -166,7 +166,7 @@ public class SyncController : IDisposable
             bool blockBase = false;
             foreach (var handler in cachedHandlers)
             {
-                var result = handler.OnTick(contextWrapper);
+                var result = handler.HandleTick(contextWrapper);
                 if ((result & HandleResult.BlockBaseLogic) != 0)
                 {
                     blockBase = true;
@@ -212,7 +212,7 @@ public class SyncController : IDisposable
         {
             try
             {
-                var result = handler.OnExit(contextWrapper);
+                var result = handler.HandleExit(contextWrapper);
                 if ((result & HandleResult.BlockBaseLogic) != 0)
                 {
                     blockBaseExit = true;
@@ -240,7 +240,7 @@ public class SyncController : IDisposable
         {
             try
             {
-                var result = handler.OnEnter(contextWrapper);
+                var result = handler.HandleEnter(contextWrapper);
                 if ((result & HandleResult.BlockBaseLogic) != 0)
                 {
                     blockBaseEnter = true;
@@ -276,18 +276,16 @@ public class SyncController : IDisposable
         }
     }
 
-    private Task OnBeatmapChanged(BeatmapIdentifier oldBeatmap,
-        BeatmapIdentifier newBeatmap)
+    private Task OnBeatmapChanged(BeatmapIdentifier oldBeatmap, BeatmapIdentifier newBeatmap)
     {
-        _stateMachine.Current?.OnBeatmapChanged(_syncSessionContext, newBeatmap);
-
-        var plugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>();
         var absBeatmap = new SyncBeatmapInfo
         {
             Folder = newBeatmap.Folder,
             Filename = newBeatmap.Filename
         };
 
+        // Notify plugins (Legacy behavior, always notified)
+        var plugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>();
         foreach (var plugin in plugins)
         {
             try
@@ -298,6 +296,36 @@ public class SyncController : IDisposable
             {
                 // Ignore
             }
+        }
+
+        // Notify active handlers
+        var handlers = _pluginManager.GetActiveHandlers((SyncOsuStatus)_syncSessionContext.OsuStatus);
+        bool blockBase = false;
+        foreach (var handler in handlers)
+        {
+            try
+            {
+                var result = handler.HandleBeatmapChange(absBeatmap);
+
+                if ((result & HandleResult.BlockBaseLogic) != 0)
+                {
+                    blockBase = true;
+                }
+
+                if ((result & HandleResult.BlockLowerPriority) != 0)
+                {
+                    break;
+                }
+            }
+            catch
+            {
+                // Ignore
+            }
+        }
+
+        if (!blockBase)
+        {
+            _stateMachine.Current?.OnBeatmapChanged(_syncSessionContext, newBeatmap);
         }
 
         return Task.CompletedTask;

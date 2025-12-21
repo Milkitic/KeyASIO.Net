@@ -14,17 +14,24 @@ public interface IGameStateHandler
     /// Called when entering the state
     /// </summary>
     /// <returns>Result controlling the propagation.</returns>
-    HandleResult OnEnter(ISyncContext context);
+    HandleResult HandleEnter(ISyncContext context);
 
     /// <summary>
     /// Called when the state updates
     /// </summary>
     /// <returns>Result controlling the propagation.</returns>
-    HandleResult OnTick(ISyncContext context);
+    HandleResult HandleTick(ISyncContext context);
 
     /// <summary>
     /// Called when exiting the state
     /// </summary>
     /// <returns>Result controlling the propagation.</returns>
-    HandleResult OnExit(ISyncContext context);
+    HandleResult HandleExit(ISyncContext context);
+
+    /// <summary>
+    /// Called when the beatmap changes
+    /// </summary>
+    /// <param name="beatmap">New beatmap information</param>
+    /// <returns>Result controlling the propagation.</returns>
+    HandleResult HandleBeatmapChange(SyncBeatmapInfo beatmap) => HandleResult.Continue;
 }
