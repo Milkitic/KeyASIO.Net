@@ -56,7 +56,7 @@ public partial class App : Application
             // InternalPlugins
             pluginManager.LoadPlugins(AppDomain.CurrentDomain.BaseDirectory, "KeyAsio.Plugins.*.dll", SearchOption.TopDirectoryOnly);
 
-            // // 加载外部插件
+            // // Load external plugins
             // var pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
             // pluginManager.LoadPlugins(pluginDir, "*.dll", SearchOption.AllDirectories);
 

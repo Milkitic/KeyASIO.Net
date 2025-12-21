@@ -1,4 +1,4 @@
-using System.Runtime.Loader;
+﻿using System.Runtime.Loader;
 using KeyAsio.Plugins.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -27,7 +27,7 @@ public class PluginManager : IPluginManager, IDisposable
         return _plugins.Select(p => p.Instance).OfType<T>().FirstOrDefault();
     }
 
-    public IGameStateHandler? GetActiveHandler(OsuMemoryStatus status)
+    public IGameStateHandler? GetActiveHandler(SyncOsuStatus status)
     {
         foreach (var wrapper in _plugins)
         {
@@ -37,16 +37,18 @@ public class PluginManager : IPluginManager, IDisposable
                 return handler;
             }
         }
+
         return null;
     }
 
-    public void LoadPlugins(string pluginDirectory, string searchPattern = "*.dll", SearchOption searchOption = SearchOption.AllDirectories)
+    public void LoadPlugins(string pluginDirectory, string searchPattern = "*.dll",
+        SearchOption searchOption = SearchOption.AllDirectories)
     {
         if (!Directory.Exists(pluginDirectory))
         {
             if (pluginDirectory == AppDomain.CurrentDomain.BaseDirectory)
             {
-                // 根目录一定存在，理论上不会进这里，但为了安全
+                // The root directory must exist, this is a safety check.
                 return;
             }
 
@@ -64,8 +66,9 @@ public class PluginManager : IPluginManager, IDisposable
         var dllFiles = Directory.GetFiles(pluginDirectory, searchPattern, searchOption);
         foreach (var dllPath in dllFiles)
         {
-            // 排除 Abstractions 库
-            if (Path.GetFileName(dllPath).Equals("KeyAsio.Plugins.Abstractions.dll", StringComparison.OrdinalIgnoreCase))
+            // Exclude Abstractions lib
+            if (Path.GetFileName(dllPath)
+                .Equals("KeyAsio.Plugins.Abstractions.dll", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }

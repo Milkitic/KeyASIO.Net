@@ -1,6 +1,6 @@
 ﻿namespace KeyAsio.Plugins.Abstractions;
 
-public class BeatmapIdentifier
+public class SyncBeatmapInfo
 {
     public int SetId { get; set; }
     public int MapId { get; set; }

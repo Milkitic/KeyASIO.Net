@@ -24,7 +24,6 @@
   <Project Path="KeyAsio.Audio\KeyAsio.Audio.csproj" />
   <Project Path="KeyAsio.Memory\KeyAsio.Memory.csproj" />
   <Project Path="KeyAsio.Plugins.Abstractions/KeyAsio.Plugins.Abstractions.csproj" />
-  <Project Path="KeyAsio.Plugins.DefaultMusic/KeyAsio.Plugins.DefaultMusic.csproj" />
   <Project Path="KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
   <Project Path="KeyAsio.Shared\KeyAsio.Shared.csproj" />
 </Solution>

@@ -1,4 +1,4 @@
-using KeyAsio.Plugins.Abstractions;
+﻿using KeyAsio.Plugins.Abstractions;
 
 namespace KeyAsio.Shared.Sync;
 
@@ -15,15 +15,15 @@ public class SyncContextWrapper : ISyncContext
     public bool IsPaused => !_context.IsStarted;
     public bool IsStarted => _context.IsStarted;
 
-    public OsuMemoryStatus OsuStatus => (OsuMemoryStatus)_context.OsuStatus;
+    public SyncOsuStatus OsuStatus => (SyncOsuStatus)_context.OsuStatus;
 
     public long LastUpdateTimestamp => _context.LastUpdateTimestamp;
 
     public int PlayMods => (int)_context.PlayMods;
 
-    public BeatmapIdentifier? Beatmap => _context.Beatmap.Folder == null 
+    public SyncBeatmapInfo? Beatmap => _context.Beatmap.Folder == null 
         ? null 
-        : new BeatmapIdentifier 
+        : new SyncBeatmapInfo 
         { 
             Folder = _context.Beatmap.Folder, 
             Filename = _context.Beatmap.Filename 

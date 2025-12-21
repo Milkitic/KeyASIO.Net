@@ -15,20 +15,20 @@ public class PluginContext : IPluginContext
     public IAudioEngine AudioEngine { get; }
     public string PluginDirectory { get; }
 
-    private readonly Dictionary<OsuMemoryStatus, IGameStateHandler> _stateHandlers = new();
+    private readonly Dictionary<SyncOsuStatus, IGameStateHandler> _stateHandlers = new();
 
-    public void RegisterStateHandler(OsuMemoryStatus status, IGameStateHandler handler)
+    public void RegisterStateHandler(SyncOsuStatus status, IGameStateHandler handler)
     {
         _stateHandlers[status] = handler;
         // Logic to hook this into the main game state machine will be handled by the controller
     }
 
-    public void UnregisterStateHandler(OsuMemoryStatus status)
+    public void UnregisterStateHandler(SyncOsuStatus status)
     {
         _stateHandlers.Remove(status);
     }
 
-    internal IGameStateHandler? GetHandler(OsuMemoryStatus status)
+    internal IGameStateHandler? GetHandler(SyncOsuStatus status)
     {
         return _stateHandlers.GetValueOrDefault(status);
     }

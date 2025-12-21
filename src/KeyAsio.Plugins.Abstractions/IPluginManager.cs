@@ -23,7 +23,7 @@ public interface IPluginManager
     /// </summary>
     /// <param name="status">Game state</param>
     /// <returns>Handler instance or null</returns>
-    IGameStateHandler? GetActiveHandler(OsuMemoryStatus status);
+    IGameStateHandler? GetActiveHandler(SyncOsuStatus status);
 
     /// <summary>
     /// Loads plugins from the specified directory

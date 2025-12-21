@@ -20,10 +20,10 @@ public interface IPluginContext
     /// </summary>
     /// <param name="status">Game state</param>
     /// <param name="handler">Handler</param>
-    void RegisterStateHandler(OsuMemoryStatus status, IGameStateHandler handler);
+    void RegisterStateHandler(SyncOsuStatus status, IGameStateHandler handler);
 
     /// <summary>
     /// Unregisters a state handler
     /// </summary>
-    void UnregisterStateHandler(OsuMemoryStatus status);
+    void UnregisterStateHandler(SyncOsuStatus status);
 }

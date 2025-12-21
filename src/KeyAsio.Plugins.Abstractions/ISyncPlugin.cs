@@ -25,10 +25,10 @@ public interface ISyncPlugin : IPlugin
     /// <summary>
     /// Called when the game status changes
     /// </summary>
-    void OnStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus);
+    void OnStatusChanged(SyncOsuStatus oldStatus, SyncOsuStatus newStatus);
 
     /// <summary>
     /// Called when the beatmap changes
     /// </summary>
-    void OnBeatmapChanged(BeatmapIdentifier beatmap);
+    void OnBeatmapChanged(SyncBeatmapInfo beatmap);
 }

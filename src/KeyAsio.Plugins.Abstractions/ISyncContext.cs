@@ -20,7 +20,7 @@ public interface ISyncContext
     /// <summary>
     /// Current game state
     /// </summary>
-    OsuMemoryStatus OsuStatus { get; }
+    SyncOsuStatus OsuStatus { get; }
 
     /// <summary>
     /// Timestamp of last update (Ticks)
@@ -35,5 +35,5 @@ public interface ISyncContext
     /// <summary>
     /// Current beatmap information
     /// </summary>
-    BeatmapIdentifier? Beatmap { get; }
+    SyncBeatmapInfo? Beatmap { get; }
 }
