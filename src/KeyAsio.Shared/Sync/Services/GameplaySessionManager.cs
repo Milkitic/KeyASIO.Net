@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Runtime;
+using System.Runtime.CompilerServices;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
@@ -21,6 +22,9 @@ public class GameplaySessionManager
     private readonly Dictionary<GameMode, IHitsoundSequencer> _audioProviderDictionary = new();
     private OsuFile? _osuFile;
     private IHitsoundSequencer? _cachedHitsoundSequencer;
+    private string? _lastCachedFolder;
+    private GCLatencyMode _oldLatencyMode;
+    private bool _isLowLatencyModeActive;
 
     public GameplaySessionManager(ILogger<GameplaySessionManager> logger,
         IServiceProvider serviceProvider,
@@ -52,6 +56,7 @@ public class GameplaySessionManager
     }
 
     public string? AudioFilename { get; internal set; }
+    public string? BeatmapFolder { get; private set; }
     public IReadOnlyList<HitsoundNode> PlaybackList => _beatmapHitsoundLoader.PlaybackList;
     public List<PlayableNode> KeyList => _beatmapHitsoundLoader.KeyList;
 
@@ -92,7 +97,7 @@ public class GameplaySessionManager
         try
         {
             _logger.LogInformation("Start playing.");
-             OsuFile = null;
+            OsuFile = null;
 
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
             if (folder == null)
@@ -104,15 +109,17 @@ public class GameplaySessionManager
                 CurrentHitsoundSequencer, _syncSessionContext.PlayMods);
             OsuFile = osuFile;
             AudioFilename = osuFile?.General?.AudioFilename;
+            BeatmapFolder = folder;
 
-            var previousFolder = _backgroundMusicManager.GetMainTrackFolder();
-            _backgroundMusicManager.UpdateMainTrackContext(folder, AudioFilename);
-            PerformCache(previousFolder, folder);
+            PerformCache(folder, AudioFilename);
             //ResetNodes(_syncSessionContext.PlayTime);
 
             _syncSessionContext.IsStarted = true;
-            var result = GC.TryStartNoGCRegion(256 * 1024 * 1024);
-            if (result) _logger.LogWarning("!!!PAUSED GC!!!");
+
+            _oldLatencyMode = GCSettings.LatencyMode;
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            _isLowLatencyModeActive = true;
+            _logger.LogInformation("GC LatencyMode set to SustainedLowLatency");
         }
         catch (Exception ex)
         {
@@ -127,21 +134,15 @@ public class GameplaySessionManager
         }
     }
 
-    private void PerformCache(string? previousFolder, string newFolder)
+    private void PerformCache(string newFolder, string? audioFilename)
     {
-        if (previousFolder != null && previousFolder != newFolder)
+        if (_lastCachedFolder != null && _lastCachedFolder != newFolder)
         {
             _logger.LogInformation("Cleaning caches caused by folder changing.");
             _gameplayAudioService.ClearCaches();
         }
 
-        var mainFolder = _backgroundMusicManager.GetMainTrackFolder();
-        var mainAudioFilename = _backgroundMusicManager.GetMainAudioFilename();
-        if (mainFolder == null)
-        {
-            _logger.LogWarning("Main track folder is null, stop adding cache.");
-            return;
-        }
+        _lastCachedFolder = newFolder;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -149,25 +150,33 @@ public class GameplaySessionManager
             return;
         }
 
-        _gameplayAudioService.SetContext(mainFolder, mainAudioFilename);
+        _gameplayAudioService.SetContext(newFolder, audioFilename);
         _gameplayAudioService.PrecacheMusicAndSkinInBackground();
     }
 
     public void Stop()
     {
-        GC.EndNoGCRegion();
-        _logger.LogWarning("!!!RESUMED GC!!!");
+        if (_isLowLatencyModeActive)
+        {
+            GCSettings.LatencyMode = _oldLatencyMode;
+            _isLowLatencyModeActive = false;
+            _logger.LogInformation("GC LatencyMode restored to {Mode}", _oldLatencyMode);
+        }
+
         _logger.LogInformation("Stop playing.");
         _syncSessionContext.IsStarted = false;
-        _backgroundMusicManager.SetFirstStartInitialized(false);
+        _backgroundMusicManager.FirstStartInitialized = false;
         var mixer = _audioEngine.EffectMixer;
         _sfxPlaybackService.ClearAllLoops(mixer);
         _backgroundMusicManager.ClearMainTrackAudio();
         mixer?.RemoveAllMixerInputs();
 
-        if (OsuFile != null)
+        if (OsuFile != null && BeatmapFolder != null)
         {
-            _backgroundMusicManager.PlaySingleAudioPreview(OsuFile, _backgroundMusicManager.GetPreviewAudioFilePath(),
+            var audioPath = OsuFile.General.AudioFilename == null
+                ? null
+                : Path.Combine(BeatmapFolder, OsuFile.General.AudioFilename);
+            _backgroundMusicManager.PlaySingleAudioPreview(OsuFile, audioPath,
                 OsuFile.General.PreviewTime);
         }
 

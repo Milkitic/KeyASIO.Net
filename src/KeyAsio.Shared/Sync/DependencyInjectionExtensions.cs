@@ -1,4 +1,6 @@
-﻿using KeyAsio.Shared.Services;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.Plugins;
+using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +10,8 @@ public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddSyncModule(this IServiceCollection services)
     {
+        services.AddSingleton<IPluginManager, PluginManager>();
+
         services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<BackgroundMusicManager>();

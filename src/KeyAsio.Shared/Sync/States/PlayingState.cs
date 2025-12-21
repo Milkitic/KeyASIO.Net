@@ -80,7 +80,6 @@ public class PlayingState : IGameState
         _lastHitsoundSyncTimestamp = 0;
 
         _backgroundMusicManager.StartLowPass(200, 800);
-        _backgroundMusicManager.SetResultFlag(false);
 
         if (ctx.Beatmap == default)
         {
@@ -173,10 +172,10 @@ public class PlayingState : IGameState
     {
         if (enableMixSync)
         {
-            _backgroundMusicManager.SetPauseCount(0);
+            _backgroundMusicManager.PauseCount = 0;
             _backgroundMusicManager.StopCurrentMusic();
             _backgroundMusicManager.StartLowPass(200, 16000);
-            _backgroundMusicManager.SetFirstStartInitialized(true);
+            _backgroundMusicManager.FirstStartInitialized = true;
         }
 
         var mixer = _audioEngine.EffectMixer;
@@ -193,20 +192,22 @@ public class PlayingState : IGameState
     private void SyncMusic(SyncSessionContext ctx, int newMs)
     {
         const int playingPauseThreshold = 5;
-        if (!_backgroundMusicManager.GetFirstStartInitialized()) return;
+        if (!_backgroundMusicManager.FirstStartInitialized) return;
         if (_gameplaySessionManager.OsuFile == null) return;
-        if (_backgroundMusicManager.GetMainTrackPath() == null) return;
+
+        var folder = _gameplaySessionManager.BeatmapFolder;
+        var filename = _gameplaySessionManager.AudioFilename;
+
+        if (folder == null || filename == null) return;
         if (_audioEngine.CurrentDevice == null) return;
 
-        if (_backgroundMusicManager.GetPauseCount() >= playingPauseThreshold)
+        if (_backgroundMusicManager.PauseCount >= playingPauseThreshold)
         {
             _backgroundMusicManager.ClearMainTrackAudio();
             return;
         }
 
-        var musicPath = _backgroundMusicManager.GetMainTrackPath();
-        if (musicPath == null) return;
-
+        var musicPath = Path.Combine(folder, filename);
         if (!_audioCacheManager.TryGet(musicPath, out var cachedAudio)) return;
 
         const int codeLatency = -1;
@@ -214,10 +215,8 @@ public class PlayingState : IGameState
         var oldMapForceOffset = _gameplaySessionManager.OsuFile.Version < 5 ? 24 : 0;
         _backgroundMusicManager.SetMainTrackOffsetAndLeadIn(osuForceLatency + codeLatency + oldMapForceOffset,
             _gameplaySessionManager.OsuFile.General.AudioLeadIn);
-        if (!_backgroundMusicManager.IsResultFlag())
-        {
-            _backgroundMusicManager.SetSingleTrackPlayMods(ctx.PlayMods);
-        }
+
+        _backgroundMusicManager.SetSingleTrackPlayMods(ctx.PlayMods);
 
         _backgroundMusicManager.SyncMainTrackAudio(cachedAudio, newMs);
     }

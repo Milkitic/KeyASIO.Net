@@ -1,134 +1,80 @@
 ﻿using Coosu.Beatmap;
-using KeyAsio.Audio;
 using KeyAsio.Audio.Caching;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Sync.Tracks;
+using KeyAsio.Shared.Plugins;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Sync.Services;
 
 public class BackgroundMusicManager
 {
-    private readonly SynchronizedMusicPlayer _synchronizedMusicPlayer;
-    private readonly SongPreviewPlayer _songPreviewPlayer;
-    private string? _previewFolder;
-    private string? _previewAudioFilePath;
-    private string? _mainTrackFolder;
-    private string? _mainAudioFilename;
-    private bool _previousSelectSongStatus = true;
-    private int _pauseCount;
-    private bool _firstStartInitialized;
-    private bool _isResult;
+    private readonly ILogger<BackgroundMusicManager> _logger;
+    private readonly IPluginManager _pluginManager;
+    private IMusicManagerPlugin? _musicManager;
 
-    public BackgroundMusicManager(ILogger<SynchronizedMusicPlayer> mLogger,
-        ILogger<SongPreviewPlayer> pLogger,
-        AppSettings appSettings,
-        AudioEngine audioEngine)
+    public BackgroundMusicManager(ILogger<BackgroundMusicManager> logger, IPluginManager pluginManager)
     {
-        _synchronizedMusicPlayer = new SynchronizedMusicPlayer(mLogger, appSettings, audioEngine);
-        _songPreviewPlayer = new SongPreviewPlayer(pLogger, appSettings, audioEngine);
+        _logger = logger;
+        _pluginManager = pluginManager;
+    }
+
+    public bool PreviousSelectSongStatus { get; set; } = true;
+    public int PauseCount { get; set; }
+    public bool FirstStartInitialized { get; set; }
+
+    private IMusicManagerPlugin? MusicManager
+    {
+        get
+        {
+            if (_musicManager != null) return _musicManager;
+            _musicManager = _pluginManager.GetAllPlugins().OfType<IMusicManagerPlugin>().FirstOrDefault();
+            return _musicManager;
+        }
     }
 
     public void StartLowPass(int fadeMilliseconds, int targetFrequency)
-    {
-        _songPreviewPlayer.StartLowPass(fadeMilliseconds, targetFrequency);
-    }
+        => MusicManager?.StartLowPass(fadeMilliseconds, targetFrequency);
 
     public void StopCurrentMusic(int fadeMs = 0)
-    {
-        _ = _songPreviewPlayer.StopCurrentMusic(fadeMs);
-    }
+        => MusicManager?.StopCurrentMusic(fadeMs);
 
     public void PauseCurrentMusic()
-    {
-        _ = _songPreviewPlayer.PauseCurrentMusic();
-    }
+        => MusicManager?.PauseCurrentMusic();
 
     public void RecoverCurrentMusic()
-    {
-        _ = _songPreviewPlayer.RecoverCurrentMusic();
-    }
+        => MusicManager?.RecoverCurrentMusic();
 
     public void PlaySingleAudioPreview(OsuFile osuFile, string? path, int playTime)
-    {
-        if (path is null) return;
-        _ = _songPreviewPlayer.Play(osuFile, path, playTime);
-    }
+        => MusicManager?.PlaySingleAudioPreview(osuFile, path, playTime);
 
     public void SetSingleTrackPlayMods(Mods mods)
-    {
-        _synchronizedMusicPlayer.PlayMods = mods;
-    }
+        => MusicManager?.SetSingleTrackPlayMods(mods);
 
     public void SetMainTrackOffsetAndLeadIn(int offset, int leadInMs)
-    {
-        _synchronizedMusicPlayer.Offset = offset;
-        _synchronizedMusicPlayer.LeadInMilliseconds = leadInMs;
-    }
+        => MusicManager?.SetMainTrackOffsetAndLeadIn(offset, leadInMs);
 
     public void SyncMainTrackAudio(CachedAudio sound, int positionMs)
-    {
-        _synchronizedMusicPlayer.SyncAudio(sound, positionMs);
-    }
+        => MusicManager?.SyncMainTrackAudio(sound, positionMs);
 
     public void ClearMainTrackAudio()
-    {
-        _synchronizedMusicPlayer.ClearAudio();
-    }
-
-    public void UpdatePreviewContext(string folder, string? audioFilePath)
-    {
-        _previewFolder = folder;
-        _previewAudioFilePath = audioFilePath;
-    }
-
-    public string? GetPreviewAudioFilePath() => _previewAudioFilePath;
-
-    public void UpdateMainTrackContext(string folder, string? audioFilename)
-    {
-        _mainTrackFolder = folder;
-        _mainAudioFilename = audioFilename;
-    }
-
-    public string? GetMainTrackPath()
-    {
-        if (_mainTrackFolder == null || _mainAudioFilename == null) return null;
-        return Path.Combine(_mainTrackFolder, _mainAudioFilename);
-    }
-
-    public string? GetMainTrackFolder() => _mainTrackFolder;
-    public string? GetMainAudioFilename() => _mainAudioFilename;
+        => MusicManager?.ClearMainTrackAudio();
 
     public void ResetPauseState()
     {
-        _previousSelectSongStatus = true;
-        _pauseCount = 0;
+        PreviousSelectSongStatus = true;
+        PauseCount = 0;
     }
 
     public void UpdatePauseCount(bool paused)
     {
-        if (paused && _previousSelectSongStatus)
+        if (paused && PreviousSelectSongStatus)
         {
-            _pauseCount++;
+            PauseCount++;
         }
         else if (!paused)
         {
-            _pauseCount = 0;
+            PauseCount = 0;
         }
     }
-
-    public bool GetPreviousSelectSongStatus() => _previousSelectSongStatus;
-    public void SetPreviousSelectSongStatus(bool value) => _previousSelectSongStatus = value;
-    public int GetPauseCount() => _pauseCount;
-    public void SetPauseCount(int value) => _pauseCount = value;
-
-    public void SetResultFlag(bool value)
-    {
-        _isResult = value;
-    }
-
-    public bool IsResultFlag() => _isResult;
-
-    public bool GetFirstStartInitialized() => _firstStartInitialized;
-    public void SetFirstStartInitialized(bool value) => _firstStartInitialized = value;
 }

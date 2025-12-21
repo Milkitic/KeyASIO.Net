@@ -1,4 +1,4 @@
-﻿﻿using Coosu.Beatmap;
+﻿using Coosu.Beatmap;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.Services;
 
@@ -9,6 +9,8 @@ public class BrowsingState : IGameState
     private readonly AppSettings _appSettings;
     private readonly BackgroundMusicManager _backgroundMusicManager;
     private readonly GameplaySessionManager _gameplaySessionManager;
+
+    private string? _lastPreviewAudioPath;
 
     public BrowsingState(AppSettings appSettings,
         BackgroundMusicManager backgroundMusicManager,
@@ -22,7 +24,6 @@ public class BrowsingState : IGameState
     public Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
         _backgroundMusicManager.StartLowPass(200, 16000);
-        _backgroundMusicManager.SetResultFlag(false);
         _gameplaySessionManager.Stop();
         return Task.CompletedTask;
     }
@@ -39,17 +40,17 @@ public class BrowsingState : IGameState
         // Maintain pause state lifecycle for song-select preview
         _backgroundMusicManager.UpdatePauseCount(isPaused);
 
-        if (_backgroundMusicManager.GetPauseCount() >= selectSongPauseThreshold &&
-            _backgroundMusicManager.GetPreviousSelectSongStatus())
+        if (_backgroundMusicManager.PauseCount >= selectSongPauseThreshold &&
+            _backgroundMusicManager.PreviousSelectSongStatus)
         {
             _backgroundMusicManager.PauseCurrentMusic();
-            _backgroundMusicManager.SetPreviousSelectSongStatus(false);
+            _backgroundMusicManager.PreviousSelectSongStatus = false;
         }
-        else if (_backgroundMusicManager.GetPauseCount() < selectSongPauseThreshold &&
-                 !_backgroundMusicManager.GetPreviousSelectSongStatus())
+        else if (_backgroundMusicManager.PauseCount < selectSongPauseThreshold &&
+                 !_backgroundMusicManager.PreviousSelectSongStatus)
         {
             _backgroundMusicManager.RecoverCurrentMusic();
-            _backgroundMusicManager.SetPreviousSelectSongStatus(true);
+            _backgroundMusicManager.PreviousSelectSongStatus = true;
         }
     }
 
@@ -83,12 +84,12 @@ public class BrowsingState : IGameState
             ? null
             : Path.Combine(beatmap.Folder, coosu.General.AudioFilename);
 
-        if (audioFilePath == _backgroundMusicManager.GetPreviewAudioFilePath())
+        if (audioFilePath == _lastPreviewAudioPath)
         {
             return;
         }
 
-        _backgroundMusicManager.UpdatePreviewContext(beatmap.Folder, audioFilePath);
+        _lastPreviewAudioPath = audioFilePath;
         _backgroundMusicManager.StopCurrentMusic(200);
         _backgroundMusicManager.PlaySingleAudioPreview(coosu, audioFilePath, coosu.General.PreviewTime);
         _backgroundMusicManager.ResetPauseState();
