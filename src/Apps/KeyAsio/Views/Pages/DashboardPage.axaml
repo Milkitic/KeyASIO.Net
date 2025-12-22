@@ -41,16 +41,10 @@
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
           <ToggleSwitch
+            x:Name="MixSwitch"
             Classes.pro="{Binding IsMixModeTagPro}"
             IsChecked="{Binding AppSettings.Sync.EnableMixSync}"
             IsEnabled="{Binding IsMixSwitchEnabled}">
-            <ToggleSwitch.Styles>
-           <!--   <Style Selector="ToggleSwitch.pro:checked">
-                <Style.Resources>
-                  <Color x:Key="SukiPrimaryColor">#FFD700</Color>
-                </Style.Resources>
-              </Style>-->
-            </ToggleSwitch.Styles>
             <ToggleSwitch.OffContent>
               <StackPanel
                 Background="Transparent"
