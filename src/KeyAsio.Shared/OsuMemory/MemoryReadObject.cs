@@ -1,20 +1,19 @@
 ﻿using System.Runtime.CompilerServices;
+using KeyAsio.Shared.Events;
 
 namespace KeyAsio.Shared.OsuMemory;
 
-public delegate void NotifyPropertyChangedEventHandler<in T>(T oldValue, T newValue);
-
 public class MemoryReadObject
 {
-    public event NotifyPropertyChangedEventHandler<string?>? PlayerNameChanged;
-    public event NotifyPropertyChangedEventHandler<int>? ComboChanged;
-    public event NotifyPropertyChangedEventHandler<int>? ScoreChanged;
-    public event NotifyPropertyChangedEventHandler<bool>? IsReplayChanged;
-    public event NotifyPropertyChangedEventHandler<OsuMemoryStatus>? OsuStatusChanged;
-    public event NotifyPropertyChangedEventHandler<int>? PlayingTimeChanged;
-    public event NotifyPropertyChangedEventHandler<Mods>? ModsChanged;
-    public event NotifyPropertyChangedEventHandler<int>? ProcessIdChanged;
-    public event NotifyPropertyChangedEventHandler<BeatmapIdentifier>? BeatmapIdentifierChanged;
+    public event ValueChangedEventHandler<string?>? PlayerNameChanged;
+    public event ValueChangedEventHandler<int>? ComboChanged;
+    public event ValueChangedEventHandler<int>? ScoreChanged;
+    public event ValueChangedEventHandler<bool>? IsReplayChanged;
+    public event ValueChangedEventHandler<OsuMemoryStatus>? OsuStatusChanged;
+    public event ValueChangedEventHandler<int>? PlayingTimeChanged;
+    public event ValueChangedEventHandler<Mods>? ModsChanged;
+    public event ValueChangedEventHandler<int>? ProcessIdChanged;
+    public event ValueChangedEventHandler<BeatmapIdentifier>? BeatmapIdentifierChanged;
 
     public string? PlayerName
     {

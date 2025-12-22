@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using KeyAsio.Shared.Events;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Utils;
 
@@ -14,10 +15,10 @@ public enum GameClientType
 
 public class SyncSessionContext
 {
-    public Func<int, int, Task>? OnComboChanged;
-    public Func<Mods, Mods, Task>? OnPlayModsChanged;
-    public Func<OsuMemoryStatus, OsuMemoryStatus, Task>? OnStatusChanged;
-    public Func<BeatmapIdentifier, BeatmapIdentifier, Task>? OnBeatmapChanged;
+    public ValueChangedAsyncEventHandler<int>? OnComboChanged;
+    public ValueChangedAsyncEventHandler<Mods>? OnPlayModsChanged;
+    public ValueChangedAsyncEventHandler<OsuMemoryStatus>? OnStatusChanged;
+    public ValueChangedAsyncEventHandler<BeatmapIdentifier>? OnBeatmapChanged;
 
     private readonly AppSettings _appSettings;
 
