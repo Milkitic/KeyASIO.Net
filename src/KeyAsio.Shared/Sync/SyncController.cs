@@ -2,6 +2,7 @@
 using KeyAsio.Audio;
 using KeyAsio.Memory.Utils;
 using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.AudioProviders;
@@ -9,7 +10,6 @@ using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Sync.States;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OsuMemoryStatus = KeyAsio.Shared.OsuMemory.OsuMemoryStatus;
 
 namespace KeyAsio.Shared.Sync;
 

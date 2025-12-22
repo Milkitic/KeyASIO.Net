@@ -1,6 +1,6 @@
 ﻿using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Shared.OsuMemory;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 

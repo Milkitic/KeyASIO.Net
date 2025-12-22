@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;

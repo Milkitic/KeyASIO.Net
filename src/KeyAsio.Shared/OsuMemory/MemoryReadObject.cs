@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Events;
 
 namespace KeyAsio.Shared.OsuMemory;

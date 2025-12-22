@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Events;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Utils;

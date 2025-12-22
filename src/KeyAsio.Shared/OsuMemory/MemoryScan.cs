@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using KeyAsio.Memory;
 using KeyAsio.Memory.Configuration;
 using KeyAsio.Memory.Utils;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.OsuMemory;

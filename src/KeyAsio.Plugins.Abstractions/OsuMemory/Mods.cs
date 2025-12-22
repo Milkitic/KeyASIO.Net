@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Shared.OsuMemory;
+﻿namespace KeyAsio.Plugins.Abstractions.OsuMemory;
 
 [Flags]
 public enum Mods : uint

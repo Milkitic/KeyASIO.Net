@@ -1,4 +1,5 @@
-﻿using KeyAsio.Shared.OsuMemory;
+﻿using KeyAsio.Plugins.Abstractions.OsuMemory;
+using KeyAsio.Shared.OsuMemory;
 
 namespace KeyAsio.Shared.Sync.States;
 

@@ -1,5 +1,6 @@
 ﻿using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync;
 

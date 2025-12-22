@@ -15,14 +15,14 @@ internal static class EnhancedMixingSampleProviderExtension
             PlayAudio(mixer, cachedAudio, sampleControl, out var rootSample);
             return rootSample;
         }
-        
+
         [Obsolete]
         public ISampleProvider? PlayAudio(CachedAudio cachedAudio, float volume, float balance)
         {
             PlayAudio(mixer, cachedAudio, volume, balance, out var rootSample);
             return rootSample;
         }
-        
+
         [Obsolete]
         public async Task<ISampleProvider?> PlayAudio(AudioCacheManager audioCacheManager, string path,
             SampleControl? sampleControl)
@@ -34,7 +34,7 @@ internal static class EnhancedMixingSampleProviderExtension
             PlayAudio(mixer, cacheResult.CachedAudio!, sampleControl, out var rootSample);
             return rootSample;
         }
-        
+
         [Obsolete]
         public async Task<ISampleProvider?> PlayAudio(AudioCacheManager audioCacheManager, string path, float volume,
             float balance)
@@ -46,7 +46,7 @@ internal static class EnhancedMixingSampleProviderExtension
             PlayAudio(mixer, cacheResult.CachedAudio!, volume, balance, out var rootSample);
             return rootSample;
         }
-        
+
         [Obsolete]
         public void AddMixerInput(ISampleProvider input, SampleControl? sampleControl, out ISampleProvider rootSample)
         {
@@ -65,7 +65,7 @@ internal static class EnhancedMixingSampleProviderExtension
                 mixer.AddMixerInput(input);
             }
         }
-        
+
         [Obsolete]
         public void AddMixerInput(ISampleProvider input, float volume, float balance, out ISampleProvider rootSample)
         {
@@ -76,14 +76,14 @@ internal static class EnhancedMixingSampleProviderExtension
             mixer.AddMixerInput(adjustBalance);
         }
     }
-    
+
     [Obsolete]
     private static void PlayAudio(IMixingSampleProvider mixer, CachedAudio cachedAudio, SampleControl? sampleControl,
         out ISampleProvider? rootSample)
     {
         mixer.AddMixerInput(new CachedAudioProvider1(cachedAudio), sampleControl, out rootSample);
     }
-    
+
     [Obsolete]
     private static void PlayAudio(IMixingSampleProvider mixer, CachedAudio cachedAudio, float volume, float balance,
         out ISampleProvider? rootSample)
@@ -101,7 +101,7 @@ internal static class EnhancedMixingSampleProviderExtension
         };
         return volumeSampleProvider;
     }
-    
+
     [Obsolete]
     private static ProfessionalBalanceProvider AddToBalanceProvider(ISampleProvider input, float balance)
     {

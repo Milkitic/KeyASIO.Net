@@ -1,9 +1,8 @@
 ﻿using Coosu.Beatmap;
 using KeyAsio.Audio.Caching;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Shared.OsuMemory;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 
-namespace KeyAsio.Shared.Plugins;
+namespace KeyAsio.Plugins.Abstractions;
 
 public interface IMusicManagerPlugin : IPlugin
 {

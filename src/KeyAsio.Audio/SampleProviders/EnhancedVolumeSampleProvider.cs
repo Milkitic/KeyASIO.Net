@@ -77,7 +77,7 @@ public sealed class EnhancedVolumeSampleProvider : IRecyclableProvider, IPoolabl
 
         return samplesRead;
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Reset()
     {
