@@ -1,4 +1,4 @@
-using System.Runtime.Loader;
+﻿using System.Runtime.Loader;
 using KeyAsio.Plugins.Abstractions;
 using Microsoft.Extensions.Logging;
 
