@@ -1,4 +1,5 @@
-﻿using System.Runtime.Loader;
+using System.Reflection;
+using System.Runtime.Loader;
 using KeyAsio.Plugins.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -79,12 +80,56 @@ public class PluginManager : IPluginManager, IDisposable
         }
     }
 
+    private bool ValidatePluginAssembly(Assembly assembly)
+    {
+        // 1. Compatibility Check
+        var abstractionsRef = assembly.GetReferencedAssemblies()
+            .FirstOrDefault(a => a.Name == "KeyAsio.Plugins.Abstractions");
+
+        if (abstractionsRef != null)
+        {
+            var currentVersion = typeof(IPlugin).Assembly.GetName().Version;
+            // Assuming major version change breaks compatibility
+            if (abstractionsRef.Version != null && currentVersion != null &&
+                abstractionsRef.Version.Major != currentVersion.Major)
+            {
+                _logger.LogWarning("Plugin {PluginAssembly} references an incompatible version of Abstractions: {RefVersion} (Current: {CurrentVersion})",
+                    assembly.GetName().Name, abstractionsRef.Version, currentVersion);
+                return false;
+            }
+        }
+
+        // 2. Security Check (Signature)
+        // Note: This is a basic check.
+        var publicKey = assembly.GetName().GetPublicKey();
+        if (publicKey == null || publicKey.Length == 0)
+        {
+            _logger.LogWarning("Plugin {PluginAssembly} is unsigned. Loading anyway (Loose Mode).", assembly.GetName().Name);
+            // In Strict Mode, return false here.
+            // return false;
+        }
+        else
+        {
+            // Verify if the public key is trusted
+            // if (!IsTrusted(publicKey)) return false;
+            _logger.LogInformation("Plugin {PluginAssembly} is signed.", assembly.GetName().Name);
+        }
+
+        return true;
+    }
+
     private void LoadPlugin(string dllPath)
     {
         try
         {
             var loadContext = new AssemblyLoadContext(Path.GetFileNameWithoutExtension(dllPath), true);
             var assembly = loadContext.LoadFromAssemblyPath(dllPath);
+
+            if (!ValidatePluginAssembly(assembly))
+            {
+                loadContext.Unload();
+                return;
+            }
 
             var pluginTypes = assembly.GetTypes()
                 .Where(t => typeof(IPlugin).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
