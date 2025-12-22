@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Audio;
+﻿namespace KeyAsio.Core.Audio;
 
 public enum WavePlayerType
 {

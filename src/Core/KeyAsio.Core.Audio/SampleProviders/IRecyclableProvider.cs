@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Core.Audio.SampleProviders;
 
 public interface IRecyclableProvider : ISampleProvider
 {

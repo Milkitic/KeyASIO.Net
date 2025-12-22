@@ -3,7 +3,7 @@ using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Core.Audio;
 
 public sealed class AudioDeviceManager : IDisposable
 {

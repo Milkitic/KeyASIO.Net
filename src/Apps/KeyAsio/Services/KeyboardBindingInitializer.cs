@@ -1,5 +1,5 @@
-﻿using KeyAsio.Audio;
-using KeyAsio.Audio.Caching;
+﻿using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync.Services;

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
-using KeyAsio.Audio;
+using KeyAsio.Core.Audio;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;

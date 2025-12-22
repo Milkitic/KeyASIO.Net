@@ -10,7 +10,7 @@ using Windows.Win32.System.Memory;
 using Windows.Win32.System.SystemInformation;
 using Windows.Win32.System.Threading;
 
-namespace KeyAsio.Memory;
+namespace KeyAsio.Core.Memory;
 
 [SupportedOSPlatform("windows5.1.2600")]
 public sealed class SigScan : IDisposable, ISigScan, IMemoryReader

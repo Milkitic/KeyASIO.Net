@@ -1,7 +1,7 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.Serialization;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Core.Audio;
 
 public record DeviceDescription
 {

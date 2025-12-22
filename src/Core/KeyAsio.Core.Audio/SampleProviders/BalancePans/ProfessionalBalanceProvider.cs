@@ -3,10 +3,10 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
-using KeyAsio.Audio.Utils;
+using KeyAsio.Core.Audio.Utils;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders.BalancePans;
+namespace KeyAsio.Core.Audio.SampleProviders.BalancePans;
 
 public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
 {

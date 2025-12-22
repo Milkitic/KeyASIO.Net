@@ -1,5 +1,5 @@
 ﻿using Coosu.Beatmap;
-using KeyAsio.Audio.Caching;
+using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 
 namespace KeyAsio.Plugins.Abstractions;

@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders.Limiters;
+namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 
 /// <summary>
 /// Provides a simple, low-CPU limiter with a soft knee and a hard ceiling.

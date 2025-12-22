@@ -5,7 +5,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Threading;
 
-namespace KeyAsio.Memory.Utils;
+namespace KeyAsio.Core.Memory.Utils;
 
 public static class PowerThrottling
 {

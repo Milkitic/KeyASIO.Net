@@ -1,9 +1,9 @@
-﻿using KeyAsio.Audio.Caching;
-using KeyAsio.Audio.SampleProviders;
-using KeyAsio.Audio.SampleProviders.BalancePans;
-using KeyAsio.Audio.Utils;
+﻿using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.Audio.SampleProviders;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
+using KeyAsio.Core.Audio.Utils;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Core.Audio;
 
 internal sealed class LoopProvider : IDisposable
 {

@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio.Wave;
+namespace KeyAsio.Core.Audio.Wave;
 
 public class PerfSampleToWaveProvider : IWaveProvider
 {

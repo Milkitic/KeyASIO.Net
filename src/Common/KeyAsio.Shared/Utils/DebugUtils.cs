@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
-using KeyAsio.Audio.Utils;
+using KeyAsio.Core.Audio.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Utils;

@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Audio.Caching;
+﻿namespace KeyAsio.Core.Audio.Caching;
 
 public enum CacheGetStatus : byte
 {

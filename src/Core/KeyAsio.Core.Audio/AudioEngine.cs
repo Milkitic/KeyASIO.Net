@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using KeyAsio.Audio.Caching;
-using KeyAsio.Audio.SampleProviders;
-using KeyAsio.Audio.SampleProviders.Limiters;
-using KeyAsio.Audio.Wave;
+using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.Audio.SampleProviders;
+using KeyAsio.Core.Audio.SampleProviders.Limiters;
+using KeyAsio.Core.Audio.Wave;
 using Milki.Extensions.Threading;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Core.Audio;
 
 public class AudioEngine : IDisposable, INotifyPropertyChanged
 {

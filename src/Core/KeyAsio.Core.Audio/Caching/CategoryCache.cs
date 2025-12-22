@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace KeyAsio.Audio.Caching;
+namespace KeyAsio.Core.Audio.Caching;
 
 internal class CategoryCache
 {

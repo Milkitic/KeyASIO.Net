@@ -1,6 +1,6 @@
 ﻿using ATL;
 
-namespace KeyAsio.Audio.Utils;
+namespace KeyAsio.Core.Audio.Utils;
 
 public static class FileFormatHelper
 {

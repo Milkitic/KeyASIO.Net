@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Core.Audio;
 
 public class SampleProviderBuilder
 {

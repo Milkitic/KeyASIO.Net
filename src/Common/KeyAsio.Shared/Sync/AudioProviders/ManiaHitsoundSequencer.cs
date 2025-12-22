@@ -1,5 +1,5 @@
 ﻿using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Audio;
+using KeyAsio.Core.Audio;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Utils;

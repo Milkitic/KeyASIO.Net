@@ -1,7 +1,7 @@
-﻿using KeyAsio.Audio.Caching;
-using KeyAsio.Audio.SampleProviders;
+﻿using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.Audio.SampleProviders;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Core.Audio;
 
 public class LoopProviderManager
 {

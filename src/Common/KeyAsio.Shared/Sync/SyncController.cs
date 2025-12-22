@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
-using KeyAsio.Audio;
-using KeyAsio.Memory.Utils;
+using KeyAsio.Core.Audio;
+using KeyAsio.Core.Memory.Utils;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Models;

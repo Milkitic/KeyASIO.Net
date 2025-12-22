@@ -1,9 +1,9 @@
-﻿using KeyAsio.Audio.SampleProviders;
-using KeyAsio.Audio.SampleProviders.BalancePans;
+﻿using KeyAsio.Core.Audio.SampleProviders;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using Milki.Extensions.Threading;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.Utils;
+namespace KeyAsio.Core.Audio.Utils;
 
 public static class AudioRecycling
 {

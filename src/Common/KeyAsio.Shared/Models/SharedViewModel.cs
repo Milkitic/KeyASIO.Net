@@ -1,5 +1,5 @@
-using System.Collections.ObjectModel;
-using KeyAsio.Audio;
+﻿using System.Collections.ObjectModel;
+using KeyAsio.Core.Audio;
 
 namespace KeyAsio.Shared.Models;
 

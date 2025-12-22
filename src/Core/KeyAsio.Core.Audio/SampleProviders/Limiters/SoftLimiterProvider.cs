@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders.Limiters;
+namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 
 /// <summary>
 /// Provides a soft limiting effect using the hyperbolic tangent (tanh) function,

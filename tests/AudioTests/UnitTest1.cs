@@ -1,4 +1,4 @@
-using KeyAsio.Audio.Caching;
+﻿using KeyAsio.Core.Audio.Caching;
 using Microsoft.Extensions.DependencyInjection;
 using NAudio.Wave;
 

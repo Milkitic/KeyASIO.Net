@@ -1,7 +1,7 @@
-﻿using KeyAsio.Audio.Utils;
+﻿using KeyAsio.Core.Audio.Utils;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Core.Audio.SampleProviders;
 
 public sealed class LoopSampleProvider : IRecyclableProvider, IPoolable
 {

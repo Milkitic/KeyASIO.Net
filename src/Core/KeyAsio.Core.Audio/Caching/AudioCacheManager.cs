@@ -1,12 +1,12 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using KeyAsio.Audio.Utils;
-using KeyAsio.Audio.Wave;
+using KeyAsio.Core.Audio.Utils;
+using KeyAsio.Core.Audio.Wave;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.Caching;
+namespace KeyAsio.Core.Audio.Caching;
 
 public class AudioCacheManager
 {

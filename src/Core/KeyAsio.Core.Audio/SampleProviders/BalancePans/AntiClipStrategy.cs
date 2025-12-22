@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Audio.SampleProviders.BalancePans;
+﻿namespace KeyAsio.Core.Audio.SampleProviders.BalancePans;
 
 /// <summary>
 /// 防削波策略

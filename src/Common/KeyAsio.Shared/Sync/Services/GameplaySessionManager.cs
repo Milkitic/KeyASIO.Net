@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
-using KeyAsio.Audio;
+using KeyAsio.Core.Audio;
 using KeyAsio.Shared.Events;
 using Microsoft.Extensions.Logging;
 

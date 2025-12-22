@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.Caching;
+namespace KeyAsio.Core.Audio.Caching;
 
 public sealed unsafe class CachedAudio : IEquatable<CachedAudio>, IDisposable
 {

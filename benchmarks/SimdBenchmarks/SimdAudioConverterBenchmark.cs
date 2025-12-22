@@ -1,5 +1,6 @@
 ﻿using System;
 using BenchmarkDotNet.Attributes;
+using KeyAsio.Core.Audio.Utils;
 
 namespace SimdBenchmarks
 {
@@ -43,7 +44,7 @@ namespace SimdBenchmarks
             fixed (short* ps = _shorts)
             fixed (float* pf = _floats)
             {
-                KeyAsio.Audio.Utils.SimdAudioConverter.Convert16BitToFloatUnsafe(ps, pf, _floats.Length);
+                SimdAudioConverter.Convert16BitToFloatUnsafe(ps, pf, _floats.Length);
             }
 
             return _floats;

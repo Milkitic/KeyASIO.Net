@@ -2,7 +2,7 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using KeyAsio.Audio;
+using KeyAsio.Core.Audio;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Services;
 using KeyAsio.Shared;

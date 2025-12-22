@@ -1,9 +1,9 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.Versioning;
-using KeyAsio.Memory.Configuration;
-using KeyAsio.Memory.Utils;
+using KeyAsio.Core.Memory.Configuration;
+using KeyAsio.Core.Memory.Utils;
 
-namespace KeyAsio.Memory.Samples;
+namespace KeyAsio.Core.Memory.Samples;
 
 internal static class StructureScanSample
 {

@@ -1,4 +1,4 @@
-﻿using KeyAsio.Audio;
+﻿using KeyAsio.Core.Audio;
 using KeyAsio.Plugins.Abstractions;
 using NAudio.Wave;
 

@@ -1,4 +1,4 @@
-namespace KeyAsio.Memory.Samples;
+﻿namespace KeyAsio.Core.Memory.Samples;
 
 internal class SampleOsuData
 {

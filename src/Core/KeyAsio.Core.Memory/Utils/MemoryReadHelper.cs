@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace KeyAsio.Memory.Utils;
+namespace KeyAsio.Core.Memory.Utils;
 
 public static class MemoryReadHelper
 {

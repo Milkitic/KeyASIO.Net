@@ -1,9 +1,9 @@
-﻿using KeyAsio.Audio.Utils;
+﻿using KeyAsio.Core.Audio.Utils;
 using NAudio;
 using NAudio.Vorbis;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.Wave;
+namespace KeyAsio.Core.Audio.Wave;
 
 public class AudioFileReader : WaveStream, ISampleProvider
 {

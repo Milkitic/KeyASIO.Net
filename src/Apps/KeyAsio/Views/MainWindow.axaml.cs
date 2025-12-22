@@ -1,11 +1,11 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using KeyAsio.Audio.SampleProviders.BalancePans;
-using KeyAsio.Audio.Utils;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
+using KeyAsio.Core.Audio.Utils;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Services;

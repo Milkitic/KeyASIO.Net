@@ -1,9 +1,9 @@
 ﻿using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Audio;
-using KeyAsio.Audio.Caching;
-using KeyAsio.Audio.SampleProviders;
-using KeyAsio.Audio.SampleProviders.BalancePans;
-using KeyAsio.Audio.Utils;
+using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.Audio.SampleProviders;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
+using KeyAsio.Core.Audio.Utils;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
 

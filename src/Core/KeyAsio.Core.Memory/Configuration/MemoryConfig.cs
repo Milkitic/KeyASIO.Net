@@ -1,7 +1,7 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace KeyAsio.Memory.Configuration;
+namespace KeyAsio.Core.Memory.Configuration;
 
 [JsonSourceGenerationOptions(WriteIndented = true, ReadCommentHandling = JsonCommentHandling.Skip,
     PropertyNameCaseInsensitive = true, AllowTrailingCommas = true, Converters = [typeof(HexIntJsonConverter)])]

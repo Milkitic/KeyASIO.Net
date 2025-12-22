@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet;
-using KeyAsio.Audio.Caching;
+using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;

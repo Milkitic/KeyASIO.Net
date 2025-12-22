@@ -1,6 +1,6 @@
 ﻿using Windows.Win32;
 
-namespace KeyAsio.Memory.Utils;
+namespace KeyAsio.Core.Memory.Utils;
 
 public ref struct HighPrecisionTimerScope : IDisposable
 {

@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Audio.Utils;
+﻿namespace KeyAsio.Core.Audio.Utils;
 
 public enum FileFormat
 {

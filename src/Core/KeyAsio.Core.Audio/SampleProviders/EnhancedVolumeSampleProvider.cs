@@ -1,9 +1,9 @@
 ﻿using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
-using KeyAsio.Audio.Utils;
+using KeyAsio.Core.Audio.Utils;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Core.Audio.SampleProviders;
 
 /// <summary>
 /// Very simple sample provider supporting adjustable gain

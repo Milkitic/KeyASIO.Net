@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Memory.Utils;
+﻿namespace KeyAsio.Core.Memory.Utils;
 
 public class CachedStringReader
 {

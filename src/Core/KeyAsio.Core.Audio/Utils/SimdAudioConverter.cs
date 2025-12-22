@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 
-namespace KeyAsio.Audio.Utils;
+namespace KeyAsio.Core.Audio.Utils;
 
 public static class SimdAudioConverter
 {

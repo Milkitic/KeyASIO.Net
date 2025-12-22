@@ -4,10 +4,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FastExpressionCompiler;
-using KeyAsio.Memory.Configuration;
-using KeyAsio.Memory.Utils;
+using KeyAsio.Core.Memory.Configuration;
+using KeyAsio.Core.Memory.Utils;
 
-namespace KeyAsio.Memory;
+namespace KeyAsio.Core.Memory;
 
 public class MemoryContext
 {

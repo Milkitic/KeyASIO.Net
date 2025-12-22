@@ -1,9 +1,9 @@
 ﻿using System.Numerics.Tensors;
-using KeyAsio.Audio.Utils;
+using KeyAsio.Core.Audio.Utils;
 using NAudio.Utils;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Core.Audio.SampleProviders;
 
 /// <summary>
 /// A sample provider mixer, allowing inputs to be added and removed

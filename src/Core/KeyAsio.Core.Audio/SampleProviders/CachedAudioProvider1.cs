@@ -1,8 +1,8 @@
-using KeyAsio.Audio.Caching;
-using KeyAsio.Audio.Utils;
+﻿using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.Audio.Utils;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Core.Audio.SampleProviders;
 
 [Obsolete]
 public sealed class CachedAudioProvider1 : ISampleProvider

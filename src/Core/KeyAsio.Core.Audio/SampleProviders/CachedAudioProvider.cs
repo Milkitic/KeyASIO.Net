@@ -1,9 +1,9 @@
-using System.Runtime.CompilerServices;
-using KeyAsio.Audio.Caching;
-using KeyAsio.Audio.Utils;
+﻿using System.Runtime.CompilerServices;
+using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.Audio.Utils;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Core.Audio.SampleProviders;
 
 public sealed class CachedAudioProvider : IRecyclableProvider, IPoolable
 {

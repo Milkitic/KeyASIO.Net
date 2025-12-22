@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Audio.SampleProviders.BalancePans;
+﻿namespace KeyAsio.Core.Audio.SampleProviders.BalancePans;
 
 /// <summary>
 /// 平衡控制模式

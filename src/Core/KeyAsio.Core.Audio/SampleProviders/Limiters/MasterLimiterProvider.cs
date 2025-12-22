@@ -3,7 +3,7 @@ using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders.Limiters;
+namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 
 /// <summary>
 /// Provides a lookahead peak limiter for mastering, preventing audio signals

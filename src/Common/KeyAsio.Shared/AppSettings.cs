@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using KeyAsio.Audio;
+using KeyAsio.Core.Audio;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;

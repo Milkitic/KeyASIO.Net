@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using KeyAsio.Memory;
-using KeyAsio.Memory.Configuration;
-using KeyAsio.Memory.Utils;
+using KeyAsio.Core.Memory;
+using KeyAsio.Core.Memory.Configuration;
+using KeyAsio.Core.Memory.Utils;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using Microsoft.Extensions.Logging;
 

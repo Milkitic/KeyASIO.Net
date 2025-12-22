@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders.Limiters;
+namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 
 /// <summary>
 /// A high-performance zero-latency soft limiter designed for rhythm games.

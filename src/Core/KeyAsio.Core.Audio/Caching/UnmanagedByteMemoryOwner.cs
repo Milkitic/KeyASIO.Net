@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Runtime.InteropServices;
 
-namespace KeyAsio.Audio.Caching;
+namespace KeyAsio.Core.Audio.Caching;
 
 internal sealed unsafe class UnmanagedByteMemoryOwner : IMemoryOwner<byte>
 {

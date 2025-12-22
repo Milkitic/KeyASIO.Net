@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Memory;
+﻿namespace KeyAsio.Core.Memory;
 
 public interface IMemoryReader
 {

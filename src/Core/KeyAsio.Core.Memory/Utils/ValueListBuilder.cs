@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace KeyAsio.Memory.Utils;
+namespace KeyAsio.Core.Memory.Utils;
 
 /// <summary>
 /// Provides a lightweight, stack-friendly builder for a list of values

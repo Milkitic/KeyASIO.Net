@@ -1,10 +1,10 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using KeyAsio.Audio;
-using KeyAsio.Audio.Caching;
+using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;

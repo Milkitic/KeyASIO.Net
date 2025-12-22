@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Avalonia;
-using KeyAsio.Audio;
-using KeyAsio.Memory.Utils;
+using KeyAsio.Core.Audio;
+using KeyAsio.Core.Memory.Utils;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;

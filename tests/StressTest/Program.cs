@@ -1,10 +1,10 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
-using KeyAsio.Audio;
-using KeyAsio.Audio.Caching;
-using KeyAsio.Audio.SampleProviders;
+using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Services;

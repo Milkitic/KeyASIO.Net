@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace KeyAsio.Audio.Utils;
+namespace KeyAsio.Core.Audio.Utils;
 
 public class VariableStopwatch
 {

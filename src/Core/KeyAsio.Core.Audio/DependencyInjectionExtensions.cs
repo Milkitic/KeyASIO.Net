@@ -1,7 +1,7 @@
-using KeyAsio.Audio.Caching;
+﻿using KeyAsio.Core.Audio.Caching;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace KeyAsio.Audio;
+namespace KeyAsio.Core.Audio;
 
 public static class DependencyInjectionExtensions
 {

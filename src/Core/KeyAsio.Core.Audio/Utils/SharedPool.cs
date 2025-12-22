@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace KeyAsio.Audio.Utils;
+namespace KeyAsio.Core.Audio.Utils;
 
 public static class SharedPool<T> where T : class, IPoolable, new()
 {

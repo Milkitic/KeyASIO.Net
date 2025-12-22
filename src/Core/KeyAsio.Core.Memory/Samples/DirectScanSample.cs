@@ -1,7 +1,7 @@
-using System.Diagnostics;
-using static KeyAsio.Memory.Utils.MemoryReadHelper;
+﻿using System.Diagnostics;
+using static KeyAsio.Core.Memory.Utils.MemoryReadHelper;
 
-namespace KeyAsio.Memory.Samples;
+namespace KeyAsio.Core.Memory.Samples;
 
 internal static class DirectScanSample
 {

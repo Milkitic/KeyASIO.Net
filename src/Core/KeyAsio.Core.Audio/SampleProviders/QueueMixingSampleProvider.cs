@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics.Tensors;
-using KeyAsio.Audio.Utils;
+using KeyAsio.Core.Audio.Utils;
 using NAudio.Utils;
 using NAudio.Wave;
 
-namespace KeyAsio.Audio.SampleProviders;
+namespace KeyAsio.Core.Audio.SampleProviders;
 
 public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposable
 {
