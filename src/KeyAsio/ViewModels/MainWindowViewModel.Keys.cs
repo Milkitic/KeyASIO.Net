@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Views.Dialogs;
@@ -55,8 +55,8 @@ public partial class MainWindowViewModel
 
         if (_keyboardBindingInitializer?.KeyboardHook is null)
         {
-             // Should not happen if initialized correctly
-             return;
+            // Should not happen if initialized correctly
+            return;
         }
 
         var vm = new KeyBindDialogViewModel(_keyboardBindingInitializer.KeyboardHook, key =>

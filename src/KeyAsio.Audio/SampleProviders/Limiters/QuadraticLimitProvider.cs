@@ -37,7 +37,7 @@ public sealed class QuadraticLimitProvider : ILimiterSampleProvider
         _source = source;
         UpdateParameters(threshold, ceiling);
     }
-    
+
     public bool IsEnabled { get; set; }
 
     /// <summary>

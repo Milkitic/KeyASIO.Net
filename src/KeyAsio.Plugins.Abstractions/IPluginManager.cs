@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.IO;
-
-namespace KeyAsio.Plugins.Abstractions;
+﻿namespace KeyAsio.Plugins.Abstractions;
 
 /// <summary>
 /// Plugin manager interface

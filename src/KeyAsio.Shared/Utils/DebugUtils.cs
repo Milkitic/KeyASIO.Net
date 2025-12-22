@@ -122,7 +122,7 @@ public static class DebugUtils
         private readonly string _name;
         private readonly ILogger? _logger;
         private readonly HighPrecisionTimer _sw;
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TimerImpl(string name, ILogger? logger)
         {

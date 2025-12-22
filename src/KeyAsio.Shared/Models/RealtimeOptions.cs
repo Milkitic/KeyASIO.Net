@@ -66,7 +66,7 @@ public class RealtimeOptions : ViewModelBase
         get => _ignoreBeatmapHitsound;
         set => SetField(ref _ignoreBeatmapHitsound, value);
     }
-    
+
     [YamlIgnore]
     public BindKeys? IgnoreBeatmapHitsoundBindKey { get; set; }
 
@@ -76,7 +76,7 @@ public class RealtimeOptions : ViewModelBase
         get => _ignoreStoryboardSamples;
         set => SetField(ref _ignoreStoryboardSamples, value);
     }
-    
+
     [YamlIgnore]
     public BindKeys? IgnoreStoryboardSamplesBindKey { get; set; }
 
@@ -86,7 +86,7 @@ public class RealtimeOptions : ViewModelBase
         get => _ignoreSliderTicksAndSlides;
         set => SetField(ref _ignoreSliderTicksAndSlides, value);
     }
-    
+
     [YamlIgnore]
     public BindKeys? IgnoreSliderTicksAndSlidesBindKey { get; set; }
 

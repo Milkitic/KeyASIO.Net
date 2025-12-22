@@ -30,7 +30,7 @@ public sealed class SoftLimiterProvider : ILimiterSampleProvider
         _source = source;
         _drive = drive;
     }
-    
+
     public bool IsEnabled { get; set; }
 
     /// <summary>

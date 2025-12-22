@@ -12,9 +12,6 @@ using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace KeyAsio;
 
