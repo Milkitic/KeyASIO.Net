@@ -1,10 +1,14 @@
 ﻿using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.OsuMemory;
 
 namespace KeyAsio.Shared.Sync;
 
 public class SyncContextWrapper : ISyncContext
 {
     private readonly SyncSessionContext _context;
+
+    private BeatmapIdentifier _cachedIdentifier;
+    private SyncBeatmapInfo? _cachedInfo;
 
     public SyncContextWrapper(SyncSessionContext context)
     {
@@ -20,11 +24,23 @@ public class SyncContextWrapper : ISyncContext
 
     public int PlayMods => (int)_context.PlayMods;
 
-    public SyncBeatmapInfo? Beatmap => _context.Beatmap.Folder == null
-        ? null
-        : new SyncBeatmapInfo
+    public SyncBeatmapInfo? Beatmap
+    {
+        get
         {
-            Folder = _context.Beatmap.Folder,
-            Filename = _context.Beatmap.Filename
-        };
+            var current = _context.Beatmap;
+            if (current == _cachedIdentifier) return _cachedInfo;
+
+            _cachedIdentifier = current;
+            _cachedInfo = current.Folder == null
+                ? null
+                : new SyncBeatmapInfo
+                {
+                    Folder = current.Folder,
+                    Filename = current.Filename
+                };
+
+            return _cachedInfo;
+        }
+    }
 }

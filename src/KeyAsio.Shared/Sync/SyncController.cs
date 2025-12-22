@@ -1,6 +1,5 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using KeyAsio.Audio;
-using KeyAsio.Audio.Caching;
 using KeyAsio.Memory.Utils;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Shared.Models;
@@ -20,6 +19,7 @@ public class SyncController : IDisposable
     private readonly GameStateMachine _stateMachine;
     private readonly IPluginManager _pluginManager;
     private readonly ILogger<SyncController> _logger;
+    private readonly List<ISyncPlugin> _activeSyncPlugins;
 
     public SyncController(ILogger<PlayingState> playingStateLogger,
         ILogger<SyncController> logger,
@@ -30,7 +30,6 @@ public class SyncController : IDisposable
         GameplayAudioService gameplayAudioService,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
         SfxPlaybackService sfxPlaybackService,
-        AudioCacheManager audioCacheManager,
         GameplaySessionManager gameplaySessionManager,
         SyncSessionContext syncSessionContext,
         IPluginManager pluginManager)
@@ -38,6 +37,9 @@ public class SyncController : IDisposable
         _syncSessionContext = syncSessionContext;
         _pluginManager = pluginManager;
         _logger = logger;
+
+        _activeSyncPlugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>().ToList();
+
         _syncSessionContext.OnBeatmapChanged = OnBeatmapChanged;
         _syncSessionContext.OnComboChanged = OnComboChanged;
         _syncSessionContext.OnStatusChanged = OnStatusChanged;
@@ -74,8 +76,7 @@ public class SyncController : IDisposable
         _syncLoopCts = new CancellationTokenSource();
         var token = _syncLoopCts.Token;
 
-        var syncPlugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>().ToList();
-        foreach (var plugin in syncPlugins)
+        foreach (var plugin in _activeSyncPlugins)
         {
             try
             {
@@ -87,8 +88,7 @@ public class SyncController : IDisposable
             }
         }
 
-        Task.Factory.StartNew(() => RunSyncLoop(token, syncPlugins), token, TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        Task.Factory.StartNew(() => RunSyncLoop(token, _activeSyncPlugins), TaskCreationOptions.LongRunning);
     }
 
     public void Stop()
@@ -97,8 +97,7 @@ public class SyncController : IDisposable
         _syncLoopCts?.Dispose();
         _syncLoopCts = null;
 
-        var syncPlugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>().ToList();
-        foreach (var plugin in syncPlugins)
+        foreach (var plugin in _activeSyncPlugins)
         {
             try
             {
@@ -258,8 +257,7 @@ public class SyncController : IDisposable
             await _stateMachine.EnterFromAsync(_syncSessionContext, oldStatus, newStatus);
         }
 
-        var plugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>();
-        foreach (var plugin in plugins)
+        foreach (var plugin in _activeSyncPlugins)
         {
             try
             {
@@ -281,8 +279,7 @@ public class SyncController : IDisposable
         };
 
         // Notify plugins (Legacy behavior, always notified)
-        var plugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>();
-        foreach (var plugin in plugins)
+        foreach (var plugin in _activeSyncPlugins)
         {
             try
             {
