@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/Benchmarks/">
+    <Project Path="benchmarks\SimdBenchmarks\SimdBenchmarks.csproj" />
+  </Folder>
+  <Folder Name="/Dependencies/">
+    <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj" />
+    <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
+    <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Threading\Milki.Extensions.Threading.csproj" />
+    <Project Path="dependencies\NAudio\NAudio.Asio\NAudio.Asio.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/StressTest/StressTest.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="tests\AudioTests\AudioTests.csproj" />
+    <Project Path="tests\ColumnTest\ColumnTest.csproj" />
+    <Project Path="tests\MemoryReadingTest\MemoryReadingTest.csproj" />
+    <Project Path="tests\PlayingTests\PlayingTests.csproj" />
+  </Folder>
+  <Project Path="src\Apps\KeyAsio\KeyAsio.csproj" />
+  <Project Path="src\Core\KeyAsio.Core.Audio\KeyAsio.Core.Audio.csproj" />
+  <Project Path="src\Core\KeyAsio.Core.Memory\KeyAsio.Core.Memory.csproj" />
+  <Project Path="src\Common\KeyAsio.Plugins.Abstractions/KeyAsio.Plugins.Abstractions.csproj" />
+  <Project Path="src\Common\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
+  <Project Path="src\Common\KeyAsio.Shared\KeyAsio.Shared.csproj" />
+</Solution>
