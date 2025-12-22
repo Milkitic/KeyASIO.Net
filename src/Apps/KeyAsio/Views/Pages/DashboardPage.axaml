@@ -40,7 +40,7 @@
     <suki:GlassCard Margin="0,0,0,15" Classes="Surface">
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-          <ToggleSwitch IsChecked="{Binding AppSettings.Sync.EnableMixSync}" IsEnabled="{Binding AppSettings.Sync.EnableSync}">
+          <ToggleSwitch IsChecked="{Binding AppSettings.Sync.EnableMixSync}" IsEnabled="{Binding IsMixSwitchEnabled}">
             <ToggleSwitch.Styles>
               <!--<Style Selector="ToggleSwitch:checked">
                 <Style.Resources>
@@ -86,7 +86,11 @@
                     </Style>-->
                   </materialIcons:MaterialIcon.Styles>
                 </materialIcons:MaterialIcon>
-                <TextBlock VerticalAlignment="Center" Text="MIX (Exp.)">
+                <TextBlock
+                  VerticalAlignment="Center"
+                  Text="{Binding MixModeDisplayName}"
+                  TextTrimming="CharacterEllipsis"
+                  ToolTip.Tip="{Binding MixModeDisplayName}">
                   <TextBlock.Styles>
                     <Style Selector="TextBlock">
                       <Setter Property="FontWeight" Value="Normal" />

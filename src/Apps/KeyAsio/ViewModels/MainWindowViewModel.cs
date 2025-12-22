@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
@@ -22,6 +23,7 @@ public partial class MainWindowViewModel : IDisposable
 {
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly KeyboardBindingInitializer _keyboardBindingInitializer;
+    private readonly List<IMusicManagerPlugin> _musicManagerPlugins = new();
     private bool _isNavigating;
     private CancellationTokenSource? _saveDebounceCts;
     private readonly List<INotifyPropertyChanged> _observedSettings = new();
@@ -41,6 +43,10 @@ public partial class MainWindowViewModel : IDisposable
             SyncSession = new SyncSessionContext(AppSettings);
             SyncDisplay = new SyncDisplayViewModel(SyncSession);
             _keyboardBindingInitializer = null!;
+            MixModeDisplayName = "MIX";
+            IsMixSwitchEnabled = true;
+            UpdateService = null!;
+            _logger = null!;
         }
     }
 
@@ -50,7 +56,8 @@ public partial class MainWindowViewModel : IDisposable
         AudioSettingsViewModel audioSettingsViewModel,
         SharedViewModel sharedViewModel,
         SyncSessionContext syncSession,
-        KeyboardBindingInitializer keyboardBindingInitializer)
+        KeyboardBindingInitializer keyboardBindingInitializer,
+        IPluginManager pluginManager)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
@@ -61,7 +68,13 @@ public partial class MainWindowViewModel : IDisposable
         SyncDisplay = new SyncDisplayViewModel(SyncSession);
         _keyboardBindingInitializer = keyboardBindingInitializer;
         AudioSettings.ToastManager = MainToastManager;
+        _musicManagerPlugins.AddRange(pluginManager.GetAllPlugins().OfType<IMusicManagerPlugin>());
+        foreach (var plugin in _musicManagerPlugins)
+        {
+            plugin.OptionStateChanged += OnMixOptionStateChanged;
+        }
 
+        RefreshMixMode();
         SubscribeToSettingsChanges();
     }
 
@@ -77,6 +90,12 @@ public partial class MainWindowViewModel : IDisposable
 
     [ObservableProperty]
     public partial object? SelectedMenuItem { get; set; }
+
+    [ObservableProperty]
+    public partial string? MixModeDisplayName { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsMixSwitchEnabled { get; set; }
 
     public object? SettingsPageItem { get; set; }
     public object? AudioEnginePageItem { get; set; }
@@ -203,6 +222,11 @@ public partial class MainWindowViewModel : IDisposable
 
         SyncDisplay.Dispose();
 
+        foreach (var plugin in _musicManagerPlugins)
+        {
+            plugin.OptionStateChanged -= OnMixOptionStateChanged;
+        }
+
         foreach (var obj in _observedSettings)
         {
             obj.PropertyChanged -= OnSettingsChanged;
@@ -215,24 +239,37 @@ public partial class MainWindowViewModel : IDisposable
 
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume))
+        if (sender is AppSettingsSync)
         {
-            AudioSettings.AudioEngine.MainVolume = AppSettings.Audio.MasterVolume / 100f;
-            DebounceSave();
+            if (e.PropertyName == nameof(AppSettingsSync.EnableSync))
+            {
+                RefreshMixMode();
+            }
         }
-        else if (e.PropertyName == nameof(AppSettingsAudio.MusicVolume))
+        else if (sender is AppSettingsAudio)
         {
-            AudioSettings.AudioEngine.MusicVolume = AppSettings.Audio.MusicVolume / 100f;
-            DebounceSave();
+            if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume))
+            {
+                AudioSettings.AudioEngine.MainVolume = AppSettings.Audio.MasterVolume / 100f;
+                DebounceSave();
+            }
+            else if (e.PropertyName == nameof(AppSettingsAudio.MusicVolume))
+            {
+                AudioSettings.AudioEngine.MusicVolume = AppSettings.Audio.MusicVolume / 100f;
+                DebounceSave();
+            }
+            else if (e.PropertyName == nameof(AppSettingsAudio.EffectVolume))
+            {
+                AudioSettings.AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
+                DebounceSave();
+            }
         }
-        else if (e.PropertyName == nameof(AppSettingsAudio.EffectVolume))
+        else if (sender is AppSettingsSyncPlayback)
         {
-            AudioSettings.AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
-            DebounceSave();
-        }
-        else if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceFactor))
-        {
-            DebounceSave();
+            if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceFactor))
+            {
+                DebounceSave();
+            }
         }
         else
         {
@@ -245,6 +282,26 @@ public partial class MainWindowViewModel : IDisposable
                 HandleSaveException(ex);
             }
         }
+    }
+
+    private void OnMixOptionStateChanged(object? sender, EventArgs e)
+    {
+        RefreshMixMode();
+    }
+
+    private void RefreshMixMode()
+    {
+        IMusicManagerPlugin? selected = _musicManagerPlugins
+            .Where(x => x.CanEnableOption)
+            .OrderByDescending(x => x.OptionPriority)
+            .FirstOrDefault();
+
+        selected ??= _musicManagerPlugins
+            .OrderByDescending(x => x.OptionPriority)
+            .FirstOrDefault();
+
+        MixModeDisplayName = selected?.OptionName ?? "MIX";
+        IsMixSwitchEnabled = AppSettings.Sync.EnableSync && (selected?.CanEnableOption ?? true);
     }
 
     private void HandleSaveException(Exception ex)

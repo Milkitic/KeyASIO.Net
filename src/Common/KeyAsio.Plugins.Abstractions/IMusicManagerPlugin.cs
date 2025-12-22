@@ -6,6 +6,13 @@ namespace KeyAsio.Plugins.Abstractions;
 
 public interface IMusicManagerPlugin : IPlugin
 {
+    event EventHandler? OptionStateChanged;
+
+    string OptionName { get; }
+    string OptionLevel { get; }
+    int OptionPriority { get; }
+    bool CanEnableOption { get; }
+
     void StartLowPass(int fadeMilliseconds, int targetFrequency);
     void StopCurrentMusic(int fadeMs = 0);
     void PauseCurrentMusic();
