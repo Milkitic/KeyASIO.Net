@@ -44,6 +44,7 @@ public partial class MainWindowViewModel : IDisposable
             SyncDisplay = new SyncDisplayViewModel(SyncSession);
             _keyboardBindingInitializer = null!;
             MixModeDisplayName = "MIX";
+            MixModeTag = "PRO";
             IsMixSwitchEnabled = true;
             UpdateService = null!;
             _logger = null!;
@@ -96,6 +97,25 @@ public partial class MainWindowViewModel : IDisposable
 
     [ObservableProperty]
     public partial bool IsMixSwitchEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial IMusicManagerPlugin? ActivePlugin { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMixModeTagPro))]
+    [NotifyPropertyChangedFor(nameof(HasMixModeTag))]
+    public partial string? MixModeTag { get; set; }
+
+    public bool IsMixModeTagPro
+    {
+        get
+        {
+            var isMixModeTagPro = string.Equals(MixModeTag, "PRO", StringComparison.OrdinalIgnoreCase);
+            return isMixModeTagPro;
+        }
+    }
+
+    public bool HasMixModeTag => !string.IsNullOrWhiteSpace(MixModeTag);
 
     public object? SettingsPageItem { get; set; }
     public object? AudioEnginePageItem { get; set; }
@@ -299,9 +319,10 @@ public partial class MainWindowViewModel : IDisposable
         selected ??= _musicManagerPlugins
             .OrderByDescending(x => x.OptionPriority)
             .FirstOrDefault();
-
-        MixModeDisplayName = selected?.OptionName ?? "MIX";
-        IsMixSwitchEnabled = AppSettings.Sync.EnableSync && (selected?.CanEnableOption ?? true);
+        ActivePlugin = selected;
+        MixModeDisplayName = selected?.OptionName ?? "Corrupted";
+        MixModeTag = selected?.OptionTag;
+        IsMixSwitchEnabled = AppSettings.Sync.EnableSync && (selected?.CanEnableOption ?? false);
     }
 
     private void HandleSaveException(Exception ex)

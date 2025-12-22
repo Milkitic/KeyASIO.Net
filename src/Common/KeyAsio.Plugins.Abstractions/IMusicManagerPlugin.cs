@@ -9,7 +9,7 @@ public interface IMusicManagerPlugin : IPlugin
     event EventHandler? OptionStateChanged;
 
     string OptionName { get; }
-    string OptionLevel { get; }
+    string OptionTag { get; }
     int OptionPriority { get; }
     bool CanEnableOption { get; }
 

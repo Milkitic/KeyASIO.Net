@@ -40,9 +40,12 @@
     <suki:GlassCard Margin="0,0,0,15" Classes="Surface">
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-          <ToggleSwitch IsChecked="{Binding AppSettings.Sync.EnableMixSync}" IsEnabled="{Binding IsMixSwitchEnabled}">
+          <ToggleSwitch
+            Classes.pro="{Binding IsMixModeTagPro}"
+            IsChecked="{Binding AppSettings.Sync.EnableMixSync}"
+            IsEnabled="{Binding IsMixSwitchEnabled}">
             <ToggleSwitch.Styles>
-              <!--<Style Selector="ToggleSwitch:checked">
+           <!--   <Style Selector="ToggleSwitch.pro:checked">
                 <Style.Resources>
                   <Color x:Key="SukiPrimaryColor">#FFD700</Color>
                 </Style.Resources>
@@ -74,11 +77,16 @@
                   Width="18"
                   Height="18"
                   VerticalAlignment="Center"
+                  Classes="mixIcon"
                   Kind="Music">
                   <materialIcons:MaterialIcon.Styles>
                     <Style Selector="materialIcons|MaterialIcon">
                       <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
                       <Setter Property="Opacity" Value="{DynamicResource OpacitySecondary}" />
+                    </Style>
+                    <Style Selector="ToggleSwitch.pro:checked materialIcons|MaterialIcon.mixIcon">
+                      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
+                      <Setter Property="Opacity" Value="1" />
                     </Style>
                     <!--<Style Selector="ToggleSwitch:checked materialIcons|MaterialIcon">
                       <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
@@ -88,13 +96,30 @@
                 </materialIcons:MaterialIcon>
                 <TextBlock
                   VerticalAlignment="Center"
+                  Classes.corrupt="{Binding ActivePlugin,Converter={x:Static ObjectConverters.IsNull}}"
+                  Classes="mixLabel"
                   Text="{Binding MixModeDisplayName}"
-                  TextTrimming="CharacterEllipsis"
-                  ToolTip.Tip="{Binding MixModeDisplayName}">
+                  TextTrimming="CharacterEllipsis">
                   <TextBlock.Styles>
+                    <Style Selector="TextBlock.corrupt">
+                      <Setter Property="FontWeight" Value="Bold" />
+                      <Setter Property="Foreground" Value="{DynamicResource SukiDangerColor}" />
+                    </Style>
                     <Style Selector="TextBlock">
                       <Setter Property="FontWeight" Value="Normal" />
                       <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
+                    </Style>
+                    <Style Selector="ToggleSwitch.pro:checked TextBlock.mixLabel">
+                      <Setter Property="FontWeight" Value="Bold" />
+                      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
+                      <Setter Property="Effect">
+                        <DropShadowEffect
+                          BlurRadius="15"
+                          OffsetX="0"
+                          OffsetY="0"
+                          Opacity="0.6"
+                          Color="#FFD700" />
+                      </Setter>
                     </Style>
                     <!--<Style Selector="ToggleSwitch:checked TextBlock">
                       <Setter Property="FontWeight" Value="Bold" />
@@ -110,57 +135,49 @@
                     </Style>-->
                   </TextBlock.Styles>
                 </TextBlock>
-                <Border
-                  Margin="0,0,0,0"
-                  Padding="2,1"
-                  VerticalAlignment="Center"
-                  BorderThickness="1"
-                  CornerRadius="4"
-                  IsVisible="False"
-                  RenderTransform="scale(0.9,0.8)">
-                  <Border.Styles>
-                    <Style Selector="Border">
-                      <Setter Property="Background" Value="Transparent" />
-                      <Setter Property="BorderBrush" Value="{DynamicResource SukiText}" />
-                      <Setter Property="Opacity" Value="0.3" />
-                    </Style>
-                    <Style Selector="ToggleSwitch:checked Border">
-                      <Setter Property="Background" Value="{StaticResource PremiumGoldBrush}" />
-                      <Setter Property="BorderBrush" Value="{StaticResource PremiumGoldBorderBrush}" />
-                      <Setter Property="Opacity" Value="1" />
-                    </Style>
-                  </Border.Styles>
-                  <StackPanel Orientation="Horizontal" Spacing="2">
-                    <materialIcons:MaterialIcon
-                      Width="12"
-                      Height="12"
-                      VerticalAlignment="Center"
-                      Kind="Crown">
-                      <materialIcons:MaterialIcon.Styles>
-                        <Style Selector="materialIcons|MaterialIcon">
-                          <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
-                        </Style>
-                        <Style Selector="ToggleSwitch:checked materialIcons|MaterialIcon">
-                          <Setter Property="Foreground" Value="#5A4200" />
-                        </Style>
-                      </materialIcons:MaterialIcon.Styles>
-                    </materialIcons:MaterialIcon>
+                <Panel Margin="0,0,0,0" VerticalAlignment="Center" IsVisible="{Binding HasMixModeTag}">
+                  <Border
+                    Padding="2,1"
+                    BorderBrush="{DynamicResource SukiText}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    IsVisible="{Binding !IsMixModeTagPro}"
+                    Opacity="0.3"
+                    RenderTransform="scale(0.9,0.8)">
                     <TextBlock
                       VerticalAlignment="Center"
                       FontSize="9"
-                      FontWeight="Heavy"
-                      Text="PRO">
-                      <TextBlock.Styles>
-                        <Style Selector="TextBlock">
-                          <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
-                        </Style>
-                        <Style Selector="ToggleSwitch:checked TextBlock">
-                          <Setter Property="Foreground" Value="#5A4200" />
-                        </Style>
-                      </TextBlock.Styles>
-                    </TextBlock>
-                  </StackPanel>
-                </Border>
+                      FontWeight="SemiBold"
+                      Foreground="{DynamicResource SukiText}"
+                      Text="{Binding MixModeTag}"
+                      TextTrimming="CharacterEllipsis" />
+                  </Border>
+
+                  <Border
+                    Padding="2,1"
+                    Background="{StaticResource PremiumGoldBrush}"
+                    BorderBrush="{StaticResource PremiumGoldBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    IsVisible="{Binding IsMixModeTagPro}"
+                    RenderTransform="scale(0.9,0.8)">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                      <materialIcons:MaterialIcon
+                        Width="10"
+                        Height="10"
+                        VerticalAlignment="Center"
+                        Foreground="#5A4200"
+                        Kind="Crown" />
+                      <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="9"
+                        FontWeight="Heavy"
+                        Foreground="#5A4200"
+                        Text="{Binding MixModeTag}"
+                        TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Border>
+                </Panel>
               </StackPanel>
             </ToggleSwitch.OnContent>
           </ToggleSwitch>
@@ -224,7 +241,7 @@
                       FontSize="9"
                       FontWeight="Heavy"
                       Foreground="#5A4200"
-                      Text="BEST" />
+                      Text="PRO" />
                   </StackPanel>
                 </Border>
               </StackPanel>
