@@ -7,6 +7,9 @@
 
   <Design.PreviewWith>
     <Border Padding="20">
+      <Border.Resources>
+        <!--<Color x:Key="SukiPrimaryColor">#FFD700</Color>-->
+      </Border.Resources>
       <StackPanel Spacing="20">
         <Border HorizontalAlignment="Center" Background="#10FF0000">
           <controls:DashboardSwitch

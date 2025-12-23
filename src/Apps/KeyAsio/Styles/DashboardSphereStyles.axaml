@@ -6,7 +6,7 @@
   xmlns:suki="https://github.com/kikipoulet/SukiUI">
   <Design.PreviewWith>
     <Border Padding="100">
-      <controls:DashboardSphere IsActive="True" StatusText="Test" />
+      <controls:DashboardSphere IsActive="False" StatusText="Test" />
     </Border>
   </Design.PreviewWith>
 
@@ -90,7 +90,7 @@
                   Width="48"
                   Height="48"
                   Foreground="Gray"
-                  Kind="LinkVariant">
+                  Kind="LinkOff">
                   <materialIcons:MaterialIcon.Transitions>
                     <Transitions>
                       <BrushTransition
@@ -220,6 +220,7 @@
 
       <!--  Status Icon Active  -->
       <Style Selector="^ /template/ materialIcons|MaterialIcon#StatusIcon">
+        <Setter Property="Kind" Value="LinkVariant" />
         <Setter Property="Foreground" Value="{DynamicResource SukiPrimaryColor}" />
       </Style>
 

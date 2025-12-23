@@ -136,14 +136,14 @@
       IsActive="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}"
       ProcessId="{Binding SyncDisplay.ProcessId}"
       StatusText="{Binding SyncDisplay.SyncedStatusText}" />
-
+<!--
     <CheckBox
       x:Name="CbControlStatus"
       Grid.Row="1"
       HorizontalAlignment="Right"
       Content="IsActive"
       IsCheckedChanged="CbControlStatus_OnIsCheckedChanged" />
-
+-->
     <!--  Bottom: Stats & Quick Keys  -->
     <StackPanel
       Grid.Row="2"
