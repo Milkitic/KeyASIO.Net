@@ -6,7 +6,7 @@
   xmlns:suki="https://github.com/kikipoulet/SukiUI">
   <Design.PreviewWith>
     <Border Padding="100">
-      <controls:DashboardSphere IsActive="False" StatusText="Test" />
+      <controls:DashboardSphere IsActive="True" StatusText="Test" />
     </Border>
   </Design.PreviewWith>
 
@@ -125,7 +125,7 @@
       <Style Selector="^ /template/ Border#Glow">
         <Setter Property="BorderBrush" Value="{DynamicResource SukiPrimaryColor}" />
         <Style.Animations>
-          <Animation IterationCount="Infinite" Duration="0:0:3">
+          <Animation IterationCount="1" Duration="0:0:3">
             <KeyFrame Cue="0%">
               <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
               <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
@@ -152,7 +152,7 @@
           <Animation
             Delay="0:0:0.1"
             Easing="CircularEaseOut"
-            IterationCount="Infinite"
+            IterationCount="1"
             Duration="0:0:2.2">
             <KeyFrame Cue="50%">
               <Setter Property="Opacity" Value="1" />
@@ -195,7 +195,7 @@
           <Animation
             Delay="0:0:0.1"
             Easing="CircularEaseOut"
-            IterationCount="Infinite"
+            IterationCount="1"
             Duration="0:0:2.2">
             <KeyFrame Cue="0%">
               <Setter Property="ScaleTransform.ScaleX" Value="1" />
@@ -229,7 +229,7 @@
         <Style.Animations>
           <Animation
             Easing="SineEaseOut"
-            IterationCount="Infinite"
+            IterationCount="1"
             Duration="0:0:2.2">
             <KeyFrame Cue="0%">
               <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
