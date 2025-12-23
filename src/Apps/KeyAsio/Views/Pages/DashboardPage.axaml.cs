@@ -46,9 +46,9 @@ public partial class DashboardPage : UserControl
 
     private void CbControlStatus_OnIsCheckedChanged(object? sender, RoutedEventArgs e)
     {
-        if (_viewModel != null)
+        if (_viewModel != null && sender is CheckBox checkBox)
         {
-            _viewModel.SyncSession.OsuStatus = CbControlStatus.IsChecked == true
+            _viewModel.SyncSession.OsuStatus = checkBox.IsChecked == true
                 ? OsuMemoryStatus.MainView
                 : OsuMemoryStatus.NotRunning;
         }

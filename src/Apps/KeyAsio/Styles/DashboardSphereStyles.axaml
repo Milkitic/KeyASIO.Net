@@ -1,0 +1,250 @@
+﻿<ResourceDictionary
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI">
+  <Design.PreviewWith>
+    <Border Padding="100">
+      <controls:DashboardSphere IsActive="True" StatusText="Test" />
+    </Border>
+  </Design.PreviewWith>
+
+  <ControlTheme x:Key="{x:Type controls:DashboardSphere}" TargetType="controls:DashboardSphere">
+    <Setter Property="ClipToBounds" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+          <!--  Ripple Effect Layer  -->
+          <Border
+            Name="RippleContainer"
+            Width="220"
+            Height="220"
+            IsVisible="False">
+            <Border
+              Name="Ripple"
+              BorderBrush="{DynamicResource SukiPrimaryColor}"
+              BorderThickness="2"
+              CornerRadius="150"
+              IsVisible="False"
+              Opacity="0" />
+          </Border>
+
+          <!--  Outer Glow Ring  -->
+          <Border
+            Name="Glow"
+            Width="220"
+            Height="220"
+            BorderBrush="Gray"
+            BorderThickness="2"
+            CornerRadius="150"
+            Opacity="0.2">
+            <Border.Effect>
+              <BlurEffect Radius="20" />
+            </Border.Effect>
+            <Border.Transitions>
+              <Transitions>
+                <BrushTransition
+                  Easing="CubicEaseOut"
+                  Property="BorderBrush"
+                  Duration="0:0:0.5" />
+              </Transitions>
+            </Border.Transitions>
+          </Border>
+
+          <!--  Main Sphere  -->
+          <suki:GlassCard
+            Name="SphereCard"
+            Width="200"
+            Height="200"
+            BorderThickness="0"
+            CornerRadius="100">
+            <suki:GlassCard.Transitions>
+              <Transitions>
+                <TransformOperationsTransition
+                  Easing="CircularEaseOut"
+                  Property="RenderTransform"
+                  Duration="0:0:0.5" />
+              </Transitions>
+            </suki:GlassCard.Transitions>
+
+            <Grid>
+              <Border
+                Name="Core"
+                Background="Gray"
+                CornerRadius="100"
+                Opacity="0.1">
+                <Border.Transitions>
+                  <Transitions>
+                    <BrushTransition
+                      Easing="CubicEaseOut"
+                      Property="Background"
+                      Duration="0:0:0.5" />
+                  </Transitions>
+                </Border.Transitions>
+              </Border>
+
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <materialIcons:MaterialIcon
+                  Name="StatusIcon"
+                  Width="48"
+                  Height="48"
+                  Foreground="Gray"
+                  Kind="LinkVariant">
+                  <materialIcons:MaterialIcon.Transitions>
+                    <Transitions>
+                      <BrushTransition
+                        Easing="CubicEaseOut"
+                        Property="Foreground"
+                        Duration="0:0:0.5" />
+                    </Transitions>
+                  </materialIcons:MaterialIcon.Transitions>
+                </materialIcons:MaterialIcon>
+
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  Classes="h2"
+                  FontWeight="Bold"
+                  Foreground="{DynamicResource SukiText}"
+                  Text="{TemplateBinding StatusText}" />
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  Classes="Caption"
+                  Opacity="0.6"
+                  Text="{Binding ProcessId, RelativeSource={RelativeSource TemplatedParent}, StringFormat='PID: {0}'}" />
+              </StackPanel>
+            </Grid>
+          </suki:GlassCard>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+
+    <!--  Active State  -->
+    <Style Selector="^:active">
+      <!--  Glow Active  -->
+      <Style Selector="^ /template/ Border#Glow">
+        <Setter Property="BorderBrush" Value="{DynamicResource SukiPrimaryColor}" />
+        <Style.Animations>
+          <Animation IterationCount="Infinite" Duration="0:0:3">
+            <KeyFrame Cue="0%">
+              <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+              <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+              <Setter Property="Opacity" Value="0.2" />
+            </KeyFrame>
+            <KeyFrame Cue="50%">
+              <Setter Property="ScaleTransform.ScaleX" Value="1.05" />
+              <Setter Property="ScaleTransform.ScaleY" Value="1.05" />
+              <Setter Property="Opacity" Value="0.4" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+              <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+              <Setter Property="Opacity" Value="0.2" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+
+      <!--  Ripple Container Active  -->
+      <Style Selector="^ /template/ Border#RippleContainer">
+        <Setter Property="IsVisible" Value="True" />
+        <Style.Animations>
+          <Animation
+            Delay="0:0:0.1"
+            Easing="CircularEaseOut"
+            IterationCount="Infinite"
+            Duration="0:0:2.2">
+            <KeyFrame Cue="50%">
+              <Setter Property="Opacity" Value="1" />
+            </KeyFrame>
+            <KeyFrame Cue="50%">
+              <Setter Property="Opacity" Value="0" />
+            </KeyFrame>
+            <KeyFrame Cue="52.5%">
+              <Setter Property="Opacity" Value="1" />
+            </KeyFrame>
+            <KeyFrame Cue="55%">
+              <Setter Property="Opacity" Value="0" />
+            </KeyFrame>
+            <KeyFrame Cue="57.5%">
+              <Setter Property="Opacity" Value="1" />
+            </KeyFrame>
+            <KeyFrame Cue="60%">
+              <Setter Property="Opacity" Value="0" />
+            </KeyFrame>
+            <KeyFrame Cue="62.5%">
+              <Setter Property="Opacity" Value="1" />
+            </KeyFrame>
+            <KeyFrame Cue="65%">
+              <Setter Property="Opacity" Value="0" />
+            </KeyFrame>
+            <KeyFrame Cue="67.5%">
+              <Setter Property="Opacity" Value="1" />
+            </KeyFrame>
+            <KeyFrame Cue="70%">
+              <Setter Property="Opacity" Value="0" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+
+      <!--  Ripple Active  -->
+      <Style Selector="^ /template/ Border#Ripple">
+        <Setter Property="IsVisible" Value="True" />
+        <Style.Animations>
+          <Animation
+            Delay="0:0:0.1"
+            Easing="CircularEaseOut"
+            IterationCount="Infinite"
+            Duration="0:0:2.2">
+            <KeyFrame Cue="0%">
+              <Setter Property="ScaleTransform.ScaleX" Value="1" />
+              <Setter Property="ScaleTransform.ScaleY" Value="1" />
+              <Setter Property="Opacity" Value="0.5" />
+              <Setter Property="BorderThickness" Value="4" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="ScaleTransform.ScaleX" Value="1.4" />
+              <Setter Property="ScaleTransform.ScaleY" Value="1.4" />
+              <Setter Property="Opacity" Value="0.0" />
+              <Setter Property="BorderThickness" Value="0" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+
+      <!--  Core Active  -->
+      <Style Selector="^ /template/ Border#Core">
+        <Setter Property="Background" Value="{DynamicResource SukiPrimaryColor}" />
+      </Style>
+
+      <!--  Status Icon Active  -->
+      <Style Selector="^ /template/ materialIcons|MaterialIcon#StatusIcon">
+        <Setter Property="Foreground" Value="{DynamicResource SukiPrimaryColor}" />
+      </Style>
+
+      <!--  Sphere Card Active (Breathing)  -->
+      <Style Selector="^ /template/ suki|GlassCard#SphereCard">
+        <Style.Animations>
+          <Animation
+            Easing="SineEaseOut"
+            IterationCount="Infinite"
+            Duration="0:0:2.2">
+            <KeyFrame Cue="0%">
+              <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+              <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+            </KeyFrame>
+            <KeyFrame Cue="4%">
+              <Setter Property="ScaleTransform.ScaleX" Value="1.02" />
+              <Setter Property="ScaleTransform.ScaleY" Value="1.02" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+              <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+              <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>
