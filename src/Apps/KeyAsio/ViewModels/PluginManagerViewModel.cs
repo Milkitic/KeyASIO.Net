@@ -14,10 +14,13 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     public PluginManagerViewModel(IPluginManager pluginManager, AppSettings appSettings)
     {
         _appSettings = appSettings;
-        _musicManagerPlugins.AddRange(pluginManager.GetAllPlugins().OfType<IMusicManagerPlugin>());
-        foreach (var plugin in _musicManagerPlugins)
+        if (pluginManager != null!) // Design mode check
         {
-            plugin.OptionStateChanged += OnMixOptionStateChanged;
+            _musicManagerPlugins.AddRange(pluginManager.GetAllPlugins().OfType<IMusicManagerPlugin>());
+            foreach (var plugin in _musicManagerPlugins)
+            {
+                plugin.OptionStateChanged += OnMixOptionStateChanged;
+            }
         }
 
         _appSettings.Sync.PropertyChanged += OnSyncSettingsChanged;
@@ -88,7 +91,11 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             plugin.OptionStateChanged -= OnMixOptionStateChanged;
         }
 
-        _appSettings.Sync.PropertyChanged -= OnSyncSettingsChanged;
+        if (_appSettings?.Sync is INotifyPropertyChanged syncNotify)
+        {
+            syncNotify.PropertyChanged -= OnSyncSettingsChanged;
+        }
+
         GC.SuppressFinalize(this);
     }
 }

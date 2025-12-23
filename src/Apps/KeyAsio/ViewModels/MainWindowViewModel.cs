@@ -35,6 +35,8 @@ public partial class MainWindowViewModel : IDisposable
             throw new NotSupportedException();
         }
 
+        DialogManager = new SukiDialogManager();
+        MainToastManager = new SukiToastManager();
         AppSettings = new AppSettings();
         AudioSettings = new AudioSettingsViewModel();
         Shared = new SharedViewModel(AppSettings);
@@ -49,14 +51,15 @@ public partial class MainWindowViewModel : IDisposable
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
-        ILogger<KeyBindingViewModel> keyBindingVmLogger,
         AppSettings appSettings,
         UpdateService updateService,
         AudioSettingsViewModel audioSettingsViewModel,
         SharedViewModel sharedViewModel,
         SyncSessionContext syncSession,
-        KeyboardBindingInitializer keyboardBindingInitializer,
-        IPluginManager pluginManager)
+        PluginManagerViewModel pluginManagerViewModel,
+        KeyBindingViewModel keyBindingViewModel,
+        ISukiDialogManager dialogManager,
+        ISukiToastManager toastManager)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
@@ -65,18 +68,19 @@ public partial class MainWindowViewModel : IDisposable
         Shared = sharedViewModel;
         SyncSession = syncSession;
         SyncDisplay = new SyncDisplayViewModel(SyncSession);
-
+        
+        DialogManager = dialogManager;
+        MainToastManager = toastManager;
         AudioSettings.ToastManager = MainToastManager;
 
-        PluginManager = new PluginManagerViewModel(pluginManager, AppSettings);
-        KeyBinding =
-            new KeyBindingViewModel(keyBindingVmLogger, DialogManager, AppSettings, keyboardBindingInitializer);
+        PluginManager = pluginManagerViewModel;
+        KeyBinding = keyBindingViewModel;
 
         SubscribeToSettingsChanges();
     }
 
-    public ISukiDialogManager DialogManager { get; } = new SukiDialogManager();
-    public ISukiToastManager MainToastManager { get; } = new SukiToastManager();
+    public ISukiDialogManager DialogManager { get; }
+    public ISukiToastManager MainToastManager { get; }
     public AppSettings AppSettings { get; }
     public UpdateService UpdateService { get; }
     public AudioSettingsViewModel AudioSettings { get; }
