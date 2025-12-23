@@ -1,11 +1,15 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.ViewModels;
 
 namespace KeyAsio.Views.Pages;
 
 public partial class DashboardPage : UserControl
 {
+    private MainWindowViewModel? _viewModel;
+
     public DashboardPage()
     {
         InitializeComponent();
@@ -16,6 +20,7 @@ public partial class DashboardPage : UserControl
         base.OnDataContextChanged(e);
         if (DataContext is MainWindowViewModel vm)
         {
+            _viewModel = vm;
             UpdateSwitchColor(vm.PluginManager.IsMixModeTagPro);
             vm.PropertyChanged += (sender, args) =>
             {
@@ -36,6 +41,16 @@ public partial class DashboardPage : UserControl
         else
         {
             MixSwitch.Resources.Remove("SukiPrimaryColor");
+        }
+    }
+
+    private void CbControlStatus_OnIsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        if (_viewModel != null)
+        {
+            _viewModel.SyncSession.OsuStatus = CbControlStatus.IsChecked == true
+                ? OsuMemoryStatus.MainView
+                : OsuMemoryStatus.NotRunning;
         }
     }
 }

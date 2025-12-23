@@ -91,8 +91,8 @@
                 </materialIcons:MaterialIcon>
                 <TextBlock
                   VerticalAlignment="Center"
-                  Classes.corrupt="{Binding PluginManager.ActivePlugin,Converter={x:Static ObjectConverters.IsNull}}"
                   Classes="mixLabel"
+                  Classes.corrupt="{Binding PluginManager.ActivePlugin, Converter={x:Static ObjectConverters.IsNull}}"
                   Text="{Binding PluginManager.MixModeDisplayName}"
                   TextTrimming="CharacterEllipsis">
                   <TextBlock.Styles>
@@ -130,7 +130,10 @@
                     </Style>-->
                   </TextBlock.Styles>
                 </TextBlock>
-                <Panel Margin="0,0,0,0" VerticalAlignment="Center" IsVisible="{Binding PluginManager.HasMixModeTag}">
+                <Panel
+                  Margin="0,0,0,0"
+                  VerticalAlignment="Center"
+                  IsVisible="{Binding PluginManager.HasMixModeTag}">
                   <Border
                     Padding="2,1"
                     BorderBrush="{DynamicResource SukiText}"
@@ -264,13 +267,154 @@
       <Grid.Styles>
         <Style Selector="Border.glow">
           <Setter Property="BorderBrush" Value="Gray" />
+          <Setter Property="Transitions">
+            <Transitions>
+              <BrushTransition
+                Easing="CubicEaseOut"
+                Property="BorderBrush"
+                Duration="0:0:0.5" />
+            </Transitions>
+          </Setter>
         </Style>
         <Style Selector="Border.glow.active">
           <Setter Property="BorderBrush" Value="{DynamicResource SukiPrimaryColor}" />
+          <Style.Animations>
+            <Animation IterationCount="Infinite" Duration="0:0:3">
+              <KeyFrame Cue="0%">
+                <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+                <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+                <Setter Property="Opacity" Value="0.2" />
+              </KeyFrame>
+              <KeyFrame Cue="50%">
+                <Setter Property="ScaleTransform.ScaleX" Value="1.05" />
+                <Setter Property="ScaleTransform.ScaleY" Value="1.05" />
+                <Setter Property="Opacity" Value="0.4" />
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+                <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+                <Setter Property="Opacity" Value="0.2" />
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
+
+        <Style Selector="Border.ripple-container.active">
+          <Setter Property="IsVisible" Value="True" />
+          <Style.Animations>
+            <Animation
+              Delay="0:0:0.1"
+              Easing="CircularEaseOut"
+              IterationCount="Infinite"
+              Duration="0:0:2.2">
+              <KeyFrame Cue="50%">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+              <KeyFrame Cue="50%">
+                <Setter Property="Opacity" Value="0" />
+              </KeyFrame>
+              <KeyFrame Cue="52.5%">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+              <KeyFrame Cue="55%">
+                <Setter Property="Opacity" Value="0" />
+              </KeyFrame>
+              <KeyFrame Cue="57.5%">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+              <KeyFrame Cue="60%">
+                <Setter Property="Opacity" Value="0" />
+              </KeyFrame>
+              <KeyFrame Cue="62.5%">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+              <KeyFrame Cue="65%">
+                <Setter Property="Opacity" Value="0" />
+              </KeyFrame>
+              <KeyFrame Cue="67.5%">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+              <KeyFrame Cue="70%">
+                <Setter Property="Opacity" Value="0" />
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
+
+        <Style Selector="Border.ripple">
+          <Setter Property="BorderBrush" Value="{DynamicResource SukiPrimaryColor}" />
+          <Setter Property="BorderThickness" Value="2" />
+          <Setter Property="CornerRadius" Value="150" />
+          <Setter Property="Opacity" Value="0" />
+          <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="Border.ripple.active">
+          <Setter Property="IsVisible" Value="True" />
+          <Style.Animations>
+            <Animation
+              Delay="0:0:0.1"
+              Easing="CircularEaseOut"
+              IterationCount="Infinite"
+              Duration="0:0:2.2">
+              <KeyFrame Cue="0%">
+                <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                <Setter Property="Opacity" Value="0.5" />
+                <Setter Property="BorderThickness" Value="4" />
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="ScaleTransform.ScaleX" Value="1.4" />
+                <Setter Property="ScaleTransform.ScaleY" Value="1.4" />
+                <Setter Property="Opacity" Value="0.0" />
+                <Setter Property="BorderThickness" Value="0" />
+              </KeyFrame>
+            </Animation>
+            <!--  <Animation
+              Delay="0:0:0.1"
+              Easing="CircularEaseOut"
+              IterationCount="Infinite"
+              Duration="0:0:2.2">
+              <KeyFrame Cue="50%">
+                <Setter Property="IsVisible" Value="False" />
+              </KeyFrame>
+              <KeyFrame Cue="52.5%">
+                <Setter Property="IsVisible" Value="True" />
+              </KeyFrame>
+              <KeyFrame Cue="55%">
+                <Setter Property="IsVisible" Value="False" />
+              </KeyFrame>
+              <KeyFrame Cue="57.5%">
+                <Setter Property="IsVisible" Value="True" />
+              </KeyFrame>
+              <KeyFrame Cue="60%">
+                <Setter Property="IsVisible" Value="False" />
+              </KeyFrame>
+              <KeyFrame Cue="62.5%">
+                <Setter Property="IsVisible" Value="True" />
+              </KeyFrame>
+              <KeyFrame Cue="65%">
+                <Setter Property="IsVisible" Value="False" />
+              </KeyFrame>
+              <KeyFrame Cue="67.5%">
+                <Setter Property="IsVisible" Value="True" />
+              </KeyFrame>
+              <KeyFrame Cue="70%">
+                <Setter Property="IsVisible" Value="False" />
+              </KeyFrame>
+            </Animation>-->
+          </Style.Animations>
         </Style>
 
         <Style Selector="Border.core">
           <Setter Property="Background" Value="Gray" />
+          <Setter Property="Transitions">
+            <Transitions>
+              <BrushTransition
+                Easing="CubicEaseOut"
+                Property="Background"
+                Duration="0:0:0.5" />
+            </Transitions>
+          </Setter>
         </Style>
         <Style Selector="Border.core.active">
           <Setter Property="Background" Value="{DynamicResource SukiPrimaryColor}" />
@@ -278,19 +422,68 @@
 
         <Style Selector="materialIcons|MaterialIcon.status">
           <Setter Property="Foreground" Value="Gray" />
+          <Setter Property="Transitions">
+            <Transitions>
+              <BrushTransition
+                Easing="CubicEaseOut"
+                Property="Foreground"
+                Duration="0:0:0.5" />
+            </Transitions>
+          </Setter>
         </Style>
         <Style Selector="materialIcons|MaterialIcon.status.active">
           <Setter Property="Foreground" Value="{DynamicResource SukiPrimaryColor}" />
         </Style>
+
+        <Style Selector="suki|GlassCard.breathing">
+          <Setter Property="Transitions">
+            <Transitions>
+              <TransformOperationsTransition
+                Easing="CircularEaseOut"
+                Property="RenderTransform"
+                Duration="0:0:0.5" />
+            </Transitions>
+          </Setter>
+        </Style>
+        <Style Selector="suki|GlassCard.breathing.active">
+          <Style.Animations>
+            <Animation
+              Easing="SineEaseOut"
+              IterationCount="Infinite"
+              Duration="0:0:2.2">
+              <KeyFrame Cue="0%">
+                <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+                <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+              </KeyFrame>
+              <KeyFrame Cue="4%">
+                <Setter Property="ScaleTransform.ScaleX" Value="1.02" />
+                <Setter Property="ScaleTransform.ScaleY" Value="1.02" />
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+                <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
       </Grid.Styles>
+
+      <!--  Ripple Effect Layer  -->
+      <Border
+        Width="220"
+        Height="220"
+        Classes="ripple-container"
+        Classes.active="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}">  
+        <Border Classes="ripple" Classes.active="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}" />
+      </Border>
 
       <!--  Outer Glow Ring (Simulated with Border/Shadow)  -->
       <Border
         Width="220"
         Height="220"
+        BorderThickness="2"
         Classes="glow"
         Classes.active="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}"
-        BorderThickness="2"
         CornerRadius="150"
         Opacity="0.2">
         <Border.Effect>
@@ -303,6 +496,8 @@
         Width="200"
         Height="200"
         BorderThickness="0"
+        Classes="breathing"
+        Classes.active="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}"
         CornerRadius="100">
         <Grid>
           <Border
@@ -333,6 +528,7 @@
       </suki:GlassCard>
     </Grid>
 
+<!--    <CheckBox x:Name="CbControlStatus" IsCheckedChanged="CbControlStatus_OnIsCheckedChanged" />-->
     <!--  Bottom: Stats & Quick Keys  -->
     <StackPanel
       Grid.Row="2"
