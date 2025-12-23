@@ -17,6 +17,7 @@
     <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
     <converters:IntMillisecond2TimeSpanConverter x:Key="IntMillisecond2TimeSpanConverter" />
     <converters:HookKeyToDisplayConverter x:Key="HookKeyToDisplayConverter" />
+    <converters:OsuStatusToActiveBoolConverter x:Key="OsuStatusToActiveBoolConverter" />
 
     <LinearGradientBrush x:Key="PremiumGoldBrush" StartPoint="0%,0%" EndPoint="100%,100%">
       <GradientStop Offset="0.0" Color="#FFEDC2" />
@@ -260,11 +261,35 @@
       Grid.Row="1"
       HorizontalAlignment="Center"
       VerticalAlignment="Center">
+      <Grid.Styles>
+        <Style Selector="Border.glow">
+          <Setter Property="BorderBrush" Value="Gray" />
+        </Style>
+        <Style Selector="Border.glow.active">
+          <Setter Property="BorderBrush" Value="{DynamicResource SukiPrimaryColor}" />
+        </Style>
+
+        <Style Selector="Border.core">
+          <Setter Property="Background" Value="Gray" />
+        </Style>
+        <Style Selector="Border.core.active">
+          <Setter Property="Background" Value="{DynamicResource SukiPrimaryColor}" />
+        </Style>
+
+        <Style Selector="materialIcons|MaterialIcon.status">
+          <Setter Property="Foreground" Value="Gray" />
+        </Style>
+        <Style Selector="materialIcons|MaterialIcon.status.active">
+          <Setter Property="Foreground" Value="{DynamicResource SukiPrimaryColor}" />
+        </Style>
+      </Grid.Styles>
+
       <!--  Outer Glow Ring (Simulated with Border/Shadow)  -->
       <Border
         Width="220"
         Height="220"
-        BorderBrush="{DynamicResource SukiPrimaryColor}"
+        Classes="glow"
+        Classes.active="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}"
         BorderThickness="2"
         CornerRadius="150"
         Opacity="0.2">
@@ -281,14 +306,16 @@
         CornerRadius="100">
         <Grid>
           <Border
-            Background="{DynamicResource SukiPrimaryColor}"
+            Classes="core"
+            Classes.active="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}"
             CornerRadius="100"
             Opacity="0.1" />
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <materialIcons:MaterialIcon
               Width="48"
               Height="48"
-              Foreground="{DynamicResource SukiPrimaryColor}"
+              Classes="status"
+              Classes.active="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}"
               Kind="LinkVariant" />
             <TextBlock
               HorizontalAlignment="Center"
