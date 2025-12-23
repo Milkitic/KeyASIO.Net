@@ -42,9 +42,9 @@
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
           <ToggleSwitch
             x:Name="MixSwitch"
-            Classes.pro="{Binding IsMixModeTagPro}"
+            Classes.pro="{Binding PluginManager.IsMixModeTagPro}"
             IsChecked="{Binding AppSettings.Sync.EnableMixSync}"
-            IsEnabled="{Binding IsMixSwitchEnabled}">
+            IsEnabled="{Binding PluginManager.IsMixSwitchEnabled}">
             <ToggleSwitch.OffContent>
               <StackPanel
                 Background="Transparent"
@@ -90,9 +90,9 @@
                 </materialIcons:MaterialIcon>
                 <TextBlock
                   VerticalAlignment="Center"
-                  Classes.corrupt="{Binding ActivePlugin,Converter={x:Static ObjectConverters.IsNull}}"
+                  Classes.corrupt="{Binding PluginManager.ActivePlugin,Converter={x:Static ObjectConverters.IsNull}}"
                   Classes="mixLabel"
-                  Text="{Binding MixModeDisplayName}"
+                  Text="{Binding PluginManager.MixModeDisplayName}"
                   TextTrimming="CharacterEllipsis">
                   <TextBlock.Styles>
                     <Style Selector="TextBlock.corrupt">
@@ -129,13 +129,13 @@
                     </Style>-->
                   </TextBlock.Styles>
                 </TextBlock>
-                <Panel Margin="0,0,0,0" VerticalAlignment="Center" IsVisible="{Binding HasMixModeTag}">
+                <Panel Margin="0,0,0,0" VerticalAlignment="Center" IsVisible="{Binding PluginManager.HasMixModeTag}">
                   <Border
                     Padding="2,1"
                     BorderBrush="{DynamicResource SukiText}"
                     BorderThickness="1"
                     CornerRadius="4"
-                    IsVisible="{Binding !IsMixModeTagPro}"
+                    IsVisible="{Binding !PluginManager.IsMixModeTagPro}"
                     Opacity="0.3"
                     RenderTransform="scale(0.9,0.8)">
                     <TextBlock
@@ -143,7 +143,7 @@
                       FontSize="9"
                       FontWeight="SemiBold"
                       Foreground="{DynamicResource SukiText}"
-                      Text="{Binding MixModeTag}"
+                      Text="{Binding PluginManager.MixModeTag}"
                       TextTrimming="CharacterEllipsis" />
                   </Border>
 
@@ -153,7 +153,7 @@
                     BorderBrush="{StaticResource PremiumGoldBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="4"
-                    IsVisible="{Binding IsMixModeTagPro}"
+                    IsVisible="{Binding PluginManager.IsMixModeTagPro}"
                     RenderTransform="scale(0.9,0.8)">
                     <StackPanel Orientation="Horizontal" Spacing="2">
                       <materialIcons:MaterialIcon
@@ -167,7 +167,7 @@
                         FontSize="9"
                         FontWeight="Heavy"
                         Foreground="#5A4200"
-                        Text="{Binding MixModeTag}"
+                        Text="{Binding PluginManager.MixModeTag}"
                         TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                   </Border>
@@ -567,9 +567,9 @@
               <Button
                 Margin="5,0,0,0"
                 Classes="IconAction Flat"
-                Command="{Binding AddKeyCommand}"
+                Command="{Binding KeyBinding.AddKeyCommand}"
                 DockPanel.Dock="Right"
-                IsVisible="{Binding !IsEditingKeys}">
+                IsVisible="{Binding !KeyBinding.IsEditingKeys}">
                 <materialIcons:MaterialIcon Kind="Plus" />
               </Button>
 
@@ -577,15 +577,15 @@
               <Panel DockPanel.Dock="Right">
                 <Button
                   Classes="IconAction Flat"
-                  Command="{Binding ToggleEditKeysCommand}"
-                  IsVisible="{Binding !IsEditingKeys}"
+                  Command="{Binding KeyBinding.ToggleEditKeysCommand}"
+                  IsVisible="{Binding !KeyBinding.IsEditingKeys}"
                   ToolTip.Tip="Edit Bindings">
                   <materialIcons:MaterialIcon Kind="Pencil" />
                 </Button>
                 <Button
                   Classes="IconAction Flat"
-                  Command="{Binding ToggleEditKeysCommand}"
-                  IsVisible="{Binding IsEditingKeys}"
+                  Command="{Binding KeyBinding.ToggleEditKeysCommand}"
+                  IsVisible="{Binding KeyBinding.IsEditingKeys}"
                   ToolTip.Tip="Done">
                   <materialIcons:MaterialIcon Kind="Check" />
                 </Button>
@@ -597,7 +597,7 @@
               Margin="0,10,0,0"
               HorizontalScrollBarVisibility="Auto"
               VerticalScrollBarVisibility="Disabled">
-              <ItemsControl ItemsSource="{Binding BoundKeys}">
+              <ItemsControl ItemsSource="{Binding KeyBinding.BoundKeys}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <StackPanel
@@ -634,10 +634,10 @@
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Classes="Danger"
-                        Command="{Binding $parent[UserControl].DataContext.RemoveKeyCommand}"
+                        Command="{Binding $parent[UserControl].DataContext.KeyBinding.RemoveKeyCommand}"
                         CommandParameter="{Binding}"
                         CornerRadius="10"
-                        IsVisible="{Binding $parent[UserControl].DataContext.IsEditingKeys}">
+                        IsVisible="{Binding $parent[UserControl].DataContext.KeyBinding.IsEditingKeys}">
                         <materialIcons:MaterialIcon
                           Width="12"
                           Height="12"

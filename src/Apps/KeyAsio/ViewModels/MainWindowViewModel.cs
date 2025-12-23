@@ -22,11 +22,10 @@ namespace KeyAsio.ViewModels;
 public partial class MainWindowViewModel : IDisposable
 {
     private readonly ILogger<MainWindowViewModel> _logger;
-    private readonly KeyboardBindingInitializer _keyboardBindingInitializer;
-    private readonly List<IMusicManagerPlugin> _musicManagerPlugins = new();
-    private bool _isNavigating;
-    private CancellationTokenSource? _saveDebounceCts;
     private readonly List<INotifyPropertyChanged> _observedSettings = new();
+
+    private CancellationTokenSource? _saveDebounceCts;
+    private bool _isNavigating;
     private bool _disposed;
 
     public MainWindowViewModel()
@@ -35,23 +34,22 @@ public partial class MainWindowViewModel : IDisposable
         {
             throw new NotSupportedException();
         }
-        else
-        {
-            AppSettings = new AppSettings();
-            AudioSettings = new AudioSettingsViewModel();
-            Shared = new SharedViewModel(AppSettings);
-            SyncSession = new SyncSessionContext(AppSettings);
-            SyncDisplay = new SyncDisplayViewModel(SyncSession);
-            _keyboardBindingInitializer = null!;
-            MixModeDisplayName = "MIX";
-            MixModeTag = "PRO";
-            IsMixSwitchEnabled = true;
-            UpdateService = null!;
-            _logger = null!;
-        }
+
+        AppSettings = new AppSettings();
+        AudioSettings = new AudioSettingsViewModel();
+        Shared = new SharedViewModel(AppSettings);
+        SyncSession = new SyncSessionContext(AppSettings);
+        SyncDisplay = new SyncDisplayViewModel(SyncSession);
+
+        PluginManager = new PluginManagerViewModel(null!, AppSettings);
+        KeyBinding = new KeyBindingViewModel(null!, DialogManager, AppSettings, null!);
+
+        UpdateService = null!;
+        _logger = null!;
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
+        ILogger<KeyBindingViewModel> keyBindingVmLogger,
         AppSettings appSettings,
         UpdateService updateService,
         AudioSettingsViewModel audioSettingsViewModel,
@@ -67,15 +65,13 @@ public partial class MainWindowViewModel : IDisposable
         Shared = sharedViewModel;
         SyncSession = syncSession;
         SyncDisplay = new SyncDisplayViewModel(SyncSession);
-        _keyboardBindingInitializer = keyboardBindingInitializer;
-        AudioSettings.ToastManager = MainToastManager;
-        _musicManagerPlugins.AddRange(pluginManager.GetAllPlugins().OfType<IMusicManagerPlugin>());
-        foreach (var plugin in _musicManagerPlugins)
-        {
-            plugin.OptionStateChanged += OnMixOptionStateChanged;
-        }
 
-        RefreshMixMode();
+        AudioSettings.ToastManager = MainToastManager;
+
+        PluginManager = new PluginManagerViewModel(pluginManager, AppSettings);
+        KeyBinding =
+            new KeyBindingViewModel(keyBindingVmLogger, DialogManager, AppSettings, keyboardBindingInitializer);
+
         SubscribeToSettingsChanges();
     }
 
@@ -87,35 +83,13 @@ public partial class MainWindowViewModel : IDisposable
     public SharedViewModel Shared { get; }
     public SyncSessionContext SyncSession { get; }
     public SyncDisplayViewModel SyncDisplay { get; }
+    public KeyBindingViewModel KeyBinding { get; }
+    public PluginManagerViewModel PluginManager { get; }
+
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
 
     [ObservableProperty]
     public partial object? SelectedMenuItem { get; set; }
-
-    [ObservableProperty]
-    public partial string? MixModeDisplayName { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsMixSwitchEnabled { get; set; }
-
-    [ObservableProperty]
-    public partial IMusicManagerPlugin? ActivePlugin { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsMixModeTagPro))]
-    [NotifyPropertyChangedFor(nameof(HasMixModeTag))]
-    public partial string? MixModeTag { get; set; }
-
-    public bool IsMixModeTagPro
-    {
-        get
-        {
-            var isMixModeTagPro = string.Equals(MixModeTag, "PRO", StringComparison.OrdinalIgnoreCase);
-            return isMixModeTagPro;
-        }
-    }
-
-    public bool HasMixModeTag => !string.IsNullOrWhiteSpace(MixModeTag);
 
     public object? SettingsPageItem { get; set; }
     public object? AudioEnginePageItem { get; set; }
@@ -241,11 +215,7 @@ public partial class MainWindowViewModel : IDisposable
         _disposed = true;
 
         SyncDisplay.Dispose();
-
-        foreach (var plugin in _musicManagerPlugins)
-        {
-            plugin.OptionStateChanged -= OnMixOptionStateChanged;
-        }
+        PluginManager.Dispose();
 
         foreach (var obj in _observedSettings)
         {
@@ -259,14 +229,7 @@ public partial class MainWindowViewModel : IDisposable
 
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (sender is AppSettingsSync)
-        {
-            if (e.PropertyName == nameof(AppSettingsSync.EnableSync))
-            {
-                RefreshMixMode();
-            }
-        }
-        else if (sender is AppSettingsAudio)
+        if (sender is AppSettingsAudio)
         {
             if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume))
             {
@@ -302,27 +265,6 @@ public partial class MainWindowViewModel : IDisposable
                 HandleSaveException(ex);
             }
         }
-    }
-
-    private void OnMixOptionStateChanged(object? sender, EventArgs e)
-    {
-        RefreshMixMode();
-    }
-
-    private void RefreshMixMode()
-    {
-        IMusicManagerPlugin? selected = _musicManagerPlugins
-            .Where(x => x.CanEnableOption)
-            .OrderByDescending(x => x.OptionPriority)
-            .FirstOrDefault();
-
-        selected ??= _musicManagerPlugins
-            .OrderByDescending(x => x.OptionPriority)
-            .FirstOrDefault();
-        ActivePlugin = selected;
-        MixModeDisplayName = selected?.OptionName ?? "Corrupted";
-        MixModeTag = selected?.OptionTag;
-        IsMixSwitchEnabled = AppSettings.Sync.EnableSync && (selected?.CanEnableOption ?? false);
     }
 
     private void HandleSaveException(Exception ex)

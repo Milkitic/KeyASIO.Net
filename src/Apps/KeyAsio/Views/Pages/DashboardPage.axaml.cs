@@ -16,12 +16,12 @@ public partial class DashboardPage : UserControl
         base.OnDataContextChanged(e);
         if (DataContext is MainWindowViewModel vm)
         {
-            UpdateSwitchColor(vm.IsMixModeTagPro);
+            UpdateSwitchColor(vm.PluginManager.IsMixModeTagPro);
             vm.PropertyChanged += (sender, args) =>
             {
-                if (args.PropertyName == nameof(MainWindowViewModel.IsMixModeTagPro))
+                if (args.PropertyName == nameof(MainWindowViewModel.PluginManager.IsMixModeTagPro))
                 {
-                    UpdateSwitchColor(vm.IsMixModeTagPro);
+                    UpdateSwitchColor(vm.PluginManager.IsMixModeTagPro);
                 }
             };
         }
