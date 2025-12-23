@@ -41,144 +41,15 @@
     <suki:GlassCard Margin="0,0,0,15" Classes="Surface">
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-          <ToggleSwitch
+          <controls:DashboardSwitch
             x:Name="MixSwitch"
-            Classes.pro="{Binding PluginManager.IsMixModeTagPro}"
             IsChecked="{Binding AppSettings.Sync.EnableMixSync}"
-            IsEnabled="{Binding PluginManager.IsMixSwitchEnabled}">
-            <ToggleSwitch.OffContent>
-              <StackPanel
-                Background="Transparent"
-                Orientation="Horizontal"
-                Spacing="8"
-                ToolTip.Tip="Enable memory scanning and correct hitsound playback.">
-                <materialIcons:MaterialIcon
-                  Width="18"
-                  Height="18"
-                  VerticalAlignment="Center"
-                  Kind="MusicNoteOff"
-                  Opacity="{DynamicResource OpacitySecondary}" />
-                <TextBlock VerticalAlignment="Center" Text="SFX" />
-              </StackPanel>
-            </ToggleSwitch.OffContent>
-            <ToggleSwitch.OnContent>
-              <StackPanel
-                Width="96"
-                Background="Transparent"
-                Orientation="Horizontal"
-                Spacing="8"
-                ToolTip.Tip="Enable music‑related functions.">
-                <materialIcons:MaterialIcon
-                  Width="18"
-                  Height="18"
-                  VerticalAlignment="Center"
-                  Classes="mixIcon"
-                  Kind="Music">
-                  <materialIcons:MaterialIcon.Styles>
-                    <Style Selector="materialIcons|MaterialIcon">
-                      <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
-                      <Setter Property="Opacity" Value="{DynamicResource OpacitySecondary}" />
-                    </Style>
-                    <Style Selector="ToggleSwitch.pro:checked materialIcons|MaterialIcon.mixIcon">
-                      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
-                      <Setter Property="Opacity" Value="1" />
-                    </Style>
-                    <!--<Style Selector="ToggleSwitch:checked materialIcons|MaterialIcon">
-                      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
-                      <Setter Property="Opacity" Value="1" />
-                    </Style>-->
-                  </materialIcons:MaterialIcon.Styles>
-                </materialIcons:MaterialIcon>
-                <TextBlock
-                  VerticalAlignment="Center"
-                  Classes="mixLabel"
-                  Classes.corrupt="{Binding PluginManager.ActivePlugin, Converter={x:Static ObjectConverters.IsNull}}"
-                  Text="{Binding PluginManager.MixModeDisplayName}"
-                  TextTrimming="CharacterEllipsis">
-                  <TextBlock.Styles>
-                    <Style Selector="TextBlock.corrupt">
-                      <Setter Property="FontWeight" Value="Bold" />
-                      <Setter Property="Foreground" Value="{DynamicResource SukiDangerColor}" />
-                    </Style>
-                    <Style Selector="TextBlock">
-                      <Setter Property="FontWeight" Value="Normal" />
-                      <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
-                    </Style>
-                    <Style Selector="ToggleSwitch.pro:checked TextBlock.mixLabel">
-                      <Setter Property="FontWeight" Value="Bold" />
-                      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
-                      <Setter Property="Effect">
-                        <DropShadowEffect
-                          BlurRadius="15"
-                          OffsetX="0"
-                          OffsetY="0"
-                          Opacity="0.6"
-                          Color="#FFD700" />
-                      </Setter>
-                    </Style>
-                    <!--<Style Selector="ToggleSwitch:checked TextBlock">
-                      <Setter Property="FontWeight" Value="Bold" />
-                      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
-                      <Setter Property="Effect">
-                        <DropShadowEffect
-                          BlurRadius="15"
-                          OffsetX="0"
-                          OffsetY="0"
-                          Opacity="0.6"
-                          Color="#FFD700" />
-                      </Setter>
-                    </Style>-->
-                  </TextBlock.Styles>
-                </TextBlock>
-                <Panel
-                  Margin="0,0,0,0"
-                  VerticalAlignment="Center"
-                  IsVisible="{Binding PluginManager.HasMixModeTag}">
-                  <Border
-                    Padding="2,1"
-                    BorderBrush="{DynamicResource SukiText}"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    IsVisible="{Binding !PluginManager.IsMixModeTagPro}"
-                    Opacity="0.3"
-                    RenderTransform="scale(0.9,0.8)">
-                    <TextBlock
-                      VerticalAlignment="Center"
-                      FontSize="9"
-                      FontWeight="SemiBold"
-                      Foreground="{DynamicResource SukiText}"
-                      Text="{Binding PluginManager.MixModeTag}"
-                      TextTrimming="CharacterEllipsis" />
-                  </Border>
-
-                  <Border
-                    Padding="2,1"
-                    Background="{StaticResource PremiumGoldBrush}"
-                    BorderBrush="{StaticResource PremiumGoldBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    IsVisible="{Binding PluginManager.IsMixModeTagPro}"
-                    RenderTransform="scale(0.9,0.8)">
-                    <StackPanel Orientation="Horizontal" Spacing="2">
-                      <materialIcons:MaterialIcon
-                        Width="10"
-                        Height="10"
-                        VerticalAlignment="Center"
-                        Foreground="#5A4200"
-                        Kind="Crown" />
-                      <TextBlock
-                        VerticalAlignment="Center"
-                        FontSize="9"
-                        FontWeight="Heavy"
-                        Foreground="#5A4200"
-                        Text="{Binding PluginManager.MixModeTag}"
-                        TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
-                  </Border>
-                </Panel>
-              </StackPanel>
-            </ToggleSwitch.OnContent>
-          </ToggleSwitch>
+            IsCorrupt="{Binding PluginManager.ActivePlugin, Converter={x:Static ObjectConverters.IsNull}}"
+            IsEnabled="{Binding PluginManager.IsMixSwitchEnabled}"
+            IsPro="{Binding PluginManager.IsMixModeTagPro}"
+            MixModeDisplayName="{Binding PluginManager.MixModeDisplayName}"
+            MixModeTag="{Binding PluginManager.MixModeTag}"
+            HasMixModeTag="{Binding PluginManager.HasMixModeTag}" />
           <!--<ToggleSwitch IsChecked="{Binding AppSettings.Realtime.RealtimeEnableMusic}" IsEnabled="{Binding AppSettings.Realtime.RealtimeMode}">
             <ToggleSwitch.Styles>
               <Style Selector="ToggleSwitch:checked">
@@ -266,7 +137,13 @@
       ProcessId="{Binding SyncDisplay.ProcessId}"
       StatusText="{Binding SyncDisplay.SyncedStatusText}" />
 
-<!--    <CheckBox x:Name="CbControlStatus" IsCheckedChanged="CbControlStatus_OnIsCheckedChanged" />-->
+    <CheckBox
+      x:Name="CbControlStatus"
+      Grid.Row="1"
+      HorizontalAlignment="Right"
+      Content="IsActive"
+      IsCheckedChanged="CbControlStatus_OnIsCheckedChanged" />
+
     <!--  Bottom: Stats & Quick Keys  -->
     <StackPanel
       Grid.Row="2"

@@ -1,0 +1,187 @@
+﻿<ResourceDictionary
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI">
+
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <StackPanel Spacing="20">
+        <Border HorizontalAlignment="Center" Background="#10FF0000">
+          <controls:DashboardSwitch
+            HasMixModeTag="True"
+            IsChecked="True"
+            IsPro="True"
+            MixModeDisplayName="Mix"
+            MixModeTag="PRO" />
+        </Border>
+        <Border HorizontalAlignment="Center" Background="#10FF0000">
+          <controls:DashboardSwitch
+            HasMixModeTag="True"
+            IsChecked="True"
+            IsPro="False"
+            MixModeDisplayName="Mix"
+            MixModeTag="BETA" />
+        </Border>
+        <Border HorizontalAlignment="Center" Background="#10FF0000">
+          <controls:DashboardSwitch IsChecked="False" />
+        </Border>
+      </StackPanel>
+    </Border>
+  </Design.PreviewWith>
+
+  <ControlTheme x:Key="{x:Type controls:DashboardSwitch}" TargetType="controls:DashboardSwitch">
+    <ControlTheme.Resources>
+      <LinearGradientBrush x:Key="PremiumGoldBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0.0" Color="#FFEDC2" />
+        <GradientStop Offset="0.5" Color="#FFD700" />
+        <GradientStop Offset="1.0" Color="#D4AF37" />
+      </LinearGradientBrush>
+
+      <LinearGradientBrush x:Key="PremiumGoldBorderBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0.0" Color="#FFF5E1" />
+        <GradientStop Offset="1.0" Color="#C5A028" />
+      </LinearGradientBrush>
+    </ControlTheme.Resources>
+
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ToggleSwitch
+          Name="PART_Switch"
+          IsChecked="{TemplateBinding IsChecked,
+                                      Mode=TwoWay}"
+          IsEnabled="{TemplateBinding IsEnabled}">
+
+          <ToggleSwitch.OffContent>
+            <StackPanel
+              Margin="10,0,0,0"
+              Background="Transparent"
+              Orientation="Horizontal"
+              Spacing="5"
+              ToolTip.Tip="Sync hitsounds only.">
+              <materialIcons:MaterialIcon
+                Width="18"
+                Height="18"
+                VerticalAlignment="Center"
+                Kind="MusicNoteOff"
+                Opacity="{DynamicResource OpacitySecondary}" />
+              <TextBlock VerticalAlignment="Center" Text="SFX" />
+            </StackPanel>
+          </ToggleSwitch.OffContent>
+
+          <ToggleSwitch.OnContent>
+            <StackPanel
+              Margin="0,0,10,0"
+              Background="Transparent"
+              Orientation="Horizontal"
+              Spacing="5"
+              ToolTip.Tip="Sync both hitsounds and music.">
+
+              <materialIcons:MaterialIcon
+                Name="MixIcon"
+                Width="18"
+                Height="18"
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource SukiText}"
+                Kind="Music"
+                Opacity="{DynamicResource OpacitySecondary}" />
+
+              <TextBlock
+                Name="MixLabel"
+                VerticalAlignment="Center"
+                FontWeight="Normal"
+                Foreground="{DynamicResource SukiText}"
+                Text="{TemplateBinding MixModeDisplayName}"
+                TextTrimming="CharacterEllipsis" />
+
+              <Panel
+                Margin="0,0,0,0"
+                VerticalAlignment="Center"
+                IsVisible="{TemplateBinding HasMixModeTag}">
+
+                <!--  Standard Tag  -->
+                <LayoutTransformControl IsVisible="{Binding !IsPro, RelativeSource={RelativeSource TemplatedParent}}" LayoutTransform="scale(0.8,0.8)">
+                  <Border
+                    Padding="5,0"
+                    BorderBrush="{DynamicResource SukiText}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Opacity="0.3">
+                    <TextBlock
+                      VerticalAlignment="Center"
+                      FontSize="9"
+                      FontWeight="SemiBold"
+                      Foreground="{DynamicResource SukiText}"
+                      Text="{TemplateBinding MixModeTag}"
+                      TextTrimming="CharacterEllipsis" />
+                  </Border>
+                </LayoutTransformControl>
+
+                <!--  Pro Tag  -->
+                <LayoutTransformControl IsVisible="{TemplateBinding IsPro}" LayoutTransform="scale(0.9,0.8)">
+                  <Border
+                    Padding="2,1"
+                    Background="{StaticResource PremiumGoldBrush}"
+                    BorderBrush="{StaticResource PremiumGoldBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                      <materialIcons:MaterialIcon
+                        Width="10"
+                        Height="10"
+                        VerticalAlignment="Center"
+                        Foreground="#5A4200"
+                        Kind="Crown" />
+                      <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="9"
+                        FontWeight="Heavy"
+                        Foreground="#5A4200"
+                        Text="{TemplateBinding MixModeTag}"
+                        TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Border>
+                </LayoutTransformControl>
+              </Panel>
+            </StackPanel>
+          </ToggleSwitch.OnContent>
+        </ToggleSwitch>
+      </ControlTemplate>
+    </Setter>
+
+    <!--  Styles for states  -->
+
+    <!--  Pro & Checked: Icon Style  -->
+    <!--    <Style Selector="^:pro">
+      <Setter Property="RenderTransform" Value="scale(1.5,1)" />
+
+    </Style>-->
+
+    <Style Selector="^:pro:checked /template/ materialIcons|MaterialIcon#MixIcon">
+      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <!--  Pro & Checked: Label Style  -->
+    <Style Selector="^:pro:checked /template/ TextBlock#MixLabel">
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{StaticResource PremiumGoldBrush}" />
+      <Setter Property="Effect">
+        <DropShadowEffect
+          BlurRadius="15"
+          OffsetX="0"
+          OffsetY="0"
+          Opacity="0.6"
+          Color="#FFD700" />
+      </Setter>
+    </Style>
+
+    <!--  Corrupt State  -->
+    <Style Selector="^:corrupt /template/ TextBlock#MixLabel">
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource SukiDangerColor}" />
+    </Style>
+
+  </ControlTheme>
+</ResourceDictionary>

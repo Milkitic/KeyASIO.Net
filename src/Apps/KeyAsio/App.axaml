@@ -12,6 +12,7 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="/Styles/Dimens.axaml" />
         <ResourceInclude Source="/Styles/DashboardSphereStyles.axaml" />
+        <ResourceInclude Source="/Styles/DashboardSwitchStyles.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
