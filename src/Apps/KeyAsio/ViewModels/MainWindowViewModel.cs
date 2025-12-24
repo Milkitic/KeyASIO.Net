@@ -41,7 +41,6 @@ public partial class MainWindowViewModel : IDisposable
         KeyBinding = new KeyBindingViewModel(null!, DialogManager, AppSettings, null!);
 
         LanguageManager = new LanguageManager(null!, AppSettings);
-        _settingsManager = null!;
 
         UpdateService = null!;
         _logger = null!;
@@ -57,8 +56,7 @@ public partial class MainWindowViewModel : IDisposable
         KeyBindingViewModel keyBindingViewModel,
         ISukiDialogManager dialogManager,
         ISukiToastManager toastManager,
-        LanguageManager languageManager,
-        SettingsManager settingsManager)
+        LanguageManager languageManager)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
@@ -76,7 +74,6 @@ public partial class MainWindowViewModel : IDisposable
         KeyBinding = keyBindingViewModel;
 
         LanguageManager = languageManager;
-        _settingsManager = settingsManager;
     }
 
     public LanguageManager LanguageManager { get; }

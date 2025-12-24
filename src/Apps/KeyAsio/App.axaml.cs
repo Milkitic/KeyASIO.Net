@@ -42,6 +42,9 @@ public partial class App : Application
             var skinManager = Program.Host.Services.GetRequiredService<SkinManager>();
             skinManager.Start();
 
+            // Ensure SettingsManager is initialized to subscribe to settings changes
+            Program.Host.Services.GetRequiredService<SettingsManager>();
+
             var memorySyncBridge = Program.Host.Services.GetRequiredService<MemorySyncBridge>();
             memorySyncBridge.Start();
 
