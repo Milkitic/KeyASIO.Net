@@ -21,8 +21,17 @@
     <PackageReference Include="Sentry" Version="5.16.2" />
   </ItemGroup>
 
-  <Target Condition="$(Configuration) != 'Release'" Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="if not exist &quot;$(ProjectDir)EmbeddedSentryConfiguration.SecretNonRelease.cs&quot; echo public partial class EmbeddedSentryConfiguration { private static readonly string __dsn = &quot;&quot;; }&gt;&quot;$(ProjectDir)EmbeddedSentryConfiguration.SecretNonRelease.cs&quot;" />
+  <Target Name="EnsureSecretNonReleaseExists" BeforeTargets="BeforeBuild" Condition="$(Configuration) != 'Release'">
+    <PropertyGroup>
+      <SecretFile>$(ProjectDir)EmbeddedSentryConfiguration.SecretNonRelease.cs</SecretFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <SecretContent Include="public partial class EmbeddedSentryConfiguration { private static readonly string __dsn = &quot;&quot;%3B }" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(SecretFile)" Lines="@(SecretContent)" Overwrite="true" Condition="!Exists('$(SecretFile)')" />
+    <ItemGroup>
+      <Compile Include="$(SecretFile)" />
+    </ItemGroup>
   </Target>
 
 </Project>
