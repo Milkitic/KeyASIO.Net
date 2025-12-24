@@ -38,7 +38,7 @@ public class SfxPlaybackService
                 var filename = cachedAudio.SourceHash.Substring("internal://dynamic/".Length);
 
                 // 创建一次性军鼓生成器
-                var provider = new SnareDrumOneShotProvider(_audioEngine.EffectMixer.WaveFormat);
+                var provider = new SnareDrumSampleProvider(_audioEngine.EffectMixer.WaveFormat);
 
                 // 简单的参数随机化
                 var random = Random.Shared;

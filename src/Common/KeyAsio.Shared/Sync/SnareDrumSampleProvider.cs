@@ -1,11 +1,12 @@
-﻿using NAudio.Wave;
+﻿using KeyAsio.Core.Audio.SampleProviders;
+using NAudio.Wave;
 
 namespace KeyAsio.Shared.Sync;
 
 /// <summary>
 /// 军鼓生成器
 /// </summary>
-public class SnareDrumOneShotProvider : ISampleProvider
+public class SnareDrumSampleProvider : IRecyclableProvider
 {
     private readonly WaveFormat _waveFormat;
     private readonly Random _random;
@@ -89,12 +90,17 @@ public class SnareDrumOneShotProvider : ISampleProvider
     public float SnareMixLevel { get; set; } = 0.4f;
 
     public WaveFormat WaveFormat => _waveFormat;
+    public ISampleProvider? ResetAndGetSource()
+    {
+        Reset();
+        return null;
+    }
 
     /// <summary>
     /// 创建一个新的军鼓击打实例
     /// </summary>
     /// <param name="targetFormat">混合器的目标格式（支持任意采样率和声道数）</param>
-    public SnareDrumOneShotProvider(WaveFormat targetFormat)
+    public SnareDrumSampleProvider(WaveFormat targetFormat)
     {
         _waveFormat = targetFormat;
         _random = Random.Shared;
@@ -195,5 +201,13 @@ public class SnareDrumOneShotProvider : ISampleProvider
         }
 
         return samplesRead;
+    }
+
+    private void Reset()
+    {
+        _sampleCount = 0;
+        _snapGain = InitialSnapGain;
+        _snareGain = InitialSnareGain;
+        _phase = 0;
     }
 }

@@ -106,7 +106,7 @@ public class AudioCacheManager
     public CachedAudio CreateDynamic(string key, WaveFormat waveFormat)
     {
         var owner = UnmanagedByteMemoryOwner.Allocate(0);
-        var cachedAudio = new CachedAudio(key, owner, 0, waveFormat);
+        var cachedAudio = new CachedAudio(key, owner, 0, new WaveFormat(waveFormat.SampleRate, waveFormat.Channels));
         return cachedAudio;
     }
 
