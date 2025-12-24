@@ -17,6 +17,7 @@ using SukiUI.Controls;
 using SukiUI.Dialogs;
 using SukiUI.Enums;
 using SukiUI.Toasts;
+using KeyAsio.Views.Dialogs;
 
 namespace KeyAsio.Views;
 
@@ -181,23 +182,9 @@ public partial class MainWindow : SukiWindow
 
     private void StartUpdate(UpdateService updateService)
     {
-        var progressBar = new ProgressBar { Minimum = 0, Maximum = 100 };
-        var statusText = new TextBlock { Text = "Starting..." };
-        var stackPanel = new StackPanel
-        {
-            Spacing = 10,
-            Children = { statusText, progressBar }
-        };
-
-        var progressBinding = new Binding(nameof(UpdateService.DownloadProgress)) { Source = updateService };
-        progressBar.Bind(RangeBase.ValueProperty, progressBinding);
-
-        var statusBinding = new Binding(nameof(UpdateService.StatusMessage)) { Source = updateService };
-        statusText.Bind(TextBlock.TextProperty, statusBinding);
-
         _viewModel.DialogManager.CreateDialog()
             .WithTitle("Updating")
-            .WithContent(stackPanel)
+            .WithContent(new UpdateDialogView { DataContext = updateService })
             .WithActionButton("Cancel", _ => updateService.CancelUpdate(), true)
             .TryShow();
 
