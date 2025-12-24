@@ -103,6 +103,13 @@ public class AudioCacheManager
             : throw new InvalidOperationException("Failed to create empty cached audio.");
     }
 
+    public CachedAudio CreateDynamic(string key, WaveFormat waveFormat)
+    {
+        var owner = UnmanagedByteMemoryOwner.Allocate(0);
+        var cachedAudio = new CachedAudio(key, owner, 0, waveFormat);
+        return cachedAudio;
+    }
+
     public async Task<CacheResult> TryGetOrCreateAsync(string cacheKey, Stream fileStream, WaveFormat waveFormat,
         string? category = null)
     {

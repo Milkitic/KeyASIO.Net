@@ -14,7 +14,7 @@ public class SharedViewModel : ViewModelBase
     {
         AppSettings = appSettings;
     }
-    public RangeObservableCollection<SkinDescription> Skins { get; } = [SkinDescription.Default];
+    public RangeObservableCollection<SkinDescription> Skins { get; } = [SkinDescription.Internal];
 
     public SkinDescription? SelectedSkin
     {

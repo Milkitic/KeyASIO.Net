@@ -231,8 +231,12 @@ public class SkinManager
             await UiDispatcher.InvokeAsync(() =>
             {
                 _sharedViewModel.Skins.Clear();
-                _sharedViewModel.Skins.Add(SkinDescription.Default);
-                _sharedViewModel.SelectedSkin = SkinDescription.Default;
+                _sharedViewModel.Skins.Add(SkinDescription.Internal);
+                _sharedViewModel.SelectedSkin = SkinDescription.Internal;
+                foreach (var key in _dictionary.Keys)
+                {
+                    _dictionary[key] = Array.Empty<byte>();
+                }
             });
             return;
         }
@@ -289,12 +293,12 @@ public class SkinManager
             loadedSkins.Add(skinDescription);
         }
 
-        var newSkinList = new List<SkinDescription> { SkinDescription.Default };
+        var newSkinList = new List<SkinDescription> { SkinDescription.Internal, SkinDescription.Classic };
         newSkinList.AddRange(loadedSkins);
 
         var selectedName = _appSettings.Paths.SelectedSkinName;
         var targetSkin = newSkinList.FirstOrDefault(k => k.FolderName == selectedName)
-                         ?? SkinDescription.Default;
+                         ?? SkinDescription.Internal;
 
         await UiDispatcher.InvokeAsync(() =>
         {

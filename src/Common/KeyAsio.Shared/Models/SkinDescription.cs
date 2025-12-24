@@ -8,7 +8,9 @@ public record SkinDescription(string FolderName, string Folder, string? Name, st
     {
         get
         {
-            if (Folder == "") return "classic";
+            if (FolderName == "{classic}") return "classic";
+            if (FolderName == "{internal}") return "ProMix™ Snare";
+
             var sb = new StringBuilder(FolderName);
             if (Name == null && Author == null) return sb.ToString();
             sb.Append(" (");
@@ -28,9 +30,14 @@ public record SkinDescription(string FolderName, string Folder, string? Name, st
     {
         get
         {
-            if (Folder == "")
+            if (FolderName == "{classic}")
             {
                 return "Original copyright © ppy Pty Ltd.";
+            }
+
+            if (FolderName == "{internal}")
+            {
+                return "Copyright © KeyAsio Team";
             }
 
             if (Author == null)
@@ -42,5 +49,6 @@ public record SkinDescription(string FolderName, string Folder, string? Name, st
         }
     }
 
-    public static SkinDescription Default { get; } = new("", "", null, null);
+    public static SkinDescription Internal { get; } = new("{internal}", "{internal}", null, null);
+    public static SkinDescription Classic { get; } = new("{classic}", "{classic}", null, null);
 }

@@ -31,6 +31,64 @@ public class SfxPlaybackService
             return;
         }
 
+        if (cachedAudio.SourceHash != null && cachedAudio.SourceHash.StartsWith("internal://dynamic/"))
+        {
+            try
+            {
+                var filename = cachedAudio.SourceHash.Substring("internal://dynamic/".Length);
+
+                // 创建一次性军鼓生成器
+                var provider = new SnareDrumOneShotProvider(_audioEngine.EffectMixer.WaveFormat);
+
+                // 简单的参数随机化
+                var random = Random.Shared;
+
+                // 1. 基频微调 (±5%)
+                // 模拟击打位置不同导致的音高微差
+                float freqOffset = (random.NextSingle() * 2f - 1f) * 0.05f;
+                provider.FundamentalFrequency *= (1f + freqOffset);
+
+                // 2. 混合比例微调 (±10%)
+                // 模拟响弦共振的不同
+                float mixOffset = (random.NextSingle() * 2f - 1f) * 0.1f;
+                provider.SnareMixLevel = Math.Clamp(provider.SnareMixLevel + mixOffset, 0f, 1f);
+                provider.SnapMixLevel = Math.Clamp(provider.SnapMixLevel - mixOffset * 0.5f, 0f, 1f);
+
+                // 3. 衰减时间微调 (±10%)
+                // 模拟力度的不同导致余音长度变化
+                float decayOffset = (random.NextSingle() * 2f - 1f) * 0.1f;
+                provider.SnareDecayDuration *= (1f + decayOffset);
+                provider.SnapDecayDuration *= (1f + decayOffset);
+
+                // 根据文件名做一些简单的预设调整
+                if (filename.Contains("soft", StringComparison.OrdinalIgnoreCase))
+                {
+                    provider.InitialSnapGain *= 0.8f;
+                    provider.InitialSnareGain *= 0.7f;
+                    provider.FundamentalFrequency *= 0.9f;
+                }
+                else if (filename.Contains("drum", StringComparison.OrdinalIgnoreCase))
+                {
+                    provider.FundamentalFrequency *= 0.8f;
+                    provider.SnareMixLevel *= 0.5f;
+                    provider.SnapMixLevel *= 1.2f;
+                }
+                // normal-hitnormal 保持原样
+
+                var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(provider, volume);
+                var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
+                    BalanceMode.MidSide, AntiClipStrategy.None);
+
+                _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
+                _logger.LogTrace("Play Dynamic: {Key} (Freq: {Freq:F1})", cachedAudio.SourceHash, provider.FundamentalFrequency);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error playing dynamic audio");
+            }
+            return;
+        }
+
         if (_appSettings.Sync.Filters.IgnoreLineVolumes)
         {
             volume = 1;

@@ -266,6 +266,12 @@ public class GameplayAudioService : IDisposable
             return await LoadAndCacheAudioAsync(path, category, waveFormat);
         }
 
+        if (skinFolder == "{internal}")
+        {
+            var dynamicKey = $"internal://dynamic/{filenameKey}";
+            return _audioCacheManager.CreateDynamic(dynamicKey, waveFormat);
+        }
+
         if (_skinManager.TryGetResource(filenameKey, out var bytes))
         {
             var key = $"internal://{filenameKey}";
