@@ -1,7 +1,5 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
-using Avalonia.Controls.Primitives;
-using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
@@ -11,13 +9,13 @@ using KeyAsio.Shared;
 using KeyAsio.Shared.Services;
 using KeyAsio.Utils;
 using KeyAsio.ViewModels;
+using KeyAsio.Views.Dialogs;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using SukiUI.Controls;
 using SukiUI.Dialogs;
 using SukiUI.Enums;
 using SukiUI.Toasts;
-using KeyAsio.Views.Dialogs;
 
 namespace KeyAsio.Views;
 
