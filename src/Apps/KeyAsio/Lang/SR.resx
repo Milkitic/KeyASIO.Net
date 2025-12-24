@@ -61,4 +61,61 @@
   <data name="EngineStatus" xml:space="preserve">
     <value>Engine Status</value>
   </data>
+  <data name="SyncStatus" xml:space="preserve">
+    <value>Sync Status</value>
+  </data>
+  <data name="Beatmap" xml:space="preserve">
+    <value>Beatmap</value>
+  </data>
+  <data name="PlayTime" xml:space="preserve">
+    <value>Play Time</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="AudioDevice" xml:space="preserve">
+    <value>Audio Device</value>
+  </data>
+  <data name="DriverPanel" xml:space="preserve">
+    <value>Driver Panel</value>
+  </data>
+  <data name="ReloadDevice" xml:space="preserve">
+    <value>Reload Device</value>
+  </data>
+  <data name="ClearDevice" xml:space="preserve">
+    <value>Clear Device</value>
+  </data>
+  <data name="NoDeviceSelected" xml:space="preserve">
+    <value>No device selected. </value>
+  </data>
+  <data name="GoToSettings" xml:space="preserve">
+    <value>Go to settings</value>
+  </data>
+  <data name="SampleRate" xml:space="preserve">
+    <value>Sample Rate</value>
+  </data>
+  <data name="Latency" xml:space="preserve">
+    <value>Latency</value>
+  </data>
+  <data name="Buffer" xml:space="preserve">
+    <value>Buffer</value>
+  </data>
+  <data name="Exclusive" xml:space="preserve">
+    <value>Exclusive</value>
+  </data>
+  <data name="On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="QuickBindings" xml:space="preserve">
+    <value>Quick Bindings</value>
+  </data>
+  <data name="EditBindings" xml:space="preserve">
+    <value>Edit Bindings</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
 </root>

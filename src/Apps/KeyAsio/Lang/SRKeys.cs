@@ -3,7 +3,5 @@
 namespace KeyAsio.Lang
 {
     [ResourceKeysOf(typeof(SR))]
-    internal partial class SRKeys
-    {
-    }
+    internal partial class SRKeys;
 }

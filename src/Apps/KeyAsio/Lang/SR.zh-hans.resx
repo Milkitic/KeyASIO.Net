@@ -61,4 +61,61 @@
   <data name="EngineStatus" xml:space="preserve">
     <value>引擎状态</value>
   </data>
+  <data name="SyncStatus" xml:space="preserve">
+    <value>同步状态</value>
+  </data>
+  <data name="Beatmap" xml:space="preserve">
+    <value>谱面</value>
+  </data>
+  <data name="PlayTime" xml:space="preserve">
+    <value>游玩时间</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="AudioDevice" xml:space="preserve">
+    <value>音频设备</value>
+  </data>
+  <data name="DriverPanel" xml:space="preserve">
+    <value>驱动面板</value>
+  </data>
+  <data name="ReloadDevice" xml:space="preserve">
+    <value>重载设备</value>
+  </data>
+  <data name="ClearDevice" xml:space="preserve">
+    <value>清除设备</value>
+  </data>
+  <data name="NoDeviceSelected" xml:space="preserve">
+    <value>未选择设备。</value>
+  </data>
+  <data name="GoToSettings" xml:space="preserve">
+    <value>前往设置</value>
+  </data>
+  <data name="SampleRate" xml:space="preserve">
+    <value>采样率</value>
+  </data>
+  <data name="Latency" xml:space="preserve">
+    <value>延迟</value>
+  </data>
+  <data name="Buffer" xml:space="preserve">
+    <value>缓冲区</value>
+  </data>
+  <data name="Exclusive" xml:space="preserve">
+    <value>独占</value>
+  </data>
+  <data name="On" xml:space="preserve">
+    <value>开</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>关</value>
+  </data>
+  <data name="QuickBindings" xml:space="preserve">
+    <value>快捷键绑定</value>
+  </data>
+  <data name="EditBindings" xml:space="preserve">
+    <value>编辑绑定</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>完成</value>
+  </data>
 </root>
