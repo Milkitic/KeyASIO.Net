@@ -10,6 +10,7 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
 
@@ -125,7 +126,7 @@
           <TextBlock
             VerticalAlignment="Center"
             FontWeight="DemiBold"
-            Text="Engine Status" />
+            Text="{I18N {x:Static lang:SRKeys.EngineStatus}}" />
         </StackPanel>
       </DockPanel>
     </suki:GlassCard>
