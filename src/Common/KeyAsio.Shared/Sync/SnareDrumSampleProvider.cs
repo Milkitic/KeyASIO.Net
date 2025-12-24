@@ -133,6 +133,38 @@ public class SnareDrumSampleProvider : IRecyclableProvider
         // 我们需要填充的 "帧" 数 = count / channels
         int samplesToFill = count / channels;
 
+        // --- 预计算和缓存 (性能优化) ---
+        // 缓存属性到局部变量，避免循环中重复访问属性 getter
+        float fundamentalFreq = FundamentalFrequency;
+        float freqSweepRange = FrequencySweepRange;
+        float pitchDecayTimeConstant = PitchDecayTimeConstant;
+        float snapMixLevel = SnapMixLevel;
+        float snareMixLevel = SnareMixLevel;
+        float impactLevel = ImpactLevel;
+        
+        // 预计算衰减因子
+        // MathF.Exp(-1.0f / (sampleRate * PitchDecayTimeConstant))
+        float freqDecayFactor = MathF.Exp(-1.0f / (sampleRate * pitchDecayTimeConstant));
+        
+        // 预计算当前频率包络值 (避免循环内调用 Exp)
+        // 初始值基于当前 _sampleCount
+        float currentFreqEnv = MathF.Exp(-((float)_sampleCount / sampleRate) / pitchDecayTimeConstant);
+
+        // 预计算 Snap 和 Snare 的衰减因子
+        // 原公式: Gain *= (1.0f - 1.0f / (sampleRate * Duration))
+        float snapDecayFactor = 1.0f - 1.0f / (sampleRate * SnapDecayDuration);
+        float snareDecayFactor = 1.0f - 1.0f / (sampleRate * SnareDecayDuration);
+
+        // 预计算 Impact 持续的采样数，避免循环内浮点除法和比较
+        long impactDurationSamples = (long)(ImpactDuration * sampleRate);
+
+        // 预计算相位增量常数
+        float twoPi = 2f * MathF.PI;
+        float phaseIncrementBase = twoPi / sampleRate;
+
+        // 缓存 Random 实例
+        Random random = _random;
+
         for (int i = 0; i < samplesToFill; i++)
         {
             if (_sampleCount >= _maxDurationSamples)
@@ -142,42 +174,35 @@ public class SnareDrumSampleProvider : IRecyclableProvider
 
             // --- 合成核心逻辑 (基于单声道计算) ---
 
-            // 当前时间的秒数
-            float timeSeconds = (float)_sampleCount / sampleRate;
-
             // 2. 合成 "Snap" (正弦波 + 快速频率掉落)
-            // 增加频率冲击感，从更高频率快速滑落
-            // 使用基于时间的计算，适应不同采样率
-            float freqEnv = MathF.Exp(-timeSeconds / PitchDecayTimeConstant);
-            float freq = FundamentalFrequency + (FrequencySweepRange * freqEnv); // 初始频率 + SweepRange
+            // 使用累乘更新频率包络
+            float freq = fundamentalFreq + (freqSweepRange * currentFreqEnv); 
+            currentFreqEnv *= freqDecayFactor;
 
-            _phase += 2f * MathF.PI * freq / sampleRate;
-            // 防止相位溢出 (虽然 float 范围很大，但好习惯)
-            if (_phase > MathF.PI * 2) _phase -= MathF.PI * 2;
+            _phase += phaseIncrementBase * freq;
+            if (_phase > twoPi) _phase -= twoPi;
 
             float snap = MathF.Sin(_phase) * _snapGain;
 
             // 3. 合成 "Snare" (白噪声)
-            float noise = ((float)_random.NextDouble() * 2f - 1f) * _snareGain;
+            // 使用 NextSingle 替代 NextDouble 以提升性能
+            float noise = (random.NextSingle() * 2f - 1f) * _snareGain;
 
-            // 4. "Impact" 瞬态 (最初的几毫秒增加额外冲击)
+            // 4. "Impact" 瞬态
             float impact = 0f;
-            if (timeSeconds < ImpactDuration)
+            if (_sampleCount < impactDurationSamples)
             {
-                impact = ((float)_random.NextDouble() * 2f - 1f) * ImpactLevel;
+                impact = (random.NextSingle() * 2f - 1f) * impactLevel;
             }
 
-            // 5. 混合 (调整混合比例以防止削波)
-            // Snap 提供低频力度，Noise 提供高频色彩，Impact 提供触头
-            float sampleValue = (snap * SnapMixLevel) + (noise * SnareMixLevel) + impact;
+            // 5. 混合
+            float sampleValue = (snap * snapMixLevel) + (noise * snareMixLevel) + impact;
 
-            // 简单的硬限制器防止爆音
+            // 硬限制器
             if (sampleValue > 1.0f) sampleValue = 1.0f;
             else if (sampleValue < -1.0f) sampleValue = -1.0f;
 
             // --- 声道处理 ---
-
-            // 将单声道信号复制到所有声道 (例如立体声：左=sample, 右=sample)
             for (int ch = 0; ch < channels; ch++)
             {
                 buffer[offset + samplesRead + ch] = sampleValue;
@@ -185,16 +210,13 @@ public class SnareDrumSampleProvider : IRecyclableProvider
 
             samplesRead += channels;
 
-            // 6. 包络衰减 (基于时间的指数衰减公式: Gain = Gain * e^(-1/sampleRate * decay))
-            // 这里为了性能，用原本的乘法近似：(1 - 1 / (Rate * Duration))
-            _snapGain *= (1.0f - 1.0f / (sampleRate * SnapDecayDuration));
-            _snareGain *= (1.0f - 1.0f / (sampleRate * SnareDecayDuration));
+            // 6. 包络衰减
+            _snapGain *= snapDecayFactor;
+            _snareGain *= snareDecayFactor;
 
             _sampleCount++;
         }
 
-        // 如果没有填满 Buffer (因为声音结束了)，将剩余部分填 0
-        // 这对于某些不仅依赖返回值还依赖 buffer 内容的播放器很重要
         if (samplesRead < count)
         {
             Array.Clear(buffer, offset + samplesRead, count - samplesRead);
