@@ -1,12 +1,14 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
+using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
@@ -18,6 +20,14 @@ using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
 
+public class LanguageItem
+{
+    public string Name { get; set; } = "";
+    public string? Code { get; set; }
+
+    public override string ToString() => Name;
+}
+
 [ObservableObject]
 public partial class MainWindowViewModel : IDisposable
 {
@@ -27,6 +37,11 @@ public partial class MainWindowViewModel : IDisposable
     private CancellationTokenSource? _saveDebounceCts;
     private bool _isNavigating;
     private bool _disposed;
+
+    public ObservableCollection<LanguageItem> AvailableLanguages { get; } = new();
+
+    [ObservableProperty]
+    private LanguageItem? _selectedLanguageItem;
 
     public MainWindowViewModel()
     {
@@ -48,6 +63,8 @@ public partial class MainWindowViewModel : IDisposable
 
         UpdateService = null!;
         _logger = null!;
+
+        InitializeLanguages();
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
@@ -68,7 +85,7 @@ public partial class MainWindowViewModel : IDisposable
         Shared = sharedViewModel;
         SyncSession = syncSession;
         SyncDisplay = new SyncDisplayViewModel(SyncSession);
-        
+
         DialogManager = dialogManager;
         MainToastManager = toastManager;
         AudioSettings.ToastManager = MainToastManager;
@@ -77,6 +94,7 @@ public partial class MainWindowViewModel : IDisposable
         KeyBinding = keyBindingViewModel;
 
         SubscribeToSettingsChanges();
+        InitializeLanguages();
     }
 
     public ISukiDialogManager DialogManager { get; }
@@ -213,22 +231,80 @@ public partial class MainWindowViewModel : IDisposable
         Subscribe(AppSettings.Sync.Filters);
     }
 
-    public void Dispose()
+    partial void OnSelectedLanguageItemChanged(LanguageItem? value)
     {
-        if (_disposed) return;
-        _disposed = true;
-
-        SyncDisplay.Dispose();
-        PluginManager.Dispose();
-
-        foreach (var obj in _observedSettings)
+        if (value != null)
         {
-            obj.PropertyChanged -= OnSettingsChanged;
+            AppSettings.General.Language = value.Code;
+            ApplyLanguage(value.Code);
+        }
+    }
+
+    private void ApplyLanguage(string? languageCode)
+    {
+        try
+        {
+            var culture = string.IsNullOrEmpty(languageCode)
+                ? CultureInfo.InstalledUICulture
+                : new CultureInfo(languageCode);
+
+            I18NExtension.Culture = culture;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to set language to {Language}", languageCode);
+        }
+    }
+
+    private void InitializeLanguages()
+    {
+        AvailableLanguages.Clear();
+        AvailableLanguages.Add(new LanguageItem { Name = "System Default", Code = null });
+
+        var executablePath = AppDomain.CurrentDomain.BaseDirectory;
+        try
+        {
+            var files = Directory.EnumerateFiles(executablePath, "KeyAsio.resources.dll", SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                var dirName = Path.GetFileName(Path.GetDirectoryName(file));
+                try
+                {
+                    // Check if it's a valid culture directory
+                    var culture = CultureInfo.GetCultureInfo(dirName);
+                    // Check if it contains resources for this app
+                    if (AvailableLanguages.Any(l => l.Code == dirName)) continue;
+
+                    AvailableLanguages.Add(new LanguageItem
+                    {
+                        Name = culture.NativeName,
+                        Code = dirName
+                    });
+                }
+                catch
+                {
+                    // Ignore non-culture directories
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to scan for languages");
         }
 
-        _observedSettings.Clear();
-        _saveDebounceCts?.Dispose();
-        GC.SuppressFinalize(this);
+        // Set initial selection
+        var currentLang = AppSettings.General.Language;
+        var selected = AvailableLanguages.FirstOrDefault(l => l.Code == currentLang)
+                       ?? AvailableLanguages.FirstOrDefault(l => l.Code == null); // Default to System Default
+
+        _selectedLanguageItem = selected;
+        OnPropertyChanged(nameof(SelectedLanguageItem));
+
+        // Apply the language immediately
+        if (selected != null)
+        {
+            ApplyLanguage(selected.Code);
+        }
     }
 
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
@@ -305,5 +381,23 @@ public partial class MainWindowViewModel : IDisposable
                 }
             });
         });
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        SyncDisplay.Dispose();
+        PluginManager.Dispose();
+
+        foreach (var obj in _observedSettings)
+        {
+            obj.PropertyChanged -= OnSettingsChanged;
+        }
+
+        _observedSettings.Clear();
+        _saveDebounceCts?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

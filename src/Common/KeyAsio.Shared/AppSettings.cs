@@ -21,6 +21,9 @@ public partial class AppSettingsGeneral : INotifyPropertyChanged
 {
     [Description("Allow multiple instances of the application to run simultaneously.")]
     public bool AllowMultipleInstance { get; set; }
+
+    [Description("Application language.")]
+    public string? Language { get; set; }
 }
 
 public partial class AppSettingsInput : INotifyPropertyChanged

@@ -22,6 +22,15 @@
         <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_General}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
+              Header="Language"
+              Icon="Translate">
+              <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                        SelectedItem="{Binding SelectedLanguageItem}"
+                        MinWidth="150"
+                        HorizontalAlignment="Right" />
+            </controls:SettingItem>
+
+            <controls:SettingItem
               Classes="Switch"
               Header="{I18N {x:Static lang:SRKeys.Settings_AllowMultipleInstances}}"
               Icon="LayersTriple"
