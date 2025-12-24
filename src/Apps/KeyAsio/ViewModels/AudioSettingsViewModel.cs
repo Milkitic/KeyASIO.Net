@@ -4,8 +4,8 @@ using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Core.Audio;
-using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using NAudio.Wave;
@@ -18,7 +18,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     private readonly ILogger<AudioSettingsViewModel> _logger;
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly AppSettings _appSettings;
-    private readonly AudioCacheManager _audioCacheManager;
+    private readonly GameplayAudioService _gameplayAudioService;
 
     private bool _isInitializing;
     private (DeviceDescription? PlaybackDevice, int SampleRate, bool EnableLimiter) _originalAudioSettings;
@@ -35,7 +35,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             _audioDeviceManager = null!;
             _logger = null!;
             AudioEngine = null!;
-            _audioCacheManager = null!;
+            _gameplayAudioService = null!;
         }
     }
 
@@ -43,12 +43,12 @@ public partial class AudioSettingsViewModel : ObservableObject
         AppSettings appSettings,
         AudioDeviceManager audioDeviceManager,
         AudioEngine audioEngine,
-        AudioCacheManager audioCacheManager)
+        GameplayAudioService gameplayAudioService)
     {
         _logger = logger;
         _appSettings = appSettings;
         _audioDeviceManager = audioDeviceManager;
-        _audioCacheManager = audioCacheManager;
+        _gameplayAudioService = gameplayAudioService;
         AudioEngine = audioEngine;
 
         _ = InitializeAudioSettingsAsync();
@@ -425,8 +425,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
 
         AudioEngine.StopDevice();
-        _audioCacheManager.Clear();
-        _audioCacheManager.Clear("internal");
+        _gameplayAudioService.ClearCaches();
     }
 
     private static bool AreDevicesEqual(DeviceDescription? d1, DeviceDescription? d2)

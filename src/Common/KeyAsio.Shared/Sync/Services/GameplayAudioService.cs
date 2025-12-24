@@ -20,7 +20,7 @@ public class GameplayAudioService : IDisposable
 
     private static readonly string[] SkinAudioFiles = ["combobreak"];
 
-    private readonly HitsoundFileCache _hitsoundFileCache = new();
+    private HitsoundFileCache _hitsoundFileCache = new();
     private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedAudioMapping = new();
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
@@ -53,6 +53,16 @@ public class GameplayAudioService : IDisposable
         _skinManager = skinManager;
 
         _cachingWorker = new AsyncSequentialWorker(_logger, "GameplayAudioServiceWorker");
+        _sharedViewModel.PropertyChanged += SharedViewModel_PropertyChanged;
+    }
+
+    private void SharedViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SharedViewModel.SelectedSkin))
+        {
+            _logger.LogInformation("Skin changed, clearing gameplay audio service caches.");
+            ClearCaches();
+        }
     }
 
     public void SetContext(string? beatmapFolder, string? audioFilename)
@@ -63,7 +73,8 @@ public class GameplayAudioService : IDisposable
 
     public void ClearCaches()
     {
-        _audioCacheManager.Clear();
+        _hitsoundFileCache = new HitsoundFileCache();
+        _audioCacheManager.ClearAll();
         _playNodeToCachedAudioMapping.Clear();
         _filenameToCachedAudioMapping.Clear();
     }
@@ -326,6 +337,7 @@ public class GameplayAudioService : IDisposable
 
     public void Dispose()
     {
+        _sharedViewModel.PropertyChanged -= SharedViewModel_PropertyChanged;
         _cachingWorker.Dispose();
     }
 }

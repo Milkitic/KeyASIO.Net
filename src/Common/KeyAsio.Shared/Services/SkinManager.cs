@@ -87,7 +87,7 @@ public class SkinManager
             if (e.PropertyName == nameof(_sharedViewModel.SelectedSkin))
             {
                 _appSettings.Paths.SelectedSkinName = _sharedViewModel.SelectedSkin?.FolderName ?? "";
-                _audioCacheManager.Clear("internal");
+                _audioCacheManager.ClearAll();
             }
         };
 

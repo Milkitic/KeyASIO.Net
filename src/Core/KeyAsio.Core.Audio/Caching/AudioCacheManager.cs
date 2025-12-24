@@ -179,6 +179,14 @@ public class AudioCacheManager
         }
     }
 
+    public void ClearAll()
+    {
+        foreach (var category in _categoryDictionary.Keys)
+        {
+            Clear(category);
+        }
+    }
+
     public void Clear(string? category = null)
     {
         if (!_categoryDictionary.TryGetValue(category ?? DefaultCategory, out var categoryCache)) return;
