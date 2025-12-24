@@ -24,8 +24,8 @@
             <controls:SettingItem
               Header="Language"
               Icon="Translate">
-              <ComboBox ItemsSource="{Binding AvailableLanguages}"
-                        SelectedItem="{Binding SelectedLanguageItem}"
+              <ComboBox ItemsSource="{Binding LanguageManager.AvailableLanguages}"
+                        SelectedItem="{Binding LanguageManager.SelectedLanguageItem}"
                         MinWidth="150"
                         HorizontalAlignment="Right" />
             </controls:SettingItem>

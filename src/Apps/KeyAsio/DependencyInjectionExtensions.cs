@@ -17,6 +17,9 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<ISukiDialogManager, SukiDialogManager>();
         services.AddSingleton<ISukiToastManager, SafeSukiToastManager>();
 
+        services.AddSingleton<LanguageManager>();
+        services.AddSingleton<SettingsManager>();
+
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<AudioSettingsViewModel>();

@@ -1,12 +1,7 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
+﻿using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
-using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Services;
@@ -14,34 +9,18 @@ using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
 using SukiUI.Dialogs;
 using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
 
-public class LanguageItem
-{
-    public string Name { get; set; } = "";
-    public string? Code { get; set; }
-
-    public override string ToString() => Name;
-}
-
 [ObservableObject]
 public partial class MainWindowViewModel : IDisposable
 {
     private readonly ILogger<MainWindowViewModel> _logger;
-    private readonly List<INotifyPropertyChanged> _observedSettings = new();
-
-    private CancellationTokenSource? _saveDebounceCts;
+    private readonly SettingsManager _settingsManager;
     private bool _isNavigating;
     private bool _disposed;
-
-    public ObservableCollection<LanguageItem> AvailableLanguages { get; } = new();
-
-    [ObservableProperty]
-    private LanguageItem? _selectedLanguageItem;
 
     public MainWindowViewModel()
     {
@@ -61,10 +40,11 @@ public partial class MainWindowViewModel : IDisposable
         PluginManager = new PluginManagerViewModel(null!, AppSettings);
         KeyBinding = new KeyBindingViewModel(null!, DialogManager, AppSettings, null!);
 
+        LanguageManager = new LanguageManager(null!, AppSettings);
+        _settingsManager = null!;
+
         UpdateService = null!;
         _logger = null!;
-
-        InitializeLanguages();
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
@@ -76,7 +56,9 @@ public partial class MainWindowViewModel : IDisposable
         PluginManagerViewModel pluginManagerViewModel,
         KeyBindingViewModel keyBindingViewModel,
         ISukiDialogManager dialogManager,
-        ISukiToastManager toastManager)
+        ISukiToastManager toastManager,
+        LanguageManager languageManager,
+        SettingsManager settingsManager)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
@@ -93,10 +75,11 @@ public partial class MainWindowViewModel : IDisposable
         PluginManager = pluginManagerViewModel;
         KeyBinding = keyBindingViewModel;
 
-        SubscribeToSettingsChanges();
-        InitializeLanguages();
+        LanguageManager = languageManager;
+        _settingsManager = settingsManager;
     }
 
+    public LanguageManager LanguageManager { get; }
     public ISukiDialogManager DialogManager { get; }
     public ISukiToastManager MainToastManager { get; }
     public AppSettings AppSettings { get; }
@@ -208,181 +191,6 @@ public partial class MainWindowViewModel : IDisposable
         _isNavigating = false;
     }
 
-    private void SubscribeToSettingsChanges()
-    {
-        void Subscribe(INotifyPropertyChanged? obj)
-        {
-            if (obj != null)
-            {
-                obj.PropertyChanged += OnSettingsChanged;
-                _observedSettings.Add(obj);
-            }
-        }
-
-        Subscribe(AppSettings.General);
-        Subscribe(AppSettings.Input);
-        Subscribe(AppSettings.Paths);
-        Subscribe(AppSettings.Audio);
-        Subscribe(AppSettings.Logging);
-        Subscribe(AppSettings.Performance);
-        Subscribe(AppSettings.Sync);
-        Subscribe(AppSettings.Sync.Scanning);
-        Subscribe(AppSettings.Sync.Playback);
-        Subscribe(AppSettings.Sync.Filters);
-    }
-
-    partial void OnSelectedLanguageItemChanged(LanguageItem? value)
-    {
-        if (value != null)
-        {
-            AppSettings.General.Language = value.Code;
-            ApplyLanguage(value.Code);
-        }
-    }
-
-    private void ApplyLanguage(string? languageCode)
-    {
-        try
-        {
-            var culture = string.IsNullOrEmpty(languageCode)
-                ? CultureInfo.InstalledUICulture
-                : new CultureInfo(languageCode);
-
-            I18NExtension.Culture = culture;
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to set language to {Language}", languageCode);
-        }
-    }
-
-    private void InitializeLanguages()
-    {
-        AvailableLanguages.Clear();
-        AvailableLanguages.Add(new LanguageItem { Name = "System Default", Code = null });
-
-        var executablePath = AppDomain.CurrentDomain.BaseDirectory;
-        try
-        {
-            var files = Directory.EnumerateFiles(executablePath, "KeyAsio.resources.dll", SearchOption.AllDirectories);
-            foreach (var file in files)
-            {
-                var dirName = Path.GetFileName(Path.GetDirectoryName(file));
-                try
-                {
-                    // Check if it's a valid culture directory
-                    var culture = CultureInfo.GetCultureInfo(dirName);
-                    // Check if it contains resources for this app
-                    if (AvailableLanguages.Any(l => l.Code == dirName)) continue;
-
-                    AvailableLanguages.Add(new LanguageItem
-                    {
-                        Name = culture.NativeName,
-                        Code = dirName
-                    });
-                }
-                catch
-                {
-                    // Ignore non-culture directories
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "Failed to scan for languages");
-        }
-
-        // Set initial selection
-        var currentLang = AppSettings.General.Language;
-        var selected = AvailableLanguages.FirstOrDefault(l => l.Code == currentLang)
-                       ?? AvailableLanguages.FirstOrDefault(l => l.Code == null); // Default to System Default
-
-        _selectedLanguageItem = selected;
-        OnPropertyChanged(nameof(SelectedLanguageItem));
-
-        // Apply the language immediately
-        if (selected != null)
-        {
-            ApplyLanguage(selected.Code);
-        }
-    }
-
-    private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (sender is AppSettingsAudio)
-        {
-            if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume))
-            {
-                AudioSettings.AudioEngine.MainVolume = AppSettings.Audio.MasterVolume / 100f;
-                DebounceSave();
-            }
-            else if (e.PropertyName == nameof(AppSettingsAudio.MusicVolume))
-            {
-                AudioSettings.AudioEngine.MusicVolume = AppSettings.Audio.MusicVolume / 100f;
-                DebounceSave();
-            }
-            else if (e.PropertyName == nameof(AppSettingsAudio.EffectVolume))
-            {
-                AudioSettings.AudioEngine.EffectVolume = AppSettings.Audio.EffectVolume / 100f;
-                DebounceSave();
-            }
-        }
-        else if (sender is AppSettingsSyncPlayback)
-        {
-            if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceFactor))
-            {
-                DebounceSave();
-            }
-        }
-        else
-        {
-            try
-            {
-                AppSettings.Save();
-            }
-            catch (Exception ex)
-            {
-                HandleSaveException(ex);
-            }
-        }
-    }
-
-    private void HandleSaveException(Exception ex)
-    {
-        _logger?.LogError(ex, "Failed to save settings");
-        Dispatcher.UIThread.Post(() =>
-        {
-            MainToastManager.CreateToast()
-                .OfType(NotificationType.Error)
-                .WithTitle("Settings Save Failed")
-                .WithContent($"Could not save configuration: {ex.Message}")
-                .Queue();
-        });
-    }
-
-    private void DebounceSave()
-    {
-        _saveDebounceCts?.Cancel();
-        _saveDebounceCts = new CancellationTokenSource();
-        var token = _saveDebounceCts.Token;
-
-        Task.Delay(500, token).ContinueWith(t =>
-        {
-            if (t.IsCanceled) return;
-            Dispatcher.UIThread.Post(() =>
-            {
-                try
-                {
-                    AppSettings.Save();
-                }
-                catch (Exception ex)
-                {
-                    HandleSaveException(ex);
-                }
-            });
-        });
-    }
-
     public void Dispose()
     {
         if (_disposed) return;
@@ -391,13 +199,6 @@ public partial class MainWindowViewModel : IDisposable
         SyncDisplay.Dispose();
         PluginManager.Dispose();
 
-        foreach (var obj in _observedSettings)
-        {
-            obj.PropertyChanged -= OnSettingsChanged;
-        }
-
-        _observedSettings.Clear();
-        _saveDebounceCts?.Dispose();
         GC.SuppressFinalize(this);
     }
 }
