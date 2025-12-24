@@ -9,6 +9,7 @@
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:system="clr-namespace:System;assembly=System.Runtime"
   xmlns:vm="using:KeyAsio.ViewModels"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
 
@@ -20,9 +21,9 @@
     <ScrollViewer>
       <StackPanel Margin="{StaticResource PagePadding}" Spacing="{StaticResource SpacingLarge}">
         <suki:GlassCard>
-          <suki:GroupBox Header="Backend Selection">
+          <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Audio_BackendSelection}}">
             <StackPanel Spacing="{StaticResource SpacingMedium}">
-              <controls:SettingItem Header="Driver Type" Icon="DeveloperBoard">
+              <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Audio_DriverType}}" Icon="DeveloperBoard">
                 <ComboBox
                   MinWidth="{StaticResource SettingControlWidthMedium}"
                   Classes="SettingItem"
@@ -30,7 +31,7 @@
                   SelectedItem="{Binding AudioSettings.SelectedDriverType}" />
               </controls:SettingItem>
 
-              <controls:SettingItem Header="Output Device" Icon="Speaker">
+              <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Audio_OutputDevice}}" Icon="Speaker">
                 <ComboBox
                   MinWidth="{StaticResource SettingControlWidthLarge}"
                   Classes="SettingItem"
@@ -44,7 +45,7 @@
                 </ComboBox>
               </controls:SettingItem>
 
-              <controls:SettingItem Header="Sample Rate" Icon="Waveform">
+              <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Audio_SampleRate}}" Icon="Waveform">
                 <ComboBox
                   MinWidth="{StaticResource SettingControlWidthSmall}"
                   Classes="SettingItem"
@@ -56,10 +57,10 @@
         </suki:GlassCard>
 
         <suki:GlassCard>
-          <suki:GroupBox Header="Latency &amp; Buffer">
+          <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Audio_LatencyAndBuffer}}">
             <StackPanel Spacing="{StaticResource SpacingLarge}">
               <StackPanel IsVisible="{Binding !AudioSettings.IsAsio}" Spacing="{StaticResource SpacingLarge}">
-                <controls:SettingItem Header="Target Latency" Icon="TimerSand">
+                <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Audio_TargetLatency}}" Icon="TimerSand">
                   <TextBlock Classes="Value" Text="{Binding AudioSettings.TargetBufferSize, StringFormat='{}{0} ms'}" />
                 </controls:SettingItem>
                 <Slider
@@ -70,7 +71,7 @@
               </StackPanel>
 
               <StackPanel IsVisible="{Binding AudioSettings.IsAsio}" Spacing="{StaticResource SpacingLarge}">
-                <controls:SettingItem Header="Force Buffer Size" Icon="TimerSand">
+                <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Audio_ForceBufferSize}}" Icon="TimerSand">
                   <TextBlock Classes="Value" Text="{Binding AudioSettings.ForceAsioBufferSize, StringFormat='{}{0} samples'}" />
                 </controls:SettingItem>
                 <Slider
@@ -83,7 +84,7 @@
               <Separator Classes="Section" IsVisible="{Binding AudioSettings.IsWasapi}" />
 
               <controls:SettingItem
-                Header="Exclusive Mode"
+                Header="{I18N {x:Static lang:SRKeys.Audio_ExclusiveMode}}"
                 Icon="Lock"
                 IsVisible="{Binding AudioSettings.IsWasapi}">
                 <CheckBox IsChecked="{Binding AudioSettings.IsExclusiveMode}" />
@@ -93,10 +94,10 @@
         </suki:GlassCard>
 
         <suki:GlassCard>
-          <suki:GroupBox Header="Audio Processing">
+          <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Audio_Processing}}">
             <controls:SettingItem
-              Description="Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters."
-              Header="Audio Limiter"
+              Description="{I18N {x:Static lang:SRKeys.Audio_LimiterDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Audio_Limiter}}"
               Icon="Equalizer">
               <CheckBox IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
             </controls:SettingItem>
@@ -128,17 +129,17 @@
           <TextBlock
             VerticalAlignment="Center"
             Opacity="{StaticResource OpacityTertiary}"
-            Text="Changes require application to take effect" />
+            Text="{I18N {x:Static lang:SRKeys.Message_RestartRequired}}" />
         </StackPanel>
         <StackPanel
           Grid.Column="1"
           Orientation="Horizontal"
           Spacing="10">
-          <Button Command="{Binding AudioSettings.DiscardAudioSettingsCommand}" Content="Discard" />
+          <Button Command="{Binding AudioSettings.DiscardAudioSettingsCommand}" Content="{I18N {x:Static lang:SRKeys.Common_Discard}}" />
           <Button
             Classes="Flat"
             Command="{Binding AudioSettings.ApplyAudioSettingsCommand}"
-            Content="Apply Settings" />
+            Content="{I18N {x:Static lang:SRKeys.Settings_Apply}}" />
         </StackPanel>
       </Grid>
     </suki:GlassCard>

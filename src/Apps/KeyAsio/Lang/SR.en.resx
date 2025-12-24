@@ -1,64 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
-    Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
-    associated with the data types.
-    
-    Example:
-    
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
-                
-    There are any number of "resheader" rows that contain simple 
-    name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
-    mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
-    extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
-    read any of the formats listed below.
-    
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
-    
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -117,64 +58,169 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="EngineStatus" xml:space="preserve">
-    <value>Engine Status</value>
+  <data name="Audio_BackendSelection" xml:space="preserve">
+    <value>Backend Selection</value>
   </data>
-  <data name="SyncStatus" xml:space="preserve">
-    <value>Sync Status</value>
-  </data>
-  <data name="Beatmap" xml:space="preserve">
-    <value>Beatmap</value>
-  </data>
-  <data name="PlayTime" xml:space="preserve">
-    <value>Play Time</value>
-  </data>
-  <data name="Status" xml:space="preserve">
-    <value>Status</value>
-  </data>
-  <data name="AudioDevice" xml:space="preserve">
-    <value>Audio Device</value>
-  </data>
-  <data name="DriverPanel" xml:space="preserve">
-    <value>Driver Panel</value>
-  </data>
-  <data name="ReloadDevice" xml:space="preserve">
-    <value>Reload Device</value>
-  </data>
-  <data name="ClearDevice" xml:space="preserve">
-    <value>Clear Device</value>
-  </data>
-  <data name="NoDeviceSelected" xml:space="preserve">
-    <value>No device selected. </value>
-  </data>
-  <data name="GoToSettings" xml:space="preserve">
-    <value>Go to settings</value>
-  </data>
-  <data name="SampleRate" xml:space="preserve">
-    <value>Sample Rate</value>
-  </data>
-  <data name="Latency" xml:space="preserve">
-    <value>Latency</value>
-  </data>
-  <data name="Buffer" xml:space="preserve">
+  <data name="Audio_Buffer" xml:space="preserve">
     <value>Buffer</value>
   </data>
-  <data name="Exclusive" xml:space="preserve">
+  <data name="Audio_ClearDevice" xml:space="preserve">
+    <value>Clear Device</value>
+  </data>
+  <data name="Audio_Device" xml:space="preserve">
+    <value>Audio Device</value>
+  </data>
+  <data name="Audio_DriverPanel" xml:space="preserve">
+    <value>Driver Panel</value>
+  </data>
+  <data name="Audio_DriverType" xml:space="preserve">
+    <value>Driver Type</value>
+  </data>
+  <data name="Audio_EngineStatus" xml:space="preserve">
+    <value>Engine Status</value>
+  </data>
+  <data name="Audio_Exclusive" xml:space="preserve">
     <value>Exclusive</value>
   </data>
-  <data name="On" xml:space="preserve">
-    <value>On</value>
+  <data name="Audio_ExclusiveMode" xml:space="preserve">
+    <value>Exclusive Mode</value>
   </data>
-  <data name="Off" xml:space="preserve">
+  <data name="Audio_ForceBufferSize" xml:space="preserve">
+    <value>Force Buffer Size</value>
+  </data>
+  <data name="Audio_Latency" xml:space="preserve">
+    <value>Latency</value>
+  </data>
+  <data name="Audio_LatencyAndBuffer" xml:space="preserve">
+    <value>Latency &amp; Buffer</value>
+  </data>
+  <data name="Audio_Limiter" xml:space="preserve">
+    <value>Audio Limiter</value>
+  </data>
+  <data name="Audio_LimiterDescription" xml:space="preserve">
+    <value>Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters.</value>
+  </data>
+  <data name="Audio_NoDeviceSelected" xml:space="preserve">
+    <value>No device selected. </value>
+  </data>
+  <data name="Audio_OutputDevice" xml:space="preserve">
+    <value>Output Device</value>
+  </data>
+  <data name="Audio_Processing" xml:space="preserve">
+    <value>Audio Processing</value>
+  </data>
+  <data name="Audio_ReloadDevice" xml:space="preserve">
+    <value>Reload Device</value>
+  </data>
+  <data name="Audio_SampleRate" xml:space="preserve">
+    <value>Sample Rate</value>
+  </data>
+  <data name="Audio_TargetLatency" xml:space="preserve">
+    <value>Target Latency</value>
+  </data>
+  <data name="Common_Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="Common_Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Common_GoToSettings" xml:space="preserve">
+    <value>Go to settings</value>
+  </data>
+  <data name="Common_Off" xml:space="preserve">
     <value>Off</value>
   </data>
-  <data name="QuickBindings" xml:space="preserve">
-    <value>Quick Bindings</value>
+  <data name="Common_On" xml:space="preserve">
+    <value>On</value>
   </data>
-  <data name="EditBindings" xml:space="preserve">
+  <data name="Dashboard_Beatmap" xml:space="preserve">
+    <value>Beatmap</value>
+  </data>
+  <data name="Dashboard_EditBindings" xml:space="preserve">
     <value>Edit Bindings</value>
   </data>
-  <data name="Done" xml:space="preserve">
-    <value>Done</value>
+  <data name="Dashboard_PlayTime" xml:space="preserve">
+    <value>Play Time</value>
+  </data>
+  <data name="Dashboard_QuickBindings" xml:space="preserve">
+    <value>Quick Bindings</value>
+  </data>
+  <data name="Dashboard_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Dashboard_SyncStatus" xml:space="preserve">
+    <value>Sync Status</value>
+  </data>
+  <data name="Message_RestartRequired" xml:space="preserve">
+    <value>Changes require application to take effect</value>
+  </data>
+  <data name="Settings_About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="Settings_AllowMultipleInstances" xml:space="preserve">
+    <value>Allow Multiple Instances</value>
+  </data>
+  <data name="Settings_Apply" xml:space="preserve">
+    <value>Apply Settings</value>
+  </data>
+  <data name="Settings_CheckForUpdates" xml:space="preserve">
+    <value>Check for Updates</value>
+  </data>
+  <data name="Settings_CopyrightLine" xml:space="preserve">
+    <value>Copyright © 2022-2025 Milkitic (aka. yf_bmp).</value>
+  </data>
+  <data name="Settings_DebugConsole" xml:space="preserve">
+    <value>Debug Console</value>
+  </data>
+  <data name="Settings_EnableAvx512" xml:space="preserve">
+    <value>Enable AVX-512</value>
+  </data>
+  <data name="Settings_Environment" xml:space="preserve">
+    <value>Environment</value>
+  </data>
+  <data name="Settings_ErrorReporting" xml:space="preserve">
+    <value>Error Reporting</value>
+  </data>
+  <data name="Settings_ExtendedVolume" xml:space="preserve">
+    <value>Extended Volume</value>
+  </data>
+  <data name="Settings_ExtendedVolumeDescription" xml:space="preserve">
+    <value>Allow volume up to 150%</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_InputAndPerformance" xml:space="preserve">
+    <value>Input &amp; Performance</value>
+  </data>
+  <data name="Settings_LegacyModeDescription" xml:space="preserve">
+    <value>Disables syncing; responds only to raw key presses. Intended for testing purposes.</value>
+  </data>
+  <data name="Settings_LegacyModeKeyOnly" xml:space="preserve">
+    <value>Legacy Mode (Key Only)</value>
+  </data>
+  <data name="Settings_LicensedUnderMpl" xml:space="preserve">
+    <value>Licensed under MPL-2.0</value>
+  </data>
+  <data name="Settings_NoUpdatesAvailable" xml:space="preserve">
+    <value>No updates available.</value>
+  </data>
+  <data name="Settings_OsuFolderPath" xml:space="preserve">
+    <value>osu! Folder Path</value>
+  </data>
+  <data name="Settings_PerformanceBoost" xml:space="preserve">
+    <value>Performance Boost</value>
+  </data>
+  <data name="Settings_RawInput" xml:space="preserve">
+    <value>Raw Input</value>
+  </data>
+  <data name="Settings_RawInputDescription" xml:space="preserve">
+    <value>Uses low-latency key hooks when disabled</value>
+  </data>
+  <data name="Settings_UpdateAvailablePrefix" xml:space="preserve">
+    <value>Update available: v</value>
+  </data>
+  <data name="Settings_Updates" xml:space="preserve">
+    <value>Updates</value>
   </data>
 </root>

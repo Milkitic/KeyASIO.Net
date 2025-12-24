@@ -58,64 +58,169 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="EngineStatus" xml:space="preserve">
-    <value>引擎状态</value>
+  <data name="Audio_BackendSelection" xml:space="preserve">
+    <value>后端选择</value>
   </data>
-  <data name="SyncStatus" xml:space="preserve">
-    <value>同步状态</value>
-  </data>
-  <data name="Beatmap" xml:space="preserve">
-    <value>谱面</value>
-  </data>
-  <data name="PlayTime" xml:space="preserve">
-    <value>游玩时间</value>
-  </data>
-  <data name="Status" xml:space="preserve">
-    <value>状态</value>
-  </data>
-  <data name="AudioDevice" xml:space="preserve">
-    <value>音频设备</value>
-  </data>
-  <data name="DriverPanel" xml:space="preserve">
-    <value>驱动面板</value>
-  </data>
-  <data name="ReloadDevice" xml:space="preserve">
-    <value>重载设备</value>
-  </data>
-  <data name="ClearDevice" xml:space="preserve">
-    <value>清除设备</value>
-  </data>
-  <data name="NoDeviceSelected" xml:space="preserve">
-    <value>未选择设备。</value>
-  </data>
-  <data name="GoToSettings" xml:space="preserve">
-    <value>前往设置</value>
-  </data>
-  <data name="SampleRate" xml:space="preserve">
-    <value>采样率</value>
-  </data>
-  <data name="Latency" xml:space="preserve">
-    <value>延迟</value>
-  </data>
-  <data name="Buffer" xml:space="preserve">
+  <data name="Audio_Buffer" xml:space="preserve">
     <value>缓冲区</value>
   </data>
-  <data name="Exclusive" xml:space="preserve">
+  <data name="Audio_ClearDevice" xml:space="preserve">
+    <value>清除设备</value>
+  </data>
+  <data name="Audio_Device" xml:space="preserve">
+    <value>音频设备</value>
+  </data>
+  <data name="Audio_DriverPanel" xml:space="preserve">
+    <value>驱动面板</value>
+  </data>
+  <data name="Audio_DriverType" xml:space="preserve">
+    <value>驱动类型</value>
+  </data>
+  <data name="Audio_EngineStatus" xml:space="preserve">
+    <value>引擎状态</value>
+  </data>
+  <data name="Audio_Exclusive" xml:space="preserve">
     <value>独占</value>
   </data>
-  <data name="On" xml:space="preserve">
-    <value>开</value>
+  <data name="Audio_ExclusiveMode" xml:space="preserve">
+    <value>独占模式</value>
   </data>
-  <data name="Off" xml:space="preserve">
+  <data name="Audio_ForceBufferSize" xml:space="preserve">
+    <value>强制缓冲区大小</value>
+  </data>
+  <data name="Audio_Latency" xml:space="preserve">
+    <value>延迟</value>
+  </data>
+  <data name="Audio_LatencyAndBuffer" xml:space="preserve">
+    <value>延迟与缓冲</value>
+  </data>
+  <data name="Audio_Limiter" xml:space="preserve">
+    <value>音频限制器</value>
+  </data>
+  <data name="Audio_LimiterDescription" xml:space="preserve">
+    <value>防止音量过大时，多个打击音效叠加时爆音。建议专业用户禁用以使用原始音频。需要更多CPU资源，如果音频卡顿，请禁用。</value>
+  </data>
+  <data name="Audio_NoDeviceSelected" xml:space="preserve">
+    <value>未选择设备。</value>
+  </data>
+  <data name="Audio_OutputDevice" xml:space="preserve">
+    <value>输出设备</value>
+  </data>
+  <data name="Audio_Processing" xml:space="preserve">
+    <value>音频处理</value>
+  </data>
+  <data name="Audio_ReloadDevice" xml:space="preserve">
+    <value>重载设备</value>
+  </data>
+  <data name="Audio_SampleRate" xml:space="preserve">
+    <value>采样率</value>
+  </data>
+  <data name="Audio_TargetLatency" xml:space="preserve">
+    <value>目标延迟</value>
+  </data>
+  <data name="Common_Discard" xml:space="preserve">
+    <value>丢弃</value>
+  </data>
+  <data name="Common_Done" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Common_GoToSettings" xml:space="preserve">
+    <value>前往设置</value>
+  </data>
+  <data name="Common_Off" xml:space="preserve">
     <value>关</value>
   </data>
-  <data name="QuickBindings" xml:space="preserve">
-    <value>快捷键绑定</value>
+  <data name="Common_On" xml:space="preserve">
+    <value>开</value>
   </data>
-  <data name="EditBindings" xml:space="preserve">
+  <data name="Dashboard_Beatmap" xml:space="preserve">
+    <value>谱面</value>
+  </data>
+  <data name="Dashboard_EditBindings" xml:space="preserve">
     <value>编辑绑定</value>
   </data>
-  <data name="Done" xml:space="preserve">
-    <value>完成</value>
+  <data name="Dashboard_PlayTime" xml:space="preserve">
+    <value>游玩时间</value>
+  </data>
+  <data name="Dashboard_QuickBindings" xml:space="preserve">
+    <value>快捷键绑定</value>
+  </data>
+  <data name="Dashboard_Status" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="Dashboard_SyncStatus" xml:space="preserve">
+    <value>同步状态</value>
+  </data>
+  <data name="Message_RestartRequired" xml:space="preserve">
+    <value>更改需要应用后生效</value>
+  </data>
+  <data name="Settings_About" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  <data name="Settings_AllowMultipleInstances" xml:space="preserve">
+    <value>允许多开实例</value>
+  </data>
+  <data name="Settings_Apply" xml:space="preserve">
+    <value>应用设置</value>
+  </data>
+  <data name="Settings_CheckForUpdates" xml:space="preserve">
+    <value>检查更新</value>
+  </data>
+  <data name="Settings_CopyrightLine" xml:space="preserve">
+    <value>Copyright © 2022-2025 Milkitic (aka. yf_bmp).</value>
+  </data>
+  <data name="Settings_DebugConsole" xml:space="preserve">
+    <value>调试控制台</value>
+  </data>
+  <data name="Settings_EnableAvx512" xml:space="preserve">
+    <value>启用 AVX-512</value>
+  </data>
+  <data name="Settings_Environment" xml:space="preserve">
+    <value>环境</value>
+  </data>
+  <data name="Settings_ErrorReporting" xml:space="preserve">
+    <value>错误上报</value>
+  </data>
+  <data name="Settings_ExtendedVolume" xml:space="preserve">
+    <value>扩展音量</value>
+  </data>
+  <data name="Settings_ExtendedVolumeDescription" xml:space="preserve">
+    <value>允许音量最高 150%</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="Settings_InputAndPerformance" xml:space="preserve">
+    <value>输入与性能</value>
+  </data>
+  <data name="Settings_LegacyModeDescription" xml:space="preserve">
+    <value>禁用同步，仅响应原始按键。用于测试目的。</value>
+  </data>
+  <data name="Settings_LegacyModeKeyOnly" xml:space="preserve">
+    <value>传统模式（仅按键）</value>
+  </data>
+  <data name="Settings_LicensedUnderMpl" xml:space="preserve">
+    <value>采用 MPL-2.0 许可</value>
+  </data>
+  <data name="Settings_NoUpdatesAvailable" xml:space="preserve">
+    <value>暂无可用更新。</value>
+  </data>
+  <data name="Settings_OsuFolderPath" xml:space="preserve">
+    <value>osu! 文件夹路径</value>
+  </data>
+  <data name="Settings_PerformanceBoost" xml:space="preserve">
+    <value>性能提升</value>
+  </data>
+  <data name="Settings_RawInput" xml:space="preserve">
+    <value>原始输入</value>
+  </data>
+  <data name="Settings_RawInputDescription" xml:space="preserve">
+    <value>禁用时使用低延迟键盘钩子</value>
+  </data>
+  <data name="Settings_UpdateAvailablePrefix" xml:space="preserve">
+    <value>有可用更新：v</value>
+  </data>
+  <data name="Settings_Updates" xml:space="preserve">
+    <value>更新</value>
   </data>
 </root>

@@ -7,6 +7,7 @@
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:vm="using:KeyAsio.ViewModels"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
@@ -18,17 +19,17 @@
   <ScrollViewer>
     <StackPanel Margin="20" Spacing="20">
       <suki:GlassCard>
-        <suki:GroupBox Header="General">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_General}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
               Classes="Switch"
-              Header="Allow Multiple Instances"
+              Header="{I18N {x:Static lang:SRKeys.Settings_AllowMultipleInstances}}"
               Icon="LayersTriple"
               IsChecked="{Binding AppSettings.General.AllowMultipleInstance}" />
             <controls:SettingItem
               Classes="Switch"
-              Description="Disables memory reading; responds only to raw key presses. Intended for testing purposes."
-              Header="Legacy Mode (Key Only)"
+              Description="{I18N {x:Static lang:SRKeys.Settings_LegacyModeDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Settings_LegacyModeKeyOnly}}"
               Icon="Keyboard"
               IsChecked="{Binding !AppSettings.Sync.EnableSync}" />
           </StackPanel>
@@ -36,9 +37,9 @@
       </suki:GlassCard>
 
       <suki:GlassCard>
-        <suki:GroupBox Header="Environment">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_Environment}}">
           <StackPanel Spacing="15">
-            <TextBlock Text="osu! Folder Path" />
+            <TextBlock Text="{I18N {x:Static lang:SRKeys.Settings_OsuFolderPath}}" />
             <Grid ColumnDefinitions="*, Auto">
               <TextBox Margin="0,0,10,0" Text="{Binding AppSettings.Paths.OsuFolderPath, UpdateSourceTrigger=LostFocus}" />
               <Button
@@ -56,38 +57,38 @@
       </suki:GlassCard>
 
       <suki:GlassCard>
-        <suki:GroupBox Header="Input &amp; Performance">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_InputAndPerformance}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
               Classes="Switch"
-              Description="Uses low-latency key hooks when disabled"
-              Header="Raw Input"
+              Description="{I18N {x:Static lang:SRKeys.Settings_RawInputDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Settings_RawInput}}"
               Icon="KeyboardVariant"
               IsChecked="{Binding AppSettings.Input.UseRawInput}" />
 
             <controls:SettingItem
               Classes="Switch"
-              Description="Performance Boost"
-              Header="Enable AVX-512"
+              Description="{I18N {x:Static lang:SRKeys.Settings_PerformanceBoost}}"
+              Header="{I18N {x:Static lang:SRKeys.Settings_EnableAvx512}}"
               Icon="RocketLaunch"
               IsChecked="{Binding AppSettings.Performance.EnableAvx512}" />
 
             <controls:SettingItem
               Classes="Switch"
-              Description="Allow volume up to 150%"
-              Header="Extended Volume"
+              Description="{I18N {x:Static lang:SRKeys.Settings_ExtendedVolumeDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Settings_ExtendedVolume}}"
               Icon="VolumeHigh"
               IsChecked="{Binding AppSettings.Audio.EnableExtendedVolume}" />
 
             <controls:SettingItem
               Classes="Switch"
-              Header="Debug Console"
+              Header="{I18N {x:Static lang:SRKeys.Settings_DebugConsole}}"
               Icon="Console"
               IsChecked="{Binding AppSettings.Logging.EnableDebugConsole}" />
 
             <controls:SettingItem
               Classes="Switch"
-              Header="Error Reporting"
+              Header="{I18N {x:Static lang:SRKeys.Settings_ErrorReporting}}"
               Icon="Bug"
               IsChecked="{Binding AppSettings.Logging.EnableErrorReporting}" />
           </StackPanel>
@@ -95,30 +96,30 @@
       </suki:GlassCard>
 
       <suki:GlassCard>
-        <suki:GroupBox Header="About">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_About}}">
           <StackPanel Spacing="15">
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel VerticalAlignment="Center">
-                <TextBlock FontWeight="DemiBold" Text="Updates" />
+                <TextBlock FontWeight="DemiBold" Text="{I18N {x:Static lang:SRKeys.Settings_Updates}}" />
                 <TextBlock Classes="Description" IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                  <Run Text="Update available: v" /><Run Text="{Binding UpdateService.NewVersion}" />
+                  <Run Text="{I18N {x:Static lang:SRKeys.Settings_UpdateAvailablePrefix}}" /><Run Text="{Binding UpdateService.NewVersion}" />
                 </TextBlock>
                 <TextBlock
                   Classes="Description"
                   IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                  Text="No updates available." />
+                  Text="{I18N {x:Static lang:SRKeys.Settings_NoUpdatesAvailable}}" />
               </StackPanel>
               <Button
                 Grid.Column="1"
                 Classes="Flat"
                 Command="{Binding UpdateService.CheckForUpdatesCommand}"
-                Content="Check for Updates" />
+                Content="{I18N {x:Static lang:SRKeys.Settings_CheckForUpdates}}" />
             </Grid>
             <Separator Classes="Section" />
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel VerticalAlignment="Center">
-                <TextBlock Text="Copyright © 2022-2025 Milkitic (aka. yf_bmp)." />
-                <TextBlock Classes="Description" Text="Licensed under GPL-3.0" />
+                <TextBlock Text="{I18N {x:Static lang:SRKeys.Settings_CopyrightLine}}" />
+                <TextBlock Classes="Description" Text="{I18N {x:Static lang:SRKeys.Settings_LicensedUnderMpl}}" />
               </StackPanel>
               <Button
                 Grid.Column="1"

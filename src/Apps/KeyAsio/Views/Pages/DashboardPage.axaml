@@ -126,7 +126,7 @@
           <TextBlock
             VerticalAlignment="Center"
             FontWeight="DemiBold"
-            Text="{I18N {x:Static lang:SRKeys.EngineStatus}}" />
+            Text="{I18N {x:Static lang:SRKeys.Audio_EngineStatus}}" />
         </StackPanel>
       </DockPanel>
     </suki:GlassCard>
@@ -154,7 +154,7 @@
       <suki:GlassCard Classes="Surface" IsVisible="{Binding AppSettings.Sync.EnableSync}">
         <Grid RowDefinitions="Auto,*">
           <DockPanel LastChildFill="False">
-            <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.SyncStatus}}" />
+            <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.Dashboard_SyncStatus}}" />
           </DockPanel>
 
           <Grid
@@ -165,7 +165,7 @@
               <TextBlock
                 Margin="0,0,0,5"
                 Classes="Label"
-                Text="{I18N {x:Static lang:SRKeys.Beatmap}}" />
+                Text="{I18N {x:Static lang:SRKeys.Dashboard_Beatmap}}" />
               <TextBlock
                 FontWeight="DemiBold"
                 Text="{Binding SyncDisplay.Beatmap.Filename}"
@@ -176,7 +176,7 @@
               <TextBlock
                 Margin="0,0,0,5"
                 Classes="Label"
-                Text="{I18N {x:Static lang:SRKeys.PlayTime}}" />
+                Text="{I18N {x:Static lang:SRKeys.Dashboard_PlayTime}}" />
               <TextBlock
                 FontFamily="Consolas"
                 FontWeight="DemiBold"
@@ -186,7 +186,7 @@
               <TextBlock
                 Margin="0,0,0,5"
                 Classes="Label"
-                Text="{I18N {x:Static lang:SRKeys.Status}}" />
+                Text="{I18N {x:Static lang:SRKeys.Dashboard_Status}}" />
               <TextBlock FontWeight="DemiBold" Text="{Binding SyncDisplay.OsuStatus}" />
             </StackPanel>
           </Grid>
@@ -215,7 +215,7 @@
                 <TextBlock
                   VerticalAlignment="Center"
                   FontWeight="Bold"
-                  Text="{I18N {x:Static lang:SRKeys.AudioDevice}}" />
+                  Text="{I18N {x:Static lang:SRKeys.Audio_Device}}" />
                 <Panel VerticalAlignment="Center" IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}">
                   <Border
                     Background="{DynamicResource SukiPrimaryColor}"
@@ -240,7 +240,7 @@
                   Classes="IconAction Flat"
                   Command="{Binding AudioSettings.OpenAsioPanelCommand}"
                   IsVisible="{Binding AudioSettings.IsAsio}"
-                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.DriverPanel}}">
+                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.Audio_DriverPanel}}">
                   <materialIcons:MaterialIcon
                     Width="16"
                     Height="16"
@@ -254,7 +254,7 @@
                   Command="{Binding AudioSettings.ReloadAudioDeviceCommand}"
                   Cursor="Arrow"
                   IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNotNull}}"
-                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.ReloadDevice}}">
+                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.Audio_ReloadDevice}}">
                   <materialIcons:MaterialIcon
                     Width="16"
                     Height="16"
@@ -268,7 +268,7 @@
                   Command="{Binding AudioSettings.ClearAudioDeviceCommand}"
                   Cursor="Arrow"
                   IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNotNull}}"
-                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.ClearDevice}}">
+                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.Audio_ClearDevice}}">
                   <materialIcons:MaterialIcon
                     Width="16"
                     Height="16"
@@ -281,10 +281,10 @@
             <Panel Grid.Row="1" VerticalAlignment="Stretch">
               <!--  No Device  -->
               <StackPanel VerticalAlignment="Center" IsVisible="{Binding AppSettings.Audio.PlaybackDevice, Converter={x:Static ObjectConverters.IsNull}}">
-                <TextBlock Foreground="{DynamicResource SukiText}" Text="{I18N {x:Static lang:SRKeys.NoDeviceSelected}}" />
+                <TextBlock Foreground="{DynamicResource SukiText}" Text="{I18N {x:Static lang:SRKeys.Audio_NoDeviceSelected}}" />
                 <HyperlinkButton Command="{Binding NavigateToAudioEngineCommand}">
                   <StackPanel Orientation="Horizontal" Spacing="2">
-                    <TextBlock Text="{I18N {x:Static lang:SRKeys.GoToSettings}}" />
+                    <TextBlock Text="{I18N {x:Static lang:SRKeys.Common_GoToSettings}}" />
                     <materialIcons:MaterialIcon
                       Width="16"
                       Height="16"
@@ -335,54 +335,54 @@
                   <!--  Sample Rate  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
-                    Label="{I18N {x:Static lang:SRKeys.SampleRate}}"
+                    Label="{I18N {x:Static lang:SRKeys.Audio_SampleRate}}"
                     Value="{Binding AudioSettings.AudioEngine.EngineWaveFormat.SampleRate, StringFormat='{}{0} Hz', FallbackValue='-'}" />
 
                   <!--  Latency (WASAPI)  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
                     IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}"
-                    Label="{I18N {x:Static lang:SRKeys.Latency}}"
+                    Label="{I18N {x:Static lang:SRKeys.Audio_Latency}}"
                     Value="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.Latency, StringFormat='{}{0} ms'}" />
 
                   <!--  Latency (DirectSound)  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
                     IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.DirectSound}}"
-                    Label="{I18N {x:Static lang:SRKeys.Latency}}"
+                    Label="{I18N {x:Static lang:SRKeys.Audio_Latency}}"
                     Value="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.Latency, StringFormat='{}{0} ms'}" />
 
                   <!--  ASIO Buffer  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
                     IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}"
-                    Label="{I18N {x:Static lang:SRKeys.Buffer}}"
+                    Label="{I18N {x:Static lang:SRKeys.Audio_Buffer}}"
                     Value="{Binding AudioSettings.FramesPerBuffer, StringFormat='{}{0} samples'}" />
 
                   <!--  ASIO Latency  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
                     IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}"
-                    Label="{I18N {x:Static lang:SRKeys.Latency}}"
+                    Label="{I18N {x:Static lang:SRKeys.Audio_Latency}}"
                     Value="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.AsioLatencyMs, StringFormat='{}{0:F2} ms'}" />
 
                   <!--  Exclusive Mode  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
                     IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}"
-                    Label="{I18N {x:Static lang:SRKeys.Exclusive}}">
+                    Label="{I18N {x:Static lang:SRKeys.Audio_Exclusive}}">
                     <controls:StatBadge.Value>
                       <Panel>
                         <TextBlock
                           FontWeight="DemiBold"
                           Foreground="{DynamicResource SukiPrimaryColor}"
                           IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.IsExclusive}"
-                          Text="{I18N {x:Static lang:SRKeys.On}}" />
+                          Text="{I18N {x:Static lang:SRKeys.Common_On}}" />
                         <TextBlock
                           FontWeight="DemiBold"
                           IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.IsExclusive, Converter={x:Static BoolConverters.Not}}"
                           Opacity="0.5"
-                          Text="{I18N {x:Static lang:SRKeys.Off}}" />
+                          Text="{I18N {x:Static lang:SRKeys.Common_Off}}" />
                       </Panel>
                     </controls:StatBadge.Value>
                   </controls:StatBadge>
@@ -400,7 +400,7 @@
           Padding="15">
           <Grid RowDefinitions="Auto,*">
             <DockPanel LastChildFill="False">
-              <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.QuickBindings}}" />
+              <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.Dashboard_QuickBindings}}" />
 
               <!--  Add Button  -->
               <Button
@@ -418,14 +418,14 @@
                   Classes="IconAction Flat"
                   Command="{Binding KeyBinding.ToggleEditKeysCommand}"
                   IsVisible="{Binding !KeyBinding.IsEditingKeys}"
-                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.EditBindings}}">
+                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.Dashboard_EditBindings}}">
                   <materialIcons:MaterialIcon Kind="Pencil" />
                 </Button>
                 <Button
                   Classes="IconAction Flat"
                   Command="{Binding KeyBinding.ToggleEditKeysCommand}"
                   IsVisible="{Binding KeyBinding.IsEditingKeys}"
-                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.Done}}">
+                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.Common_Done}}">
                   <materialIcons:MaterialIcon Kind="Check" />
                 </Button>
               </Panel>
@@ -483,6 +483,7 @@
                           Kind="Close" />
                       </Button>
                     </Canvas>
+
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>

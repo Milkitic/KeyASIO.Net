@@ -61,182 +61,497 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Audio Device 的本地化字符串。
+        ///   查找类似 Backend Selection 的本地化字符串。
         /// </summary>
-        internal static string AudioDevice {
+        internal static string Audio_BackendSelection {
             get {
-                return ResourceManager.GetString("AudioDevice", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Beatmap 的本地化字符串。
-        /// </summary>
-        internal static string Beatmap {
-            get {
-                return ResourceManager.GetString("Beatmap", resourceCulture);
+                return ResourceManager.GetString("Audio_BackendSelection", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Buffer 的本地化字符串。
         /// </summary>
-        internal static string Buffer {
+        internal static string Audio_Buffer {
             get {
-                return ResourceManager.GetString("Buffer", resourceCulture);
+                return ResourceManager.GetString("Audio_Buffer", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Clear Device 的本地化字符串。
         /// </summary>
-        internal static string ClearDevice {
+        internal static string Audio_ClearDevice {
             get {
-                return ResourceManager.GetString("ClearDevice", resourceCulture);
+                return ResourceManager.GetString("Audio_ClearDevice", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Done 的本地化字符串。
+        ///   查找类似 Audio Device 的本地化字符串。
         /// </summary>
-        internal static string Done {
+        internal static string Audio_Device {
             get {
-                return ResourceManager.GetString("Done", resourceCulture);
+                return ResourceManager.GetString("Audio_Device", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Driver Panel 的本地化字符串。
         /// </summary>
-        internal static string DriverPanel {
+        internal static string Audio_DriverPanel {
             get {
-                return ResourceManager.GetString("DriverPanel", resourceCulture);
+                return ResourceManager.GetString("Audio_DriverPanel", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Edit Bindings 的本地化字符串。
+        ///   查找类似 Driver Type 的本地化字符串。
         /// </summary>
-        internal static string EditBindings {
+        internal static string Audio_DriverType {
             get {
-                return ResourceManager.GetString("EditBindings", resourceCulture);
+                return ResourceManager.GetString("Audio_DriverType", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Engine Status 的本地化字符串。
         /// </summary>
-        internal static string EngineStatus {
+        internal static string Audio_EngineStatus {
             get {
-                return ResourceManager.GetString("EngineStatus", resourceCulture);
+                return ResourceManager.GetString("Audio_EngineStatus", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Exclusive 的本地化字符串。
         /// </summary>
-        internal static string Exclusive {
+        internal static string Audio_Exclusive {
             get {
-                return ResourceManager.GetString("Exclusive", resourceCulture);
+                return ResourceManager.GetString("Audio_Exclusive", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Go to settings 的本地化字符串。
+        ///   查找类似 Exclusive Mode 的本地化字符串。
         /// </summary>
-        internal static string GoToSettings {
+        internal static string Audio_ExclusiveMode {
             get {
-                return ResourceManager.GetString("GoToSettings", resourceCulture);
+                return ResourceManager.GetString("Audio_ExclusiveMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Force Buffer Size 的本地化字符串。
+        /// </summary>
+        internal static string Audio_ForceBufferSize {
+            get {
+                return ResourceManager.GetString("Audio_ForceBufferSize", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Latency 的本地化字符串。
         /// </summary>
-        internal static string Latency {
+        internal static string Audio_Latency {
             get {
-                return ResourceManager.GetString("Latency", resourceCulture);
+                return ResourceManager.GetString("Audio_Latency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Latency &amp; Buffer 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LatencyAndBuffer {
+            get {
+                return ResourceManager.GetString("Audio_LatencyAndBuffer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Audio Limiter 的本地化字符串。
+        /// </summary>
+        internal static string Audio_Limiter {
+            get {
+                return ResourceManager.GetString("Audio_Limiter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterDescription {
+            get {
+                return ResourceManager.GetString("Audio_LimiterDescription", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 No device selected.  的本地化字符串。
         /// </summary>
-        internal static string NoDeviceSelected {
+        internal static string Audio_NoDeviceSelected {
             get {
-                return ResourceManager.GetString("NoDeviceSelected", resourceCulture);
+                return ResourceManager.GetString("Audio_NoDeviceSelected", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Off 的本地化字符串。
+        ///   查找类似 Output Device 的本地化字符串。
         /// </summary>
-        internal static string Off {
+        internal static string Audio_OutputDevice {
             get {
-                return ResourceManager.GetString("Off", resourceCulture);
+                return ResourceManager.GetString("Audio_OutputDevice", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 On 的本地化字符串。
+        ///   查找类似 Audio Processing 的本地化字符串。
         /// </summary>
-        internal static string On {
+        internal static string Audio_Processing {
             get {
-                return ResourceManager.GetString("On", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Play Time 的本地化字符串。
-        /// </summary>
-        internal static string PlayTime {
-            get {
-                return ResourceManager.GetString("PlayTime", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Quick Bindings 的本地化字符串。
-        /// </summary>
-        internal static string QuickBindings {
-            get {
-                return ResourceManager.GetString("QuickBindings", resourceCulture);
+                return ResourceManager.GetString("Audio_Processing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Reload Device 的本地化字符串。
         /// </summary>
-        internal static string ReloadDevice {
+        internal static string Audio_ReloadDevice {
             get {
-                return ResourceManager.GetString("ReloadDevice", resourceCulture);
+                return ResourceManager.GetString("Audio_ReloadDevice", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Sample Rate 的本地化字符串。
         /// </summary>
-        internal static string SampleRate {
+        internal static string Audio_SampleRate {
             get {
-                return ResourceManager.GetString("SampleRate", resourceCulture);
+                return ResourceManager.GetString("Audio_SampleRate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Target Latency 的本地化字符串。
+        /// </summary>
+        internal static string Audio_TargetLatency {
+            get {
+                return ResourceManager.GetString("Audio_TargetLatency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Discard 的本地化字符串。
+        /// </summary>
+        internal static string Common_Discard {
+            get {
+                return ResourceManager.GetString("Common_Discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Done 的本地化字符串。
+        /// </summary>
+        internal static string Common_Done {
+            get {
+                return ResourceManager.GetString("Common_Done", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Go to settings 的本地化字符串。
+        /// </summary>
+        internal static string Common_GoToSettings {
+            get {
+                return ResourceManager.GetString("Common_GoToSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Off 的本地化字符串。
+        /// </summary>
+        internal static string Common_Off {
+            get {
+                return ResourceManager.GetString("Common_Off", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 On 的本地化字符串。
+        /// </summary>
+        internal static string Common_On {
+            get {
+                return ResourceManager.GetString("Common_On", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Beatmap 的本地化字符串。
+        /// </summary>
+        internal static string Dashboard_Beatmap {
+            get {
+                return ResourceManager.GetString("Dashboard_Beatmap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Edit Bindings 的本地化字符串。
+        /// </summary>
+        internal static string Dashboard_EditBindings {
+            get {
+                return ResourceManager.GetString("Dashboard_EditBindings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Play Time 的本地化字符串。
+        /// </summary>
+        internal static string Dashboard_PlayTime {
+            get {
+                return ResourceManager.GetString("Dashboard_PlayTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Quick Bindings 的本地化字符串。
+        /// </summary>
+        internal static string Dashboard_QuickBindings {
+            get {
+                return ResourceManager.GetString("Dashboard_QuickBindings", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Status 的本地化字符串。
         /// </summary>
-        internal static string Status {
+        internal static string Dashboard_Status {
             get {
-                return ResourceManager.GetString("Status", resourceCulture);
+                return ResourceManager.GetString("Dashboard_Status", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Sync Status 的本地化字符串。
         /// </summary>
-        internal static string SyncStatus {
+        internal static string Dashboard_SyncStatus {
             get {
-                return ResourceManager.GetString("SyncStatus", resourceCulture);
+                return ResourceManager.GetString("Dashboard_SyncStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Changes require application to take effect 的本地化字符串。
+        /// </summary>
+        internal static string Message_RestartRequired {
+            get {
+                return ResourceManager.GetString("Message_RestartRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 About 的本地化字符串。
+        /// </summary>
+        internal static string Settings_About {
+            get {
+                return ResourceManager.GetString("Settings_About", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Allow Multiple Instances 的本地化字符串。
+        /// </summary>
+        internal static string Settings_AllowMultipleInstances {
+            get {
+                return ResourceManager.GetString("Settings_AllowMultipleInstances", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Apply Settings 的本地化字符串。
+        /// </summary>
+        internal static string Settings_Apply {
+            get {
+                return ResourceManager.GetString("Settings_Apply", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Check for Updates 的本地化字符串。
+        /// </summary>
+        internal static string Settings_CheckForUpdates {
+            get {
+                return ResourceManager.GetString("Settings_CheckForUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Copyright © 2022-2025 Milkitic (aka. yf_bmp). 的本地化字符串。
+        /// </summary>
+        internal static string Settings_CopyrightLine {
+            get {
+                return ResourceManager.GetString("Settings_CopyrightLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Debug Console 的本地化字符串。
+        /// </summary>
+        internal static string Settings_DebugConsole {
+            get {
+                return ResourceManager.GetString("Settings_DebugConsole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Enable AVX-512 的本地化字符串。
+        /// </summary>
+        internal static string Settings_EnableAvx512 {
+            get {
+                return ResourceManager.GetString("Settings_EnableAvx512", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Environment 的本地化字符串。
+        /// </summary>
+        internal static string Settings_Environment {
+            get {
+                return ResourceManager.GetString("Settings_Environment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Error Reporting 的本地化字符串。
+        /// </summary>
+        internal static string Settings_ErrorReporting {
+            get {
+                return ResourceManager.GetString("Settings_ErrorReporting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Extended Volume 的本地化字符串。
+        /// </summary>
+        internal static string Settings_ExtendedVolume {
+            get {
+                return ResourceManager.GetString("Settings_ExtendedVolume", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Allow volume up to 150% 的本地化字符串。
+        /// </summary>
+        internal static string Settings_ExtendedVolumeDescription {
+            get {
+                return ResourceManager.GetString("Settings_ExtendedVolumeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 General 的本地化字符串。
+        /// </summary>
+        internal static string Settings_General {
+            get {
+                return ResourceManager.GetString("Settings_General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Input &amp; Performance 的本地化字符串。
+        /// </summary>
+        internal static string Settings_InputAndPerformance {
+            get {
+                return ResourceManager.GetString("Settings_InputAndPerformance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Disables syncing; responds only to raw key presses. Intended for testing purposes. 的本地化字符串。
+        /// </summary>
+        internal static string Settings_LegacyModeDescription {
+            get {
+                return ResourceManager.GetString("Settings_LegacyModeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Legacy Mode (Key Only) 的本地化字符串。
+        /// </summary>
+        internal static string Settings_LegacyModeKeyOnly {
+            get {
+                return ResourceManager.GetString("Settings_LegacyModeKeyOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Licensed under MPL-2.0 的本地化字符串。
+        /// </summary>
+        internal static string Settings_LicensedUnderMpl {
+            get {
+                return ResourceManager.GetString("Settings_LicensedUnderMpl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 No updates available. 的本地化字符串。
+        /// </summary>
+        internal static string Settings_NoUpdatesAvailable {
+            get {
+                return ResourceManager.GetString("Settings_NoUpdatesAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 osu! Folder Path 的本地化字符串。
+        /// </summary>
+        internal static string Settings_OsuFolderPath {
+            get {
+                return ResourceManager.GetString("Settings_OsuFolderPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Performance Boost 的本地化字符串。
+        /// </summary>
+        internal static string Settings_PerformanceBoost {
+            get {
+                return ResourceManager.GetString("Settings_PerformanceBoost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Raw Input 的本地化字符串。
+        /// </summary>
+        internal static string Settings_RawInput {
+            get {
+                return ResourceManager.GetString("Settings_RawInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Uses low-latency key hooks when disabled 的本地化字符串。
+        /// </summary>
+        internal static string Settings_RawInputDescription {
+            get {
+                return ResourceManager.GetString("Settings_RawInputDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Update available: v 的本地化字符串。
+        /// </summary>
+        internal static string Settings_UpdateAvailablePrefix {
+            get {
+                return ResourceManager.GetString("Settings_UpdateAvailablePrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Updates 的本地化字符串。
+        /// </summary>
+        internal static string Settings_Updates {
+            get {
+                return ResourceManager.GetString("Settings_Updates", resourceCulture);
             }
         }
     }
