@@ -65,15 +65,6 @@
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
               Classes="Switch"
-              Description="Experimental feature"
-              Header="Override Game Music"
-              Icon="MusicNote"
-              IsChecked="{Binding AppSettings.Sync.EnableMixSync}" />
-
-            <Separator Classes="Section" />
-
-            <controls:SettingItem
-              Classes="Switch"
               Header="Force Nightcore Beats"
               Icon="FastForward"
               IsChecked="{Binding AppSettings.Sync.Playback.NightcoreBeats}" />
