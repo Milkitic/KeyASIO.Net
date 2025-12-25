@@ -305,7 +305,7 @@
     <value>音频引擎</value>
   </data>
   <data name="Page_Dashboard" xml:space="preserve">
-    <value>控制面板</value>
+    <value>主控台</value>
   </data>
   <data name="Page_Settings" xml:space="preserve">
     <value>设置</value>
@@ -320,7 +320,7 @@
     <value>打开 ASIO 设置</value>
   </data>
   <data name="TrayIcon_OpenDashboard" xml:space="preserve">
-    <value>打开控制面板</value>
+    <value>打开主控台</value>
   </data>
   <data name="Volume_Effect" xml:space="preserve">
     <value>音效</value>
