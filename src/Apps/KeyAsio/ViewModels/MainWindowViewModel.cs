@@ -97,6 +97,30 @@ public partial class MainWindowViewModel : IDisposable
     public object? SettingsPageItem { get; set; }
     public object? AudioEnginePageItem { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsExiting { get; set; }
+
+    [RelayCommand]
+    public void ShowMainWindow()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow?.Show();
+            desktop.MainWindow?.Activate();
+            desktop.MainWindow?.Focus();
+        }
+    }
+
+    [RelayCommand]
+    public void ExitApplication()
+    {
+        IsExiting = true;
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
+    }
+
     [RelayCommand]
     public void NavigateToSettings()
     {

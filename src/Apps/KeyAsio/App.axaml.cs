@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
@@ -72,6 +73,11 @@ public partial class App : Application
             var mainWindow = Program.Host.Services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
 
+            var trayIcon = TrayIcon.GetIcons(this).FirstOrDefault();
+            if (trayIcon != null)
+            {
+                trayIcon.DataContext = mainWindow.DataContext;
+            }
 
             desktop.Exit += Desktop_Exit;
         }

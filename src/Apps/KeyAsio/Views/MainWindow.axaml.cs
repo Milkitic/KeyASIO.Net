@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.ComponentModel;
+using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -89,6 +90,8 @@ public partial class MainWindow : SukiWindow
 
             _viewModel.SettingsPageItem = SettingsMenuItem;
             _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
+
+            InitializeTrayIcon();
 
             if (_viewModel.AppSettings.Paths.AllowAutoLoadSkins == null)
             {
@@ -217,5 +220,71 @@ public partial class MainWindow : SukiWindow
                 }
             }
         });
+    }
+
+    private NativeMenuItem? _asioOptionsMenuItem;
+
+    private void InitializeTrayIcon()
+    {
+        var trayIcon = TrayIcon.GetIcons(Avalonia.Application.Current!).FirstOrDefault();
+        if (trayIcon != null)
+        {
+            // Bind click command
+            trayIcon.Command = _viewModel.ShowWindowCommand;
+
+            // Create Menu
+            var menu = new NativeMenu();
+            
+            var dashboardItem = new NativeMenuItem("Open Dashboard");
+            dashboardItem.Command = _viewModel.ShowWindowCommand;
+            menu.Items.Add(dashboardItem);
+
+            _asioOptionsMenuItem = new NativeMenuItem("Open ASIO Options");
+            _asioOptionsMenuItem.Command = _viewModel.AudioSettings.OpenAsioPanelCommand;
+            // Initially check visibility
+            if (_viewModel.AudioSettings.IsAsio)
+            {
+                menu.Items.Add(_asioOptionsMenuItem);
+            }
+
+            menu.Items.Add(new NativeMenuItemSeparator());
+
+            var exitItem = new NativeMenuItem("Exit");
+            exitItem.Command = _viewModel.ExitApplicationCommand;
+            menu.Items.Add(exitItem);
+
+            trayIcon.Menu = menu;
+
+            UpdateAsioMenuVisibility(trayIcon);
+            _viewModel.AudioSettings.PropertyChanged += (s, e) => AudioSettings_PropertyChanged(s, e, trayIcon);
+        }
+    }
+
+    private void AudioSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e, TrayIcon trayIcon)
+    {
+        if (e.PropertyName == nameof(AudioSettingsViewModel.IsAsio))
+        {
+            Dispatcher.UIThread.Post(() => UpdateAsioMenuVisibility(trayIcon));
+        }
+    }
+
+    private void UpdateAsioMenuVisibility(TrayIcon trayIcon)
+    {
+        if (trayIcon.Menu?.Items is { } items && _asioOptionsMenuItem != null)
+        {
+            bool isAsio = _viewModel.AudioSettings.IsAsio;
+            if (isAsio && !items.Contains(_asioOptionsMenuItem))
+            {
+                // Insert at index 1 (after "Open Dashboard")
+                if (items.Count >= 1)
+                    items.Insert(1, _asioOptionsMenuItem);
+                else
+                    items.Add(_asioOptionsMenuItem);
+            }
+            else if (!isAsio && items.Contains(_asioOptionsMenuItem))
+            {
+                items.Remove(_asioOptionsMenuItem);
+            }
+        }
     }
 }
