@@ -34,7 +34,7 @@ public class KeyboardBindingInitializer
     private readonly List<Guid> _registerList = new();
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
-    private CachedAudio? _cacheSound;
+    private CachedAudio? _cachedKeyOnlyAudio;
 
     public KeyboardBindingInitializer(
         ILogger<KeyboardBindingInitializer> logger,
@@ -57,14 +57,6 @@ public class KeyboardBindingInitializer
         _keyboardHook = _appSettings.Input.UseRawInput
             ? KeyboardHookFactory.CreateRawInput()
             : KeyboardHookFactory.CreateGlobal();
-    }
-
-    public async Task InitializeKeyAudioAsync()
-    {
-        var waveFormat = _audioEngine.EngineWaveFormat;
-        var (cachedAudio, result) =
-            await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(_appSettings.Paths.HitsoundPath ?? "", waveFormat);
-        _cacheSound = cachedAudio;
     }
 
     public void RegisterKeys(IEnumerable<HookKeys> keys)
@@ -99,26 +91,31 @@ public class KeyboardBindingInitializer
             if (action != KeyAction.KeyDown) return;
             _logger.LogDebug($"{hookKey} {action}");
 
-            if (!_appSettings.Sync.EnableSync)
+            if (_appSettings.Sync.EnableSync)
             {
-                if (_cacheSound != null)
+                _playbackBuffer.Clear();
+                _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer,
+                    _appSettings.Input.Keys.IndexOf(hookKey), _appSettings.Input.Keys.Count);
+                foreach (var playbackInfo in _playbackBuffer)
                 {
-                    _audioEngine.PlayAudio(_cacheSound);
+                    _sfxPlaybackService.DispatchPlayback(playbackInfo);
                 }
-                else
-                {
-                    _logger.LogWarning("Hitsound is null. Please check your path.");
-                }
-
-                return;
             }
-
-            _playbackBuffer.Clear();
-            _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer,
-                _appSettings.Input.Keys.IndexOf(hookKey), _appSettings.Input.Keys.Count);
-            foreach (var playbackInfo in _playbackBuffer)
+            else
             {
-                _sfxPlaybackService.DispatchPlayback(playbackInfo);
+                if (_audioEngine.CurrentDevice is null)
+                {
+                    _logger.LogWarning("Engine not ready.");
+                    return;
+                }
+
+                if (_cachedKeyOnlyAudio == null)
+                {
+                    var cachedAudio = _audioCacheManager.CreateDynamic($"internal://dynamic/soft-hitnormal", _audioEngine.EngineWaveFormat);
+                    _cachedKeyOnlyAudio = cachedAudio;
+                }
+
+                _sfxPlaybackService.PlayEffectsAudio(_cachedKeyOnlyAudio, 1, 0);
             }
         };
 

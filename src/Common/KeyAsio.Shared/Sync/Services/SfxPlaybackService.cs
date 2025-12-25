@@ -23,6 +23,36 @@ public class SfxPlaybackService
         _appSettings = appSettings;
     }
 
+    public void DispatchPlayback(PlaybackInfo playbackInfo, float? overrideVolume = null)
+    {
+        var cachedAudio = playbackInfo.CachedAudio;
+        var hitsoundNode = playbackInfo.HitsoundNode;
+        if (hitsoundNode is PlayableNode playableNode)
+        {
+            float volume;
+            if (_appSettings.Sync.Filters.IgnoreLineVolumes)
+            {
+                volume = 1;
+            }
+            else
+            {
+                if (overrideVolume != null)
+                    volume = overrideVolume.Value;
+                else if (playableNode.PlayablePriority == PlayablePriority.Effects)
+                    volume = playableNode.Volume * 1.25f;
+                else
+                    volume = playableNode.Volume;
+            }
+
+            PlayEffectsAudio(cachedAudio, volume, playableNode.Balance);
+        }
+        else
+        {
+            var controlNode = (ControlNode)hitsoundNode;
+            PlayLoopAudio(cachedAudio!, controlNode);
+        }
+    }
+
     public void PlayEffectsAudio(CachedAudio? cachedAudio, float volume, float balance)
     {
         if (cachedAudio is null)
@@ -148,35 +178,5 @@ public class SfxPlaybackService
     {
         mixingSampleProvider ??= _audioEngine.EffectMixer;
         _loopProviderManager.RemoveAll(mixingSampleProvider);
-    }
-
-    public void DispatchPlayback(PlaybackInfo playbackInfo, float? overrideVolume = null)
-    {
-        var cachedAudio = playbackInfo.CachedAudio;
-        var hitsoundNode = playbackInfo.HitsoundNode;
-        if (hitsoundNode is PlayableNode playableNode)
-        {
-            float volume;
-            if (_appSettings.Sync.Filters.IgnoreLineVolumes)
-            {
-                volume = 1;
-            }
-            else
-            {
-                if (overrideVolume != null)
-                    volume = overrideVolume.Value;
-                else if (playableNode.PlayablePriority == PlayablePriority.Effects)
-                    volume = playableNode.Volume * 1.25f;
-                else
-                    volume = playableNode.Volume;
-            }
-
-            PlayEffectsAudio(cachedAudio, volume, playableNode.Balance);
-        }
-        else
-        {
-            var controlNode = (ControlNode)hitsoundNode;
-            PlayLoopAudio(cachedAudio!, controlNode);
-        }
     }
 }
