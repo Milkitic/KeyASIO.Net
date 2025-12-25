@@ -1,4 +1,5 @@
-﻿using KeyAsio.Core.Audio.SampleProviders;
+﻿﻿using System.Runtime.CompilerServices;
+using KeyAsio.Core.Audio.SampleProviders;
 using NAudio.Wave;
 
 namespace KeyAsio.Shared.Sync;
@@ -9,7 +10,7 @@ namespace KeyAsio.Shared.Sync;
 public class SnareDrumSampleProvider : IRecyclableProvider
 {
     private readonly WaveFormat _waveFormat;
-    private readonly Random _random;
+    private uint _rngState;
 
     // 状态变量
     private long _sampleCount;
@@ -90,6 +91,7 @@ public class SnareDrumSampleProvider : IRecyclableProvider
     public float SnareMixLevel { get; set; } = 0.4f;
 
     public WaveFormat WaveFormat => _waveFormat;
+
     public ISampleProvider? ResetAndGetSource()
     {
         Reset();
@@ -103,7 +105,7 @@ public class SnareDrumSampleProvider : IRecyclableProvider
     public SnareDrumSampleProvider(WaveFormat targetFormat)
     {
         _waveFormat = targetFormat;
-        _random = Random.Shared;
+        _rngState = (uint)DateTime.Now.Ticks;
 
         // 初始化增益
         _snapGain = InitialSnapGain;
@@ -125,6 +127,12 @@ public class SnareDrumSampleProvider : IRecyclableProvider
 
     public int Read(float[] buffer, int offset, int count)
     {
+        if (_sampleCount >= _maxDurationSamples)
+        {
+            Array.Clear(buffer, offset, count);
+            return 0;
+        }
+
         int samplesRead = 0;
         int channels = _waveFormat.Channels;
         int sampleRate = _waveFormat.SampleRate;
@@ -132,6 +140,13 @@ public class SnareDrumSampleProvider : IRecyclableProvider
         // 计算每帧处理多少个采样点 (Buffer是交错的：L, R, L, R...)
         // 我们需要填充的 "帧" 数 = count / channels
         int samplesToFill = count / channels;
+
+        // 限制处理长度不超过剩余总时长
+        long samplesRemainingTotal = _maxDurationSamples - _sampleCount;
+        if (samplesToFill > samplesRemainingTotal)
+        {
+            samplesToFill = (int)samplesRemainingTotal;
+        }
 
         // --- 预计算和缓存 (性能优化) ---
         // 缓存属性到局部变量，避免循环中重复访问属性 getter
@@ -141,11 +156,11 @@ public class SnareDrumSampleProvider : IRecyclableProvider
         float snapMixLevel = SnapMixLevel;
         float snareMixLevel = SnareMixLevel;
         float impactLevel = ImpactLevel;
-        
+
         // 预计算衰减因子
         // MathF.Exp(-1.0f / (sampleRate * PitchDecayTimeConstant))
         float freqDecayFactor = MathF.Exp(-1.0f / (sampleRate * pitchDecayTimeConstant));
-        
+
         // 预计算当前频率包络值 (避免循环内调用 Exp)
         // 初始值基于当前 _sampleCount
         float currentFreqEnv = MathF.Exp(-((float)_sampleCount / sampleRate) / pitchDecayTimeConstant);
@@ -162,21 +177,24 @@ public class SnareDrumSampleProvider : IRecyclableProvider
         float twoPi = 2f * MathF.PI;
         float phaseIncrementBase = twoPi / sampleRate;
 
-        // 缓存 Random 实例
-        Random random = _random;
-
-        for (int i = 0; i < samplesToFill; i++)
+        // 将循环分为两部分：有 Impact 的部分和无 Impact 的部分
+        long samplesRemainingImpact = impactDurationSamples - _sampleCount;
+        int countImpact = 0;
+        if (samplesRemainingImpact > 0)
         {
-            if (_sampleCount >= _maxDurationSamples)
-            {
-                break;
-            }
+            countImpact = (int)Math.Min(samplesToFill, samplesRemainingImpact);
+        }
 
+        int countNoImpact = samplesToFill - countImpact;
+
+        // 循环 1：包含 Impact 计算
+        for (int i = 0; i < countImpact; i++)
+        {
             // --- 合成核心逻辑 (基于单声道计算) ---
 
             // 2. 合成 "Snap" (正弦波 + 快速频率掉落)
             // 使用累乘更新频率包络
-            float freq = fundamentalFreq + (freqSweepRange * currentFreqEnv); 
+            float freq = fundamentalFreq + (freqSweepRange * currentFreqEnv);
             currentFreqEnv *= freqDecayFactor;
 
             _phase += phaseIncrementBase * freq;
@@ -185,18 +203,58 @@ public class SnareDrumSampleProvider : IRecyclableProvider
             float snap = MathF.Sin(_phase) * _snapGain;
 
             // 3. 合成 "Snare" (白噪声)
-            // 使用 NextSingle 替代 NextDouble 以提升性能
-            float noise = (random.NextSingle() * 2f - 1f) * _snareGain;
+            // 使用 FastNextFloat 替代 Random.NextSingle 以提升性能
+            float noise = FastNextFloat() * _snareGain;
 
-            // 4. "Impact" 瞬态
-            float impact = 0f;
-            if (_sampleCount < impactDurationSamples)
-            {
-                impact = (random.NextSingle() * 2f - 1f) * impactLevel;
-            }
+            // 4. "Impact" 瞬态 (存在)
+            float impact = FastNextFloat() * impactLevel;
 
             // 5. 混合
             float sampleValue = (snap * snapMixLevel) + (noise * snareMixLevel) + impact;
+
+            // 硬限制器
+            if (sampleValue > 1.0f) sampleValue = 1.0f;
+            else if (sampleValue < -1.0f) sampleValue = -1.0f;
+
+            // --- 声道处理 ---
+            for (int ch = 0; ch < channels; ch++)
+            {
+                buffer[offset + samplesRead + ch] = sampleValue;
+            }
+
+            samplesRead += channels;
+
+            // 6. 包络衰减
+            _snapGain *= snapDecayFactor;
+            _snareGain *= snareDecayFactor;
+
+            _sampleCount++;
+        }
+
+        // 循环 2：不包含 Impact 计算 (Impact = 0)
+        for (int i = 0; i < countNoImpact; i++)
+        {
+            // --- 合成核心逻辑 (基于单声道计算) ---
+
+            // 2. 合成 "Snap" (正弦波 + 快速频率掉落)
+            // 使用累乘更新频率包络
+            float freq = fundamentalFreq + (freqSweepRange * currentFreqEnv);
+            currentFreqEnv *= freqDecayFactor;
+
+            _phase += phaseIncrementBase * freq;
+            if (_phase > twoPi) _phase -= twoPi;
+
+            float snap = MathF.Sin(_phase) * _snapGain;
+
+            // 3. 合成 "Snare" (白噪声)
+            // 使用 FastNextFloat 替代 Random.NextSingle 以提升性能
+            float noise = FastNextFloat() * _snareGain;
+
+            // 4. "Impact" 瞬态 (为 0，省略计算)
+            // float impact = 0f;
+
+            // 5. 混合
+            float sampleValue = (snap * snapMixLevel) + (noise * snareMixLevel); // + 0
 
             // 硬限制器
             if (sampleValue > 1.0f) sampleValue = 1.0f;
@@ -231,5 +289,19 @@ public class SnareDrumSampleProvider : IRecyclableProvider
         _snapGain = InitialSnapGain;
         _snareGain = InitialSnareGain;
         _phase = 0;
+    }
+
+    /// <summary>
+    /// 快速随机数生成器 (Xorshift)
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private float FastNextFloat()
+    {
+        uint x = _rngState;
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        _rngState = x;
+        return (int)x * 4.6566128752458e-10f;
     }
 }
