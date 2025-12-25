@@ -1,4 +1,5 @@
-﻿using KeyAsio.Core.Audio;
+﻿using System.ComponentModel;
+using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
@@ -54,9 +55,8 @@ public class KeyboardBindingInitializer
 
     public void Setup()
     {
-        _keyboardHook = _appSettings.Input.UseRawInput
-            ? KeyboardHookFactory.CreateRawInput()
-            : KeyboardHookFactory.CreateGlobal();
+        _appSettings.Input.PropertyChanged += Input_PropertyChanged;
+        RecreateKeyboardHook();
     }
 
     public void RegisterKeys(IEnumerable<HookKeys> keys)
@@ -82,6 +82,28 @@ public class KeyboardBindingInitializer
         }
 
         _registerList.Clear();
+    }
+
+    private void Input_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AppSettingsInput.UseRawInput))
+        {
+            _logger.LogInformation("UseRawInput setting changed, recreating keyboard hook...");
+            UnregisterAll();
+            _keyboardHook?.Dispose();
+            RecreateKeyboardHook();
+            RegisterKeys(_appSettings.Input.Keys);
+        }
+    }
+
+    private void RecreateKeyboardHook()
+    {
+        var useRawInput = _appSettings.Input.UseRawInput;
+        _logger.LogInformation("Initializing keyboard hook. Mode: {Mode}", useRawInput ? "RawInput" : "Global Hook");
+
+        _keyboardHook = useRawInput
+            ? KeyboardHookFactory.CreateRawInput()
+            : KeyboardHookFactory.CreateGlobal();
     }
 
     private void RegisterKey(HookKeys key)
@@ -111,7 +133,8 @@ public class KeyboardBindingInitializer
 
                 if (_cachedKeyOnlyAudio == null)
                 {
-                    var cachedAudio = _audioCacheManager.CreateDynamic($"internal://dynamic/soft-hitnormal", _audioEngine.EngineWaveFormat);
+                    var cachedAudio = _audioCacheManager.CreateDynamic($"internal://dynamic/soft-hitnormal",
+                        _audioEngine.EngineWaveFormat);
                     _cachedKeyOnlyAudio = cachedAudio;
                 }
 
