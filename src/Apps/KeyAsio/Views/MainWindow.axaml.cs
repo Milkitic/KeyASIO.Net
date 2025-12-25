@@ -2,6 +2,7 @@
 using Avalonia.Controls.Notifications;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Core.Audio.Utils;
 using KeyAsio.Services;
@@ -12,6 +13,7 @@ using KeyAsio.ViewModels;
 using KeyAsio.Views.Dialogs;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
+using SukiUI;
 using SukiUI.Controls;
 using SukiUI.Dialogs;
 using SukiUI.Enums;
@@ -125,7 +127,6 @@ public partial class MainWindow : SukiWindow
                     .Queue();
             }
 
-            //var theme = SukiTheme.GetInstance();
             var updateService = _viewModel.UpdateService;
             updateService.UpdateAction = () => StartUpdate(updateService);
             updateService.CheckUpdateCallback = (res) =>
@@ -149,6 +150,7 @@ public partial class MainWindow : SukiWindow
                 ShowUpdateToast(updateService);
             }
 
+            _viewModel.AudioSettings.OnDeviceChanged += AudioSettings_OnDeviceChanged;
             await _viewModel.AudioSettings.InitializeDevice();
 
             if (_viewModel.AudioSettings.DeviceErrorMessage != null)
@@ -187,5 +189,33 @@ public partial class MainWindow : SukiWindow
             .TryShow();
 
         _ = updateService.DownloadAndInstallAsync();
+    }
+
+    private void AudioSettings_OnDeviceChanged(DeviceDescription? device)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (device == null)
+            {
+                BackgroundStyle = SukiBackgroundStyle.Flat;
+                SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Blue);
+            }
+            else
+            {
+                //BackgroundStyle = SukiBackgroundStyle.GradientSoft;
+                if (device.WavePlayerType == WavePlayerType.ASIO)
+                {
+                    SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Red);
+                }
+                else if (device is { WavePlayerType: WavePlayerType.WASAPI, IsExclusive: true })
+                {
+                    SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Orange);
+                }
+                else
+                {
+                    SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Blue);
+                }
+            }
+        });
     }
 }

@@ -15,7 +15,7 @@
   Height="697"
   x:DataType="vm:MainWindowViewModel"
   BackgroundAnimationEnabled="False"
-  BackgroundStyle="GradientSoft"
+  BackgroundStyle="Flat"
   BackgroundTransitionsEnabled="False"
   Icon="/Assets/KeyAsio.ico"
   Loaded="Control_OnLoaded"

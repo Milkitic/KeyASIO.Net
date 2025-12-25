@@ -15,6 +15,8 @@ namespace KeyAsio.ViewModels;
 
 public partial class AudioSettingsViewModel : ObservableObject
 {
+    public event Action<DeviceDescription?>? OnDeviceChanged;
+
     private readonly ILogger<AudioSettingsViewModel> _logger;
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly AppSettings _appSettings;
@@ -363,6 +365,8 @@ public partial class AudioSettingsViewModel : ObservableObject
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 FramesPerBuffer = asioOut.FramesPerBuffer;
             }
+
+            OnDeviceChanged?.Invoke(deviceDescription);
         }
         catch (Exception ex)
         {
@@ -405,6 +409,7 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     private async ValueTask DisposeDeviceAsync()
     {
+        OnDeviceChanged?.Invoke(null);
         if (AudioEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
