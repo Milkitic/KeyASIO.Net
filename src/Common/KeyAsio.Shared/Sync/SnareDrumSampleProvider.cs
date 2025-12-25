@@ -1,4 +1,4 @@
-﻿﻿using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using KeyAsio.Core.Audio.SampleProviders;
 using NAudio.Wave;
 
@@ -203,7 +203,6 @@ public class SnareDrumSampleProvider : IRecyclableProvider
             float snap = MathF.Sin(_phase) * _snapGain;
 
             // 3. 合成 "Snare" (白噪声)
-            // 使用 FastNextFloat 替代 Random.NextSingle 以提升性能
             float noise = FastNextFloat() * _snareGain;
 
             // 4. "Impact" 瞬态 (存在)
@@ -217,16 +216,24 @@ public class SnareDrumSampleProvider : IRecyclableProvider
             else if (sampleValue < -1.0f) sampleValue = -1.0f;
 
             // --- 声道处理 ---
-            for (int ch = 0; ch < channels; ch++)
+            if (channels == 2)
             {
-                buffer[offset + samplesRead + ch] = sampleValue;
+                buffer[offset + samplesRead] = sampleValue;
+                buffer[offset + samplesRead + 1] = sampleValue;
+                samplesRead += 2;
             }
-
-            samplesRead += channels;
+            else
+            {
+                for (int ch = 0; ch < channels; ch++)
+                    buffer[offset + samplesRead + ch] = sampleValue;
+                samplesRead += channels;
+            }
 
             // 6. 包络衰减
             _snapGain *= snapDecayFactor;
             _snareGain *= snareDecayFactor;
+            if (_snapGain < 0.0001f) _snapGain = 0f;
+            if (_snareGain < 0.0001f) _snareGain = 0f;
 
             _sampleCount++;
         }
@@ -247,7 +254,6 @@ public class SnareDrumSampleProvider : IRecyclableProvider
             float snap = MathF.Sin(_phase) * _snapGain;
 
             // 3. 合成 "Snare" (白噪声)
-            // 使用 FastNextFloat 替代 Random.NextSingle 以提升性能
             float noise = FastNextFloat() * _snareGain;
 
             // 4. "Impact" 瞬态 (为 0，省略计算)
@@ -257,16 +263,21 @@ public class SnareDrumSampleProvider : IRecyclableProvider
             float sampleValue = (snap * snapMixLevel) + (noise * snareMixLevel); // + 0
 
             // 硬限制器
-            if (sampleValue > 1.0f) sampleValue = 1.0f;
-            else if (sampleValue < -1.0f) sampleValue = -1.0f;
+            sampleValue = Math.Clamp(sampleValue, -1.0f, 1.0f);
 
             // --- 声道处理 ---
-            for (int ch = 0; ch < channels; ch++)
+            if (channels == 2)
             {
-                buffer[offset + samplesRead + ch] = sampleValue;
+                buffer[offset + samplesRead] = sampleValue;
+                buffer[offset + samplesRead + 1] = sampleValue;
+                samplesRead += 2;
             }
-
-            samplesRead += channels;
+            else
+            {
+                for (int ch = 0; ch < channels; ch++)
+                    buffer[offset + samplesRead + ch] = sampleValue;
+                samplesRead += channels;
+            }
 
             // 6. 包络衰减
             _snapGain *= snapDecayFactor;
