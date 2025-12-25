@@ -31,23 +31,4 @@
     <StyleInclude Source="/Styles/SettingItemStyles.axaml" />
     <StyleInclude Source="/Styles/StatBadgeStyles.axaml" />
   </Application.Styles>
-
-  <TrayIcon.Icons>
-    <TrayIcons>
-      <TrayIcon Icon="/Assets/KeyAsio.ico" 
-                ToolTipText="KeyAsio"
-                Command="{Binding ShowMainWindowCommand}">
-        <TrayIcon.Menu>
-          <NativeMenu>
-            <NativeMenuItem Header="Open Dashboard" Command="{Binding ShowMainWindowCommand}" />
-            <NativeMenuItem Header="Open ASIO Options" 
-                            Command="{Binding AudioSettings.OpenAsioPanelCommand}"
-                            IsVisible="{Binding AudioSettings.IsAsio}" />
-            <NativeMenuItemSeparator />
-            <NativeMenuItem Header="Exit" Command="{Binding ExitApplicationCommand}" />
-          </NativeMenu>
-        </TrayIcon.Menu>
-      </TrayIcon>
-    </TrayIcons>
-  </TrayIcon.Icons>
 </Application>

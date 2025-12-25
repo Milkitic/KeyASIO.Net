@@ -72,13 +72,6 @@ public partial class App : Application
 
             var mainWindow = Program.Host.Services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
-
-            var trayIcon = TrayIcon.GetIcons(this).FirstOrDefault();
-            if (trayIcon != null)
-            {
-                trayIcon.DataContext = mainWindow.DataContext;
-            }
-
             desktop.Exit += Desktop_Exit;
         }
 

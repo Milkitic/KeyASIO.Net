@@ -68,11 +68,27 @@ internal sealed class Program
             mutex = new Mutex(true, "KeyAsio.Net", out bool createNew);
             if (!createNew)
             {
+                try
+                {
+                    await using var client = new System.IO.Pipes.NamedPipeClientStream(".", IpcService.PipeName, System.IO.Pipes.PipeDirection.Out);
+                    await client.ConnectAsync(1000);
+                    await using var writer = new StreamWriter(client);
+                    await writer.WriteAsync("SHOW_WINDOW");
+                    await writer.FlushAsync();
+                    return;
+                }
+                catch
+                {
+                    // Ignore
+                }
+
+                // logic to bring existing V3 instance to foreground
+                var processName = Process.GetCurrentProcess().ProcessName;
                 var process = Process
-                    .GetProcessesByName(Process.GetCurrentProcess().ProcessName)
+                    .GetProcessesByName(processName)
                     .FirstOrDefault(k => k.Id != Environment.ProcessId && k.MainWindowHandle != IntPtr.Zero);
                 if (process == null || !OperatingSystem.IsWindowsVersionAtLeast(5)) return;
-                PInvoke.ShowWindow((HWND)process.MainWindowHandle, SHOW_WINDOW_CMD.SW_SHOW);
+                PInvoke.ShowWindow((HWND)process.MainWindowHandle, SHOW_WINDOW_CMD.SW_RESTORE);
                 PInvoke.SetForegroundWindow((HWND)process.MainWindowHandle);
                 return;
             }

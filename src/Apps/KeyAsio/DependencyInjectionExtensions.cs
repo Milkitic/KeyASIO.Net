@@ -1,4 +1,4 @@
-﻿using KeyAsio.Services;
+using KeyAsio.Services;
 using KeyAsio.Shared.Models;
 using KeyAsio.ViewModels;
 using KeyAsio.Views;
@@ -28,6 +28,7 @@ public static class DependencyInjectionExtensions
 
         services.AddSingleton<KeyboardBindingInitializer>();
 
+        services.AddHostedService<IpcService>();
         services.AddHostedService<GuiStartupService>();
         return services;
     }

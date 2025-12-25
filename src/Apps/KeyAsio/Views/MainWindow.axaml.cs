@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
@@ -18,6 +21,7 @@ using SukiUI;
 using SukiUI.Controls;
 using SukiUI.Dialogs;
 using SukiUI.Enums;
+using SukiUI.Models;
 using SukiUI.Toasts;
 
 namespace KeyAsio.Views;
@@ -28,11 +32,19 @@ public partial class MainWindow : SukiWindow
     private readonly MainWindowViewModel _viewModel;
     private readonly SkinManager _skinManager;
 
+    private NativeMenuItem? _asioOptionsMenuItem;
+
     public MainWindow(ILogger<MainWindow> logger, MainWindowViewModel mainWindowViewModel, SkinManager skinManager)
     {
         _logger = logger;
         _skinManager = skinManager;
         DataContext = _viewModel = mainWindowViewModel;
+        Application.Current!.ActualThemeVariantChanged += (_, _) =>
+        {
+            UpdateThemeByDevice(_viewModel.AudioSettings.SelectedAudioDevice);
+        };
+        UpdateThemeByDevice(null);
+
         InitializeComponent();
         ToastHost.Manager = _viewModel.MainToastManager;
         BindOptions();
@@ -92,6 +104,7 @@ public partial class MainWindow : SukiWindow
             _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
 
             InitializeTrayIcon();
+            await Dispatcher.UIThread.InvokeAsync(() => UpdateThemeByDevice(null));
 
             if (_viewModel.AppSettings.Paths.AllowAutoLoadSkins == null)
             {
@@ -155,7 +168,6 @@ public partial class MainWindow : SukiWindow
 
             _viewModel.AudioSettings.OnDeviceChanged += AudioSettings_OnDeviceChanged;
             await _viewModel.AudioSettings.InitializeDevice();
-
             if (_viewModel.AudioSettings.DeviceErrorMessage != null)
             {
                 _viewModel.MainToastManager.CreateToast()
@@ -196,71 +208,21 @@ public partial class MainWindow : SukiWindow
 
     private void AudioSettings_OnDeviceChanged(DeviceDescription? device)
     {
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (device == null)
-            {
-                BackgroundStyle = SukiBackgroundStyle.Flat;
-                SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Blue);
-            }
-            else
-            {
-                //BackgroundStyle = SukiBackgroundStyle.GradientSoft;
-                if (device.WavePlayerType == WavePlayerType.ASIO)
-                {
-                    SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Red);
-                }
-                else if (device is { WavePlayerType: WavePlayerType.WASAPI, IsExclusive: true })
-                {
-                    SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Orange);
-                }
-                else
-                {
-                    SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Blue);
-                }
-            }
-        });
+        Dispatcher.UIThread.Post(() => UpdateThemeByDevice(device));
     }
-
-    private NativeMenuItem? _asioOptionsMenuItem;
 
     private void InitializeTrayIcon()
     {
-        var trayIcon = TrayIcon.GetIcons(Avalonia.Application.Current!).FirstOrDefault();
-        if (trayIcon != null)
-        {
-            // Bind click command
-            trayIcon.Command = _viewModel.ShowWindowCommand;
+        var trayIcons = this.Resources["TrayIcons"] as TrayIcons;
+        if (trayIcons == null) return;
+        TrayIcon.SetIcons(Application.Current!, trayIcons);
 
-            // Create Menu
-            var menu = new NativeMenu();
-            
-            var dashboardItem = new NativeMenuItem("Open Dashboard");
-            dashboardItem.Command = _viewModel.ShowWindowCommand;
-            menu.Items.Add(dashboardItem);
+        _viewModel.AudioSettings.PropertyChanged +=
+            (s, e) => AudioSettings_PropertyChanged(s, e, trayIcons.FirstOrDefault());
 
-            _asioOptionsMenuItem = new NativeMenuItem("Open ASIO Options");
-            _asioOptionsMenuItem.Command = _viewModel.AudioSettings.OpenAsioPanelCommand;
-            // Initially check visibility
-            if (_viewModel.AudioSettings.IsAsio)
-            {
-                menu.Items.Add(_asioOptionsMenuItem);
-            }
-
-            menu.Items.Add(new NativeMenuItemSeparator());
-
-            var exitItem = new NativeMenuItem("Exit");
-            exitItem.Command = _viewModel.ExitApplicationCommand;
-            menu.Items.Add(exitItem);
-
-            trayIcon.Menu = menu;
-
-            UpdateAsioMenuVisibility(trayIcon);
-            _viewModel.AudioSettings.PropertyChanged += (s, e) => AudioSettings_PropertyChanged(s, e, trayIcon);
-        }
     }
 
-    private void AudioSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e, TrayIcon trayIcon)
+    private void AudioSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e, TrayIcon? trayIcon)
     {
         if (e.PropertyName == nameof(AudioSettingsViewModel.IsAsio))
         {
@@ -268,9 +230,31 @@ public partial class MainWindow : SukiWindow
         }
     }
 
-    private void UpdateAsioMenuVisibility(TrayIcon trayIcon)
+    private void UpdateThemeByDevice(DeviceDescription? device)
     {
-        if (trayIcon.Menu?.Items is { } items && _asioOptionsMenuItem != null)
+        if (device == null)
+        {
+            BackgroundStyle = SukiBackgroundStyle.Flat;
+            UpdatePinkTheme();
+        }
+        else
+        {
+            //BackgroundStyle = SukiBackgroundStyle.GradientSoft;
+            if (device.WavePlayerType == WavePlayerType.ASIO ||
+                device is { WavePlayerType: WavePlayerType.WASAPI, IsExclusive: true })
+            {
+                SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Red);
+            }
+            else
+            {
+                SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Blue);
+            }
+        }
+    }
+
+    private void UpdateAsioMenuVisibility(TrayIcon? trayIcon)
+    {
+        if (trayIcon?.Menu?.Items is { } items && _asioOptionsMenuItem != null)
         {
             bool isAsio = _viewModel.AudioSettings.IsAsio;
             if (isAsio && !items.Contains(_asioOptionsMenuItem))
@@ -285,6 +269,31 @@ public partial class MainWindow : SukiWindow
             {
                 items.Remove(_asioOptionsMenuItem);
             }
+        }
+    }
+
+    private void UpdatePinkTheme()
+    {
+        var isDark = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+        if (isDark)
+        {
+            SukiTheme.GetInstance().ChangeColorTheme(new SukiColorTheme("Pink",
+                Color.Parse("#D01373"), Color.Parse("#FFC0CB")));
+        }
+        else
+        {
+            // Light theme: Use a darker accent for better visibility
+            SukiTheme.GetInstance().ChangeColorTheme(new SukiColorTheme("Pink",
+                Color.Parse("#D01373"), Color.Parse("#C2185B")));
+        }
+    }
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        base.OnClosing(e);
+        if (!_viewModel.IsExiting)
+        {
+            e.Cancel = true;
+            Hide();
         }
     }
 }

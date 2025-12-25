@@ -24,6 +24,24 @@
   mc:Ignorable="d">
 
   <suki:SukiWindow.Resources>
+
+      <TrayIcons x:Key="TrayIcons">
+        <TrayIcon Icon="/Assets/KeyAsio.ico" 
+                  ToolTipText="KeyAsio"
+                  Command="{Binding ShowMainWindowCommand}">
+          <TrayIcon.Menu>
+            <NativeMenu>
+              <NativeMenuItem Header="Open Dashboard" Command="{Binding ShowMainWindowCommand}" />
+              <NativeMenuItem Header="Open ASIO Options" 
+                              Command="{Binding AudioSettings.OpenAsioPanelCommand}"
+                              IsVisible="{Binding AudioSettings.IsAsio}" />
+              <NativeMenuItemSeparator />
+              <NativeMenuItem Header="Exit" Command="{Binding ExitApplicationCommand}" />
+            </NativeMenu>
+          </TrayIcon.Menu>
+        </TrayIcon>
+      </TrayIcons>
+
     <converters:ExtendedVolumeConverter x:Key="ExtendedVolumeConverter" />
   </suki:SukiWindow.Resources>
 
