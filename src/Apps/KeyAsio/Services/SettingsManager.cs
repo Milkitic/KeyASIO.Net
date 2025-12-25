@@ -1,8 +1,11 @@
 ﻿using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls.Notifications;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using KeyAsio.Core.Audio;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using SukiUI.Toasts;
@@ -31,7 +34,24 @@ public class SettingsManager : IDisposable
         _audioEngine = audioEngine;
         _toastManager = toastManager;
 
+        ApplyTheme();
         SubscribeToSettingsChanges();
+    }
+
+    private void ApplyTheme()
+    {
+        if (Application.Current == null) return;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            var theme = _appSettings.General.Theme;
+            Application.Current.RequestedThemeVariant = theme switch
+            {
+                AppTheme.Light => ThemeVariant.Light,
+                AppTheme.Dark => ThemeVariant.Dark,
+                _ => ThemeVariant.Default
+            };
+        });
     }
 
     private void SubscribeToSettingsChanges()
@@ -82,6 +102,18 @@ public class SettingsManager : IDisposable
             if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceFactor))
             {
                 DebounceSave();
+            }
+        }
+        else if (sender is AppSettingsGeneral && e.PropertyName == nameof(AppSettingsGeneral.Theme))
+        {
+            ApplyTheme();
+            try
+            {
+                _appSettings.Save();
+            }
+            catch (Exception ex)
+            {
+                HandleSaveException(ex);
             }
         }
         else

@@ -89,6 +89,7 @@ public partial class MainWindowViewModel : IDisposable
     public PluginManagerViewModel PluginManager { get; }
 
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
+    public AppTheme[] AvailableThemes { get; } = Enum.GetValues<AppTheme>();
 
     [ObservableProperty]
     public partial object? SelectedMenuItem { get; set; }

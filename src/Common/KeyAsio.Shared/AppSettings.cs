@@ -24,6 +24,9 @@ public partial class AppSettingsGeneral : INotifyPropertyChanged
 
     [Description("Application language.")]
     public string? Language { get; set; }
+
+    [Description("Application theme.")]
+    public AppTheme Theme { get; set; } = AppTheme.System;
 }
 
 public partial class AppSettingsInput : INotifyPropertyChanged

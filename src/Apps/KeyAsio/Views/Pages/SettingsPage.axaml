@@ -9,8 +9,13 @@
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:vm="using:KeyAsio.ViewModels"
+  xmlns:converters="using:KeyAsio.Converters"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
+
+  <UserControl.Resources>
+    <converters:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+  </UserControl.Resources>
 
   <Design.DataContext>
     <vm:MainWindowViewModel />
@@ -28,6 +33,21 @@
                         SelectedItem="{Binding LanguageManager.SelectedLanguageItem}"
                         MinWidth="150"
                         HorizontalAlignment="Right" />
+            </controls:SettingItem>
+
+            <controls:SettingItem
+              Header="Theme"
+              Icon="ThemeLightDark">
+              <ComboBox ItemsSource="{Binding AvailableThemes}"
+                        SelectedItem="{Binding AppSettings.General.Theme}"
+                        MinWidth="150"
+                        HorizontalAlignment="Right">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
             </controls:SettingItem>
 
             <controls:SettingItem
