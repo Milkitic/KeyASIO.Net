@@ -298,4 +298,37 @@
   <data name="Sync_WidthWide" xml:space="preserve">
     <value>Wide</value>
   </data>
+  <data name="MainWindow_ClickToUpdate" xml:space="preserve">
+    <value>Click to Update</value>
+  </data>
+  <data name="Page_AudioEngine" xml:space="preserve">
+    <value>Audio Engine</value>
+  </data>
+  <data name="Page_Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Page_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Page_SyncMode" xml:space="preserve">
+    <value>Sync Mode</value>
+  </data>
+  <data name="TrayIcon_Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="TrayIcon_OpenAsioPanel" xml:space="preserve">
+    <value>Open ASIO Options</value>
+  </data>
+  <data name="TrayIcon_OpenDashboard" xml:space="preserve">
+    <value>Open Dashboard</value>
+  </data>
+  <data name="Volume_Effect" xml:space="preserve">
+    <value>Effect</value>
+  </data>
+  <data name="Volume_Master" xml:space="preserve">
+    <value>Master</value>
+  </data>
+  <data name="Volume_Music" xml:space="preserve">
+    <value>Music</value>
+  </data>
 </root>

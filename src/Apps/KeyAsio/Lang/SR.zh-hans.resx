@@ -298,4 +298,37 @@
   <data name="Sync_WidthWide" xml:space="preserve">
     <value>宽</value>
   </data>
+  <data name="MainWindow_ClickToUpdate" xml:space="preserve">
+    <value>点击更新</value>
+  </data>
+  <data name="Page_AudioEngine" xml:space="preserve">
+    <value>音频引擎</value>
+  </data>
+  <data name="Page_Dashboard" xml:space="preserve">
+    <value>控制面板</value>
+  </data>
+  <data name="Page_Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Page_SyncMode" xml:space="preserve">
+    <value>同步模式</value>
+  </data>
+  <data name="TrayIcon_Exit" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <data name="TrayIcon_OpenAsioPanel" xml:space="preserve">
+    <value>打开 ASIO 设置</value>
+  </data>
+  <data name="TrayIcon_OpenDashboard" xml:space="preserve">
+    <value>打开控制面板</value>
+  </data>
+  <data name="Volume_Effect" xml:space="preserve">
+    <value>音效</value>
+  </data>
+  <data name="Volume_Master" xml:space="preserve">
+    <value>主音量</value>
+  </data>
+  <data name="Volume_Music" xml:space="preserve">
+    <value>音乐</value>
+  </data>
 </root>

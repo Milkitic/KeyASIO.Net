@@ -1,5 +1,4 @@
-﻿
-<suki:SukiWindow
+﻿<suki:SukiWindow
   x:Class="KeyAsio.Views.MainWindow"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,6 +9,7 @@
   xmlns:pages="using:KeyAsio.Views.Pages"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   Title="KeyAsio"
   Width="900"
   Height="697"
@@ -31,12 +31,12 @@
                   Command="{Binding ShowMainWindowCommand}">
           <TrayIcon.Menu>
             <NativeMenu>
-              <NativeMenuItem Header="Open Dashboard" Command="{Binding ShowMainWindowCommand}" />
-              <NativeMenuItem Header="Open ASIO Options" 
+              <NativeMenuItem Header="{I18N {x:Static lang:SRKeys.TrayIcon_OpenDashboard}}" Command="{Binding ShowMainWindowCommand}" />
+              <NativeMenuItem Header="{I18N {x:Static lang:SRKeys.TrayIcon_OpenAsioPanel}}" 
                               Command="{Binding AudioSettings.OpenAsioPanelCommand}"
                               IsVisible="{Binding AudioSettings.IsAsio}" />
               <NativeMenuItemSeparator />
-              <NativeMenuItem Header="Exit" Command="{Binding ExitApplicationCommand}" />
+              <NativeMenuItem Header="{I18N {x:Static lang:SRKeys.TrayIcon_Exit}}" Command="{Binding ExitApplicationCommand}" />
             </NativeMenu>
           </TrayIcon.Menu>
         </TrayIcon>
@@ -59,13 +59,13 @@
       Classes="Basic"
       Command="{Binding UpdateService.TriggerUpdateCommand}"
       IsVisible="{Binding UpdateService.NewRelease, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-      ToolTip.Tip="Click to Update">
+      ToolTip.Tip="{I18N {x:Static lang:SRKeys.MainWindow_ClickToUpdate}}">
       <StackPanel Orientation="Horizontal" Spacing="5">
         <materialIcons:MaterialIcon Kind="Update" />
         <TextBlock
           VerticalAlignment="Center"
           FontSize="12"
-          Text="Click to Update" />
+          Text="{I18N {x:Static lang:SRKeys.MainWindow_ClickToUpdate}}" />
       </StackPanel>
     </Button>
   </suki:SukiWindow.RightWindowTitleBarControls>
@@ -83,7 +83,7 @@
     <suki:SukiSideMenu.Items>
 
       <!--  PAGE 1: DASHBOARD  -->
-      <suki:SukiSideMenuItem Classes="Compact" Header="Dashboard">
+      <suki:SukiSideMenuItem Classes="Compact" Header="{I18N {x:Static lang:SRKeys.Page_Dashboard}}">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="ViewDashboard" />
         </suki:SukiSideMenuItem.Icon>
@@ -93,7 +93,7 @@
       </suki:SukiSideMenuItem>
 
       <!--  PAGE 2: SYNC MODE  -->
-      <suki:SukiSideMenuItem Classes="Compact" Header="Sync Mode">
+      <suki:SukiSideMenuItem Classes="Compact" Header="{I18N {x:Static lang:SRKeys.Page_SyncMode}}">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Link" />
         </suki:SukiSideMenuItem.Icon>
@@ -106,7 +106,7 @@
       <suki:SukiSideMenuItem
         x:Name="AudioEngineMenuItem"
         Classes="Compact"
-        Header="Audio Engine">
+        Header="{I18N {x:Static lang:SRKeys.Page_AudioEngine}}">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Speaker" />
         </suki:SukiSideMenuItem.Icon>
@@ -119,7 +119,7 @@
       <suki:SukiSideMenuItem
         x:Name="SettingsMenuItem"
         Classes="Compact"
-        Header="Settings">
+        Header="{I18N {x:Static lang:SRKeys.Page_Settings}}">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Cog" />
         </suki:SukiSideMenuItem.Icon>
@@ -158,7 +158,7 @@
           Margin="0,0,0,5"
           FontSize="12"
           FontWeight="SemiBold"
-          Text="Master" />
+          Text="{I18N {x:Static lang:SRKeys.Volume_Master}}" />
         <Grid ColumnDefinitions="Auto,*,Auto">
           <materialIcons:MaterialIcon
             Margin="0,0,10,0"
@@ -181,7 +181,7 @@
           Margin="0,10,0,5"
           FontSize="12"
           FontWeight="SemiBold"
-          Text="Music" />
+          Text="{I18N {x:Static lang:SRKeys.Volume_Music}}" />
         <Grid ColumnDefinitions="Auto,*,Auto">
           <materialIcons:MaterialIcon
             Margin="0,0,10,0"
@@ -204,7 +204,7 @@
           Margin="0,10,0,5"
           FontSize="12"
           FontWeight="SemiBold"
-          Text="Effect" />
+          Text="{I18N {x:Static lang:SRKeys.Volume_Effect}}" />
         <Grid ColumnDefinitions="Auto,*,Auto">
           <materialIcons:MaterialIcon
             Margin="0,0,10,0"
