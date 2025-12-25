@@ -4,12 +4,12 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:system="clr-namespace:System;assembly=System.Runtime"
   xmlns:vm="using:KeyAsio.ViewModels"
-  xmlns:lang="clr-namespace:KeyAsio.Lang"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
 

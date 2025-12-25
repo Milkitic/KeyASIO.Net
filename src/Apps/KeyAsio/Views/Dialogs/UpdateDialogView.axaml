@@ -1,13 +1,19 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:services="clr-namespace:KeyAsio.Services"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="150"
-             x:Class="KeyAsio.Views.Dialogs.UpdateDialogView"
-             x:DataType="services:UpdateService">
-    <StackPanel Spacing="10">
-        <TextBlock Text="{Binding StatusMessage}" />
-        <ProgressBar Minimum="0" Maximum="100" Value="{Binding DownloadProgress}" />
-    </StackPanel>
+﻿<UserControl
+  x:Class="KeyAsio.Views.Dialogs.UpdateDialogView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:services="clr-namespace:KeyAsio.Services"
+  d:DesignHeight="150"
+  d:DesignWidth="400"
+  x:DataType="services:UpdateService"
+  mc:Ignorable="d">
+  <StackPanel Spacing="10">
+    <TextBlock Text="{Binding StatusMessage}" />
+    <ProgressBar
+      Maximum="100"
+      Minimum="0"
+      Value="{Binding DownloadProgress}" />
+  </StackPanel>
 </UserControl>

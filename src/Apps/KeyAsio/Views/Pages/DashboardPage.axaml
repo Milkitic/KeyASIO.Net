@@ -6,11 +6,11 @@
   xmlns:controls="using:KeyAsio.Views.Controls"
   xmlns:converters="using:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
-  xmlns:lang="clr-namespace:KeyAsio.Lang"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
 
@@ -39,18 +39,21 @@
   <Grid Margin="20" RowDefinitions="Auto,*,Auto">
 
     <!--  Top: Switcher  -->
-    <suki:GlassCard Margin="0,0,0,15" Classes="Surface">
+    <suki:GlassCard
+      Margin="0,0,0,15"
+      Classes="Surface"
+      IsVisible="{Binding AppSettings.Sync.EnableSync}">
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
           <controls:DashboardSwitch
             x:Name="MixSwitch"
+            HasMixModeTag="{Binding PluginManager.HasMixModeTag}"
             IsChecked="{Binding AppSettings.Sync.EnableMixSync}"
             IsCorrupt="{Binding PluginManager.ActivePlugin, Converter={x:Static ObjectConverters.IsNull}}"
             IsEnabled="{Binding PluginManager.IsMixSwitchEnabled}"
             IsPro="{Binding PluginManager.IsMixModeTagPro}"
             MixModeDisplayName="{Binding PluginManager.MixModeDisplayName}"
-            MixModeTag="{Binding PluginManager.MixModeTag}"
-            HasMixModeTag="{Binding PluginManager.HasMixModeTag}" />
+            MixModeTag="{Binding PluginManager.MixModeTag}" />
         </StackPanel>
         <StackPanel
           VerticalAlignment="Center"
@@ -69,16 +72,42 @@
     <controls:DashboardSphere
       Grid.Row="1"
       IsActive="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}"
+      IsVisible="{Binding AppSettings.Sync.EnableSync}"
       ProcessId="{Binding SyncDisplay.ProcessId}"
       StatusText="{Binding SyncDisplay.SyncedStatusText}" />
-<!--
+
+    <!--  Legacy Mode Hint  -->
+    <StackPanel
+      Grid.Row="1"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center"
+      IsVisible="{Binding !AppSettings.Sync.EnableSync}"
+      Spacing="10">
+      <materialIcons:MaterialIcon
+        Width="64"
+        Height="64"
+        Foreground="{DynamicResource SukiPrimaryColor}"
+        Kind="Keyboard" />
+      <TextBlock
+        HorizontalAlignment="Center"
+        Classes="h3"
+        FontWeight="Bold"
+        Text="{I18N {x:Static lang:SRKeys.Settings_LegacyModeKeyOnly}}" />
+      <TextBlock
+        MaxWidth="500"
+        HorizontalAlignment="Center"
+        Opacity="0.6"
+        Text="{I18N {x:Static lang:SRKeys.Settings_LegacyModeDescription}}"
+        TextAlignment="Center"
+        TextWrapping="Wrap" />
+    </StackPanel>
+    <!--
     <CheckBox
       x:Name="CbControlStatus"
       Grid.Row="1"
       HorizontalAlignment="Right"
       Content="IsActive"
-      IsCheckedChanged="CbControlStatus_OnIsCheckedChanged" />
--->
+      IsCheckedChanged="CbControlStatus_OnIsCheckedChanged" />    -->
     <!--  Bottom: Stats & Quick Keys  -->
     <StackPanel
       Grid.Row="2"
