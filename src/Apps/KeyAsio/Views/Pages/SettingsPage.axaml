@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
   x:Class="KeyAsio.Views.Pages.SettingsPage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -26,7 +26,7 @@
       <suki:GlassCard>
         <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_General}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
-            <controls:SettingItem Header="Language" Icon="Translate">
+            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Settings_Language}}" Icon="Translate">
               <ComboBox
                 MinWidth="150"
                 HorizontalAlignment="Right"
@@ -34,7 +34,7 @@
                 SelectedItem="{Binding LanguageManager.SelectedLanguageItem}" />
             </controls:SettingItem>
 
-            <controls:SettingItem Header="Theme" Icon="ThemeLightDark">
+            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Settings_Theme}}" Icon="ThemeLightDark">
               <ComboBox
                 MinWidth="150"
                 HorizontalAlignment="Right"

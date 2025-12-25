@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -154,6 +154,12 @@
   <data name="Message_RestartRequired" xml:space="preserve">
     <value>更改需要应用后生效</value>
   </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>主题</value>
+  </data>
   <data name="Settings_About" xml:space="preserve">
     <value>关于</value>
   </data>
@@ -222,5 +228,74 @@
   </data>
   <data name="Settings_Updates" xml:space="preserve">
     <value>更新</value>
+  </data>
+  <data name="Sync_AdvancedSettings" xml:space="preserve">
+    <value>高级设置</value>
+  </data>
+  <data name="Sync_AudioField" xml:space="preserve">
+    <value>音频声场</value>
+  </data>
+  <data name="Sync_AudioFilters" xml:space="preserve">
+    <value>音频过滤</value>
+  </data>
+  <data name="Sync_AutoLoadSkins" xml:space="preserve">
+    <value>自动从 osu! 加载皮肤</value>
+  </data>
+  <data name="Sync_DisableComboBreak" xml:space="preserve">
+    <value>禁用断连音效</value>
+  </data>
+  <data name="Sync_DisableMapHitsounds" xml:space="preserve">
+    <value>禁用谱面打击音</value>
+  </data>
+  <data name="Sync_DisableSliderTicks" xml:space="preserve">
+    <value>禁用滑条刻度音</value>
+  </data>
+  <data name="Sync_DisableStoryboard" xml:space="preserve">
+    <value>禁用故事板</value>
+  </data>
+  <data name="Sync_ForceNightcore" xml:space="preserve">
+    <value>强制 Nightcore 节拍</value>
+  </data>
+  <data name="Sync_GeneralScanInterval" xml:space="preserve">
+    <value>常规扫描间隔 (ms)</value>
+  </data>
+  <data name="Sync_GeneralScanIntervalDescription" xml:space="preserve">
+    <value>数值越低，常规字段更新越及时。增加此值可降低 CPU 占用。</value>
+  </data>
+  <data name="Sync_IgnoreVolumeChanges" xml:space="preserve">
+    <value>忽略音量变化</value>
+  </data>
+  <data name="Sync_MusicControl" xml:space="preserve">
+    <value>音乐控制</value>
+  </data>
+  <data name="Sync_SelectedSkin" xml:space="preserve">
+    <value>当前皮肤</value>
+  </data>
+  <data name="Sync_SkinDescription" xml:space="preserve">
+    <value>资源从本地安装目录加载。</value>
+  </data>
+  <data name="Sync_SkinResources" xml:space="preserve">
+    <value>皮肤资源</value>
+  </data>
+  <data name="Sync_SliderTailBehavior" xml:space="preserve">
+    <value>滑条尾音行为</value>
+  </data>
+  <data name="Sync_StereoWidth" xml:space="preserve">
+    <value>立体声宽度</value>
+  </data>
+  <data name="Sync_TimingScanInterval" xml:space="preserve">
+    <value>时间扫描间隔 (ms)</value>
+  </data>
+  <data name="Sync_TimingScanIntervalDescription" xml:space="preserve">
+    <value>数值越低，时间字段更新越及时。如果出现音频卡顿，请增加此值。</value>
+  </data>
+  <data name="Sync_WidthNarrow" xml:space="preserve">
+    <value>窄</value>
+  </data>
+  <data name="Sync_WidthNormal" xml:space="preserve">
+    <value>正常</value>
+  </data>
+  <data name="Sync_WidthWide" xml:space="preserve">
+    <value>宽</value>
   </data>
 </root>

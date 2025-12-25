@@ -3,6 +3,7 @@
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -19,7 +20,7 @@
     <StackPanel Margin="20" Spacing="20">
       <!--  Skin  -->
       <suki:GlassCard>
-        <suki:GroupBox Header="Skin Resources">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Sync_SkinResources}}">
           <Grid ColumnDefinitions="Auto, *">
             <Border
               Width="48"
@@ -31,8 +32,8 @@
             </Border>
             <StackPanel Grid.Column="1" Spacing="5">
               <StackPanel>
-                <TextBlock Text="Selected Skin" />
-                <TextBlock Classes="Description" Text="Assets loaded from your local installation. " />
+                <TextBlock Text="{I18N {x:Static lang:SRKeys.Sync_SelectedSkin}}" />
+                <TextBlock Classes="Description" Text="{I18N {x:Static lang:SRKeys.Sync_SkinDescription}}" />
               </StackPanel>
               <ComboBox
                 HorizontalAlignment="Stretch"
@@ -47,12 +48,12 @@
               </ComboBox>
 
               <Grid Margin="0,5,8,0" ColumnDefinitions="*, Auto">
-                <TextBlock VerticalAlignment="Center" Text="Auto Load Skins from osu!" />
+                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:SRKeys.Sync_AutoLoadSkins}}" />
                 <ToggleSwitch
                   Grid.Column="1"
                   IsChecked="{Binding AppSettings.Paths.AllowAutoLoadSkins}"
-                  OffContent="Off"
-                  OnContent="On" />
+                  OffContent="{I18N {x:Static lang:SRKeys.Common_Off}}"
+                  OnContent="{I18N {x:Static lang:SRKeys.Common_On}}" />
               </Grid>
             </StackPanel>
           </Grid>
@@ -61,15 +62,15 @@
 
       <!--  Music Override  -->
       <suki:GlassCard>
-        <suki:GroupBox Header="Music Control">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Sync_MusicControl}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
               Classes="Switch"
-              Header="Force Nightcore Beats"
+              Header="{I18N {x:Static lang:SRKeys.Sync_ForceNightcore}}"
               Icon="FastForward"
               IsChecked="{Binding AppSettings.Sync.Playback.NightcoreBeats}" />
 
-            <controls:SettingItem Header="Slider Tail Behavior" Icon="VectorCurve">
+            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Sync_SliderTailBehavior}}" Icon="VectorCurve">
               <ComboBox
                 MinWidth="120"
                 ItemsSource="{Binding SliderTailBehaviors}"
@@ -81,9 +82,9 @@
 
       <!--  Sync & Balance  -->
       <suki:GlassCard>
-        <suki:GroupBox Header="Audio Field">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Sync_AudioField}}">
           <StackPanel Spacing="15">
-            <controls:SettingItem Header="Stereo Width" Icon="SurroundSound">
+            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Sync_StereoWidth}}" Icon="SurroundSound">
               <TextBlock
                 FontWeight="Bold"
                 Foreground="{DynamicResource SukiPrimaryColor}"
@@ -95,16 +96,16 @@
               TickFrequency="0.01"
               Value="{Binding AppSettings.Sync.Playback.BalanceFactor}" />
             <Grid Margin="0,-10,0,0" ColumnDefinitions="Auto,*,Auto">
-              <TextBlock Classes="SmallHeader" Text="Narrow" />
+              <TextBlock Classes="SmallHeader" Text="{I18N {x:Static lang:SRKeys.Sync_WidthNarrow}}" />
               <TextBlock
                 Grid.Column="1"
                 HorizontalAlignment="Center"
                 Classes="SmallHeader"
-                Text="Normal" />
+                Text="{I18N {x:Static lang:SRKeys.Sync_WidthNormal}}" />
               <TextBlock
                 Grid.Column="2"
                 Classes="SmallHeader"
-                Text="Wide" />
+                Text="{I18N {x:Static lang:SRKeys.Sync_WidthWide}}" />
             </Grid>
           </StackPanel>
         </suki:GroupBox>
@@ -112,64 +113,62 @@
 
       <!--  Filters  -->
       <suki:GlassCard>
-        <suki:GroupBox Header="Audio Filters">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Sync_AudioFilters}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
               Classes="Switch"
-              Header="Disable Map Hitsounds"
+              Header="{I18N {x:Static lang:SRKeys.Sync_DisableMapHitsounds}}"
               Icon="VolumeOff"
               IsChecked="{Binding AppSettings.Sync.Filters.DisableBeatmapHitsounds}" />
 
             <controls:SettingItem
               Classes="Switch"
-              Header="Disable Storyboard"
+              Header="{I18N {x:Static lang:SRKeys.Sync_DisableStoryboard}}"
               Icon="MovieOff"
               IsChecked="{Binding AppSettings.Sync.Filters.DisableStoryboardSamples}" />
 
             <controls:SettingItem
               Classes="Switch"
-              Header="Disable Slider Ticks"
+              Header="{I18N {x:Static lang:SRKeys.Sync_DisableSliderTicks}}"
               Icon="Metronome"
               IsChecked="{Binding AppSettings.Sync.Filters.DisableSliderTicksAndSlides}" />
 
             <controls:SettingItem
               Classes="Switch"
-              Header="Disable Combo Break"
+              Header="{I18N {x:Static lang:SRKeys.Sync_DisableComboBreak}}"
               Icon="HeartBroken"
               IsChecked="{Binding AppSettings.Sync.Filters.DisableComboBreakSfx}" />
 
             <controls:SettingItem
               Classes="Switch"
-              Header="Ignore Volume Changes"
+              Header="{I18N {x:Static lang:SRKeys.Sync_IgnoreVolumeChanges}}"
               Icon="VolumeVariantOff"
               IsChecked="{Binding AppSettings.Sync.Filters.IgnoreLineVolumes}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
 
-      <!--  Advanced Settings  -->
+      <!--  Advanced  -->
       <suki:GlassCard>
-        <suki:GroupBox Header="Advanced Settings">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Sync_AdvancedSettings}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
-            <!--  General Interval  -->
             <controls:SettingItem
-              Description="Lower values update generic fields more promptly. Increase to reduce CPU usage."
-              Header="General Scan Interval (ms)"
-              Icon="Radar">
+              Description="{I18N {x:Static lang:SRKeys.Sync_GeneralScanIntervalDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Sync_GeneralScanInterval}}"
+              Icon="TimerRefresh">
               <NumericUpDown
-                Classes="SettingItem"
+                FormatString="F0"
                 Maximum="1000"
                 Minimum="1"
                 Value="{Binding AppSettings.Sync.Scanning.GeneralScanInterval}" />
             </controls:SettingItem>
 
-            <!--  Timing Interval  -->
             <controls:SettingItem
-              Description="Lower values update timing fields more promptly. Increase if audio cutting occurs."
-              Header="Timing Scan Interval (ms)"
-              Icon="Timer">
+              Description="{I18N {x:Static lang:SRKeys.Sync_TimingScanIntervalDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Sync_TimingScanInterval}}"
+              Icon="TimerMusic">
               <NumericUpDown
-                Classes="SettingItem"
+                FormatString="F0"
                 Maximum="1000"
                 Minimum="1"
                 Value="{Binding AppSettings.Sync.Scanning.TimingScanInterval}" />

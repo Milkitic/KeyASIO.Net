@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -154,6 +154,12 @@
   <data name="Message_RestartRequired" xml:space="preserve">
     <value>Changes require application to take effect</value>
   </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
   <data name="Settings_About" xml:space="preserve">
     <value>About</value>
   </data>
@@ -222,5 +228,74 @@
   </data>
   <data name="Settings_Updates" xml:space="preserve">
     <value>Updates</value>
+  </data>
+  <data name="Sync_AdvancedSettings" xml:space="preserve">
+    <value>Advanced Settings</value>
+  </data>
+  <data name="Sync_AudioField" xml:space="preserve">
+    <value>Audio Field</value>
+  </data>
+  <data name="Sync_AudioFilters" xml:space="preserve">
+    <value>Audio Filters</value>
+  </data>
+  <data name="Sync_AutoLoadSkins" xml:space="preserve">
+    <value>Auto Load Skins from osu!</value>
+  </data>
+  <data name="Sync_DisableComboBreak" xml:space="preserve">
+    <value>Disable Combo Break</value>
+  </data>
+  <data name="Sync_DisableMapHitsounds" xml:space="preserve">
+    <value>Disable Map Hitsounds</value>
+  </data>
+  <data name="Sync_DisableSliderTicks" xml:space="preserve">
+    <value>Disable Slider Ticks</value>
+  </data>
+  <data name="Sync_DisableStoryboard" xml:space="preserve">
+    <value>Disable Storyboard</value>
+  </data>
+  <data name="Sync_ForceNightcore" xml:space="preserve">
+    <value>Force Nightcore Beats</value>
+  </data>
+  <data name="Sync_GeneralScanInterval" xml:space="preserve">
+    <value>General Scan Interval (ms)</value>
+  </data>
+  <data name="Sync_GeneralScanIntervalDescription" xml:space="preserve">
+    <value>Lower values update generic fields more promptly. Increase to reduce CPU usage.</value>
+  </data>
+  <data name="Sync_IgnoreVolumeChanges" xml:space="preserve">
+    <value>Ignore Volume Changes</value>
+  </data>
+  <data name="Sync_MusicControl" xml:space="preserve">
+    <value>Music Control</value>
+  </data>
+  <data name="Sync_SelectedSkin" xml:space="preserve">
+    <value>Selected Skin</value>
+  </data>
+  <data name="Sync_SkinDescription" xml:space="preserve">
+    <value>Assets loaded from your local installation. </value>
+  </data>
+  <data name="Sync_SkinResources" xml:space="preserve">
+    <value>Skin Resources</value>
+  </data>
+  <data name="Sync_SliderTailBehavior" xml:space="preserve">
+    <value>Slider Tail Behavior</value>
+  </data>
+  <data name="Sync_StereoWidth" xml:space="preserve">
+    <value>Stereo Width</value>
+  </data>
+  <data name="Sync_TimingScanInterval" xml:space="preserve">
+    <value>Timing Scan Interval (ms)</value>
+  </data>
+  <data name="Sync_TimingScanIntervalDescription" xml:space="preserve">
+    <value>Lower values update timing fields more promptly. Increase if audio cutting occurs.</value>
+  </data>
+  <data name="Sync_WidthNarrow" xml:space="preserve">
+    <value>Narrow</value>
+  </data>
+  <data name="Sync_WidthNormal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="Sync_WidthWide" xml:space="preserve">
+    <value>Wide</value>
   </data>
 </root>
