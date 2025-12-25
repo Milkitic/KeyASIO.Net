@@ -159,7 +159,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
 
         if (!_syncSessionContext.IsStarted)
         {
-            _logger.LogWarning("Game hasn't started.");
+            _logger.LogInformation("Game hasn't started.");
             return false;
         }
 

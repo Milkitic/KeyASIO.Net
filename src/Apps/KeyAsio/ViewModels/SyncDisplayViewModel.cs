@@ -25,10 +25,10 @@ public partial class SyncDisplayViewModel : ObservableObject, IDisposable
     public partial string SyncedStatusText { get; set; } = "OFFLINE";
 
     [ObservableProperty]
-    public partial int ProcessId { get; set; }
+    public partial int ProcessId { get; set; } = -1;
 
     [ObservableProperty]
-    public partial OsuMemoryStatus OsuStatus { get; set; }
+    public partial OsuMemoryStatus OsuStatus { get; set; } = OsuMemoryStatus.Unknown;
 
     [ObservableProperty]
     public partial BeatmapIdentifier Beatmap { get; set; }

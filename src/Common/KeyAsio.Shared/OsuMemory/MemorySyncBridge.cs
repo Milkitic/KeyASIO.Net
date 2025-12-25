@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿﻿using System.ComponentModel;
+using System.Text;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
@@ -12,6 +13,7 @@ public class MemorySyncBridge
     private readonly SyncSessionContext _syncSessionContext;
     private readonly AppSettings _appSettings;
     private readonly ILogger<MemorySyncBridge> _logger;
+    private bool _initialized;
 
     public MemorySyncBridge(
         MemoryScan memoryScan,
@@ -27,17 +29,8 @@ public class MemorySyncBridge
 
     public void Start()
     {
-        if (!_appSettings.Sync.EnableSync) return;
-
-        try
-        {
-            var player = EncodeUtils.FromBase64String(_appSettings.Logging.PlayerBase64 ?? "", Encoding.ASCII);
-            _syncSessionContext.Username = player;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to decode PlayerBase64 string.");
-        }
+        if (_initialized) return;
+        _initialized = true;
 
         BindEvents();
 
@@ -51,8 +44,57 @@ public class MemorySyncBridge
             }
         };
 
+        _appSettings.Sync.PropertyChanged += OnSyncSettingsChanged;
+
+        _logger.LogInformation("Initial EnableSync state: {State}", _appSettings.Sync.EnableSync);
+        _logger.LogInformation("Initial EnableMixSync state: {State}", _appSettings.Sync.EnableMixSync);
+
+        if (_appSettings.Sync.EnableSync)
+        {
+            StartScanning();
+        }
+    }
+
+    private void OnSyncSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AppSettingsSync.EnableSync))
+        {
+            if (_appSettings.Sync.EnableSync)
+            {
+                _logger.LogInformation("Memory Sync enabled.");
+                StartScanning();
+            }
+            else
+            {
+                _logger.LogInformation("Memory Sync disabled.");
+                _ = StopScanningAsync();
+            }
+        }
+        else if (e.PropertyName == nameof(AppSettingsSync.EnableMixSync))
+        {
+            _logger.LogInformation("EnableMixSync changed to: {State}", _appSettings.Sync.EnableMixSync);
+        }
+    }
+
+    private void StartScanning()
+    {
+        try
+        {
+            var player = EncodeUtils.FromBase64String(_appSettings.Logging.PlayerBase64 ?? "", Encoding.ASCII);
+            _syncSessionContext.Username = player;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to decode PlayerBase64 string.");
+        }
+
         _memoryScan.Start(_appSettings.Sync.Scanning.GeneralScanInterval,
             _appSettings.Sync.Scanning.TimingScanInterval);
+    }
+
+    private async Task StopScanningAsync()
+    {
+        await _memoryScan.StopAsync();
     }
 
     private void BindEvents()

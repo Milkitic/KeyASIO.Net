@@ -89,7 +89,7 @@ public class KeyboardBindingInitializer
         KeyboardCallback callback = (_, hookKey, action) =>
         {
             if (action != KeyAction.KeyDown) return;
-            _logger.LogDebug($"{hookKey} {action}");
+            _logger.LogTrace("{HookKeys} {KeyAction}", hookKey, action);
 
             if (_appSettings.Sync.EnableSync)
             {

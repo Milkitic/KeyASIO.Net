@@ -46,7 +46,7 @@ public class SyncSessionContext
     public GameClientType ClientType { get; set; }
     public bool IsStarted { get; set; }
     public bool IsReplay { get; set; }
-    public int ProcessId { get; set; }
+    public int ProcessId { get; set; } = -1;
 
     public string? Username
     {
@@ -256,7 +256,7 @@ public class SyncSessionContext
 
             OnStatusChanged?.Invoke(oldValue, value);
         }
-    }
+    } = OsuMemoryStatus.Unknown;
 
     public string SyncedStatusText => OsuStatus is OsuMemoryStatus.NotRunning or OsuMemoryStatus.Unknown
         ? "OFFLINE"
