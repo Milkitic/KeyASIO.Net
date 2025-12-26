@@ -64,6 +64,7 @@
       IsVisible="{Binding UpdateService.NewRelease, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
       ToolTip.Tip="{I18N {x:Static lang:SRKeys.MainWindow_ClickToUpdate}}">
       <StackPanel Orientation="Horizontal" Spacing="5">
+     <TextBlock Text="{Binding IsVerified}"></TextBlock>
         <materialIcons:MaterialIcon Kind="Update" />
         <TextBlock
           VerticalAlignment="Center"

@@ -4,14 +4,14 @@ using System.Text;
 
 namespace KeyAsio.Secrets;
 
-public static class SecretUtils
+public static class VerifyUtils
 {
     private static bool? _isOfficialBuildCache;
 
     /// <summary>
     /// Verifies if the current entry assembly is an official build signed by the official private key.
     /// </summary>
-    public static bool IsOfficialBuild()
+    public static bool IsOfficialBuildUnsafe()
     {
         if (_isOfficialBuildCache.HasValue) return _isOfficialBuildCache.Value;
 

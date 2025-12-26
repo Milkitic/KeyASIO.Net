@@ -6,6 +6,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Secrets;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
@@ -46,6 +47,10 @@ public partial class MainWindowViewModel : IDisposable
 
         UpdateService = null!;
         _logger = null!;
+        IsVerified = VerifyUtils.IsOfficialBuildUnsafe();
+#if DEBUG
+        IsDevelopment = true;
+#endif
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
@@ -76,6 +81,10 @@ public partial class MainWindowViewModel : IDisposable
         KeyBinding = keyBindingViewModel;
 
         LanguageManager = languageManager;
+        IsVerified = VerifyUtils.IsOfficialBuildUnsafe();
+#if DEBUG
+        IsDevelopment = true;
+#endif
     }
 
     public LanguageManager LanguageManager { get; }
@@ -89,12 +98,16 @@ public partial class MainWindowViewModel : IDisposable
     public SyncDisplayViewModel SyncDisplay { get; }
     public KeyBindingViewModel KeyBinding { get; }
     public PluginManagerViewModel PluginManager { get; }
+    public bool IsDevelopment { get; }
 
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
     public AppTheme[] AvailableThemes { get; } = Enum.GetValues<AppTheme>();
 
     [ObservableProperty]
     public partial object? SelectedMenuItem { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsVerified { get; set; }
 
     public object? SettingsPageItem { get; set; }
     public object? AudioEnginePageItem { get; set; }
