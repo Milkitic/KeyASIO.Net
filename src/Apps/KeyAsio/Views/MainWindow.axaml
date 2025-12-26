@@ -4,12 +4,12 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:converters="using:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:pages="using:KeyAsio.Views.Pages"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
-  xmlns:lang="clr-namespace:KeyAsio.Lang"
   Title="KeyAsio"
   Width="900"
   Height="697"
@@ -25,22 +25,24 @@
 
   <suki:SukiWindow.Resources>
 
-      <TrayIcons x:Key="TrayIcons">
-        <TrayIcon Icon="/Assets/KeyAsio.ico" 
-                  ToolTipText="KeyAsio"
-                  Command="{Binding ShowMainWindowCommand}">
-          <TrayIcon.Menu>
-            <NativeMenu>
-              <NativeMenuItem Header="{I18N {x:Static lang:SRKeys.TrayIcon_OpenDashboard}}" Command="{Binding ShowMainWindowCommand}" />
-              <NativeMenuItem Header="{I18N {x:Static lang:SRKeys.TrayIcon_OpenAsioPanel}}" 
-                              Command="{Binding AudioSettings.OpenAsioPanelCommand}"
-                              IsVisible="{Binding AudioSettings.IsAsio}" />
-              <NativeMenuItemSeparator />
-              <NativeMenuItem Header="{I18N {x:Static lang:SRKeys.TrayIcon_Exit}}" Command="{Binding ExitApplicationCommand}" />
-            </NativeMenu>
-          </TrayIcon.Menu>
-        </TrayIcon>
-      </TrayIcons>
+    <TrayIcons x:Key="TrayIcons">
+      <TrayIcon
+        Command="{Binding ShowMainWindowCommand}"
+        Icon="/Assets/KeyAsio.ico"
+        ToolTipText="KeyAsio">
+        <TrayIcon.Menu>
+          <NativeMenu>
+            <NativeMenuItem Command="{Binding ShowMainWindowCommand}" Header="{I18N {x:Static lang:SRKeys.TrayIcon_OpenDashboard}}" />
+            <NativeMenuItem
+              Command="{Binding AudioSettings.OpenAsioPanelCommand}"
+              Header="{I18N {x:Static lang:SRKeys.TrayIcon_OpenAsioPanel}}"
+              IsVisible="{Binding AudioSettings.IsAsio}" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Command="{Binding ExitApplicationCommand}" Header="{I18N {x:Static lang:SRKeys.TrayIcon_Exit}}" />
+          </NativeMenu>
+        </TrayIcon.Menu>
+      </TrayIcon>
+    </TrayIcons>
 
     <converters:ExtendedVolumeConverter x:Key="ExtendedVolumeConverter" />
   </suki:SukiWindow.Resources>
@@ -151,79 +153,153 @@
 
     <!--  FOOTER VOLUME  -->
     <suki:SukiSideMenu.FooterContent>
-      <StackPanel Margin="15">
+      <StackPanel Margin="15,10">
         <Separator Margin="0,0,0,10" Classes="Section" />
 
-        <TextBlock
-          Margin="0,0,0,5"
-          FontSize="12"
-          FontWeight="SemiBold"
-          Text="{I18N {x:Static lang:SRKeys.Volume_Master}}" />
-        <Grid ColumnDefinitions="Auto,*,Auto">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+          <!--  MASTER VOLUME (Quick Access)  -->
           <materialIcons:MaterialIcon
-            Margin="0,0,10,0"
+            Width="17"
+            Height="17"
+            Margin="0,0,7,0"
             Kind="VolumeHigh"
-            Opacity="0.7" />
+            Opacity="0.8"
+            ToolTip.Tip="{I18N {x:Static lang:SRKeys.Volume_Master}}" />
           <Slider
             Grid.Column="1"
+            VerticalAlignment="Center"
             Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
             Value="{Binding AppSettings.Audio.MasterVolume}" />
           <TextBlock
             Grid.Column="2"
             Width="35"
-            Margin="10,0,0,0"
+            Margin="2,0,0,0"
             VerticalAlignment="Center"
+            FontSize="12"
             Text="{Binding AppSettings.Audio.MasterVolume, StringFormat='{}{0}%'}"
             TextAlignment="Right" />
-        </Grid>
 
-        <TextBlock
-          Margin="0,10,0,5"
-          FontSize="12"
-          FontWeight="SemiBold"
-          Text="{I18N {x:Static lang:SRKeys.Volume_Music}}" />
-        <Grid ColumnDefinitions="Auto,*,Auto">
-          <materialIcons:MaterialIcon
-            Margin="0,0,10,0"
-            Kind="MusicNote"
-            Opacity="0.7" />
-          <Slider
-            Grid.Column="1"
-            Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
-            Value="{Binding AppSettings.Audio.MusicVolume}" />
-          <TextBlock
-            Grid.Column="2"
-            Width="35"
-            Margin="10,0,0,0"
-            VerticalAlignment="Center"
-            Text="{Binding AppSettings.Audio.MusicVolume, StringFormat='{}{0}%'}"
-            TextAlignment="Right" />
-        </Grid>
+          <!--  MIXER BUTTON  -->
+          <Button
+            Grid.Column="3"
+            Margin="5,0,0,0"
+            Padding="6"
+            Classes="Basic"
+            ToolTip.Tip="{I18N {x:Static lang:SRKeys.Page_AudioEngine}}">
+            <materialIcons:MaterialIcon
+              Width="17"
+              Height="17"
+              Kind="Tune" />
+            <Button.Flyout>
+              <Flyout Placement="Top">
+                <Panel>
+                  <Border
+                    Padding="20"
+                    Background="{DynamicResource SukiBackground}"
+                    BoxShadow="{DynamicResource SukiPopupShadow}"
+                    CornerRadius="13" />
+                  <Border
+                    MinWidth="202"
+                    MinHeight="280"
+                    Padding="20"
+                    ClipToBounds="True"
+                    CornerRadius="13">
+                    <Grid RowDefinitions="Auto,Auto,*">
+                      <suki:SukiBackground
+                        Grid.RowSpan="3"
+                        Margin="-150"
+                        Style="GradientSoft" />
+                      <TextBlock
+                        Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Text="Volume Control" />
 
-        <TextBlock
-          Margin="0,10,0,5"
-          FontSize="12"
-          FontWeight="SemiBold"
-          Text="{I18N {x:Static lang:SRKeys.Volume_Effect}}" />
-        <Grid ColumnDefinitions="Auto,*,Auto">
-          <materialIcons:MaterialIcon
-            Margin="0,0,10,0"
-            Kind="Flash"
-            Opacity="0.7" />
-          <Slider
-            Grid.Column="1"
-            Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
-            Value="{Binding AppSettings.Audio.EffectVolume}" />
-          <TextBlock
-            Grid.Column="2"
-            Width="35"
-            Margin="10,0,0,0"
-            VerticalAlignment="Center"
-            Text="{Binding AppSettings.Audio.EffectVolume, StringFormat='{}{0}%'}"
-            TextAlignment="Right" />
+                      <Separator Grid.Row="1" Classes="Section" />
+
+                      <Grid
+                        Grid.Row="2"
+                        Margin="0,20,0,0"
+                        ColumnDefinitions="*,*,*"
+                        RowDefinitions="Auto,*,Auto">
+
+                        <!--  MASTER  -->
+                        <materialIcons:MaterialIcon
+                          Width="17"
+                          Height="17"
+                          Kind="VolumeHigh"
+                          Opacity="0.7"
+                          ToolTip.Tip="{I18N {x:Static lang:SRKeys.Volume_Master}}" />
+                        <Slider
+                          Grid.Row="1"
+                          Grid.Column="0"
+                          Margin="0,5"
+                          Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
+                          Orientation="Vertical"
+                          Value="{Binding AppSettings.Audio.MasterVolume}" />
+                        <TextBlock
+                          Grid.Row="2"
+                          Grid.Column="0"
+                          HorizontalAlignment="Center"
+                          Text="{Binding AppSettings.Audio.MasterVolume, StringFormat='{}{0}%'}"
+                          TextAlignment="Center" />
+
+                        <!--  MUSIC  -->
+                        <materialIcons:MaterialIcon
+                          Grid.Row="0"
+                          Grid.Column="1"
+                          Width="17"
+                          Height="17"
+                          Kind="MusicNote"
+                          Opacity="0.7"
+                          ToolTip.Tip="{I18N {x:Static lang:SRKeys.Volume_Music}}" />
+                        <Slider
+                          Grid.Row="1"
+                          Grid.Column="1"
+                          Margin="0,5"
+                          Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
+                          Orientation="Vertical"
+                          Value="{Binding AppSettings.Audio.MusicVolume}" />
+                        <TextBlock
+                          Grid.Row="2"
+                          Grid.Column="1"
+                          HorizontalAlignment="Center"
+                          Text="{Binding AppSettings.Audio.MusicVolume, StringFormat='{}{0}%'}"
+                          TextAlignment="Center" />
+
+                        <!--  EFFECT  -->
+                        <materialIcons:MaterialIcon
+                          Grid.Row="0"
+                          Grid.Column="2"
+                          Width="17"
+                          Height="17"
+                          Kind="Flash"
+                          Opacity="0.7"
+                          ToolTip.Tip="{I18N {x:Static lang:SRKeys.Volume_Effect}}" />
+                        <Slider
+                          Grid.Row="1"
+                          Grid.Column="2"
+                          Margin="0,5"
+                          Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
+                          Orientation="Vertical"
+                          Value="{Binding AppSettings.Audio.EffectVolume}" />
+                        <TextBlock
+                          Grid.Row="2"
+                          Grid.Column="2"
+                          HorizontalAlignment="Center"
+                          Text="{Binding AppSettings.Audio.EffectVolume, StringFormat='{}{0}%'}"
+                          TextAlignment="Center" />
+
+                      </Grid>
+                    </Grid>
+                  </Border>
+                </Panel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
         </Grid>
       </StackPanel>
     </suki:SukiSideMenu.FooterContent>
-
   </suki:SukiSideMenu>
 </suki:SukiWindow>
