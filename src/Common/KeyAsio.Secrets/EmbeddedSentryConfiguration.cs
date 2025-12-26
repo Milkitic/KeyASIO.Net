@@ -1,5 +1,6 @@
-// ReSharper disable once CheckNamespace
-public partial class EmbeddedSentryConfiguration : IDisposable
+﻿namespace KeyAsio.Secrets;
+
+public class EmbeddedSentryConfiguration : IDisposable
 {
     private readonly IDisposable _sentrySdk;
 
@@ -14,7 +15,7 @@ public partial class EmbeddedSentryConfiguration : IDisposable
 
     public static void Configure(SentryOptions options)
     {
-        options.Dsn = __dsn;
+        options.Dsn = global::Secrets.Dsn;
 #if !RELEASE
         options.Debug = true;
         options.Environment = "debug";

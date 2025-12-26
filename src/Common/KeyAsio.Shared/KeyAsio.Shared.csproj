@@ -30,7 +30,7 @@
     <ProjectReference Include="..\..\..\dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
     <ProjectReference Include="..\..\Core\KeyAsio.Core.Audio\KeyAsio.Core.Audio.csproj" />
     <ProjectReference Include="..\..\Core\KeyAsio.Core.Memory\KeyAsio.Core.Memory.csproj" />
-    <ProjectReference Include="..\..\Common\KeyAsio.Sentry\KeyAsio.Sentry.csproj" />
+    <ProjectReference Include="..\KeyAsio.Secrets\KeyAsio.Secrets.csproj" />
     <ProjectReference Include="..\..\Common\KeyAsio.Plugins.Abstractions\KeyAsio.Plugins.Abstractions.csproj" />
   </ItemGroup>
 
