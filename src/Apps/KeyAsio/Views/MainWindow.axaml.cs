@@ -42,7 +42,7 @@ public partial class MainWindow : SukiWindow
         DataContext = _viewModel = mainWindowViewModel;
         Application.Current!.ActualThemeVariantChanged += (_, _) =>
         {
-            UpdateThemeByDevice(_viewModel.AudioSettings.SelectedAudioDevice);
+            UpdateThemeByDevice(_viewModel.AudioSettings.AudioEngine.CurrentDeviceDescription);
         };
         UpdateThemeByDevice(null);
 

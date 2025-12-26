@@ -366,7 +366,7 @@ public partial class AudioSettingsViewModel : ObservableObject
                 FramesPerBuffer = asioOut.FramesPerBuffer;
             }
 
-            OnDeviceChanged?.Invoke(deviceDescription);
+            OnDeviceChanged?.Invoke(AudioEngine.CurrentDeviceDescription);
         }
         catch (Exception ex)
         {
