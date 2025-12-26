@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -294,6 +295,15 @@ public partial class MainWindow : SukiWindow
         {
             e.Cancel = true;
             Hide();
+        }
+    }
+
+    private void Slider_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        if (sender is Slider slider)
+        {
+            slider.Value += e.Delta.Y;
+            e.Handled = true;
         }
     }
 }

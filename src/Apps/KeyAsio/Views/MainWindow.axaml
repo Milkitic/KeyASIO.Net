@@ -169,6 +169,7 @@
             Grid.Column="1"
             VerticalAlignment="Center"
             Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
+            PointerWheelChanged="Slider_PointerWheelChanged"
             Value="{Binding AppSettings.Audio.MasterVolume}" />
           <TextBlock
             Grid.Column="2"
@@ -185,6 +186,7 @@
             Margin="5,0,0,0"
             Padding="6"
             Classes="Basic"
+            Cursor="Hand"
             ToolTip.Tip="{I18N {x:Static lang:SRKeys.Page_AudioEngine}}">
             <materialIcons:MaterialIcon
               Width="17"
@@ -192,12 +194,11 @@
               Kind="Tune" />
             <Button.Flyout>
               <Flyout Placement="Top">
-                <Panel>
+                <Panel Margin="5">
                   <Border
                     Padding="20"
-                    Background="{DynamicResource SukiBackground}"
                     BoxShadow="{DynamicResource SukiPopupShadow}"
-                    CornerRadius="13" />
+                    CornerRadius="15" />
                   <Border
                     MinWidth="202"
                     MinHeight="280"
@@ -207,8 +208,9 @@
                     <Grid RowDefinitions="Auto,Auto,*">
                       <suki:SukiBackground
                         Grid.RowSpan="3"
-                        Margin="-150"
-                        Style="GradientSoft" />
+                        Margin="-50"
+                        Style="Flat" />
+
                       <TextBlock
                         Grid.Row="0"
                         HorizontalAlignment="Left"
@@ -237,6 +239,7 @@
                           Margin="0,5"
                           Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
                           Orientation="Vertical"
+                          PointerWheelChanged="Slider_PointerWheelChanged"
                           Value="{Binding AppSettings.Audio.MasterVolume}" />
                         <TextBlock
                           Grid.Row="2"
@@ -260,6 +263,7 @@
                           Margin="0,5"
                           Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
                           Orientation="Vertical"
+                          PointerWheelChanged="Slider_PointerWheelChanged"
                           Value="{Binding AppSettings.Audio.MusicVolume}" />
                         <TextBlock
                           Grid.Row="2"
@@ -283,6 +287,7 @@
                           Margin="0,5"
                           Maximum="{Binding AppSettings.Audio.EnableExtendedVolume, Converter={StaticResource ExtendedVolumeConverter}}"
                           Orientation="Vertical"
+                          PointerWheelChanged="Slider_PointerWheelChanged"
                           Value="{Binding AppSettings.Audio.EffectVolume}" />
                         <TextBlock
                           Grid.Row="2"
