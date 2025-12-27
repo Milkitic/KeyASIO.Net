@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.Loader;
 using KeyAsio.Plugins.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -97,22 +97,6 @@ public class PluginManager : IPluginManager, IDisposable
                     assembly.GetName().Name, abstractionsRef.Version, currentVersion);
                 return false;
             }
-        }
-
-        // 2. Security Check (Signature)
-        // Note: This is a basic check.
-        var publicKey = assembly.GetName().GetPublicKey();
-        if (publicKey == null || publicKey.Length == 0)
-        {
-            _logger.LogWarning("Plugin {PluginAssembly} is unsigned. Loading anyway (Loose Mode).", assembly.GetName().Name);
-            // In Strict Mode, return false here.
-            // return false;
-        }
-        else
-        {
-            // Verify if the public key is trusted
-            // if (!IsTrusted(publicKey)) return false;
-            _logger.LogInformation("Plugin {PluginAssembly} is signed.", assembly.GetName().Name);
         }
 
         return true;

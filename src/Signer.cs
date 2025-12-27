@@ -80,7 +80,7 @@ void SignFile(string dllPath, string keyPath)
     var signatureBase64 = Convert.ToBase64String(signatureBytes);
 
     // 构造附加数据
-    var marker = Encoding.UTF8.GetBytes("KEYASIO_SIG:");
+    var marker = Encoding.UTF8.GetBytes("KEYASIO-SIG-FD452153-5573-41BD-AB59-B4F324297128:");
     var sigBytes = Encoding.UTF8.GetBytes(signatureBase64);
 
     // 追加到文件末尾
@@ -100,7 +100,7 @@ void VerifyFile(string dllPath, string keyPath)
 
     var fileBytes = File.ReadAllBytes(dllPath);
     var publicKey = File.ReadAllText(keyPath);
-    var marker = Encoding.UTF8.GetBytes("KEYASIO_SIG:");
+    var marker = Encoding.UTF8.GetBytes("KEYASIO-SIG-FD452153-5573-41BD-AB59-B4F324297128:");
 
     int markerPos = FindMarkerPosition(fileBytes, marker);
 
