@@ -11,8 +11,8 @@
   xmlns:pages="using:KeyAsio.Views.Pages"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
-  Title="KeyAsio"
-  Width="900"
+  Title="KeyASIO"
+  Width="905"
   Height="697"
   x:DataType="vm:MainWindowViewModel"
   BackgroundAnimationEnabled="False"
@@ -56,6 +56,63 @@
     <vm:MainWindowViewModel />
   </Design.DataContext>
 
+  <suki:SukiWindow.LogoContent>
+    <Panel Width="24" Height="24">
+      <Panel.Styles>
+        <Style Selector="Button">
+          <Setter Property="Transitions">
+            <Setter.Value>
+              <Transitions>
+                <BrushTransition Property="Background" Duration="{DynamicResource ShortAnimationDuration}" />
+              </Transitions>
+            </Setter.Value>
+          </Setter>
+        </Style>
+        <Style Selector="Path">
+          <Setter Property="Transitions">
+            <Setter.Value>
+              <Transitions>
+                <BrushTransition Property="Fill" Duration="{DynamicResource ShortAnimationDuration}" />
+              </Transitions>
+            </Setter.Value>
+          </Setter>
+        </Style>
+      </Panel.Styles>
+      <Border Background="#181C1F" CornerRadius="8" />
+      <Border
+        Background="{DynamicResource SukiPrimaryColor10}"
+        CornerRadius="8"
+        RenderOptions.BitmapBlendingMode="Screen" />
+      <Border
+        Margin="3"
+        Background="#2A2F33"
+        CornerRadius="5" />
+      <Border
+        Margin="3"
+        Background="{DynamicResource SukiPrimaryColor10}"
+        CornerRadius="5"
+        RenderOptions.BitmapBlendingMode="Screen">
+        <Viewbox
+          Width="12"
+          Height="12"
+          ClipToBounds="False">
+          <Panel>
+            <Path
+              Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
+              Fill="White"
+              Stretch="Uniform" />
+            <Path
+              Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
+              Fill="{DynamicResource SukiPrimaryColor75}"
+              RenderOptions.BitmapBlendingMode="Screen"
+              Stretch="Uniform">
+            </Path>
+          </Panel>
+        </Viewbox>
+      </Border>
+    </Panel>
+  </suki:SukiWindow.LogoContent>
+
   <suki:SukiWindow.RightWindowTitleBarControls>
     <Button
       Padding="0"
@@ -64,7 +121,6 @@
       IsVisible="{Binding UpdateService.NewRelease, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
       ToolTip.Tip="{I18N {x:Static lang:SRKeys.MainWindow_ClickToUpdate}}">
       <StackPanel Orientation="Horizontal" Spacing="5">
-     <TextBlock Text="{Binding IsVerified}"></TextBlock>
         <materialIcons:MaterialIcon Kind="Update" />
         <TextBlock
           VerticalAlignment="Center"
@@ -137,16 +193,70 @@
     <!--  HEADER LOGO  -->
     <suki:SukiSideMenu.HeaderContent>
       <StackPanel Margin="0,20,0,20" HorizontalAlignment="Center">
-        <Image
-          Width="80"
-          Height="80"
-          Margin="0,0,0,10"
-          Source="/Assets/KeyAsio.ico" />
+        <Panel Width="80" Height="80">
+          <Panel.Styles>
+            <Style Selector="Button">
+              <Setter Property="Transitions">
+                <Setter.Value>
+                  <Transitions>
+                    <BrushTransition Property="Background" Duration="{DynamicResource ShortAnimationDuration}" />
+                  </Transitions>
+                </Setter.Value>
+              </Setter>
+            </Style>
+            <Style Selector="Path">
+              <Setter Property="Transitions">
+                <Setter.Value>
+                  <Transitions>
+                    <BrushTransition Property="Fill" Duration="{DynamicResource ShortAnimationDuration}" />
+                  </Transitions>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </Panel.Styles>
+          <Border Background="#181C1F" CornerRadius="20" />
+          <Border
+            Background="{DynamicResource SukiPrimaryColor10}"
+            CornerRadius="20"
+            RenderOptions.BitmapBlendingMode="Screen" />
+        <Panel
+            Margin="10,0,10,15">
+          <Border
+            Background="#2A2F33"
+            CornerRadius="15" />
+          <Border
+            Background="{DynamicResource SukiPrimaryColor10}"
+            CornerRadius="15"
+            RenderOptions.BitmapBlendingMode="Screen">
+          
+          </Border>
+          <Viewbox
+            Width="36"
+            Height="36" RenderTransform="scale(1,1.05)" Margin="0,3,0,0"
+            ClipToBounds="False">
+            <Panel>
+              <Path
+                Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
+                Fill="{DynamicResource SukiPrimaryColor75}"
+                RenderOptions.BitmapBlendingMode="Screen"
+                Stretch="Uniform">
+              </Path>
+              <Path
+                Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
+                Fill="White" Opacity="0.3"
+                Stretch="Uniform">
+              </Path>
+            </Panel>
+          </Viewbox>
+        </Panel>
+       
+        </Panel>
+
         <TextBlock
           HorizontalAlignment="Center"
           Classes="h4"
           FontWeight="SemiBold"
-          Text="KeyAsio" />
+          Text="KeyASIO" />
         <TextBlock HorizontalAlignment="Center" Opacity="0.5">
           <Run Text="v" /><Run Text="{Binding UpdateService.Version}" />
         </TextBlock>

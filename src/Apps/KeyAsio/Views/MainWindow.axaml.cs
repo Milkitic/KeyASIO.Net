@@ -248,7 +248,7 @@ public partial class MainWindow : SukiWindow
             }
             else
             {
-                SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Blue);
+                UpdatePinkTheme();
             }
         }
     }
