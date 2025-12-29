@@ -1,10 +1,14 @@
-﻿using System.Collections.Specialized;
-using System.Globalization;
+﻿using System.Buffers;
+using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Platform;
+using Avalonia.Rendering.SceneGraph;
+using Avalonia.Skia;
 using KeyAsio.ViewModels;
+using SkiaSharp;
 
 namespace KeyAsio.Views.Controls;
 
@@ -12,9 +16,9 @@ public partial class SponsorSphere : UserControl
 {
     private static readonly Comparison<SphereTag> ZOrderComparer = (a, b) => a.Z.CompareTo(b.Z);
 
-    // Visual Resources
-    private static readonly IBrush BackgroundBrush = new SolidColorBrush(Color.Parse("#20000000"));
-    private static readonly Typeface DefaultTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.Bold);
+    // SKResources (Cached for measurement)
+    private static readonly SKTypeface DefaultTypeface = SKTypeface.FromFamilyName(null, SKFontStyle.Bold);
+    private static readonly SKFont MeasureFont = new() { Typeface = DefaultTypeface, };
 
     private readonly List<SphereTag> _tags = new();
     private TopLevel? _cachedTopLevel;
@@ -26,7 +30,7 @@ public partial class SponsorSphere : UserControl
     // Configuration
     private double _radius = 150;
     private const double Friction = 0.95;
-    private const double AutoRotationSpeed = 0.002;
+    private const double AutoRotationSpeed = 0.02;
     private const double Sensitivity = 0.005;
 
     // Interaction state
@@ -54,6 +58,9 @@ public partial class SponsorSphere : UserControl
 
         // Ensure we receive hit test events
         Background = Brushes.Transparent;
+
+        // 开启 ClipToBounds 可以避免绘制到控件外部，提升合成器效率
+        ClipToBounds = true;
     }
 
     private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -140,7 +147,6 @@ public partial class SponsorSphere : UserControl
         else if (change.Property == BoundsProperty)
         {
             _radius = Math.Min(Bounds.Width, Bounds.Height) / 2 * 0.8;
-            //InvalidateVisual();
             UpdateTags();
         }
     }
@@ -223,7 +229,7 @@ public partial class SponsorSphere : UserControl
             double z = _radius * Math.Cos(phi);
 
             var item = items[i];
-            var tag = CreateTag(item, DefaultTypeface);
+            var tag = CreateTag(item);
 
             tag.X = x;
             tag.Y = y;
@@ -236,36 +242,48 @@ public partial class SponsorSphere : UserControl
         InvalidateVisual();
     }
 
-    private SphereTag CreateTag(object item, Typeface typeface)
+    private SphereTag CreateTag(object item)
     {
-        string text = item.ToString() ?? "";    
-        IBrush foreground = Brushes.White;
-        double fontSize = 14;
+        string text = item.ToString() ?? "";
+        SKColor color = SKColors.White;
+        float fontSize = 14;
 
         if (item is SponsorItem sponsor)
         {
             text = sponsor.Name;
             if (sponsor.Tier.Contains("Gold", StringComparison.OrdinalIgnoreCase))
             {
-                foreground = Brushes.Gold;
+                color = SKColors.Gold;
                 fontSize = 16;
             }
             else if (sponsor.Tier.Contains("Silver", StringComparison.OrdinalIgnoreCase))
             {
-                foreground = Brushes.Silver;
+                color = SKColors.Silver;
             }
         }
 
-        var formattedText = new FormattedText(
-            text,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            fontSize,
-            foreground
-        );
+        MeasureFont.Size = fontSize;
 
-        return new SphereTag(formattedText);
+        // 测量宽度
+        float width = MeasureFont.MeasureText(text);
+
+        // 测量高度 (Ascent + Descent)
+        MeasureFont.GetFontMetrics(out var metrics);
+        // 通常高度取 descent - ascent (ascent 是负值)
+        float height = metrics.Descent - metrics.Ascent;
+
+        return new SphereTag
+        {
+            Text = text,
+            Color = color,
+            FontSize = fontSize,
+            Width = width,
+            Height = height,
+            HalfWidth = width / 2.0,
+            HalfHeight = height / 2.0,
+            // 预计算 Baseline 偏移量，渲染时就不用重复计算了
+            BaselineOffset = -metrics.Ascent - height / 2 // 将文字垂直居中的偏移量
+        };
     }
 
     private void PerformRotation(double rotX, double rotY)
@@ -275,8 +293,9 @@ public partial class SponsorSphere : UserControl
         double sinY = Math.Sin(rotY);
         double cosY = Math.Cos(rotY);
 
-        foreach (var tag in _tags)
+        for (var i = 0; i < _tags.Count; i++)
         {
+            var tag = _tags[i];
             double x = tag.X;
             double y = tag.Y;
             double z = tag.Z;
@@ -311,17 +330,23 @@ public partial class SponsorSphere : UserControl
 
     public override void Render(DrawingContext context)
     {
-        base.Render(context);
-
         if (_tags.Count == 0) return;
 
         double cx = Bounds.Width / 2;
         double cy = Bounds.Height / 2;
-        double radius = _radius; // 提取局部变量
+        double radius = _radius;
 
-        for (var i = 0; i < _tags.Count; i++)
+        var tags = _tags;
+        var count = tags.Count;
+
+        var pool = ArrayPool<TagRenderData>.Shared;
+        var dataArray = pool.Rent(count);
+
+        int renderCount = 0;
+
+        for (var i = 0; i < count; i++)
         {
-            var tag = _tags[i];
+            var tag = tags[i];
 
             // Perspective Scale
             double tagScale = (radius * 2 + tag.Z) / (radius * 3);
@@ -329,53 +354,160 @@ public partial class SponsorSphere : UserControl
 
             // Opacity
             double alpha = (tag.Z + radius) / (2 * radius);
-            if (alpha < 0.1) continue;
+            if (alpha < 0.0666666666) continue;
 
             double opacity = Math.Clamp(alpha + 0.2, 0.2, 1.0);
 
             // Position
-            double x = cx + tag.X;
-            double y = cy + tag.Y;
+            float x = (float)(cx + tag.X);
+            float y = (float)(cy + tag.Y);
+            float s = (float)tagScale;
 
-            var transform = new Matrix(tagScale, 0, 0, tagScale, x, y);
+            // 构造 Matrix: Scale(s, s) + Translate(x, y)
+            var transform = new SKMatrix(s, 0, x, 0, s, y, 0, 0, 1);
 
-            // Scale then Translate
-            using (context.PushOpacity(opacity))
-            using (context.PushTransform(transform))
+            double halfW = tag.HalfWidth;
+            double halfH = tag.HalfHeight;
+
+            // Background rect
+            var rect = new SKRect((float)(-halfW - 5), (float)(-halfH - 5), (float)(halfW + 5), (float)(halfH + 5));
+
+            dataArray[renderCount++] = new TagRenderData(
+                tag.Text,
+                tag.Color,
+                tag.FontSize,
+                transform,
+                (float)opacity,
+                rect,
+                (float)tag.BaselineOffset
+            );
+        }
+
+        var op = new SphereDrawOperation(Bounds, dataArray, renderCount, DefaultTypeface);
+        context.Custom(op);
+    }
+
+    private readonly struct TagRenderData
+    {
+        public readonly string Text;
+        public readonly SKColor Color;
+        public readonly float FontSize;
+        public readonly SKMatrix Transform;
+        public readonly float Opacity;
+        public readonly SKRect BackgroundRect;
+        public readonly float BaselineOffset; // 预计算的偏移
+
+        public TagRenderData(string text, SKColor color, float fontSize, SKMatrix transform, float opacity,
+            SKRect backgroundRect, float baselineOffset)
+        {
+            Text = text;
+            Color = color;
+            FontSize = fontSize;
+            Transform = transform;
+            Opacity = opacity;
+            BackgroundRect = backgroundRect;
+            BaselineOffset = baselineOffset;
+        }
+    }
+
+    private class SphereDrawOperation : ICustomDrawOperation
+    {
+        private readonly TagRenderData[] _data; // 这是一个从 ArrayPool 借来的数组
+        private readonly int _count;
+        private readonly SKTypeface _typeface;
+
+        public Rect Bounds { get; }
+
+        public SphereDrawOperation(Rect bounds, TagRenderData[] data, int count, SKTypeface typeface)
+        {
+            Bounds = bounds;
+            _data = data;
+            _count = count;
+            _typeface = typeface;
+        }
+
+        public void Dispose()
+        {
+            ArrayPool<TagRenderData>.Shared.Return(_data);
+        }
+
+        public bool HitTest(Point p) => false;
+
+        public bool Equals(ICustomDrawOperation? other) => false;
+
+        public void Render(ImmediateDrawingContext context)
+        {
+            var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
+            if (leaseFeature == null) return;
+
+            using var lease = leaseFeature.Lease();
+            var canvas = lease.SkCanvas;
+
+            // 局部创建 Paint，避免多实例干扰。SkiaSharp 的 Paint 创建非常快。
+            using var bgPaint = new SKPaint
             {
-                double halfW = tag.HalfWidth;
-                double halfH = tag.HalfHeight;
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill
+            };
 
-                // Draw centered
-                var rect = new Rect(-halfW - 5, -halfH - 5, tag.Width + 10, tag.Height + 10);
+            using var textPaint = new SKPaint
+            {
+                IsAntialias = true, // 记得开启抗锯齿，否则文字很难看
+            };
 
-                context.DrawRectangle(BackgroundBrush, null, new RoundedRect(rect, 4));
+            // 使用 SKFont 来控制字体大小和 Typeface
+            using var font = new SKFont(_typeface)
+            {
+                Subpixel = true,
+                Hinting = SKFontHinting.None,
+                LinearMetrics = true,
+                BaselineSnap = false,
+                Edging = SKFontEdging.SubpixelAntialias
+            };
+
+            for (var i = 0; i < _count; i++)
+            {
+                // 使用 ref 避免结构体拷贝
+                ref readonly var tag = ref _data[i];
+
+                int save = canvas.Save();
+                canvas.Concat(tag.Transform);
+
+                // Draw Background
+                byte bgAlpha = (byte)(32 * tag.Opacity);
+                if (bgAlpha > 0)
+                {
+                    bgPaint.Color = new SKColor(0, 0, 0, bgAlpha);
+                    canvas.DrawRoundRect(tag.BackgroundRect, 4, 4, bgPaint);
+                }
 
                 // Draw Text
-                context.DrawText(tag.FormattedText, new Point(-halfW, -halfH));
+                // 设置字体大小
+                font.Size = tag.FontSize;
+
+                // 设置颜色
+                textPaint.Color = tag.Color.WithAlpha((byte)(255 * tag.Opacity));
+
+                // 绘制
+                canvas.DrawText(tag.Text, 0, tag.BaselineOffset, SKTextAlign.Center, font, textPaint);
+
+                canvas.RestoreToCount(save);
             }
         }
     }
 
     private class SphereTag
     {
-        public FormattedText FormattedText { get; }
-        public double Width { get; }
-        public double Height { get; }
-        public double HalfWidth { get; }
-        public double HalfHeight { get; }
-
+        public string Text { get; init; } = "";
+        public SKColor Color { get; init; }
+        public float FontSize { get; init; }
+        public double Width { get; init; }
+        public double Height { get; init; }
+        public double HalfWidth { get; init; }
+        public double HalfHeight { get; init; }
+        public double BaselineOffset { get; init; }
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
-
-        public SphereTag(FormattedText text)
-        {
-            FormattedText = text;
-            Width = text.Width;
-            Height = text.Height;
-            HalfWidth = Width / 2;
-            HalfHeight = Height / 2;
-        }
     }
 }

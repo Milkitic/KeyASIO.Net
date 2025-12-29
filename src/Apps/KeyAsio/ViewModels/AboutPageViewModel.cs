@@ -12,7 +12,7 @@ public partial class AboutPageViewModel : ViewModelBase
     public AboutPageViewModel()
     {
         // Sample Data - You can replace these with real data
-        for (int i = 0; i < 10; i++)
+        //for (int i = 0; i < 50; i++)
         {
             Sponsors.Add(new SponsorItem("Sponsor User 1", "Gold Sponsor"));
             Sponsors.Add(new SponsorItem("Sponsor User 2", "Silver Sponsor"));
