@@ -242,6 +242,7 @@ public partial class MainWindow : SukiWindow
         {
             BackgroundStyle = SukiBackgroundStyle.Flat;
             UpdatePinkTheme();
+            _viewModel.Hue = 150;
         }
         else
         {
@@ -250,10 +251,12 @@ public partial class MainWindow : SukiWindow
                 device is { WavePlayerType: WavePlayerType.WASAPI, IsExclusive: true })
             {
                 SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Red);
+                _viewModel.Hue = 170;
             }
             else
             {
                 UpdatePinkTheme();
+                _viewModel.Hue = 150;
             }
         }
     }

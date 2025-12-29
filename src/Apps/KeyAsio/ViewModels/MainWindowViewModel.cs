@@ -114,6 +114,9 @@ public partial class MainWindowViewModel : IDisposable
 
     [ObservableProperty]
     public partial bool IsExiting { get; set; }
+    
+    [ObservableProperty]
+    public partial int Hue { get; set; } = 150;
 
     [RelayCommand]
     public void ShowMainWindow()
