@@ -170,18 +170,18 @@ public partial class MainWindow : SukiWindow
             });
 
             _viewModel.AudioSettings.OnDeviceChanged += AudioSettings_OnDeviceChanged;
-            _ = Task.Run(async () =>
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 await _viewModel.AudioSettings.InitializeDevice();
                 if (_viewModel.AudioSettings.DeviceErrorMessage != null)
                 {
-                    Dispatcher.UIThread.Invoke(() => _viewModel.MainToastManager.CreateToast()
+                    _viewModel.MainToastManager.CreateToast()
                         .WithTitle("Device Initialization Failed")
                         .WithContent(_viewModel.AudioSettings.DeviceErrorMessage)
                         .OfType(NotificationType.Error)
                         .Dismiss().After(TimeSpan.FromSeconds(8))
                         .Dismiss().ByClicking()
-                        .Queue());
+                        .Queue();
                 }
             });
         }
