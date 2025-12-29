@@ -12,8 +12,6 @@ public partial class SponsorSphere : UserControl
     private readonly List<SphereTag> _tags = new();
 
     // Rotation state
-    private double _angleX;
-    private double _angleY;
     private double _currentVelocityX;
     private double _currentVelocityY;
 
@@ -21,6 +19,7 @@ public partial class SponsorSphere : UserControl
     private double _radius = 150;
     private const double Friction = 0.95;
     private const double AutoRotationSpeed = 0.002;
+    private const double Sensitivity = 0.005;
 
     // Interaction state
     private bool _isDragging;
@@ -49,6 +48,7 @@ public partial class SponsorSphere : UserControl
         ParticleCanvas.PointerPressed += OnPointerPressed;
         ParticleCanvas.PointerMoved += OnPointerMoved;
         ParticleCanvas.PointerReleased += OnPointerReleased;
+        ParticleCanvas.PointerCaptureLost += OnPointerCaptureLost;
         // ParticleCanvas.PointerWheelChanged += OnPointerWheelChanged; // Optional zoom
     }
 
@@ -72,23 +72,40 @@ public partial class SponsorSphere : UserControl
         if (_lastFrameTime != TimeSpan.Zero)
         {
             double deltaMs = (timestamp - _lastFrameTime).TotalMilliseconds;
-            // Target 60fps => ~16.66ms
-            double scale = deltaMs / 16.666;
 
-            // Clamp scale to avoid huge jumps if lag spike
-            scale = Math.Clamp(scale, 0.1, 4.0);
+            double scale = deltaMs / 16.666; // Target 60fps => ~16.66ms
+            scale = Math.Clamp(scale, 0.1, 4.0); // Clamp scale to avoid huge jumps if lag spike
 
-            UpdatePositions(scale);
-        }
-        else
-        {
-            // First frame, just update with scale 1 or 0? 
-            // Better to skip movement or assume 1.0
-            UpdatePositions(1.0);
+            if (!_isDragging)
+            {
+                ApplyInertia(scale);
+            }
         }
 
         _lastFrameTime = timestamp;
         TopLevel.GetTopLevel(this)?.RequestAnimationFrame(OnFrame);
+    }
+
+    private void ApplyInertia(double scale)
+    {
+        // 1. 应用摩擦力
+        double frictionFactor = Math.Pow(Friction, scale);
+        _currentVelocityX *= frictionFactor;
+        _currentVelocityY *= frictionFactor;
+
+        // 2. 速度极低时切换到自动旋转
+        if (Math.Abs(_currentVelocityX) < 0.0001 && Math.Abs(_currentVelocityY) < 0.0001)
+        {
+            _currentVelocityY = AutoRotationSpeed; // 默认给一点 Y 轴旋转
+            _currentVelocityX = 0;
+        }
+
+        // 3. 计算本帧的旋转量
+        double rotX = _currentVelocityX * scale;
+        double rotY = _currentVelocityY * scale;
+
+        // 4. 应用旋转
+        PerformRotation(rotX, rotY);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -117,6 +134,58 @@ public partial class SponsorSphere : UserControl
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         UpdateTags();
+    }
+
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        _isDragging = true;
+        _lastMousePosition = e.GetPosition(this);
+        e.Pointer.Capture(ParticleCanvas);
+
+        _currentVelocityX = 0;
+        _currentVelocityY = 0;
+    }
+
+    private void OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_isDragging)
+        {
+            var currentPos = e.GetPosition(this);
+            double deltaX = currentPos.X - _lastMousePosition.X;
+            double deltaY = currentPos.Y - _lastMousePosition.Y;
+
+            // 1. 直接应用旋转 (Direct Manipulation)
+            double rotY = -deltaX * Sensitivity;
+            double rotX = -deltaY * Sensitivity;
+
+            PerformRotation(rotX, rotY);
+
+            // 2. 记录当前作为"投掷"速度，供松开鼠标后的惯性使用
+            _currentVelocityY = rotY;
+            _currentVelocityX = rotX;
+
+            _lastMousePosition = currentPos;
+        }
+    }
+
+    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _isDragging = false;
+        e.Pointer.Capture(null);
+    }
+
+    private void OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        _isDragging = false;
+        e.Pointer.Capture(null);
+    }
+
+    private void OnTagSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (sender is Control { Tag: SphereTag tag })
+        {
+            tag.UpdateSize();
+        }
     }
 
     private void UpdateTags()
@@ -205,33 +274,8 @@ public partial class SponsorSphere : UserControl
         return new TextBlock { Text = item.ToString() };
     }
 
-    private void UpdatePositions(double scale)
+    private void PerformRotation(double rotX, double rotY)
     {
-        if (_isDragging)
-        {
-            // Velocity is calculated in PointerMoved
-        }
-        else
-        {
-            // Apply friction
-            double frictionFactor = Math.Pow(Friction, scale);
-            _currentVelocityX *= frictionFactor;
-            _currentVelocityY *= frictionFactor;
-
-            // Auto rotation if velocity is very low
-            if (Math.Abs(_currentVelocityX) < 0.0001 && Math.Abs(_currentVelocityY) < 0.0001)
-            {
-                _currentVelocityY = AutoRotationSpeed;
-            }
-        }
-
-        // --- Trackball / Incremental Rotation Logic ---
-        // Instead of accumulating global angles, we rotate the current coordinates
-        // by the current velocity (delta angle).
-
-        double rotX = _currentVelocityX * scale;
-        double rotY = _currentVelocityY * scale;
-
         double cx = Bounds.Width / 2;
         double cy = Bounds.Height / 2;
 
@@ -247,12 +291,10 @@ public partial class SponsorSphere : UserControl
             double z = tag.Z;
 
             // 1. Rotate around Y axis (Horizontal drag affects X and Z)
-            // Corresponds to rotation around screen's vertical axis
             double x1 = x * cosY - z * sinY;
             double z1 = z * cosY + x * sinY;
 
             // 2. Rotate around X axis (Vertical drag affects Y and Z)
-            // Corresponds to rotation around screen's horizontal axis
             double y2 = y * cosX - z1 * sinX;
             double z2 = z1 * cosX + y * sinX;
 
@@ -298,42 +340,6 @@ public partial class SponsorSphere : UserControl
             {
                 tag.Control.ZIndex = newZIndex;
             }
-        }
-    }
-
-    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        _isDragging = true;
-        _lastMousePosition = e.GetPosition(this);
-        e.Pointer.Capture(ParticleCanvas);
-    }
-
-    private void OnPointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (_isDragging)
-        {
-            var currentPos = e.GetPosition(this);
-            double deltaX = currentPos.X - _lastMousePosition.X;
-            double deltaY = currentPos.Y - _lastMousePosition.Y;
-
-            _currentVelocityY = -deltaX * 0.005;
-            _currentVelocityX = -deltaY * 0.005;
-
-            _lastMousePosition = currentPos;
-        }
-    }
-
-    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        _isDragging = false;
-        e.Pointer.Capture(null);
-    }
-
-    private void OnTagSizeChanged(object? sender, SizeChangedEventArgs e)
-    {
-        if (sender is Control { Tag: SphereTag tag })
-        {
-            tag.UpdateSize();
         }
     }
 
