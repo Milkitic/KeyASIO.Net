@@ -93,13 +93,15 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
         };
         EffectMixer = new QueueMixingSampleProvider(EngineWaveFormat)
         {
-            ReadFully = true
+            ReadFully = true,
+            WantsKeep = true
         };
         _effectVolumeSampleProvider.Source = EffectMixer;
 
         MusicMixer = new QueueMixingSampleProvider(EngineWaveFormat)
         {
-            ReadFully = true
+            ReadFully = true,
+            WantsKeep = true
         };
         _musicVolumeSampleProvider.Source = MusicMixer;
         RootMixer.AddMixerInput(_effectVolumeSampleProvider);

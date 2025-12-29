@@ -63,6 +63,8 @@ public sealed class EnhancedMixingSampleProvider : IMixingSampleProvider
     /// </summary>
     public bool ReadFully { get; set; }
 
+    public bool WantsKeep { get; set; }
+
     /// <summary>
     /// Adds a new mixer input
     /// </summary>

@@ -5,6 +5,7 @@ namespace KeyAsio.Core.Audio.SampleProviders;
 public interface IMixingSampleProvider : ISampleProvider
 {
     public bool ReadFully { get; set; }
+    public bool WantsKeep { get; set; }
     public void AddMixerInput(ISampleProvider mixerInput);
     public void RemoveMixerInput(ISampleProvider mixerInput);
     public void RemoveAllMixerInputs();

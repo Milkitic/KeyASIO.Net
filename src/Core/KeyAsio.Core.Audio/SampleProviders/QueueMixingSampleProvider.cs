@@ -51,6 +51,7 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
     public WaveFormat? WaveFormat { get; }
 
     public bool ReadFully { get; set; }
+    public bool WantsKeep { get; set; }
 
     public void AddMixerInput(ISampleProvider mixerInput)
     {
@@ -84,9 +85,14 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
 
         if (_sources.Count == 0)
         {
+            if (WantsKeep)
+            {
+                return -114514;
+            }
+
             if (ReadFully)
             {
-                Array.Clear(buffer, offset, count);
+                buffer.AsSpan(offset, count).Clear();
                 return count;
             }
 
@@ -116,6 +122,11 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
                 {
                     maxSamplesRead = samplesRead;
                 }
+            }
+
+            if (samplesRead == -114514)
+            {
+                continue;
             }
 
             if (samplesRead < count)
