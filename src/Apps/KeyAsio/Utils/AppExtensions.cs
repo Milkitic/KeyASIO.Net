@@ -1,11 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 
-namespace KeyAsio.Utils
+namespace KeyAsio.Utils;
+
+using Avalonia;
+
+internal static class AppExtensions
 {
-    internal static class AppExtensions
-    {
-        public static IClassicDesktopStyleApplicationLifetime? CurrentDesktop =>
-            Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-    }
+    public static IClassicDesktopStyleApplicationLifetime? CurrentDesktop =>
+        Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
 }
