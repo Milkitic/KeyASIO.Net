@@ -160,25 +160,30 @@ public partial class MainWindow : SukiWindow
                         .Queue();
                 }
             };
-
-            var result = await updateService.CheckUpdateAsync();
-            if (result == true)
+            _ = Task.Run(async () =>
             {
-                ShowUpdateToast(updateService);
-            }
+                var result = await updateService.CheckUpdateAsync();
+                if (result == true)
+                {
+                    Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
+                }
+            });
 
             _viewModel.AudioSettings.OnDeviceChanged += AudioSettings_OnDeviceChanged;
-            await _viewModel.AudioSettings.InitializeDevice();
-            if (_viewModel.AudioSettings.DeviceErrorMessage != null)
+            _ = Task.Run(async () =>
             {
-                _viewModel.MainToastManager.CreateToast()
-                    .WithTitle("Device Initialization Failed")
-                    .WithContent(_viewModel.AudioSettings.DeviceErrorMessage)
-                    .OfType(NotificationType.Error)
-                    .Dismiss().After(TimeSpan.FromSeconds(8))
-                    .Dismiss().ByClicking()
-                    .Queue();
-            }
+                await _viewModel.AudioSettings.InitializeDevice();
+                if (_viewModel.AudioSettings.DeviceErrorMessage != null)
+                {
+                    Dispatcher.UIThread.Invoke(() => _viewModel.MainToastManager.CreateToast()
+                        .WithTitle("Device Initialization Failed")
+                        .WithContent(_viewModel.AudioSettings.DeviceErrorMessage)
+                        .OfType(NotificationType.Error)
+                        .Dismiss().After(TimeSpan.FromSeconds(8))
+                        .Dismiss().ByClicking()
+                        .Queue());
+                }
+            });
         }
         catch (Exception ex)
         {
