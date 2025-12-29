@@ -225,30 +225,60 @@ public partial class SponsorSphere : UserControl
             }
         }
 
-        _angleX += _currentVelocityX * scale;
-        _angleY += _currentVelocityY * scale;
+        // --- Trackball / Incremental Rotation Logic ---
+        // Instead of accumulating global angles, we rotate the current coordinates
+        // by the current velocity (delta angle).
+
+        double rotX = _currentVelocityX * scale;
+        double rotY = _currentVelocityY * scale;
 
         double cx = Bounds.Width / 2;
         double cy = Bounds.Height / 2;
 
-        double sinX = Math.Sin(_angleX);
-        double cosX = Math.Cos(_angleX);
-        double sinY = Math.Sin(_angleY);
-        double cosY = Math.Cos(_angleY);
+        double sinX = Math.Sin(rotX);
+        double cosX = Math.Cos(rotX);
+        double sinY = Math.Sin(rotY);
+        double cosY = Math.Cos(rotY);
 
         foreach (var tag in _tags)
         {
-            // Rotation Y
-            double x1 = tag.X * cosY - tag.Z * sinY;
-            double z1 = tag.Z * cosY + tag.X * sinY;
+            double x = tag.X;
+            double y = tag.Y;
+            double z = tag.Z;
 
-            // Rotation X
-            double y2 = tag.Y * cosX - z1 * sinX;
-            double z2 = z1 * cosX + tag.Y * sinX;
+            // 1. Rotate around Y axis (Horizontal drag affects X and Z)
+            // Corresponds to rotation around screen's vertical axis
+            double x1 = x * cosY - z * sinY;
+            double z1 = z * cosY + x * sinY;
 
-            double tagScale = (_radius * 2 + z2) / (_radius * 3); // Simple perspective
+            // 2. Rotate around X axis (Vertical drag affects Y and Z)
+            // Corresponds to rotation around screen's horizontal axis
+            double y2 = y * cosX - z1 * sinX;
+            double z2 = z1 * cosX + y * sinX;
 
-            double alpha = (z2 + _radius) / (2 * _radius); // 0 to 1 based on depth
+            // Update mutable coordinates
+            tag.X = x1;
+            tag.Y = y2;
+            tag.Z = z2;
+
+            // 3. Normalize to radius (prevent floating point drift)
+            double len = Math.Sqrt(tag.X * tag.X + tag.Y * tag.Y + tag.Z * tag.Z);
+            if (len > 0)
+            {
+                // Snap back to current radius
+                double s = _radius / len;
+                tag.X *= s;
+                tag.Y *= s;
+                tag.Z *= s;
+            }
+
+            // --- Rendering ---
+
+            // Perspective Scale
+            double tagScale = (_radius * 2 + tag.Z) / (_radius * 3);
+
+            // Opacity
+            double alpha = (tag.Z + _radius) / (2 * _radius);
             tag.Control.Opacity = Math.Clamp(alpha + 0.2, 0.2, 1.0);
 
             // Scale transform
@@ -256,14 +286,14 @@ public partial class SponsorSphere : UserControl
             tag.ScaleTransform.ScaleY = tagScale;
 
             // Position
-            double left = cx + x1 - tag.HalfWidth;
-            double top = cy + y2 - tag.HalfHeight;
+            double left = cx + tag.X - tag.HalfWidth;
+            double top = cy + tag.Y - tag.HalfHeight;
 
             tag.TranslateTransform.X = left;
             tag.TranslateTransform.Y = top;
 
-            // ZIndex - simple sort
-            int newZIndex = (int)z2;
+            // ZIndex
+            int newZIndex = (int)tag.Z;
             if (tag.Control.ZIndex != newZIndex)
             {
                 tag.Control.ZIndex = newZIndex;
@@ -286,7 +316,7 @@ public partial class SponsorSphere : UserControl
             double deltaX = currentPos.X - _lastMousePosition.X;
             double deltaY = currentPos.Y - _lastMousePosition.Y;
 
-            _currentVelocityY = deltaX * 0.005;
+            _currentVelocityY = -deltaX * 0.005;
             _currentVelocityX = -deltaY * 0.005;
 
             _lastMousePosition = currentPos;
