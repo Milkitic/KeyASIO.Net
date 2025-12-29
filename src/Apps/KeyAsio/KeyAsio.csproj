@@ -19,6 +19,7 @@
     <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <Platforms>AnyCPU;x64</Platforms>
+    <ApplicationIcon>Assets\KeyAsio.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
@@ -35,6 +36,10 @@
 
   <ItemGroup>
     <AdditionalFiles Include="NativeMethods.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\KeyAsio.ico" />
   </ItemGroup>
 
   <ItemGroup>

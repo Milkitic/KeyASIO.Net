@@ -105,8 +105,7 @@
               Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
               Fill="{DynamicResource SukiPrimaryColor75}"
               RenderOptions.BitmapBlendingMode="Screen"
-              Stretch="Uniform">
-            </Path>
+              Stretch="Uniform" />
           </Panel>
         </Viewbox>
       </Border>
@@ -219,37 +218,33 @@
             Background="{DynamicResource SukiPrimaryColor10}"
             CornerRadius="20"
             RenderOptions.BitmapBlendingMode="Screen" />
-        <Panel
-            Margin="10,0,10,15">
-          <Border
-            Background="#2A2F33"
-            CornerRadius="15" />
-          <Border
-            Background="{DynamicResource SukiPrimaryColor10}"
-            CornerRadius="15"
-            RenderOptions.BitmapBlendingMode="Screen">
-          
-          </Border>
-          <Viewbox
-            Width="36"
-            Height="36" RenderTransform="scale(1,1.05)" Margin="0,3,0,0"
-            ClipToBounds="False">
-            <Panel>
-              <Path
-                Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
-                Fill="{DynamicResource SukiPrimaryColor75}"
-                RenderOptions.BitmapBlendingMode="Screen"
-                Stretch="Uniform">
-              </Path>
-              <Path
-                Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
-                Fill="White" Opacity="0.3"
-                Stretch="Uniform">
-              </Path>
-            </Panel>
-          </Viewbox>
-        </Panel>
-       
+          <Panel Margin="10,0,10,15">
+            <Border Background="#2A2F33" CornerRadius="15" />
+            <Border
+              Background="{DynamicResource SukiPrimaryColor10}"
+              CornerRadius="15"
+              RenderOptions.BitmapBlendingMode="Screen" />
+            <Viewbox
+              Width="36"
+              Height="36"
+              Margin="0,3,0,0"
+              ClipToBounds="False"
+              RenderTransform="scale(1,1.05)">
+              <Panel>
+                <Path
+                  Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
+                  Fill="{DynamicResource SukiPrimaryColor75}"
+                  RenderOptions.BitmapBlendingMode="Screen"
+                  Stretch="Uniform" />
+                <Path
+                  Data="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
+                  Fill="White"
+                  Opacity="0.3"
+                  Stretch="Uniform" />
+              </Panel>
+            </Viewbox>
+          </Panel>
+
         </Panel>
 
         <TextBlock
