@@ -1,0 +1,208 @@
+﻿<UserControl
+  x:Class="KeyAsio.Views.Pages.AboutPage"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  x:Name="AboutRoot"
+  d:DesignHeight="800"
+  d:DesignWidth="1000"
+  x:DataType="vm:MainWindowViewModel"
+  mc:Ignorable="d">
+
+  <ScrollViewer>
+    <StackPanel Margin="30" Spacing="30">
+      <!--  Header Section with Logo and Intro  -->
+      <Grid ColumnDefinitions="Auto, *">
+        <Image
+          Grid.Column="0"
+          Width="80"
+          Height="80"
+          Margin="0,0,20,0"
+          VerticalAlignment="Top"
+          Source="/Assets/KeyAsio.ico" />
+        <StackPanel Grid.Column="1" Spacing="10">
+          <TextBlock
+            Classes="h1"
+            FontSize="36"
+            FontWeight="Heavy"
+            Text="KeyASIO" />
+          <StackPanel
+            Opacity="0.7"
+            Orientation="Horizontal"
+            Spacing="10">
+            <Border
+              Padding="6,2"
+              Background="{DynamicResource SukiPrimaryColor}"
+              CornerRadius="4">
+              <TextBlock
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="White"
+                Text="{Binding UpdateService.Version, StringFormat='v{0}'}" />
+            </Border>
+            <TextBlock VerticalAlignment="Center" Text="低延迟音频解决方案" />
+          </StackPanel>
+          <TextBlock
+            MaxWidth="600"
+            HorizontalAlignment="Left"
+            LineHeight="24"
+            Opacity="0.8"
+            Text="KeyASIO 致力于为音游玩家提供极致的低延迟音频体验。支持多种同步模式，兼容性强，配置灵活。"
+            TextWrapping="Wrap" />
+
+          <StackPanel
+            Margin="0,10,0,0"
+            Orientation="Horizontal"
+            Spacing="15">
+            <Button
+              Classes="Flat"
+              Command="{Binding About.OpenUrlCommand}"
+              CommandParameter="https://github.com/KeyASIO/KeyASIO.Net"
+              Content="GitHub 仓库">
+              <Button.Styles>
+                <Style Selector="materialIcons|MaterialIcon">
+                  <Setter Property="Margin" Value="0,0,8,0" />
+                </Style>
+              </Button.Styles>
+            </Button>
+            <Button
+              Classes="Flat"
+              Command="{Binding About.OpenUrlCommand}"
+              CommandParameter="https://discord.gg/your_discord_link_here"
+              Content="加入 Discord"
+              IsVisible="False" /> 
+            <!--  Placeholder for future  -->
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+
+      <Separator Opacity="0.2" />
+
+      <!--  Sponsors 3D Cloud  -->
+      <Grid Height="500">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel
+          Grid.Row="0"
+          HorizontalAlignment="Center"
+          Spacing="5">
+          <StackPanel
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="10">
+            <materialIcons:MaterialIcon
+              Width="24"
+              Height="24"
+              Foreground="#FF4081"
+              Kind="Heart" />
+            <TextBlock
+              Classes="h3"
+              FontWeight="Bold"
+              Text="特别感谢" />
+          </StackPanel>
+          <TextBlock
+            HorizontalAlignment="Center"
+            Opacity="0.6"
+            Text="感谢所有支持 KeyASIO 的赞助者们，你们让这个项目变得更好" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,20">
+          <!--  Ambient Glow  -->
+          <Border
+            Width="400"
+            Height="400"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            CornerRadius="200"
+            Opacity="0.05">
+            <Border.Background>
+              <RadialGradientBrush Center="50%,50%" GradientOrigin="50%,50%" Radius="0.5">
+                <GradientStop Offset="0" Color="{DynamicResource SukiPrimaryColor}" />
+                <GradientStop Offset="1" Color="Transparent" />
+              </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+              <BlurEffect Radius="50" />
+            </Border.Effect>
+          </Border>
+
+          <!--  3D Cloud  -->
+          <controls:SponsorSphere
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            ItemsSource="{Binding About.Sponsors}" />
+
+          <TextBlock
+            Margin="0,0,0,10"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            FontSize="12"
+            FontStyle="Italic"
+            Opacity="0.3"
+            Text="拖动球体探索名单" />
+        </Grid>
+      </Grid>
+
+      <Separator Opacity="0.2" />
+
+      <!--  Projects Section  -->
+      <StackPanel Spacing="15">
+        <TextBlock
+          Classes="h4"
+          FontWeight="SemiBold"
+          Text="相关项目" />
+        <ItemsControl ItemsSource="{Binding About.Projects}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <suki:GlassCard
+                Width="300"
+                Margin="0,0,15,15"
+                Classes="Surface">
+                <StackPanel Spacing="10">
+                  <Grid ColumnDefinitions="*, Auto">
+                    <TextBlock
+                      FontSize="16"
+                      FontWeight="Bold"
+                      Text="{Binding Name}" />
+                    <materialIcons:MaterialIcon
+                      Grid.Column="1"
+                      Width="16"
+                      Height="16"
+                      Kind="OpenInNew"
+                      Opacity="0.5" />
+                  </Grid>
+                  <TextBlock
+                    Height="40"
+                    Opacity="0.7"
+                    Text="{Binding Description}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap" />
+                  <Button
+                    HorizontalAlignment="Right"
+                    Classes="Flat"
+                    Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).About.OpenUrlCommand}"
+                    CommandParameter="{Binding Url}"
+                    Content="访问" />
+                </StackPanel>
+              </suki:GlassCard>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

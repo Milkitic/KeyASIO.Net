@@ -98,6 +98,7 @@ public partial class MainWindowViewModel : IDisposable
     public SyncDisplayViewModel SyncDisplay { get; }
     public KeyBindingViewModel KeyBinding { get; }
     public PluginManagerViewModel PluginManager { get; }
+    public AboutPageViewModel About { get; } = new();
     public bool IsDevelopment { get; }
 
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();

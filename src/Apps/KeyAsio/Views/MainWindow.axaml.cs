@@ -225,7 +225,6 @@ public partial class MainWindow : SukiWindow
 
         _viewModel.AudioSettings.PropertyChanged +=
             (s, e) => AudioSettings_PropertyChanged(s, e, trayIcons.FirstOrDefault());
-
     }
 
     private void AudioSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e, TrayIcon? trayIcon)
@@ -296,6 +295,7 @@ public partial class MainWindow : SukiWindow
                 Color.Parse("#D01373"), Color.Parse("#C2185B")));
         }
     }
+
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         base.OnClosing(e);

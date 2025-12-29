@@ -136,6 +136,18 @@
         </suki:SukiSideMenuItem.PageContent>
       </suki:SukiSideMenuItem>
 
+      <!--  PAGE 5: ABOUT  -->
+      <suki:SukiSideMenuItem
+        Classes="Compact"
+        Header="关于">
+        <suki:SukiSideMenuItem.Icon>
+          <materialIcons:MaterialIcon Kind="Information" />
+        </suki:SukiSideMenuItem.Icon>
+        <suki:SukiSideMenuItem.PageContent>
+          <pages:AboutPage />
+        </suki:SukiSideMenuItem.PageContent>
+      </suki:SukiSideMenuItem>
+
     </suki:SukiSideMenu.Items>
 
     <!--  HEADER LOGO  -->
