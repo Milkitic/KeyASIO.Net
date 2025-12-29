@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
   x:Class="KeyAsio.Views.Controls.SponsorSphere"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,7 +8,6 @@
   d:DesignHeight="400"
   d:DesignWidth="400"
   mc:Ignorable="d">
-  <Grid>
-    <Canvas x:Name="ParticleCanvas" Background="Transparent" />
+  <Grid Background="Transparent">
   </Grid>
 </UserControl>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -9,7 +10,14 @@ namespace KeyAsio.Views.Controls;
 
 public partial class SponsorSphere : UserControl
 {
+    private static readonly Comparison<SphereTag> ZOrderComparer = (a, b) => a.Z.CompareTo(b.Z);
+
+    // Visual Resources
+    private static readonly IBrush BackgroundBrush = new SolidColorBrush(Color.Parse("#20000000"));
+    private static readonly Typeface DefaultTypeface = new(FontFamily.Default, FontStyle.Normal, FontWeight.Bold);
+
     private readonly List<SphereTag> _tags = new();
+    private TopLevel? _cachedTopLevel;
 
     // Rotation state
     private double _currentVelocityX;
@@ -44,25 +52,26 @@ public partial class SponsorSphere : UserControl
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
 
-        // Mouse interaction
-        ParticleCanvas.PointerPressed += OnPointerPressed;
-        ParticleCanvas.PointerMoved += OnPointerMoved;
-        ParticleCanvas.PointerReleased += OnPointerReleased;
-        ParticleCanvas.PointerCaptureLost += OnPointerCaptureLost;
-        // ParticleCanvas.PointerWheelChanged += OnPointerWheelChanged; // Optional zoom
+        // Ensure we receive hit test events
+        Background = Brushes.Transparent;
     }
 
     private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        _cachedTopLevel = TopLevel.GetTopLevel(this);
+
         _lastFrameTime = TimeSpan.Zero;
         _isRunning = true;
-        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(OnFrame);
+
+        // 启动循环
+        _cachedTopLevel?.RequestAnimationFrame(OnFrame);
         UpdateTags();
     }
 
     private void OnUnloaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         _isRunning = false;
+        _cachedTopLevel = null;
     }
 
     private void OnFrame(TimeSpan timestamp)
@@ -83,7 +92,7 @@ public partial class SponsorSphere : UserControl
         }
 
         _lastFrameTime = timestamp;
-        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(OnFrame);
+        _cachedTopLevel?.RequestAnimationFrame(OnFrame);
     }
 
     private void ApplyInertia(double scale)
@@ -106,6 +115,9 @@ public partial class SponsorSphere : UserControl
 
         // 4. 应用旋转
         PerformRotation(rotX, rotY);
+
+        // 5. 触发重绘
+        InvalidateVisual();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -128,6 +140,8 @@ public partial class SponsorSphere : UserControl
         else if (change.Property == BoundsProperty)
         {
             _radius = Math.Min(Bounds.Width, Bounds.Height) / 2 * 0.8;
+            //InvalidateVisual();
+            UpdateTags();
         }
     }
 
@@ -136,18 +150,20 @@ public partial class SponsorSphere : UserControl
         UpdateTags();
     }
 
-    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
+        base.OnPointerPressed(e);
         _isDragging = true;
         _lastMousePosition = e.GetPosition(this);
-        e.Pointer.Capture(ParticleCanvas);
+        e.Pointer.Capture(this);
 
         _currentVelocityX = 0;
         _currentVelocityY = 0;
     }
 
-    private void OnPointerMoved(object? sender, PointerEventArgs e)
+    protected override void OnPointerMoved(PointerEventArgs e)
     {
+        base.OnPointerMoved(e);
         if (_isDragging)
         {
             var currentPos = e.GetPosition(this);
@@ -159,6 +175,7 @@ public partial class SponsorSphere : UserControl
             double rotX = -deltaY * Sensitivity;
 
             PerformRotation(rotX, rotY);
+            InvalidateVisual();
 
             // 2. 记录当前作为"投掷"速度，供松开鼠标后的惯性使用
             _currentVelocityY = rotY;
@@ -168,32 +185,29 @@ public partial class SponsorSphere : UserControl
         }
     }
 
-    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
+        base.OnPointerReleased(e);
         _isDragging = false;
         e.Pointer.Capture(null);
     }
 
-    private void OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
+        base.OnPointerCaptureLost(e);
         _isDragging = false;
         e.Pointer.Capture(null);
-    }
-
-    private void OnTagSizeChanged(object? sender, SizeChangedEventArgs e)
-    {
-        if (sender is Control { Tag: SphereTag tag })
-        {
-            tag.UpdateSize();
-        }
     }
 
     private void UpdateTags()
     {
-        ParticleCanvas.Children.Clear();
         _tags.Clear();
 
-        if (ItemsSource == null) return;
+        if (ItemsSource == null)
+        {
+            InvalidateVisual();
+            return;
+        }
 
         var items = ItemsSource.Cast<object>().ToList();
         int count = items.Count;
@@ -209,76 +223,53 @@ public partial class SponsorSphere : UserControl
             double z = _radius * Math.Cos(phi);
 
             var item = items[i];
-            var control = CreateTagControl(item);
+            var tag = CreateTag(item, DefaultTypeface);
 
-            var scaleTransform = new ScaleTransform();
-            var translateTransform = new TranslateTransform();
-            var transformGroup = new TransformGroup();
-            transformGroup.Children.Add(scaleTransform);
-            transformGroup.Children.Add(translateTransform);
-            control.RenderTransform = transformGroup;
+            tag.X = x;
+            tag.Y = y;
+            tag.Z = z;
 
-            var tag = new SphereTag
-            {
-                Control = control,
-                X = x,
-                Y = y,
-                Z = z,
-                ScaleTransform = scaleTransform,
-                TranslateTransform = translateTransform
-            };
-
-            tag.UpdateSize();
-            control.Tag = tag;
-            control.SizeChanged += OnTagSizeChanged;
             _tags.Add(tag);
-
-            ParticleCanvas.Children.Add(control);
         }
+
+        _tags.Sort(ZOrderComparer);
+        InvalidateVisual();
     }
 
-    private Control CreateTagControl(object item)
+    private SphereTag CreateTag(object item, Typeface typeface)
     {
+        string text = item.ToString() ?? "";    
+        IBrush foreground = Brushes.White;
+        double fontSize = 14;
+
         if (item is SponsorItem sponsor)
         {
-            var textBlock = new TextBlock
-            {
-                Text = sponsor.Name,
-                FontWeight = FontWeight.Bold,
-                Foreground = Brushes.White, // Will be styled later
-                FontSize = 14
-            };
-
-            // Add some tier-based styling if needed
+            text = sponsor.Name;
             if (sponsor.Tier.Contains("Gold", StringComparison.OrdinalIgnoreCase))
             {
-                textBlock.Foreground = Brushes.Gold;
-                textBlock.FontSize = 16;
+                foreground = Brushes.Gold;
+                fontSize = 16;
             }
             else if (sponsor.Tier.Contains("Silver", StringComparison.OrdinalIgnoreCase))
             {
-                textBlock.Foreground = Brushes.Silver;
+                foreground = Brushes.Silver;
             }
-
-            var border = new Border
-            {
-                Child = textBlock,
-                Padding = new Thickness(5),
-                Background = new SolidColorBrush(Color.Parse("#20000000")),
-                CornerRadius = new CornerRadius(4)
-            };
-
-            return border;
         }
 
-        return new TextBlock { Text = item.ToString() };
+        var formattedText = new FormattedText(
+            text,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            fontSize,
+            foreground
+        );
+
+        return new SphereTag(formattedText);
     }
 
     private void PerformRotation(double rotX, double rotY)
     {
-        double cx = Bounds.Width / 2;
-        double cy = Bounds.Height / 2;
-
         double sinX = Math.Sin(rotX);
         double cosX = Math.Cos(rotX);
         double sinY = Math.Sin(rotY);
@@ -313,55 +304,78 @@ public partial class SponsorSphere : UserControl
                 tag.Y *= s;
                 tag.Z *= s;
             }
+        }
 
-            // --- Rendering ---
+        _tags.Sort(ZOrderComparer);
+    }
+
+    public override void Render(DrawingContext context)
+    {
+        base.Render(context);
+
+        if (_tags.Count == 0) return;
+
+        double cx = Bounds.Width / 2;
+        double cy = Bounds.Height / 2;
+        double radius = _radius; // 提取局部变量
+
+        for (var i = 0; i < _tags.Count; i++)
+        {
+            var tag = _tags[i];
 
             // Perspective Scale
-            double tagScale = (_radius * 2 + tag.Z) / (_radius * 3);
+            double tagScale = (radius * 2 + tag.Z) / (radius * 3);
+            if (tagScale < 0.1) continue;
 
             // Opacity
-            double alpha = (tag.Z + _radius) / (2 * _radius);
-            tag.Control.Opacity = Math.Clamp(alpha + 0.2, 0.2, 1.0);
+            double alpha = (tag.Z + radius) / (2 * radius);
+            if (alpha < 0.1) continue;
 
-            // Scale transform
-            tag.ScaleTransform.ScaleX = tagScale;
-            tag.ScaleTransform.ScaleY = tagScale;
+            double opacity = Math.Clamp(alpha + 0.2, 0.2, 1.0);
 
             // Position
-            double left = cx + tag.X - tag.HalfWidth;
-            double top = cy + tag.Y - tag.HalfHeight;
+            double x = cx + tag.X;
+            double y = cy + tag.Y;
 
-            tag.TranslateTransform.X = left;
-            tag.TranslateTransform.Y = top;
+            var transform = new Matrix(tagScale, 0, 0, tagScale, x, y);
 
-            // ZIndex
-            int newZIndex = (int)tag.Z;
-            if (tag.Control.ZIndex != newZIndex)
+            // Scale then Translate
+            using (context.PushOpacity(opacity))
+            using (context.PushTransform(transform))
             {
-                tag.Control.ZIndex = newZIndex;
+                double halfW = tag.HalfWidth;
+                double halfH = tag.HalfHeight;
+
+                // Draw centered
+                var rect = new Rect(-halfW - 5, -halfH - 5, tag.Width + 10, tag.Height + 10);
+
+                context.DrawRectangle(BackgroundBrush, null, new RoundedRect(rect, 4));
+
+                // Draw Text
+                context.DrawText(tag.FormattedText, new Point(-halfW, -halfH));
             }
         }
     }
 
     private class SphereTag
     {
-        public Control Control { get; set; } = null!;
-        public ScaleTransform ScaleTransform { get; set; } = null!;
-        public TranslateTransform TranslateTransform { get; set; } = null!;
+        public FormattedText FormattedText { get; }
+        public double Width { get; }
+        public double Height { get; }
+        public double HalfWidth { get; }
+        public double HalfHeight { get; }
+
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
 
-        public double HalfWidth { get; private set; }
-        public double HalfHeight { get; private set; }
-
-        public void UpdateSize()
+        public SphereTag(FormattedText text)
         {
-            var width = Control.Bounds.Width > 0 ? Control.Bounds.Width : Control.DesiredSize.Width;
-            var height = Control.Bounds.Height > 0 ? Control.Bounds.Height : Control.DesiredSize.Height;
-
-            HalfWidth = width / 2;
-            HalfHeight = height / 2;
+            FormattedText = text;
+            Width = text.Width;
+            Height = text.Height;
+            HalfWidth = Width / 2;
+            HalfHeight = Height / 2;
         }
     }
 }
