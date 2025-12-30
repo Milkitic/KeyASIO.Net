@@ -174,7 +174,7 @@
           Classes="h4"
           FontWeight="SemiBold"
           Text="相关项目" />
-        <ItemsControl ItemsSource="{Binding About.Projects}">
+        <ItemsControl ItemsSource="{Binding About.Projects}" Margin="0,0,-15,0">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel ItemSpacing="15" LineSpacing="15" />
@@ -197,7 +197,7 @@
                       Opacity="0.5" />
                   </Grid>
                   <TextBlock
-                    Height="40"
+                    MinHeight="40"
                     Opacity="0.7"
                     Text="{Binding Description}"
                     TextTrimming="CharacterEllipsis"
