@@ -12,13 +12,20 @@ using SkiaSharp;
 
 namespace KeyAsio.Views.Controls;
 
-public partial class SponsorSphere : UserControl
+public class SponsorSphere : UserControl
 {
     private static readonly Comparison<SphereTag> ZOrderComparer = (a, b) => a.Z.CompareTo(b.Z);
 
     // SKResources (Cached for measurement)
     private static readonly SKTypeface DefaultTypeface = SKTypeface.FromFamilyName(null, SKFontStyle.Bold);
     private static readonly SKFont MeasureFont = new() { Typeface = DefaultTypeface, };
+
+    private static readonly SKPaint TagBgPaint = new()
+    {
+        Color = new SKColor(16, 16, 16, 48), // 半透明黑色背景
+        Style = SKPaintStyle.Fill,
+        IsAntialias = true
+    };
 
     private readonly List<SphereTag> _tags = new();
     private TopLevel? _cachedTopLevel;
@@ -51,8 +58,6 @@ public partial class SponsorSphere : UserControl
 
     public SponsorSphere()
     {
-        InitializeComponent();
-
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
 
@@ -266,36 +271,47 @@ public partial class SponsorSphere : UserControl
         MeasureFont.Size = fontSize;
 
         // 测量宽度
-        float width = MeasureFont.MeasureText(text);
+        float textWidth = MeasureFont.MeasureText(text);
 
         // 测量高度 (Ascent + Descent)
         MeasureFont.GetFontMetrics(out var metrics);
         // 通常高度取 descent - ascent (ascent 是负值)
-        float height = metrics.Descent - metrics.Ascent;
+        float textHeight = metrics.Descent - metrics.Ascent;
+
+        float paddingH = 8; // 水平内边距
+        float paddingV = 3; // 垂直内边距
 
         // 预渲染为图片
-        // 增加一点 padding 避免边缘被裁切
-        int imgWidth = (int)Math.Ceiling(width + 2);
-        int imgHeight = (int)Math.Ceiling(height + 2);
+        int imgWidth = (int)Math.Ceiling(textWidth + paddingH * 2);
+        int imgHeight = (int)Math.Ceiling(textHeight + paddingV * 2);
 
         using var surface = SKSurface.Create(new SKImageInfo(imgWidth, imgHeight));
-        using var paint = new SKPaint();
-        paint.Color = color;
-        paint.IsAntialias = true;
+
+        using var textPaint = new SKPaint();
+        textPaint.Color = color;
+        textPaint.IsAntialias = true;
+
         using var font = new SKFont();
         font.Size = fontSize;
         font.Typeface = DefaultTypeface;
 
         // Clear transparent
         surface.Canvas.Clear(SKColors.Transparent);
-        surface.Canvas.DrawText(text, 1, -metrics.Ascent + 1, font, paint); // +1 for padding
+
+        var rect = new SKRect(0, 0, imgWidth, imgHeight);
+        surface.Canvas.DrawRoundRect(rect, 6, 6, TagBgPaint); // 6是圆角半径
+
+        float textX = paddingH;
+        float textY = paddingV - metrics.Ascent;
+
+        surface.Canvas.DrawText(text, textX, textY, font, textPaint); // +1 for padding
 
         var image = surface.Snapshot();
 
         return new SphereTag
         {
-            HalfWidth = width / 2.0,
-            HalfHeight = height / 2.0,
+            HalfWidth = imgWidth / 2.0,
+            HalfHeight = imgHeight / 2.0,
             CachedImage = image
         };
     }
@@ -377,20 +393,12 @@ public partial class SponsorSphere : UserControl
             float y = (float)(cy + tag.Y);
             float s = (float)tagScale;
 
-            // 构造 Matrix: Scale(s, s) + Translate(x, y)
-            var transform = new SKMatrix(s, 0, x, 0, s, y, 0, 0, 1);
-
-            double halfW = tag.HalfWidth;
-            double halfH = tag.HalfHeight;
-
-            // Background rect
-            var rect = new SKRect((float)(-halfW - 5), (float)(-halfH - 5), (float)(halfW + 5), (float)(halfH + 5));
-
             dataArray[renderCount++] = new TagRenderData(
                 tag.CachedImage!,
-                transform,
-                (float)opacity,
-                rect
+                x,
+                y,
+                s,
+                (float)opacity
             );
         }
 
@@ -401,28 +409,23 @@ public partial class SponsorSphere : UserControl
     private readonly struct TagRenderData
     {
         public readonly SKImage? Image;
-        public readonly SKMatrix Transform;
+        public readonly float X;
+        public readonly float Y;
+        public readonly float Scale;
         public readonly float Opacity;
-        public readonly SKRect BackgroundRect;
 
-        public TagRenderData(SKImage image, SKMatrix transform, float opacity,
-            SKRect backgroundRect)
+        public TagRenderData(SKImage image, float x, float y, float scale, float opacity)
         {
             Image = image;
-            Transform = transform;
+            X = x;
+            Y = y;
+            Scale = scale;
             Opacity = opacity;
-            BackgroundRect = backgroundRect;
         }
     }
 
     private class SphereDrawOperation : ICustomDrawOperation
     {
-        private static readonly ThreadLocal<SKPaint> BgPaintCache = new(() => new SKPaint
-        {
-            IsAntialias = true,
-            Style = SKPaintStyle.Fill
-        });
-
         private static readonly ThreadLocal<SKPaint> PaintCache = new(() => new SKPaint
         {
             IsAntialias = true
@@ -458,38 +461,26 @@ public partial class SponsorSphere : UserControl
             var canvas = lease.SkCanvas;
 
             // Retrieve cached instances
-            var bgPaint = BgPaintCache.Value!;
             var paint = PaintCache.Value!;
 
             for (var i = 0; i < _count; i++)
             {
                 // 使用 ref 避免结构体拷贝
                 ref readonly var tag = ref _rentedData[i];
+                if (tag.Image == null) continue;
 
-                int save = canvas.Save();
-                canvas.Concat(tag.Transform);
+                paint.Color = SKColors.White.WithAlpha((byte)(255 * tag.Opacity));
 
-                // Draw Background
-                byte bgAlpha = (byte)(32 * tag.Opacity);
-                if (bgAlpha > 0)
-                {
-                    bgPaint.Color = new SKColor(0, 0, 0, bgAlpha);
-                    canvas.DrawRoundRect(tag.BackgroundRect, 4, 4, bgPaint);
-                }
+                var w = tag.Image.Width * tag.Scale;
+                var h = tag.Image.Height * tag.Scale;
 
-                // Draw Image
-                if (tag.Image != null)
-                {
-                    paint.Color = SKColors.White.WithAlpha((byte)(255 * tag.Opacity));
+                var dest = SKRect.Create(
+                    tag.X - w / 2.0f,
+                    tag.Y - h / 2.0f,
+                    w,
+                    h);
 
-                    var w = tag.Image.Width;
-                    var h = tag.Image.Height;
-                    // Center the image
-                    var dest = new SKRect(-w / 2.0f, -h / 2.0f, w / 2.0f, h / 2.0f);
-                    canvas.DrawImage(tag.Image, dest, new SKSamplingOptions(SKCubicResampler.CatmullRom), paint);
-                }
-
-                canvas.RestoreToCount(save);
+                canvas.DrawImage(tag.Image, dest, new SKSamplingOptions(SKFilterMode.Linear), paint);
             }
         }
     }
