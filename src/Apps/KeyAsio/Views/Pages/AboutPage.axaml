@@ -4,6 +4,7 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
@@ -16,70 +17,90 @@
 
   <ScrollViewer>
     <StackPanel Margin="30" Spacing="30">
-      <!--  Header Section with Logo and Intro  -->
-      <Grid ColumnDefinitions="Auto, *">
-        <Image
-          Grid.Column="0"
-          Width="80"
-          Height="80"
-          Margin="0,0,20,0"
-          VerticalAlignment="Top"
-          Source="/Assets/KeyAsio.ico" />
-        <StackPanel Grid.Column="1" Spacing="10">
-          <TextBlock
-            Classes="h1"
-            FontSize="36"
-            FontWeight="Heavy"
-            Text="KeyASIO" />
-          <StackPanel
-            Opacity="0.7"
-            Orientation="Horizontal"
-            Spacing="10">
-            <Border
-              Padding="6,2"
-              Background="{DynamicResource SukiPrimaryColor}"
-              CornerRadius="4">
-              <TextBlock
-                FontSize="12"
-                FontWeight="Bold"
-                Foreground="White"
-                Text="{Binding UpdateService.Version, StringFormat='v{0}'}" />
-            </Border>
-            <TextBlock VerticalAlignment="Center" Text="低延迟音频解决方案" />
-          </StackPanel>
-          <TextBlock
-            MaxWidth="600"
-            HorizontalAlignment="Left"
-            LineHeight="24"
-            Opacity="0.8"
-            Text="KeyASIO 致力于为音游玩家提供极致的低延迟音频体验。支持多种同步模式，兼容性强，配置灵活。"
-            TextWrapping="Wrap" />
 
-          <StackPanel
-            Margin="0,10,0,0"
-            Orientation="Horizontal"
-            Spacing="15">
-            <Button
-              Classes="Flat"
-              Command="{Binding About.OpenUrlCommand}"
-              CommandParameter="https://github.com/KeyASIO/KeyASIO.Net"
-              Content="GitHub 仓库">
-              <Button.Styles>
-                <Style Selector="materialIcons|MaterialIcon">
-                  <Setter Property="Margin" Value="0,0,8,0" />
-                </Style>
-              </Button.Styles>
-            </Button>
-            <Button
-              Classes="Flat"
-              Command="{Binding About.OpenUrlCommand}"
-              CommandParameter="https://discord.gg/your_discord_link_here"
-              Content="加入 Discord"
-              IsVisible="False" />
-            <!--  Placeholder for future  -->
+      <!--  Intro & System Info Unified Card  -->
+      <suki:GlassCard Classes="Header">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="20">
+            <!--  Header Text  -->
+            <StackPanel Spacing="5">
+              <TextBlock
+                Classes="h2"
+                FontWeight="Bold"
+                Text="KeyASIO Audio Backend" />
+              <TextBlock
+                MaxWidth="600"
+                Margin="0,5,0,0"
+                HorizontalAlignment="Left"
+                Opacity="0.8"
+                Text="An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio. 致力于为音游玩家提供极致的低延迟音频体验。支持多种后端模式，兼容性强，配置灵活。"
+                TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!--  Actions & Status  -->
+            <StackPanel Spacing="15">
+              <StackPanel Orientation="Horizontal" Spacing="15">
+                <!--  Check Updates Button  -->
+                <Button
+                  Classes="Flat"
+                  Command="{Binding UpdateService.CheckForUpdatesCommand}"
+                  Content="{I18N {x:Static lang:SRKeys.Settings_CheckForUpdates}}" />
+                <!--  Github Button  -->
+                <Button
+                  Padding="8"
+                  Classes="Flat"
+                  Command="{Binding About.OpenUrlCommand}"
+                  CommandParameter="https://github.com/Milkitic/KeyASIO.Net">
+                  <Button.Content>
+                    <materialIcons:MaterialIcon
+                      Width="24"
+                      Height="24"
+                      Kind="Github" />
+                  </Button.Content>
+                </Button>
+              </StackPanel>
+
+              <!--  Version Info  -->
+              <StackPanel Opacity="0.55" Spacing="5">
+                <TextBlock FontSize="12" IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <Run Text="{I18N {x:Static lang:SRKeys.Settings_UpdateAvailablePrefix}}" /><Run Text="{Binding UpdateService.NewVersion}" />
+                </TextBlock>
+                <TextBlock
+                  FontSize="12"
+                  IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                  Text="{I18N {x:Static lang:SRKeys.Settings_NoUpdatesAvailable}}" />
+                <!--  Copyright  -->
+                <StackPanel
+                  Margin="0,5,0,0"
+                  Orientation="Horizontal"
+                  Spacing="5">
+                  <TextBlock FontSize="12" Text="{I18N {x:Static lang:SRKeys.Settings_CopyrightLine}}" />
+                  <TextBlock FontSize="12" Text="{I18N {x:Static lang:SRKeys.Settings_LicensedUnderMpl}}" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
           </StackPanel>
-        </StackPanel>
-      </Grid>
+
+          <!--  Large Logo on Right  -->
+          <Image
+            Grid.Column="1"
+            Width="128"
+            Height="128"
+            Margin="40,20,20,0"
+            VerticalAlignment="Top"
+            Opacity="0.9"
+            Source="/Assets/KeyAsio.ico">
+            <Image.Effect>
+              <DropShadowEffect
+                BlurRadius="20"
+                OffsetX="0"
+                OffsetY="5"
+                Opacity="0.2"
+                Color="Black" />
+            </Image.Effect>
+          </Image>
+        </Grid>
+      </suki:GlassCard>
 
       <Separator Opacity="0.2" />
 
@@ -111,7 +132,7 @@
           <TextBlock
             HorizontalAlignment="Center"
             Opacity="0.6"
-            Text="感谢所有支持 KeyASIO 的赞助者们，你们让这个项目变得更好" />
+            Text="感谢所有支持 KeyASIO 的支持者们，你们让这个项目变得更好" />
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,20">

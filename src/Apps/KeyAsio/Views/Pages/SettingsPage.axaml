@@ -121,48 +121,6 @@
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
-
-      <suki:GlassCard>
-        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_About}}">
-          <StackPanel Spacing="15">
-            <Grid ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center">
-                <TextBlock FontWeight="DemiBold" Text="{I18N {x:Static lang:SRKeys.Settings_Updates}}" />
-                <TextBlock Classes="Description" IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                  <Run Text="{I18N {x:Static lang:SRKeys.Settings_UpdateAvailablePrefix}}" /><Run Text="{Binding UpdateService.NewVersion}" />
-                </TextBlock>
-                <TextBlock
-                  Classes="Description"
-                  IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                  Text="{I18N {x:Static lang:SRKeys.Settings_NoUpdatesAvailable}}" />
-              </StackPanel>
-              <Button
-                Grid.Column="1"
-                Classes="Flat"
-                Command="{Binding UpdateService.CheckForUpdatesCommand}"
-                Content="{I18N {x:Static lang:SRKeys.Settings_CheckForUpdates}}" />
-            </Grid>
-            <Separator Classes="Section" />
-            <Grid ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center">
-                <TextBlock Text="{I18N {x:Static lang:SRKeys.Settings_CopyrightLine}}" />
-                <TextBlock Classes="Description" Text="{I18N {x:Static lang:SRKeys.Settings_LicensedUnderMpl}}" />
-              </StackPanel>
-              <Button
-                Grid.Column="1"
-                Padding="8"
-                Classes="Flat"
-                Command="{Binding OpenUrlCommand}"
-                CommandParameter="https://github.com/Milkitic/KeyASIO.Net">
-                <materialIcons:MaterialIcon
-                  Width="24"
-                  Height="24"
-                  Kind="Github" />
-              </Button>
-            </Grid>
-          </StackPanel>
-        </suki:GroupBox>
-      </suki:GlassCard>
     </StackPanel>
   </ScrollViewer>
 </UserControl>
