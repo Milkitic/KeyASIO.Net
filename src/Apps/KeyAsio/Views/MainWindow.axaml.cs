@@ -49,6 +49,7 @@ public partial class MainWindow : SukiWindow
         InitializeComponent();
         ToastHost.Manager = _viewModel.MainToastManager;
         BindOptions();
+        InitializeTrayIcon();
     }
 
     private void BindOptions()
@@ -104,7 +105,6 @@ public partial class MainWindow : SukiWindow
             _viewModel.SettingsPageItem = SettingsMenuItem;
             _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
 
-            InitializeTrayIcon();
             await Dispatcher.UIThread.InvokeAsync(() => UpdateThemeByDevice(null));
 
             if (_viewModel.AppSettings.Paths.AllowAutoLoadSkins == null)
