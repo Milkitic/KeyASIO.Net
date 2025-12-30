@@ -79,6 +79,7 @@ public partial class SponsorSphere : UserControl
     {
         _isRunning = false;
         _cachedTopLevel = null;
+        _tags.Clear();
     }
 
     private void OnFrame(TimeSpan timestamp)
@@ -246,7 +247,7 @@ public partial class SponsorSphere : UserControl
     {
         string text = item.ToString() ?? "";
         SKColor color = SKColors.White;
-        float fontSize = 14;
+        float fontSize = 13;
 
         if (item is SponsorItem sponsor)
         {
@@ -254,7 +255,7 @@ public partial class SponsorSphere : UserControl
             if (sponsor.Tier.Contains("Gold", StringComparison.OrdinalIgnoreCase))
             {
                 color = SKColors.Gold;
-                fontSize = 16;
+                fontSize = 17;
             }
             else if (sponsor.Tier.Contains("Silver", StringComparison.OrdinalIgnoreCase))
             {
@@ -272,17 +273,30 @@ public partial class SponsorSphere : UserControl
         // 通常高度取 descent - ascent (ascent 是负值)
         float height = metrics.Descent - metrics.Ascent;
 
+        // 预渲染为图片
+        // 增加一点 padding 避免边缘被裁切
+        int imgWidth = (int)Math.Ceiling(width + 2);
+        int imgHeight = (int)Math.Ceiling(height + 2);
+
+        using var surface = SKSurface.Create(new SKImageInfo(imgWidth, imgHeight));
+        using var paint = new SKPaint();
+        paint.Color = color;
+        paint.IsAntialias = true;
+        using var font = new SKFont();
+        font.Size = fontSize;
+        font.Typeface = DefaultTypeface;
+
+        // Clear transparent
+        surface.Canvas.Clear(SKColors.Transparent);
+        surface.Canvas.DrawText(text, 1, -metrics.Ascent + 1, font, paint); // +1 for padding
+
+        var image = surface.Snapshot();
+
         return new SphereTag
         {
-            Text = text,
-            Color = color,
-            FontSize = fontSize,
-            Width = width,
-            Height = height,
             HalfWidth = width / 2.0,
             HalfHeight = height / 2.0,
-            // 预计算 Baseline 偏移量，渲染时就不用重复计算了
-            BaselineOffset = -metrics.Ascent - height / 2 // 将文字垂直居中的偏移量
+            CachedImage = image
         };
     }
 
@@ -373,62 +387,62 @@ public partial class SponsorSphere : UserControl
             var rect = new SKRect((float)(-halfW - 5), (float)(-halfH - 5), (float)(halfW + 5), (float)(halfH + 5));
 
             dataArray[renderCount++] = new TagRenderData(
-                tag.Text,
-                tag.Color,
-                tag.FontSize,
+                tag.CachedImage!,
                 transform,
                 (float)opacity,
-                rect,
-                (float)tag.BaselineOffset
+                rect
             );
         }
 
-        var op = new SphereDrawOperation(Bounds, dataArray, renderCount, DefaultTypeface);
+        var op = new SphereDrawOperation(Bounds, dataArray, renderCount);
         context.Custom(op);
     }
 
     private readonly struct TagRenderData
     {
-        public readonly string Text;
-        public readonly SKColor Color;
-        public readonly float FontSize;
+        public readonly SKImage? Image;
         public readonly SKMatrix Transform;
         public readonly float Opacity;
         public readonly SKRect BackgroundRect;
-        public readonly float BaselineOffset; // 预计算的偏移
 
-        public TagRenderData(string text, SKColor color, float fontSize, SKMatrix transform, float opacity,
-            SKRect backgroundRect, float baselineOffset)
+        public TagRenderData(SKImage image, SKMatrix transform, float opacity,
+            SKRect backgroundRect)
         {
-            Text = text;
-            Color = color;
-            FontSize = fontSize;
+            Image = image;
             Transform = transform;
             Opacity = opacity;
             BackgroundRect = backgroundRect;
-            BaselineOffset = baselineOffset;
         }
     }
 
     private class SphereDrawOperation : ICustomDrawOperation
     {
-        private readonly TagRenderData[] _data; // 这是一个从 ArrayPool 借来的数组
+        private static readonly ThreadLocal<SKPaint> BgPaintCache = new(() => new SKPaint
+        {
+            IsAntialias = true,
+            Style = SKPaintStyle.Fill
+        });
+
+        private static readonly ThreadLocal<SKPaint> PaintCache = new(() => new SKPaint
+        {
+            IsAntialias = true
+        });
+
+        private readonly TagRenderData[] _rentedData;
         private readonly int _count;
-        private readonly SKTypeface _typeface;
 
         public Rect Bounds { get; }
 
-        public SphereDrawOperation(Rect bounds, TagRenderData[] data, int count, SKTypeface typeface)
+        public SphereDrawOperation(Rect bounds, TagRenderData[] rentedData, int count)
         {
             Bounds = bounds;
-            _data = data;
+            _rentedData = rentedData;
             _count = count;
-            _typeface = typeface;
         }
 
         public void Dispose()
         {
-            ArrayPool<TagRenderData>.Shared.Return(_data);
+            ArrayPool<TagRenderData>.Shared.Return(_rentedData);
         }
 
         public bool HitTest(Point p) => false;
@@ -443,32 +457,14 @@ public partial class SponsorSphere : UserControl
             using var lease = leaseFeature.Lease();
             var canvas = lease.SkCanvas;
 
-            // 局部创建 Paint，避免多实例干扰。SkiaSharp 的 Paint 创建非常快。
-            using var bgPaint = new SKPaint
-            {
-                IsAntialias = true,
-                Style = SKPaintStyle.Fill
-            };
-
-            using var textPaint = new SKPaint
-            {
-                IsAntialias = true, // 记得开启抗锯齿，否则文字很难看
-            };
-
-            // 使用 SKFont 来控制字体大小和 Typeface
-            using var font = new SKFont(_typeface)
-            {
-                Subpixel = true,
-                Hinting = SKFontHinting.None,
-                LinearMetrics = true,
-                BaselineSnap = false,
-                Edging = SKFontEdging.SubpixelAntialias
-            };
+            // Retrieve cached instances
+            var bgPaint = BgPaintCache.Value!;
+            var paint = PaintCache.Value!;
 
             for (var i = 0; i < _count; i++)
             {
                 // 使用 ref 避免结构体拷贝
-                ref readonly var tag = ref _data[i];
+                ref readonly var tag = ref _rentedData[i];
 
                 int save = canvas.Save();
                 canvas.Concat(tag.Transform);
@@ -481,15 +477,17 @@ public partial class SponsorSphere : UserControl
                     canvas.DrawRoundRect(tag.BackgroundRect, 4, 4, bgPaint);
                 }
 
-                // Draw Text
-                // 设置字体大小
-                font.Size = tag.FontSize;
+                // Draw Image
+                if (tag.Image != null)
+                {
+                    paint.Color = SKColors.White.WithAlpha((byte)(255 * tag.Opacity));
 
-                // 设置颜色
-                textPaint.Color = tag.Color.WithAlpha((byte)(255 * tag.Opacity));
-
-                // 绘制
-                canvas.DrawText(tag.Text, 0, tag.BaselineOffset, SKTextAlign.Center, font, textPaint);
+                    var w = tag.Image.Width;
+                    var h = tag.Image.Height;
+                    // Center the image
+                    var dest = new SKRect(-w / 2.0f, -h / 2.0f, w / 2.0f, h / 2.0f);
+                    canvas.DrawImage(tag.Image, dest, new SKSamplingOptions(SKCubicResampler.CatmullRom), paint);
+                }
 
                 canvas.RestoreToCount(save);
             }
@@ -498,14 +496,10 @@ public partial class SponsorSphere : UserControl
 
     private class SphereTag
     {
-        public string Text { get; init; } = "";
-        public SKColor Color { get; init; }
-        public float FontSize { get; init; }
-        public double Width { get; init; }
-        public double Height { get; init; }
+        public SKImage? CachedImage { get; set; }
+
         public double HalfWidth { get; init; }
         public double HalfHeight { get; init; }
-        public double BaselineOffset { get; init; }
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
