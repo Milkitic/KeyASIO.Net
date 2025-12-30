@@ -1,10 +1,7 @@
-﻿using System.Globalization;
-using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.MarkupExtensions;
 using KeyAsio.Core.Audio;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Services;
@@ -23,10 +20,6 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-
-#if DEBUG
-        this.AttachDeveloperTools();
-#endif
     }
 
     public override void OnFrameworkInitializationCompleted()

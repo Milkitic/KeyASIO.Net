@@ -7,12 +7,13 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using Avalonia.Styling;
 using KeyAsio.ViewModels;
 using SkiaSharp;
 
 namespace KeyAsio.Views.Controls;
 
-public class SponsorSphere : UserControl
+public class SupporterSphere : UserControl
 {
     private static readonly Comparison<SphereTag> ZOrderComparer = (a, b) => a.Z.CompareTo(b.Z);
 
@@ -48,7 +49,7 @@ public class SponsorSphere : UserControl
     private bool _isRunning;
 
     public static readonly StyledProperty<System.Collections.IEnumerable?> ItemsSourceProperty =
-        AvaloniaProperty.Register<SponsorSphere, System.Collections.IEnumerable?>(nameof(ItemsSource));
+        AvaloniaProperty.Register<SupporterSphere, System.Collections.IEnumerable?>(nameof(ItemsSource));
 
     public System.Collections.IEnumerable? ItemsSource
     {
@@ -56,7 +57,7 @@ public class SponsorSphere : UserControl
         set => SetValue(ItemsSourceProperty, value);
     }
 
-    public SponsorSphere()
+    public SupporterSphere()
     {
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -213,6 +214,10 @@ public class SponsorSphere : UserControl
 
     private void UpdateTags()
     {
+        var isDarkMode = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+        TagBgPaint.Color = isDarkMode
+            ? new SKColor(16, 16, 16, 48)
+            : new SKColor(242, 242, 242, 210);
         _tags.Clear();
 
         if (ItemsSource == null)
@@ -235,7 +240,7 @@ public class SponsorSphere : UserControl
             double z = _radius * Math.Cos(phi);
 
             var item = items[i];
-            var tag = CreateTag(item);
+            var tag = CreateTag(item, isDarkMode);
 
             tag.X = x;
             tag.Y = y;
@@ -248,23 +253,26 @@ public class SponsorSphere : UserControl
         InvalidateVisual();
     }
 
-    private SphereTag CreateTag(object item)
+    private SphereTag CreateTag(object item, bool isDarkMode)
     {
         string text = item.ToString() ?? "";
-        SKColor color = SKColors.White;
-        float fontSize = 13;
+        SKColor color = isDarkMode
+            ? new SKColor(0xE0C0C0C0)
+            : new SKColor(30, 30, 30, 210);
+        float fontSize = 12;
 
-        if (item is SponsorItem sponsor)
+        if (item is SupporterItem supporter)
         {
-            text = sponsor.Name;
-            if (sponsor.Tier.Contains("Gold", StringComparison.OrdinalIgnoreCase))
+            text = supporter.Name;
+            if (supporter.Tier.Contains("Gold", StringComparison.OrdinalIgnoreCase))
             {
-                color = SKColors.Gold;
-                fontSize = 17;
+                color = isDarkMode ? SKColors.Gold : SKColors.DarkGoldenrod;
+                fontSize = 20;
             }
-            else if (sponsor.Tier.Contains("Silver", StringComparison.OrdinalIgnoreCase))
+            else if (supporter.Tier.Contains("Silver", StringComparison.OrdinalIgnoreCase))
             {
-                color = SKColors.Silver;
+                color = isDarkMode ? SKColors.Cornsilk : SKColors.SlateGray;
+                fontSize = 16;
             }
         }
 
@@ -380,11 +388,24 @@ public class SponsorSphere : UserControl
 
             // Perspective Scale
             double tagScale = (radius * 2 + tag.Z) / (radius * 3);
-            if (tagScale < 0.1) continue;
-
             // Opacity
             double alpha = (tag.Z + radius) / (2 * radius);
-            if (alpha < 0.0666666666) continue;
+
+            if (count >= 1000)
+            {
+                if (tagScale < 0.45) continue;
+                if (alpha < 0.45) continue;
+            }
+            else if (count >= 500)
+            {
+                if (tagScale < 0.3) continue;
+                if (alpha < 0.3) continue;
+            }
+            else
+            {
+                if (tagScale < 0.1) continue;
+                if (alpha < 0.0666666666) continue;
+            }
 
             double opacity = Math.Clamp(alpha + 0.2, 0.2, 1.0);
 

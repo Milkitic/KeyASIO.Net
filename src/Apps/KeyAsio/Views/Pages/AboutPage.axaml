@@ -75,7 +75,7 @@
               Command="{Binding About.OpenUrlCommand}"
               CommandParameter="https://discord.gg/your_discord_link_here"
               Content="加入 Discord"
-              IsVisible="False" /> 
+              IsVisible="False" />
             <!--  Placeholder for future  -->
           </StackPanel>
         </StackPanel>
@@ -135,10 +135,10 @@
           </Border>
 
           <!--  3D Cloud  -->
-          <controls:SponsorSphere
+          <controls:SupporterSphere
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
-            ItemsSource="{Binding About.Sponsors}" />
+            ItemsSource="{Binding About.Supporters}" />
 
           <TextBlock
             Margin="0,0,0,10"

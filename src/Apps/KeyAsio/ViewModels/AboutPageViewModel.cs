@@ -6,23 +6,21 @@ namespace KeyAsio.ViewModels;
 
 public partial class AboutPageViewModel : ViewModelBase
 {
-    public ObservableCollection<SponsorItem> Sponsors { get; } = new();
+    public ObservableCollection<SupporterItem> Supporters { get; } = new();
     public ObservableCollection<ProjectItem> Projects { get; } = new();
 
     public AboutPageViewModel()
     {
         // Sample Data - You can replace these with real data
-        //for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 10; i++)
         {
-            Sponsors.Add(new SponsorItem("Sponsor User 1", "Gold Sponsor"));
-            Sponsors.Add(new SponsorItem("Sponsor User 2", "Silver Sponsor"));
-            Sponsors.Add(new SponsorItem("Sponsor User 3", "Supporter"));
+            Supporters.Add(new SupporterItem("Sub User", "Gold Supporter"));
+            Supporters.Add(new SupporterItem("Coffee User", "Silver Supporter"));
+            Supporters.Add(new SupporterItem("Star User", "Supporter"));
         }
 
         Projects.Add(new ProjectItem("KeyASIO.Net", "A low-latency audio solution for rhythm games.",
-            "https://github.com/KeyASIO/KeyASIO.Net"));
-        Projects.Add(new ProjectItem("ProMix Plugin", "Professional mixing plugin for KeyASIO.",
-            "https://github.com/KeyAsio/KeyAsio.Plugins.ProMix"));
+            "https://github.com/Milkitic/KeyASIO.Net"));
     }
 
     [RelayCommand]
@@ -43,12 +41,12 @@ public partial class AboutPageViewModel : ViewModelBase
     }
 }
 
-public class SponsorItem
+public class SupporterItem
 {
     public string Name { get; }
     public string Tier { get; }
 
-    public SponsorItem(string name, string tier)
+    public SupporterItem(string name, string tier)
     {
         Name = name;
         Tier = tier;

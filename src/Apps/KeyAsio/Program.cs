@@ -168,7 +168,9 @@ internal sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            //.WithInterFont()
+#if DEBUG
+            .WithDeveloperTools()
+#endif
             .LogToTrace();
 
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
