@@ -16,8 +16,7 @@
   mc:Ignorable="d">
 
   <ScrollViewer>
-    <StackPanel Margin="30" Spacing="30">
-
+    <StackPanel Margin="20" Spacing="20">
       <!--  Intro & System Info Unified Card  -->
       <suki:GlassCard Classes="Header">
         <Grid ColumnDefinitions="*,Auto">
@@ -105,12 +104,7 @@
       <Separator Opacity="0.2" />
 
       <!--  Sponsors 3D Cloud  -->
-      <Grid Height="500">
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
+      <Grid Height="500" RowDefinitions="Auto,*">
         <StackPanel
           Grid.Row="0"
           HorizontalAlignment="Center"
@@ -183,15 +177,12 @@
         <ItemsControl ItemsSource="{Binding About.Projects}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel />
+              <WrapPanel ItemSpacing="15" LineSpacing="15" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <suki:GlassCard
-                Width="300"
-                Margin="0,0,15,15"
-                Classes="Surface">
+              <suki:GlassCard Width="300" Classes="Surface">
                 <StackPanel Spacing="10">
                   <Grid ColumnDefinitions="*, Auto">
                     <TextBlock

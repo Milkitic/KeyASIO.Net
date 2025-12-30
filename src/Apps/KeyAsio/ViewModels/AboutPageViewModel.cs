@@ -23,6 +23,8 @@ public partial class AboutPageViewModel : ViewModelBase
             "https://github.com/Milkitic/Osu-Player"));
         Projects.Add(new ProjectItem("osu! Phalanx", "Under heavy development. Not available yet.",
             "https://github.com/Milkitic/osu-phalanx"));
+        Projects.Add(new ProjectItem("KeyAsio.Plugins.LegacyFullMode", "The original music sync logic from v3. Available as a free, community-maintained plugin.",
+            "https://github.com/Milkitic/KeyAsio.Plugins.LegacyFullMode"));
     }
 
     [RelayCommand]
