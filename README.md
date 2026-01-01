@@ -1,4 +1,6 @@
 # KeyASIO.Net
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Milkitic/KeyASIO.Net)
+
 External ASIO/WASAPI_EXCLUSIVE backend for low-latency and safe osu! audio playback experience.
 
 While osu's original audio system has a latency for about 40 ms, this program can provide extremely low latency to as low as 0.6ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 8-15ms *(with no professional soundcard, from tapping to hearing)*.
