@@ -101,6 +101,59 @@
         </Grid>
       </suki:GlassCard>
 
+      <ScrollViewer HorizontalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding About.Projects}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="15" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <suki:GlassCard
+                Width="350"
+                Padding="15"
+                Classes="Surface"
+                Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).About.OpenUrlCommand}"
+                CommandParameter="{Binding Url}"
+                Cursor="Hand"
+                IsInteractive="True">
+                <StackPanel Spacing="10">
+                  <Grid ColumnDefinitions="*, Auto">
+                    <TextBlock
+                      FontSize="16"
+                      FontWeight="Bold"
+                      Text="{Binding Name}" />
+              <StackPanel         Grid.Column="1" Orientation="Horizontal">
+                <materialIcons:MaterialIcon
+         
+                  Width="16"
+                  Height="16"
+                  Kind="OpenInNew"
+                  Opacity="0.5" />
+                <!--<TextBlock Text="点击访问"></TextBlock>-->
+              </StackPanel>
+                  </Grid>
+                  <TextBlock
+                    MinHeight="40"
+                    Opacity="0.7"
+                    Text="{Binding Description}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap" />
+                  
+                  <!--         <Button
+                    HorizontalAlignment="Right"
+                    Classes="Flat" Padding="10,5"
+                    Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).About.OpenUrlCommand}"
+                    CommandParameter="{Binding Url}"
+                    Content="访问"
+                    Cursor="Arrow" />-->
+                </StackPanel>
+              </suki:GlassCard>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
       <Separator Opacity="0.2" />
 
       <!--  Sponsors 3D Cloud  -->
@@ -166,14 +219,19 @@
         </Grid>
       </Grid>
 
-      <Separator Opacity="0.2" />
+      <!--<Separator Opacity="0.2" />-->
 
       <!--  Projects Section  -->
-      <StackPanel Spacing="15">
-        <TextBlock
-          Classes="h4"
-          FontWeight="SemiBold"
-          Text="相关项目" />
+      <!--      <StackPanel Spacing="15">
+
+        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
+          <materialIcons:MaterialIcon  Kind="RocketLaunch" Width="24" Height="24" Foreground="{DynamicResource SukiPrimaryColor}"/>
+          <TextBlock
+            Classes="h3"
+            FontWeight="SemiBold"
+            VerticalAlignment="Center"
+            Text="探索更多" />
+        </StackPanel>
         <ItemsControl ItemsSource="{Binding About.Projects}" Margin="0,0,-15,0">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
@@ -213,8 +271,7 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-      </StackPanel>
-
+      </StackPanel>      -->
     </StackPanel>
   </ScrollViewer>
 </UserControl>
