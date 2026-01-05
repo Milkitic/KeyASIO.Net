@@ -44,6 +44,7 @@ public class SupporterSphere : UserControl
     // Interaction state
     private bool _isDragging;
     private Point _lastMousePosition;
+    private long _lastMoveTicks;
 
     private TimeSpan _lastFrameTime = TimeSpan.Zero;
     private bool _isRunning;
@@ -168,6 +169,7 @@ public class SupporterSphere : UserControl
         base.OnPointerPressed(e);
         _isDragging = true;
         _lastMousePosition = e.GetPosition(this);
+        _lastMoveTicks = DateTime.UtcNow.Ticks;
         e.Pointer.Capture(this);
 
         _currentVelocityX = 0;
@@ -182,6 +184,7 @@ public class SupporterSphere : UserControl
             var currentPos = e.GetPosition(this);
             double deltaX = currentPos.X - _lastMousePosition.X;
             double deltaY = currentPos.Y - _lastMousePosition.Y;
+            long nowTicks = DateTime.UtcNow.Ticks;
 
             // 1. 直接应用旋转 (Direct Manipulation)
             double rotY = -deltaX * Sensitivity;
@@ -190,17 +193,40 @@ public class SupporterSphere : UserControl
             PerformRotation(rotX, rotY);
             InvalidateVisual();
 
-            // 2. 记录当前作为"投掷"速度，供松开鼠标后的惯性使用
-            _currentVelocityY = rotY;
-            _currentVelocityX = rotX;
+            // 2. 计算基于时间的物理速度
+            // 计算时间差 (ms)
+            double dtMs = (nowTicks - _lastMoveTicks) / 10000.0;
+
+            // 避免除以零或极小值带来的数值不稳定
+            if (dtMs < 1.0) dtMs = 1.0;
+
+            // 计算这一瞬间的"每16.66ms帧"的理论位移量
+            // 速度 = (位移 / 时间) * 标准帧时间
+            double instantVelY = (rotY / dtMs) * 16.666;
+            double instantVelX = (rotX / dtMs) * 16.666;
+
+            // 使用指数移动平均 (EMA) 平滑速度，避免抖动
+            // Alpha 值越小越平滑，越大响应越快。0.3 是一个经验值。
+            const double alpha = 0.3;
+            _currentVelocityY = _currentVelocityY * (1 - alpha) + instantVelY * alpha;
+            _currentVelocityX = _currentVelocityX * (1 - alpha) + instantVelX * alpha;
 
             _lastMousePosition = currentPos;
+            _lastMoveTicks = nowTicks;
         }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
+
+        // 如果最后一次移动距离现在超过 50ms，则认为已经停止，消除惯性
+        if ((DateTime.UtcNow.Ticks - _lastMoveTicks) / 10000.0 > 50)
+        {
+            _currentVelocityX = 0;
+            _currentVelocityY = 0;
+        }
+
         _isDragging = false;
         e.Pointer.Capture(null);
     }
