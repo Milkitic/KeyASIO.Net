@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
   x:Class="KeyAsio.Views.Pages.AboutPage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -174,12 +174,12 @@
             <TextBlock
               Classes="h3"
               FontWeight="Bold"
-              Text="特别感谢" />
+              Text="{I18N {x:Static lang:SRKeys.About_SpecialThanks}}" />
           </StackPanel>
           <TextBlock
             HorizontalAlignment="Center"
             Opacity="0.6"
-            Text="感谢所有支持 KeyASIO 的支持者们，你们让这个项目变得更好" />
+            Text="{I18N {x:Static lang:SRKeys.About_SpecialThanksDescription}}" />
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,20">
