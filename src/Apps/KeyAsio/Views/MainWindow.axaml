@@ -1,4 +1,4 @@
-﻿<suki:SukiWindow
+<suki:SukiWindow
   x:Class="KeyAsio.Views.MainWindow"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -139,7 +139,7 @@
       <!--  PAGE 5: ABOUT  -->
       <suki:SukiSideMenuItem
         Classes="Compact"
-        Header="关于">
+        Header="{I18N {x:Static lang:SRKeys.Page_About}}">
         <suki:SukiSideMenuItem.Icon>
           <materialIcons:MaterialIcon Kind="Information" />
         </suki:SukiSideMenuItem.Icon>

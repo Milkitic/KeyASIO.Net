@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -60,6 +60,15 @@
   </resheader>
   <data name="Audio_BackendSelection" xml:space="preserve">
     <value>后端选择</value>
+  </data>
+  <data name="About_DragToExplore" xml:space="preserve">
+    <value>拖动球体探索名单</value>
+  </data>
+  <data name="About_SpecialThanks" xml:space="preserve">
+    <value>特别感谢</value>
+  </data>
+  <data name="About_SpecialThanksDescription" xml:space="preserve">
+    <value>感谢所有支持 KeyASIO 的支持者们，你们让这个项目变得更好</value>
   </data>
   <data name="Audio_Buffer" xml:space="preserve">
     <value>缓冲区</value>
@@ -313,6 +322,9 @@
   <data name="Page_SyncMode" xml:space="preserve">
     <value>同步模式</value>
   </data>
+  <data name="Page_About" xml:space="preserve">
+    <value>关于</value>
+  </data>
   <data name="TrayIcon_Exit" xml:space="preserve">
     <value>退出</value>
   </data>
@@ -330,5 +342,51 @@
   </data>
   <data name="Volume_Music" xml:space="preserve">
     <value>音乐</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Common_Later" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="Common_No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="Common_Update" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Common_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="MainWindow_CheckUpdate_Content_Latest" xml:space="preserve">
+    <value>您正在使用最新版本。</value>
+  </data>
+  <data name="MainWindow_DeviceInitFailed_Title" xml:space="preserve">
+    <value>设备初始化失败</value>
+  </data>
+  <data name="MainWindow_ErrorReporting_Content" xml:space="preserve">
+    <value>是否发送日志和错误报告给开发者？
+您稍后可以在选项中更改。</value>
+  </data>
+  <data name="MainWindow_ErrorReporting_Title" xml:space="preserve">
+    <value>启用错误报告</value>
+  </data>
+  <data name="MainWindow_LoadSkins_Content" xml:space="preserve">
+    <value>您想从 osu! 文件夹加载皮肤吗？</value>
+  </data>
+  <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
+    <value>加载皮肤</value>
+  </data>
+  <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
+    <value>更新 {0} 现已可用。</value>
+  </data>
+  <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
+    <value>更新可用</value>
+  </data>
+  <data name="MainWindow_Updating_Title" xml:space="preserve">
+    <value>更新中</value>
+  </data>
+  <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
+    <value>选择 osu! 文件夹</value>
   </data>
 </root>

@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
   x:Class="KeyAsio.Views.Pages.AboutPage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -215,7 +215,7 @@
             FontSize="12"
             FontStyle="Italic"
             Opacity="0.3"
-            Text="拖动球体探索名单" />
+            Text="{I18N {x:Static lang:SRKeys.About_DragToExplore}}" />
         </Grid>
       </Grid>
 

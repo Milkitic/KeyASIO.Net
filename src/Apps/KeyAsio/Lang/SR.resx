@@ -120,6 +120,15 @@
   <data name="Audio_BackendSelection" xml:space="preserve">
     <value>Backend Selection</value>
   </data>
+  <data name="About_DragToExplore" xml:space="preserve">
+    <value>Drag the sphere to explore the list</value>
+  </data>
+  <data name="About_SpecialThanks" xml:space="preserve">
+    <value>Special Thanks</value>
+  </data>
+  <data name="About_SpecialThanksDescription" xml:space="preserve">
+    <value>Thanks to all supporters of KeyASIO, you make this project better</value>
+  </data>
   <data name="Audio_Buffer" xml:space="preserve">
     <value>Buffer</value>
   </data>
@@ -372,6 +381,9 @@
   <data name="Page_SyncMode" xml:space="preserve">
     <value>Sync Mode</value>
   </data>
+  <data name="Page_About" xml:space="preserve">
+    <value>About</value>
+  </data>
   <data name="TrayIcon_Exit" xml:space="preserve">
     <value>Exit</value>
   </data>
@@ -389,5 +401,51 @@
   </data>
   <data name="Volume_Music" xml:space="preserve">
     <value>Music</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Later" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Common_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Common_Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Common_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="MainWindow_CheckUpdate_Content_Latest" xml:space="preserve">
+    <value>You are using the latest version.</value>
+  </data>
+  <data name="MainWindow_DeviceInitFailed_Title" xml:space="preserve">
+    <value>Device Initialization Failed</value>
+  </data>
+  <data name="MainWindow_ErrorReporting_Content" xml:space="preserve">
+    <value>Send logs and errors to developer?
+You can change option later.</value>
+  </data>
+  <data name="MainWindow_ErrorReporting_Title" xml:space="preserve">
+    <value>Enable Error Reporting</value>
+  </data>
+  <data name="MainWindow_LoadSkins_Content" xml:space="preserve">
+    <value>Do you want to load skins from osu! folder?</value>
+  </data>
+  <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
+    <value>Load Skins</value>
+  </data>
+  <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
+    <value>Update {0} is Now Available.</value>
+  </data>
+  <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
+  <data name="MainWindow_Updating_Title" xml:space="preserve">
+    <value>Updating</value>
+  </data>
+  <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
+    <value>Select osu! Folder</value>
   </data>
 </root>

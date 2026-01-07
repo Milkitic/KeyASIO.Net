@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using KeyAsio.Lang;
 using KeyAsio.ViewModels;
 
 namespace KeyAsio.Views.Pages;
@@ -21,7 +22,7 @@ public partial class SettingsPage : UserControl
 
         var result = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Select osu! Folder",
+            Title = SR.Settings_SelectOsuFolder_Title,
             AllowMultiple = false
         });
 
