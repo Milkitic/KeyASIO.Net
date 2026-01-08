@@ -448,4 +448,13 @@ You can change option later.</value>
   <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
     <value>Select osu! Folder</value>
   </data>
+  <data name="Settings_FollowSystem" xml:space="preserve">
+    <value>Follow System</value>
+  </data>
+  <data name="Settings_Theme_Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Settings_Theme_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
 </root>

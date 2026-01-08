@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Globalization;
 using Avalonia.Data.Converters;
+using KeyAsio.Lang;
 
 namespace KeyAsio.Converters;
 
@@ -18,11 +19,14 @@ public class EnumDescriptionConverter : IValueConverter
                 var attributes = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
                 if (attributes.Length > 0)
                 {
-                    return ((DescriptionAttribute)attributes[0]).Description;
+                    var description = ((DescriptionAttribute)attributes[0]).Description;
+                    return SR.ResourceManager.GetString(description) ?? description;
                 }
             }
+
             return value.ToString();
         }
+
         return value;
     }
 

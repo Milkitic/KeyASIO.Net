@@ -1,13 +1,13 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace KeyAsio.Shared.Models;
 
 public enum AppTheme
 {
-    [Description("Follow System")]
+    [Description("Settings_FollowSystem")]
     System,
-    [Description("Light")]
+    [Description("Settings_Theme_Light")]
     Light,
-    [Description("Dark")]
+    [Description("Settings_Theme_Dark")]
     Dark
 }

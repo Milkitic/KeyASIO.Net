@@ -2,6 +2,7 @@
 using System.Globalization;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using CommunityToolkit.Mvvm.ComponentModel;
+using KeyAsio.Lang;
 using KeyAsio.Shared;
 using Microsoft.Extensions.Logging;
 
@@ -60,7 +61,7 @@ public partial class LanguageManager : ObservableObject
     private void InitializeLanguages()
     {
         AvailableLanguages.Clear();
-        AvailableLanguages.Add(new LanguageItem { Name = "System Default", Code = null });
+        AvailableLanguages.Add(new LanguageItem { Name = SR.Settings_FollowSystem, Code = null });
 
         var executablePath = AppDomain.CurrentDomain.BaseDirectory;
         try
