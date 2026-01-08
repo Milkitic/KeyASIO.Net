@@ -79,6 +79,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Explore More 的本地化字符串。
+        /// </summary>
+        internal static string About_ExploreMore {
+            get {
+                return ResourceManager.GetString("About_ExploreMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Special Thanks 的本地化字符串。
         /// </summary>
         internal static string About_SpecialThanks {
@@ -102,6 +111,15 @@ namespace KeyAsio.Lang {
         internal static string About_Title {
             get {
                 return ResourceManager.GetString("About_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Visit 的本地化字符串。
+        /// </summary>
+        internal static string About_Visit {
+            get {
+                return ResourceManager.GetString("About_Visit", resourceCulture);
             }
         }
         
@@ -426,6 +444,33 @@ namespace KeyAsio.Lang {
         internal static string Dashboard_Status {
             get {
                 return ResourceManager.GetString("Dashboard_Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Sync both hitsounds and music. 的本地化字符串。
+        /// </summary>
+        internal static string Dashboard_Sync_All_Tooltip {
+            get {
+                return ResourceManager.GetString("Dashboard_Sync_All_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 SFX 的本地化字符串。
+        /// </summary>
+        internal static string Dashboard_Sync_SFX {
+            get {
+                return ResourceManager.GetString("Dashboard_Sync_SFX", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Sync hitsounds only. 的本地化字符串。
+        /// </summary>
+        internal static string Dashboard_Sync_SFX_Tooltip {
+            get {
+                return ResourceManager.GetString("Dashboard_Sync_SFX_Tooltip", resourceCulture);
             }
         }
         

@@ -162,7 +162,7 @@
           HorizontalAlignment="Center"
           Classes="h4"
           FontWeight="SemiBold"
-          Text="KeyASIO" />
+          Text="{I18N {x:Static lang:SRKeys.App_Title}}" />
         <TextBlock HorizontalAlignment="Center" Opacity="0.5">
           <Run Text="v" /><Run Text="{Binding UpdateService.Version}" />
         </TextBlock>

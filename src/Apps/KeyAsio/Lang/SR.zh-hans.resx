@@ -419,4 +419,19 @@
   <data name="Plugin_Corrupted" xml:space="preserve">
     <value>已损坏</value>
   </data>
+  <data name="About_Visit" xml:space="preserve">
+    <value>访问</value>
+  </data>
+  <data name="About_ExploreMore" xml:space="preserve">
+    <value>探索更多</value>
+  </data>
+  <data name="Dashboard_Sync_SFX" xml:space="preserve">
+    <value>SFX</value>
+  </data>
+  <data name="Dashboard_Sync_SFX_Tooltip" xml:space="preserve">
+    <value>仅同步打击音效</value>
+  </data>
+  <data name="Dashboard_Sync_All_Tooltip" xml:space="preserve">
+    <value>同步打击音效和音乐</value>
+  </data>
 </root>

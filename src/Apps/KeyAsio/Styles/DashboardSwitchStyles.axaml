@@ -3,7 +3,8 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-  xmlns:suki="https://github.com/kikipoulet/SukiUI">
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:lang="clr-namespace:KeyAsio.Lang">
 
   <Design.PreviewWith>
     <Border Padding="20">
@@ -62,14 +63,14 @@
               Background="Transparent"
               Orientation="Horizontal"
               Spacing="5"
-              ToolTip.Tip="Sync hitsounds only.">
+              ToolTip.Tip="{I18N {x:Static lang:SRKeys.Dashboard_Sync_SFX_Tooltip}}">
               <materialIcons:MaterialIcon
                 Width="18"
                 Height="18"
                 VerticalAlignment="Center"
                 Kind="MusicNoteOff"
                 Opacity="{DynamicResource OpacitySecondary}" />
-              <TextBlock VerticalAlignment="Center" Text="SFX" />
+              <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:SRKeys.Dashboard_Sync_SFX}}" />
             </StackPanel>
           </ToggleSwitch.OffContent>
 
@@ -79,7 +80,7 @@
               Background="Transparent"
               Orientation="Horizontal"
               Spacing="5"
-              ToolTip.Tip="Sync both hitsounds and music.">
+              ToolTip.Tip="{I18N {x:Static lang:SRKeys.Dashboard_Sync_All_Tooltip}}">
 
               <materialIcons:MaterialIcon
                 Name="MixIcon"

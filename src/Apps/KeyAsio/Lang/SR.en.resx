@@ -419,4 +419,19 @@ You can change option later.</value>
   <data name="Plugin_Corrupted" xml:space="preserve">
     <value>Corrupted</value>
   </data>
+  <data name="About_Visit" xml:space="preserve">
+    <value>Visit</value>
+  </data>
+  <data name="About_ExploreMore" xml:space="preserve">
+    <value>Explore More</value>
+  </data>
+  <data name="Dashboard_Sync_SFX" xml:space="preserve">
+    <value>SFX</value>
+  </data>
+  <data name="Dashboard_Sync_SFX_Tooltip" xml:space="preserve">
+    <value>Sync hitsounds only</value>
+  </data>
+  <data name="Dashboard_Sync_All_Tooltip" xml:space="preserve">
+    <value>Sync both hitsounds and music</value>
+  </data>
 </root>
