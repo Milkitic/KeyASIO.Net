@@ -98,8 +98,7 @@ internal sealed class Program
         if (!OperatingSystem.IsWindowsVersionAtLeast(6))
         {
             throw new PlatformNotSupportedException(
-                $"Current OS version {Environment.OSVersion.Version} is not supported. " +
-                $"Requires Windows Vista or later.");
+                string.Format(SR.Error_OSNotSupported, Environment.OSVersion.Version));
         }
 
         if (appSettings.Logging.EnableDebugConsole)

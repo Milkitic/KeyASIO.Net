@@ -398,4 +398,13 @@ You can change option later.</value>
   <data name="Settings_Theme_Dark" xml:space="preserve">
     <value>Dark</value>
   </data>
+  <data name="About_Title" xml:space="preserve">
+    <value>KeyASIO Audio Backend</value>
+  </data>
+  <data name="About_Description" xml:space="preserve">
+    <value>An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio.</value>
+  </data>
+  <data name="Error_OSNotSupported" xml:space="preserve">
+    <value>Current OS version {0} is not supported. Requires Windows Vista or later.</value>
+  </data>
 </root>

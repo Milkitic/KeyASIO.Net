@@ -26,13 +26,13 @@
               <TextBlock
                 Classes="h2"
                 FontWeight="Bold"
-                Text="KeyASIO Audio Backend" />
+                Text="{I18N {x:Static lang:SRKeys.About_Title}}" />
               <TextBlock
                 MaxWidth="600"
                 Margin="0,5,0,0"
                 HorizontalAlignment="Left"
                 Opacity="0.8"
-                Text="An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio. 致力于为音游玩家提供极致的低延迟音频体验。支持多种后端模式，兼容性强，配置灵活。"
+                Text="{I18N {x:Static lang:SRKeys.About_Description}}"
                 TextWrapping="Wrap" />
             </StackPanel>
 
