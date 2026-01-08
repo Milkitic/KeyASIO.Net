@@ -35,8 +35,26 @@ public partial class AppSettingsInput : INotifyPropertyChanged
                  "Switch only if you encounter issues.")]
     public bool UseRawInput { get; set; } = true;
 
-    [Description("Trigger keys. Refer to https://docs.microsoft.com/en-us/dotnet/api/System.Windows.Forms.Keys.")]
-    public List<HookKeys> Keys { get; set; } = [HookKeys.Z, HookKeys.X];
+    [Description("Trigger keys for osu! standard mode. Refer to https://docs.microsoft.com/en-us/dotnet/api/System.Windows.Forms.Keys.")]
+    public List<HookKeys> OsuKeys { get; set; } = [HookKeys.Z, HookKeys.X];
+
+    [Description("Trigger keys for osu!taiko mode.")]
+    public List<HookKeys> TaikoKeys { get; set; } = [HookKeys.Z, HookKeys.X, HookKeys.C, HookKeys.V];
+
+    [Description("Trigger keys for osu!catch mode.")]
+    public List<HookKeys> CatchKeys { get; set; } = [HookKeys.Shift, HookKeys.Left, HookKeys.Right];
+
+    [Description("Trigger keys for osu!mania mode (4k-10k). Key is key count, Value is list of keys.")]
+    public Dictionary<int, List<HookKeys>> ManiaKeys { get; set; } = new()
+    {
+        [4] = [HookKeys.D, HookKeys.F, HookKeys.J, HookKeys.K],
+        [5] = [HookKeys.D, HookKeys.F, HookKeys.Space, HookKeys.J, HookKeys.K],
+        [6] = [HookKeys.S, HookKeys.D, HookKeys.F, HookKeys.J, HookKeys.K, HookKeys.L],
+        [7] = [HookKeys.S, HookKeys.D, HookKeys.F, HookKeys.Space, HookKeys.J, HookKeys.K, HookKeys.L],
+        [8] = [HookKeys.A, HookKeys.S, HookKeys.D, HookKeys.F, HookKeys.J, HookKeys.K, HookKeys.L, HookKeys.OemSemicolon],
+        [9] = [HookKeys.A, HookKeys.S, HookKeys.D, HookKeys.F, HookKeys.Space, HookKeys.J, HookKeys.K, HookKeys.L, HookKeys.OemSemicolon],
+        [10] = [HookKeys.Q, HookKeys.W, HookKeys.E, HookKeys.R, HookKeys.V, HookKeys.N, HookKeys.U, HookKeys.I, HookKeys.O, HookKeys.P]
+    };
 }
 
 public partial class AppSettingsPaths : INotifyPropertyChanged

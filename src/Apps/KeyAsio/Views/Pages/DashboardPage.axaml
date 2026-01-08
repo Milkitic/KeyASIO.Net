@@ -363,7 +363,13 @@
           Padding="15">
           <Grid RowDefinitions="Auto,*">
             <DockPanel LastChildFill="False">
-              <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.Dashboard_QuickBindings}}" />
+              <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.Dashboard_QuickBindings}}" VerticalAlignment="Center" />
+
+              <ComboBox Margin="15,0,0,0"
+                        ItemsSource="{Binding KeyBinding.Modes}"
+                        SelectedItem="{Binding KeyBinding.SelectedMode}"
+                        Width="150"
+                        VerticalAlignment="Center" />
 
               <!--  Add Button  -->
               <Button

@@ -28,34 +28,91 @@ public partial class KeyBindingViewModel : ObservableObject
         _appSettings = appSettings;
         _keyboardBindingInitializer = keyboardBindingInitializer;
         _dialogManager = dialogManager;
+
+        UpdateBoundKeys();
     }
 
-    public ObservableCollection<HookKeys> BoundKeys
+    public List<string> Modes { get; } = new()
     {
-        get
-        {
-            if (field != null) return field;
+        "osu!", "osu!taiko", "osu!catch",
+        "osu!mania 4K", "osu!mania 5K", "osu!mania 6K", "osu!mania 7K",
+        "osu!mania 8K", "osu!mania 9K", "osu!mania 10K"
+    };
 
-            field = new ObservableCollection<HookKeys>(_appSettings.Input.Keys);
-            field.CollectionChanged += (_, _) =>
+    [ObservableProperty]
+    public partial string SelectedMode { get; set; } = "osu!";
+
+    partial void OnSelectedModeChanged(string value)
+    {
+        UpdateBoundKeys();
+    }
+
+    [ObservableProperty]
+    private ObservableCollection<HookKeys> _boundKeys = new();
+
+    private void UpdateBoundKeys()
+    {
+        var list = GetCurrentKeyList();
+        var collection = new ObservableCollection<HookKeys>(list);
+        collection.CollectionChanged += (_, _) =>
+        {
+            try
             {
-                try
+                SaveCurrentKeyList(collection.Distinct().ToList());
+                _appSettings.Save();
+                if (_keyboardBindingInitializer != null!)
                 {
-                    _appSettings.Input.Keys = field.Distinct().ToList();
-                    _appSettings.Save();
-                    if (_keyboardBindingInitializer != null!)
-                    {
-                        _keyboardBindingInitializer.UnregisterAll();
-                        _keyboardBindingInitializer.RegisterKeys(_appSettings.Input.Keys);
-                    }
+                    _keyboardBindingInitializer.UnregisterAll();
+                    _keyboardBindingInitializer.RegisterAllKeys();
                 }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Failed to save key bindings.");
-                }
-            };
-            return field;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to save key bindings.");
+            }
+        };
+        BoundKeys = collection;
+    }
+
+    private List<HookKeys> GetCurrentKeyList()
+    {
+        return SelectedMode switch
+        {
+            "osu!" => _appSettings.Input.OsuKeys,
+            "osu!taiko" => _appSettings.Input.TaikoKeys,
+            "osu!catch" => _appSettings.Input.CatchKeys,
+            var m when m.StartsWith("osu!mania") => GetManiaKeys(m),
+            _ => new List<HookKeys>()
+        };
+    }
+
+    private void SaveCurrentKeyList(List<HookKeys> keys)
+    {
+        switch (SelectedMode)
+        {
+            case "osu!": _appSettings.Input.OsuKeys = keys; break;
+            case "osu!taiko": _appSettings.Input.TaikoKeys = keys; break;
+            case "osu!catch": _appSettings.Input.CatchKeys = keys; break;
+            case var m when m.StartsWith("osu!mania"): SaveManiaKeys(m, keys); break;
         }
+    }
+
+    private List<HookKeys> GetManiaKeys(string mode)
+    {
+        var keyCount = int.Parse(mode.Split(' ').Last().TrimEnd('K'));
+        if (!_appSettings.Input.ManiaKeys.TryGetValue(keyCount, out var keys))
+        {
+            keys = new List<HookKeys>();
+            _appSettings.Input.ManiaKeys[keyCount] = keys;
+        }
+
+        return keys;
+    }
+
+    private void SaveManiaKeys(string mode, List<HookKeys> keys)
+    {
+        var keyCount = int.Parse(mode.Split(' ').Last().TrimEnd('K'));
+        _appSettings.Input.ManiaKeys[keyCount] = keys;
     }
 
     [ObservableProperty]

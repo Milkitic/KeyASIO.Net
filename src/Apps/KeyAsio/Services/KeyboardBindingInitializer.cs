@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel;
+using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Sync.AudioProviders;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MouseKeyHook;
@@ -84,6 +86,23 @@ public class KeyboardBindingInitializer
         _registerList.Clear();
     }
 
+    public void RegisterAllKeys()
+    {
+        var keys = new HashSet<HookKeys>();
+        if (_appSettings.Input.OsuKeys != null) keys.UnionWith(_appSettings.Input.OsuKeys);
+        if (_appSettings.Input.TaikoKeys != null) keys.UnionWith(_appSettings.Input.TaikoKeys);
+        if (_appSettings.Input.CatchKeys != null) keys.UnionWith(_appSettings.Input.CatchKeys);
+        if (_appSettings.Input.ManiaKeys != null)
+        {
+            foreach (var maniaKeys in _appSettings.Input.ManiaKeys.Values)
+            {
+                if (maniaKeys != null) keys.UnionWith(maniaKeys);
+            }
+        }
+
+        RegisterKeys(keys);
+    }
+
     private void Input_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(AppSettingsInput.UseRawInput))
@@ -92,7 +111,7 @@ public class KeyboardBindingInitializer
             UnregisterAll();
             _keyboardHook?.Dispose();
             RecreateKeyboardHook();
-            RegisterKeys(_appSettings.Input.Keys);
+            RegisterAllKeys();
         }
     }
 
@@ -116,11 +135,44 @@ public class KeyboardBindingInitializer
             if (_appSettings.Sync.EnableSync)
             {
                 _playbackBuffer.Clear();
-                _gameplaySessionManager.CurrentHitsoundSequencer.ProcessInteraction(_playbackBuffer,
-                    _appSettings.Input.Keys.IndexOf(hookKey), _appSettings.Input.Keys.Count);
-                foreach (var playbackInfo in _playbackBuffer)
+
+                var sequencer = _gameplaySessionManager.CurrentHitsoundSequencer;
+                int keyIndex = -1;
+                int keyTotal = 0;
+
+                if (sequencer is ManiaHitsoundSequencer)
                 {
-                    _sfxPlaybackService.DispatchPlayback(playbackInfo);
+                    if (_gameplaySessionManager.OsuFile != null)
+                    {
+                        int keyCount = (int)_gameplaySessionManager.OsuFile.Difficulty.CircleSize;
+                        if (_appSettings.Input.ManiaKeys.TryGetValue(keyCount, out var maniaKeys))
+                        {
+                            keyIndex = maniaKeys.IndexOf(hookKey);
+                            keyTotal = maniaKeys.Count;
+                        }
+                    }
+                }
+                else
+                {
+                    var mode = _gameplaySessionManager.OsuFile?.General.Mode ?? GameMode.Circle;
+                    List<HookKeys>? activeKeys = mode switch
+                    {
+                        GameMode.Taiko => _appSettings.Input.TaikoKeys,
+                        GameMode.Catch => _appSettings.Input.CatchKeys,
+                        _ => _appSettings.Input.OsuKeys
+                    };
+
+                    keyIndex = activeKeys?.IndexOf(hookKey) ?? -1;
+                    keyTotal = activeKeys?.Count ?? 0;
+                }
+
+                if (keyIndex != -1)
+                {
+                    sequencer.ProcessInteraction(_playbackBuffer, keyIndex, keyTotal);
+                    foreach (var playbackInfo in _playbackBuffer)
+                    {
+                        _sfxPlaybackService.DispatchPlayback(playbackInfo);
+                    }
                 }
             }
             else
