@@ -1,5 +1,6 @@
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using KeyAsio.Lang;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.ViewModels;
@@ -21,7 +22,7 @@ public partial class KeyBindDialogViewModel : ViewModelBase, IDisposable
     }
 
     [ObservableProperty]
-    public partial string Message { get; set; } = "Press any key to bind...";
+    public partial string Message { get; set; } = SR.KeyBind_Message;
 
     private void OnKeyPressed(HookModifierKeys hookModifierKeys, HookKeys hookKey, KeyAction type)
     {

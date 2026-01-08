@@ -40,7 +40,7 @@
           HorizontalAlignment="Left"
           FontSize="14"
           FontWeight="SemiBold"
-          Text="Volume Control" />
+          Text="{I18N {x:Static lang:SRKeys.Volume_Control_Title}}" />
 
         <Separator Grid.Row="1" Classes="Section" />
 

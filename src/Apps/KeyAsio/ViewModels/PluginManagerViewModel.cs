@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using KeyAsio.Lang;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Shared;
 

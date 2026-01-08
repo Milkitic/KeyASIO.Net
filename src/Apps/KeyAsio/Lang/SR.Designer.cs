@@ -61,11 +61,11 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Backend Selection 的本地化字符串。
+        ///   查找类似 An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio. 的本地化字符串。
         /// </summary>
-        internal static string Audio_BackendSelection {
+        internal static string About_Description {
             get {
-                return ResourceManager.GetString("Audio_BackendSelection", resourceCulture);
+                return ResourceManager.GetString("About_Description", resourceCulture);
             }
         }
         
@@ -93,6 +93,33 @@ namespace KeyAsio.Lang {
         internal static string About_SpecialThanksDescription {
             get {
                 return ResourceManager.GetString("About_SpecialThanksDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 KeyASIO Audio Backend 的本地化字符串。
+        /// </summary>
+        internal static string About_Title {
+            get {
+                return ResourceManager.GetString("About_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 KeyASIO 的本地化字符串。
+        /// </summary>
+        internal static string App_Title {
+            get {
+                return ResourceManager.GetString("App_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Backend Selection 的本地化字符串。
+        /// </summary>
+        internal static string Audio_BackendSelection {
+            get {
+                return ResourceManager.GetString("Audio_BackendSelection", resourceCulture);
             }
         }
         
@@ -268,6 +295,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Cancel 的本地化字符串。
+        /// </summary>
+        internal static string Common_Cancel {
+            get {
+                return ResourceManager.GetString("Common_Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Discard 的本地化字符串。
         /// </summary>
         internal static string Common_Discard {
@@ -295,6 +331,24 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Later 的本地化字符串。
+        /// </summary>
+        internal static string Common_Later {
+            get {
+                return ResourceManager.GetString("Common_Later", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 No 的本地化字符串。
+        /// </summary>
+        internal static string Common_No {
+            get {
+                return ResourceManager.GetString("Common_No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Off 的本地化字符串。
         /// </summary>
         internal static string Common_Off {
@@ -309,6 +363,24 @@ namespace KeyAsio.Lang {
         internal static string Common_On {
             get {
                 return ResourceManager.GetString("Common_On", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Update 的本地化字符串。
+        /// </summary>
+        internal static string Common_Update {
+            get {
+                return ResourceManager.GetString("Common_Update", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Yes 的本地化字符串。
+        /// </summary>
+        internal static string Common_Yes {
+            get {
+                return ResourceManager.GetString("Common_Yes", resourceCulture);
             }
         }
         
@@ -367,6 +439,33 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Current OS version {0} is not supported. Requires Windows Vista or later. 的本地化字符串。
+        /// </summary>
+        internal static string Error_OSNotSupported {
+            get {
+                return ResourceManager.GetString("Error_OSNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Press any key to bind... 的本地化字符串。
+        /// </summary>
+        internal static string KeyBind_Message {
+            get {
+                return ResourceManager.GetString("KeyBind_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 You are using the latest version. 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_CheckUpdate_Content_Latest {
+            get {
+                return ResourceManager.GetString("MainWindow_CheckUpdate_Content_Latest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Click to Update 的本地化字符串。
         /// </summary>
         internal static string MainWindow_ClickToUpdate {
@@ -376,11 +475,93 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Device Initialization Failed 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_DeviceInitFailed_Title {
+            get {
+                return ResourceManager.GetString("MainWindow_DeviceInitFailed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Send logs and errors to developer?
+        ///You can change option later. 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_ErrorReporting_Content {
+            get {
+                return ResourceManager.GetString("MainWindow_ErrorReporting_Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Enable Error Reporting 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_ErrorReporting_Title {
+            get {
+                return ResourceManager.GetString("MainWindow_ErrorReporting_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Do you want to load skins from osu! folder? 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_LoadSkins_Content {
+            get {
+                return ResourceManager.GetString("MainWindow_LoadSkins_Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Load Skins 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_LoadSkins_Title {
+            get {
+                return ResourceManager.GetString("MainWindow_LoadSkins_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Update {0} is Now Available. 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_UpdateAvailable_Content {
+            get {
+                return ResourceManager.GetString("MainWindow_UpdateAvailable_Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Update Available 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_UpdateAvailable_Title {
+            get {
+                return ResourceManager.GetString("MainWindow_UpdateAvailable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Updating 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_Updating_Title {
+            get {
+                return ResourceManager.GetString("MainWindow_Updating_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Changes require application to take effect 的本地化字符串。
         /// </summary>
         internal static string Message_RestartRequired {
             get {
                 return ResourceManager.GetString("Message_RestartRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 About 的本地化字符串。
+        /// </summary>
+        internal static string Page_About {
+            get {
+                return ResourceManager.GetString("Page_About", resourceCulture);
             }
         }
         
@@ -421,11 +602,11 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 About 的本地化字符串。
+        ///   查找类似 Corrupted 的本地化字符串。
         /// </summary>
-        internal static string Page_About {
+        internal static string Plugin_Corrupted {
             get {
-                return ResourceManager.GetString("Page_About", resourceCulture);
+                return ResourceManager.GetString("Plugin_Corrupted", resourceCulture);
             }
         }
         
@@ -529,6 +710,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Follow System 的本地化字符串。
+        /// </summary>
+        internal static string Settings_FollowSystem {
+            get {
+                return ResourceManager.GetString("Settings_FollowSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 General 的本地化字符串。
         /// </summary>
         internal static string Settings_General {
@@ -628,11 +818,38 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Select osu! Folder 的本地化字符串。
+        /// </summary>
+        internal static string Settings_SelectOsuFolder_Title {
+            get {
+                return ResourceManager.GetString("Settings_SelectOsuFolder_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Theme 的本地化字符串。
         /// </summary>
         internal static string Settings_Theme {
             get {
                 return ResourceManager.GetString("Settings_Theme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Dark 的本地化字符串。
+        /// </summary>
+        internal static string Settings_Theme_Dark {
+            get {
+                return ResourceManager.GetString("Settings_Theme_Dark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Light 的本地化字符串。
+        /// </summary>
+        internal static string Settings_Theme_Light {
+            get {
+                return ResourceManager.GetString("Settings_Theme_Light", resourceCulture);
             }
         }
         
@@ -889,6 +1106,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Volume Control 的本地化字符串。
+        /// </summary>
+        internal static string Volume_Control_Title {
+            get {
+                return ResourceManager.GetString("Volume_Control_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Effect 的本地化字符串。
         /// </summary>
         internal static string Volume_Effect {
@@ -912,168 +1138,6 @@ namespace KeyAsio.Lang {
         internal static string Volume_Music {
             get {
                 return ResourceManager.GetString("Volume_Music", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Cancel 的本地化字符串。
-        /// </summary>
-        internal static string Common_Cancel {
-            get {
-                return ResourceManager.GetString("Common_Cancel", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Later 的本地化字符串。
-        /// </summary>
-        internal static string Common_Later {
-            get {
-                return ResourceManager.GetString("Common_Later", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 No 的本地化字符串。
-        /// </summary>
-        internal static string Common_No {
-            get {
-                return ResourceManager.GetString("Common_No", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Update 的本地化字符串。
-        /// </summary>
-        internal static string Common_Update {
-            get {
-                return ResourceManager.GetString("Common_Update", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Yes 的本地化字符串。
-        /// </summary>
-        internal static string Common_Yes {
-            get {
-                return ResourceManager.GetString("Common_Yes", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 You are using the latest version. 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_CheckUpdate_Content_Latest {
-            get {
-                return ResourceManager.GetString("MainWindow_CheckUpdate_Content_Latest", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Device Initialization Failed 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_DeviceInitFailed_Title {
-            get {
-                return ResourceManager.GetString("MainWindow_DeviceInitFailed_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Send logs and errors to developer? You can change option later. 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_ErrorReporting_Content {
-            get {
-                return ResourceManager.GetString("MainWindow_ErrorReporting_Content", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Enable Error Reporting 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_ErrorReporting_Title {
-            get {
-                return ResourceManager.GetString("MainWindow_ErrorReporting_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Do you want to load skins from osu! folder? 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_LoadSkins_Content {
-            get {
-                return ResourceManager.GetString("MainWindow_LoadSkins_Content", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Load Skins 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_LoadSkins_Title {
-            get {
-                return ResourceManager.GetString("MainWindow_LoadSkins_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Update {0} is Now Available. 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_UpdateAvailable_Content {
-            get {
-                return ResourceManager.GetString("MainWindow_UpdateAvailable_Content", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Update Available 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_UpdateAvailable_Title {
-            get {
-                return ResourceManager.GetString("MainWindow_UpdateAvailable_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Updating 的本地化字符串。
-        /// </summary>
-        internal static string MainWindow_Updating_Title {
-            get {
-                return ResourceManager.GetString("MainWindow_Updating_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Select osu! Folder 的本地化字符串。
-        /// </summary>
-        internal static string Settings_SelectOsuFolder_Title {
-            get {
-                return ResourceManager.GetString("Settings_SelectOsuFolder_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Follow System 的本地化字符串。
-        /// </summary>
-        internal static string Settings_FollowSystem {
-            get {
-                return ResourceManager.GetString("Settings_FollowSystem", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Light 的本地化字符串。
-        /// </summary>
-        internal static string Settings_Theme_Light {
-            get {
-                return ResourceManager.GetString("Settings_Theme_Light", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Dark 的本地化字符串。
-        /// </summary>
-        internal static string Settings_Theme_Dark {
-            get {
-                return ResourceManager.GetString("Settings_Theme_Dark", resourceCulture);
             }
         }
     }

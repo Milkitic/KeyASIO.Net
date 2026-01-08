@@ -2,6 +2,7 @@
 using Avalonia;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Memory.Utils;
+using KeyAsio.Lang;
 using KeyAsio.Secrets;
 using KeyAsio.Services;
 using KeyAsio.Shared;

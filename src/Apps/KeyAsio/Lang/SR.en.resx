@@ -407,4 +407,16 @@ You can change option later.</value>
   <data name="Error_OSNotSupported" xml:space="preserve">
     <value>Current OS version {0} is not supported. Requires Windows Vista or later.</value>
   </data>
+  <data name="App_Title" xml:space="preserve">
+    <value>KeyASIO</value>
+  </data>
+  <data name="Volume_Control_Title" xml:space="preserve">
+    <value>Volume Control</value>
+  </data>
+  <data name="KeyBind_Message" xml:space="preserve">
+    <value>Press any key to bind...</value>
+  </data>
+  <data name="Plugin_Corrupted" xml:space="preserve">
+    <value>Corrupted</value>
+  </data>
 </root>
