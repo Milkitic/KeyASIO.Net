@@ -189,6 +189,24 @@ public class MemoryContext
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetValueInt(ValueDefinition? def, out int result) => TryGetValueDef(def, out result);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetValueFloat(ValueDefinition? def, out float result) => TryGetValueDef(def, out result);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetValueDouble(ValueDefinition? def, out double result) => TryGetValueDef(def, out result);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetValueBool(ValueDefinition? def, out bool result) => TryGetValueDef(def, out result);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetValueShort(ValueDefinition? def, out short result) => TryGetValueDef(def, out result);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetValueUShort(ValueDefinition? def, out ushort result) => TryGetValueDef(def, out result);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsUnmanaged<T>()
     {
         return !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
@@ -276,7 +294,9 @@ public class MemoryContext
     }
 }
 
-public class MemoryContext<T> : MemoryContext where T : class
+public class
+    MemoryContext<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : MemoryContext
+    where T : class
 {
     private readonly Action<T> _populateAction;
     private byte[] _sharedBuffer = Array.Empty<byte>();
@@ -325,7 +345,8 @@ public class MemoryContext<T> : MemoryContext where T : class
 
             foreach (var item in others)
             {
-                AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!, tryGetStringInternalMethod!, item.Property,
+                AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!,
+                    tryGetStringInternalMethod!, item.Property,
                     item.Definition);
             }
 
@@ -337,7 +358,8 @@ public class MemoryContext<T> : MemoryContext where T : class
             {
                 if (block.Count == 1)
                 {
-                    AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!, tryGetStringInternalMethod!,
+                    AddIndividualRead(expressions, targetParam, contextConstant, tryGetValueInternalMethod!,
+                        tryGetStringInternalMethod!,
                         block[0].Property, block[0].Definition);
                 }
                 else
@@ -361,7 +383,22 @@ public class MemoryContext<T> : MemoryContext where T : class
         if (expressions.Count == 0) return _ => { };
 
         var finalBlock = Expression.Block(expressions);
-        return Expression.Lambda<Action<T>>(finalBlock, targetParam).CompileFast();
+        var lambda = Expression.Lambda<Action<T>>(finalBlock, targetParam);
+
+        if (RuntimeFeature.IsDynamicCodeSupported)
+        {
+            return CompileFastWrapper(lambda);
+        }
+
+        return lambda.Compile();
+    }
+
+    [UnconditionalSuppressMessage("Trimming",
+        "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code",
+        Justification = "Guarded by RuntimeFeature.IsDynamicCodeSupported")]
+    private static Action<T> CompileFastWrapper(Expression<Action<T>> lambda)
+    {
+        return lambda.CompileFast();
     }
 
     private static bool IsPrimitive(string type)
@@ -417,7 +454,8 @@ public class MemoryContext<T> : MemoryContext where T : class
     }
 
     private static void AddIndividualRead(List<Expression> expressions, ParameterExpression targetParam,
-        ConstantExpression contextConstant, MethodInfo tryGetValueMethod, MethodInfo tryGetStringMethod, PropertyInfo prop, ValueDefinition valDef)
+        ConstantExpression contextConstant, MethodInfo tryGetValueMethod, MethodInfo tryGetStringMethod,
+        PropertyInfo prop, ValueDefinition valDef)
     {
         var valVar = Expression.Variable(prop.PropertyType, $"val_{prop.Name}");
         var defConstant = Expression.Constant(valDef, typeof(ValueDefinition));
@@ -427,9 +465,39 @@ public class MemoryContext<T> : MemoryContext where T : class
         {
             call = Expression.Call(contextConstant, tryGetStringMethod, defConstant, valVar);
         }
+        else if (prop.PropertyType == typeof(int))
+        {
+            call = Expression.Call(contextConstant, typeof(MemoryContext).GetMethod(nameof(TryGetValueInt))!,
+                defConstant, valVar);
+        }
+        else if (prop.PropertyType == typeof(float))
+        {
+            call = Expression.Call(contextConstant, typeof(MemoryContext).GetMethod(nameof(TryGetValueFloat))!,
+                defConstant, valVar);
+        }
+        else if (prop.PropertyType == typeof(double))
+        {
+            call = Expression.Call(contextConstant, typeof(MemoryContext).GetMethod(nameof(TryGetValueDouble))!,
+                defConstant, valVar);
+        }
+        else if (prop.PropertyType == typeof(bool))
+        {
+            call = Expression.Call(contextConstant, typeof(MemoryContext).GetMethod(nameof(TryGetValueBool))!,
+                defConstant, valVar);
+        }
+        else if (prop.PropertyType == typeof(short))
+        {
+            call = Expression.Call(contextConstant, typeof(MemoryContext).GetMethod(nameof(TryGetValueShort))!,
+                defConstant, valVar);
+        }
+        else if (prop.PropertyType == typeof(ushort))
+        {
+            call = Expression.Call(contextConstant, typeof(MemoryContext).GetMethod(nameof(TryGetValueUShort))!,
+                defConstant, valVar);
+        }
         else
         {
-            var genericMethod = tryGetValueMethod.MakeGenericMethod(prop.PropertyType);
+            var genericMethod = MakeGenericMethod(tryGetValueMethod, prop.PropertyType);
             call = Expression.Call(contextConstant, genericMethod, defConstant, valVar);
         }
 
@@ -437,6 +505,13 @@ public class MemoryContext<T> : MemoryContext where T : class
         var check = Expression.IfThen(call, assign);
 
         expressions.Add(Expression.Block([valVar], check));
+    }
+
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060:MakeGenericMethod",
+        Justification = "Only unmanaged structs are used")]
+    private static MethodInfo MakeGenericMethod(MethodInfo method, Type type)
+    {
+        return method.MakeGenericMethod(type);
     }
 
     private void AddBlockRead(List<Expression> expressions, ParameterExpression targetParam,
@@ -472,7 +547,9 @@ public class MemoryContext<T> : MemoryContext where T : class
         // byte[] buffer;
         var bufferVar = Expression.Variable(typeof(byte[]), "buffer");
         // buffer = this._sharedBuffer;
-        var bufferAssign = Expression.Assign(bufferVar, Expression.Field(Expression.Constant(this), "_sharedBuffer"));
+        var bufferField =
+            typeof(MemoryContext<T>).GetField(nameof(_sharedBuffer), BindingFlags.Instance | BindingFlags.NonPublic);
+        var bufferAssign = Expression.Assign(bufferVar, Expression.Field(Expression.Constant(this), bufferField!));
 
         // ReadBlock(basePtr, startOffset, buffer, blockSize)
         var readCall = Expression.Call(contextConstant, readBlockMethod, basePtrVar, Expression.Constant(startOffset),
@@ -528,8 +605,9 @@ public class MemoryContext<T> : MemoryContext where T : class
             _ => typeof(int)
         };
 
-        var readMethod = typeof(MemoryContext<T>).GetMethod("ReadValue", BindingFlags.Static | BindingFlags.NonPublic)!
-            .MakeGenericMethod(targetType);
+        var readMethodInfo =
+            typeof(MemoryContext<T>).GetMethod("ReadValue", BindingFlags.Static | BindingFlags.NonPublic)!;
+        var readMethod = MakeGenericMethod(readMethodInfo, targetType);
 
         return Expression.Call(readMethod, buffer, Expression.Constant(offset));
     }

@@ -1,7 +1,6 @@
 ﻿using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using Reloaded.Memory.Sigscan;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Windows.Win32;
@@ -12,7 +11,9 @@ using Windows.Win32.System.Threading;
 
 namespace KeyAsio.Core.Memory;
 
-[SupportedOSPlatform("windows5.1.2600")]
+#if !DEBUG
+[System.Runtime.Versioning.SupportedOSPlatform("windows5.1.2600")]
+#endif
 public sealed class SigScan : IDisposable, ISigScan, IMemoryReader
 {
     private readonly Process _process;

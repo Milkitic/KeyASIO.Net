@@ -2,6 +2,9 @@
 
 namespace KeyAsio.Core.Memory.Utils;
 
+#if !DEBUG
+[System.Runtime.Versioning.SupportedOSPlatform("windows5.0")]
+#endif
 public ref struct HighPrecisionTimerScope : IDisposable
 {
     private bool _disposed;
