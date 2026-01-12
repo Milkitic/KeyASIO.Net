@@ -1,5 +1,6 @@
-﻿using KeyAsio.Lang;
+using KeyAsio.Lang;
 using KeyAsio.Shared;
+using KeyAsio.ViewModels;
 using Material.Icons;
 
 namespace KeyAsio.Services;
@@ -67,7 +68,7 @@ public class PresetManager
         ];
     }
 
-    public void ApplyPreset(PresetMode mode)
+    public async Task ApplyPreset(PresetMode mode, AudioSettingsViewModel audioSettingsViewModel)
     {
         switch (mode)
         {
@@ -81,6 +82,8 @@ public class PresetManager
                 ApplyExtreme();
                 break;
         }
+
+        await audioSettingsViewModel.ReloadAudioDevice();
     }
 
     private void ApplyStandard()

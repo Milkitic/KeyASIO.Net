@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -128,7 +128,7 @@ public partial class MainWindowViewModel : IDisposable
     [RelayCommand]
     public void OpenPresetSelection()
     {
-        var vm = new PresetSelectionDialogViewModel(_presetManager, DialogManager, MainToastManager);
+        var vm = new PresetSelectionDialogViewModel(_presetManager, DialogManager, MainToastManager, AudioSettings);
         DialogManager.CreateDialog()
             .WithContent(new PresetSelectionDialog { DataContext = vm })
             .TryShow();
