@@ -107,7 +107,7 @@
       Grid.Row="1"
       HorizontalAlignment="Right"
       Content="IsActive"
-      IsCheckedChanged="CbControlStatus_OnIsCheckedChanged" />    -->
+      IsCheckedChanged="CbControlStatus_OnIsCheckedChanged" />-->
     <!--  Bottom: Stats & Quick Keys  -->
     <StackPanel
       Grid.Row="2"
@@ -359,94 +359,66 @@
         <!--  Key Bindings  -->
         <suki:GlassCard
           Grid.Column="1"
+          Height="140"
           Margin="10,0,0,0"
           Padding="15">
           <Grid RowDefinitions="Auto,*">
             <DockPanel LastChildFill="False">
-              <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.Dashboard_QuickBindings}}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                FontWeight="Bold"
+                Text="{I18N {x:Static lang:SRKeys.Dashboard_QuickBindings}}" />
+
+              <ComboBox
+                Width="165"
+                Height="34"
+                MinHeight="0"
+                Margin="15,-5,0,-5"
+                VerticalAlignment="Center"
+                ItemsSource="{Binding KeyBinding.Modes}"
+                SelectedItem="{Binding KeyBinding.SelectedMode}" />
 
               <!--  Add Button  -->
               <Button
                 Margin="5,0,0,0"
                 Classes="IconAction Flat"
                 Command="{Binding KeyBinding.AddKeyCommand}"
-                DockPanel.Dock="Right"
-                IsVisible="{Binding !KeyBinding.IsEditingKeys}">
-                <materialIcons:MaterialIcon Kind="Plus" />
+                DockPanel.Dock="Right">
+                <materialIcons:MaterialIcon Kind="Pencil" />
               </Button>
-
-              <!--  Edit/Done Toggle  -->
-              <Panel DockPanel.Dock="Right">
-                <Button
-                  Classes="IconAction Flat"
-                  Command="{Binding KeyBinding.ToggleEditKeysCommand}"
-                  IsVisible="{Binding !KeyBinding.IsEditingKeys}"
-                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.Dashboard_EditBindings}}">
-                  <materialIcons:MaterialIcon Kind="Pencil" />
-                </Button>
-                <Button
-                  Classes="IconAction Flat"
-                  Command="{Binding KeyBinding.ToggleEditKeysCommand}"
-                  IsVisible="{Binding KeyBinding.IsEditingKeys}"
-                  ToolTip.Tip="{I18N {x:Static lang:SRKeys.Common_Done}}">
-                  <materialIcons:MaterialIcon Kind="Check" />
-                </Button>
-              </Panel>
             </DockPanel>
 
             <ScrollViewer
               Grid.Row="1"
               Margin="0,10,0,0"
-              HorizontalScrollBarVisibility="Auto"
-              VerticalScrollBarVisibility="Disabled">
+              HorizontalScrollBarVisibility="Disabled"
+              VerticalScrollBarVisibility="Auto">
               <ItemsControl ItemsSource="{Binding KeyBinding.BoundKeys}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
-                    <StackPanel
+                    <WrapPanel
                       HorizontalAlignment="Left"
-                      Orientation="Horizontal"
-                      Spacing="10" />
+                      VerticalAlignment="Center"
+                      ItemSpacing="6"
+                      LineSpacing="6"
+                      Orientation="Horizontal" />
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Canvas Width="42" Height="42">
-                      <suki:GlassCard
-                        Width="42"
-                        Height="42"
-                        Padding="0"
+                    <suki:GlassCard
+                      Width="32"
+                      Height="32"
+                      Padding="0"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      CornerRadius="8">
+                      <ContentControl
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        CornerRadius="8">
-                        <ContentControl
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          Content="{Binding Converter={StaticResource HookKeyToDisplayConverter}}"
-                          FontSize="16"
-                          FontWeight="Bold" />
-                      </suki:GlassCard>
-
-                      <Button
-                        Canvas.Top="-8"
-                        Canvas.Right="-8"
-                        Width="20"
-                        Height="20"
-                        Margin="0,0,0,0"
-                        Padding="0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Classes="Danger"
-                        Command="{Binding $parent[UserControl].DataContext.KeyBinding.RemoveKeyCommand}"
-                        CommandParameter="{Binding}"
-                        CornerRadius="10"
-                        IsVisible="{Binding $parent[UserControl].DataContext.KeyBinding.IsEditingKeys}">
-                        <materialIcons:MaterialIcon
-                          Width="12"
-                          Height="12"
-                          Kind="Close" />
-                      </Button>
-                    </Canvas>
-
+                        Content="{Binding Converter={StaticResource HookKeyToDisplayConverter}}"
+                        FontWeight="Bold" />
+                    </suki:GlassCard>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>

@@ -45,7 +45,7 @@ public partial class App : Application
             var keyboardBindingInitializer = Program.Host.Services.GetRequiredService<KeyboardBindingInitializer>();
             keyboardBindingInitializer.Setup();
             var appSettings = Program.Host.Services.GetRequiredService<AppSettings>();
-            keyboardBindingInitializer.RegisterKeys(appSettings.Input.Keys);
+            keyboardBindingInitializer.RegisterAllKeys();
 
             var pluginManager = Program.Host.Services.GetRequiredService<IPluginManager>();
             var audioEngine = Program.Host.Services.GetRequiredService<AudioEngine>();

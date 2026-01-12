@@ -94,7 +94,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             Input = new AppSettingsInput
             {
                 UseRawInput = s.UseRawInput,
-                Keys = s.Keys
+                OsuKeys = s.Keys
             },
             Paths = new AppSettingsPaths
             {
@@ -153,7 +153,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         if (y.Input != null)
         {
             s.UseRawInput = y.Input.UseRawInput;
-            if (y.Input.Keys != null) s.Keys = y.Input.Keys.ToList();
+            if (y.Input.OsuKeys != null) s.Keys = y.Input.OsuKeys.ToList();
         }
         if (y.Paths != null)
         {

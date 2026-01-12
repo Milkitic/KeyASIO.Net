@@ -1,0 +1,92 @@
+﻿<UserControl
+  x:Class="KeyAsio.Views.Dialogs.KeyEditorDialogView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:converters="using:KeyAsio.Converters"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  d:DesignHeight="300"
+  d:DesignWidth="500"
+  x:DataType="vm:KeyEditorDialogViewModel"
+  mc:Ignorable="d">
+
+  <UserControl.Resources>
+    <converters:HookKeyToDisplayConverter x:Key="HookKeyToDisplayConverter" />
+  </UserControl.Resources>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+    <TextBlock FontSize="16" Text="{Binding Message}" />
+
+    <ScrollViewer
+      Grid.Row="1"
+      Margin="0,20,0,0"
+      HorizontalScrollBarVisibility="Disabled"
+      VerticalScrollBarVisibility="Auto">
+      <ItemsControl ItemsSource="{Binding BoundKeys}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel
+              MaxWidth="500"
+              ClipToBounds="False"
+              Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Canvas
+              Width="50"
+              Height="50"
+              Margin="0,0,10,10">
+              <suki:GlassCard
+                Canvas.Top="8"
+                Width="42"
+                Height="42"
+                Padding="0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                CornerRadius="8">
+                <ContentControl
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Content="{Binding Converter={StaticResource HookKeyToDisplayConverter}}"
+                  FontSize="16"
+                  FontWeight="Bold" />
+              </suki:GlassCard>
+
+              <Button
+                Canvas.Top="0"
+                Canvas.Right="0"
+                Width="20"
+                Height="20"
+                Margin="0,0,0,0"
+                Padding="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Classes="Danger"
+                Command="{Binding $parent[UserControl].((vm:KeyEditorDialogViewModel)DataContext).RemoveKeyCommand}"
+                CommandParameter="{Binding}"
+                CornerRadius="10">
+                <materialIcons:MaterialIcon
+                  Width="12"
+                  Height="12"
+                  Kind="Close" />
+              </Button>
+            </Canvas>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <Button
+      Grid.Row="2"
+      Margin="0,20,0,0"
+      HorizontalAlignment="Stretch"
+
+      Command="{Binding BindMouseLeftCommand}"
+      Content="Bind Left Mouse Button"
+      ToolTip.Tip="Click here to bind Left Mouse Button" />
+  </Grid>
+</UserControl>
