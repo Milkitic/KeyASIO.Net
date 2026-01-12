@@ -1,5 +1,64 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -58,17 +117,32 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Audio_BackendSelection" xml:space="preserve">
-    <value>Backend Selection</value>
+  <data name="About_Description" xml:space="preserve">
+    <value>An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio.</value>
   </data>
   <data name="About_DragToExplore" xml:space="preserve">
     <value>Drag the sphere to explore the list</value>
+  </data>
+  <data name="About_ExploreMore" xml:space="preserve">
+    <value>Explore More</value>
   </data>
   <data name="About_SpecialThanks" xml:space="preserve">
     <value>Special Thanks</value>
   </data>
   <data name="About_SpecialThanksDescription" xml:space="preserve">
     <value>Thanks to all supporters of KeyASIO, you make this project better</value>
+  </data>
+  <data name="About_Title" xml:space="preserve">
+    <value>KeyASIO Audio Backend</value>
+  </data>
+  <data name="About_Visit" xml:space="preserve">
+    <value>Visit</value>
+  </data>
+  <data name="App_Title" xml:space="preserve">
+    <value>KeyASIO</value>
+  </data>
+  <data name="Audio_BackendSelection" xml:space="preserve">
+    <value>Backend Selection</value>
   </data>
   <data name="Audio_Buffer" xml:space="preserve">
     <value>Buffer</value>
@@ -127,6 +201,9 @@
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>Target Latency</value>
   </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
   <data name="Common_Discard" xml:space="preserve">
     <value>Discard</value>
   </data>
@@ -136,11 +213,23 @@
   <data name="Common_GoToSettings" xml:space="preserve">
     <value>Go to settings</value>
   </data>
+  <data name="Common_Later" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Common_No" xml:space="preserve">
+    <value>No</value>
+  </data>
   <data name="Common_Off" xml:space="preserve">
     <value>Off</value>
   </data>
   <data name="Common_On" xml:space="preserve">
     <value>On</value>
+  </data>
+  <data name="Common_Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Common_Yes" xml:space="preserve">
+    <value>Yes</value>
   </data>
   <data name="Dashboard_Beatmap" xml:space="preserve">
     <value>Beatmap</value>
@@ -160,14 +249,81 @@
   <data name="Dashboard_SyncStatus" xml:space="preserve">
     <value>Sync Status</value>
   </data>
+  <data name="Dashboard_Sync_All_Tooltip" xml:space="preserve">
+    <value>Sync both hitsounds and music</value>
+  </data>
+  <data name="Dashboard_Sync_SFX" xml:space="preserve">
+    <value>SFX</value>
+  </data>
+  <data name="Dashboard_Sync_SFX_Tooltip" xml:space="preserve">
+    <value>Sync hitsounds only</value>
+  </data>
+  <data name="Error_OSNotSupported" xml:space="preserve">
+    <value>Current OS version {0} is not supported. Requires Windows Vista or later.</value>
+  </data>
+  <data name="KeyBind_Message" xml:space="preserve">
+    <value>Press any key to bind...</value>
+  </data>
+  <data name="MainWindow_CheckUpdate_Content_Latest" xml:space="preserve">
+    <value>You are using the latest version.</value>
+  </data>
+  <data name="MainWindow_ClickToUpdate" xml:space="preserve">
+    <value>Click to Update</value>
+  </data>
+  <data name="MainWindow_DeviceInitFailed_Title" xml:space="preserve">
+    <value>Device Initialization Failed</value>
+  </data>
+  <data name="MainWindow_ErrorReporting_Content" xml:space="preserve">
+    <value>Send logs and errors to developer?
+You can change option later.</value>
+  </data>
+  <data name="MainWindow_ErrorReporting_Title" xml:space="preserve">
+    <value>Enable Error Reporting</value>
+  </data>
+  <data name="MainWindow_LoadSkins_Content" xml:space="preserve">
+    <value>Do you want to load skins from osu! folder?</value>
+  </data>
+  <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
+    <value>Load Skins</value>
+  </data>
+  <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
+    <value>Update {0} is Now Available.</value>
+  </data>
+  <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
+  <data name="MainWindow_Updating_Title" xml:space="preserve">
+    <value>Updating</value>
+  </data>
   <data name="Message_RestartRequired" xml:space="preserve">
     <value>Changes require application to take effect</value>
   </data>
-  <data name="Settings_Language" xml:space="preserve">
-    <value>Language</value>
+  <data name="Page_About" xml:space="preserve">
+    <value>About</value>
   </data>
-  <data name="Settings_Theme" xml:space="preserve">
-    <value>Theme</value>
+  <data name="Page_AudioEngine" xml:space="preserve">
+    <value>Audio Engine</value>
+  </data>
+  <data name="Page_Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Page_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Page_SyncMode" xml:space="preserve">
+    <value>Sync Mode</value>
+  </data>
+  <data name="Plugin_Corrupted" xml:space="preserve">
+    <value>Corrupted</value>
+  </data>
+  <data name="Preset_Extreme" xml:space="preserve">
+    <value>Extreme</value>
+  </data>
+  <data name="Preset_Lightweight" xml:space="preserve">
+    <value>Fast</value>
+  </data>
+  <data name="Preset_Standard" xml:space="preserve">
+    <value>Standard</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>About</value>
@@ -202,11 +358,17 @@
   <data name="Settings_ExtendedVolumeDescription" xml:space="preserve">
     <value>Allow volume up to 150%</value>
   </data>
+  <data name="Settings_FollowSystem" xml:space="preserve">
+    <value>Follow System</value>
+  </data>
   <data name="Settings_General" xml:space="preserve">
     <value>General</value>
   </data>
   <data name="Settings_InputAndPerformance" xml:space="preserve">
     <value>Input &amp; Performance</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Language</value>
   </data>
   <data name="Settings_LegacyModeDescription" xml:space="preserve">
     <value>Disables syncing; responds only to raw key presses. Intended for testing purposes.</value>
@@ -231,6 +393,18 @@
   </data>
   <data name="Settings_RawInputDescription" xml:space="preserve">
     <value>Uses low-latency key hooks when disabled</value>
+  </data>
+  <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
+    <value>Select osu! Folder</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Settings_Theme_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Settings_Theme_Light" xml:space="preserve">
+    <value>Light</value>
   </data>
   <data name="Settings_UpdateAvailablePrefix" xml:space="preserve">
     <value>Update available: v</value>
@@ -307,24 +481,6 @@
   <data name="Sync_WidthWide" xml:space="preserve">
     <value>Wide</value>
   </data>
-  <data name="MainWindow_ClickToUpdate" xml:space="preserve">
-    <value>Click to Update</value>
-  </data>
-  <data name="Page_AudioEngine" xml:space="preserve">
-    <value>Audio Engine</value>
-  </data>
-  <data name="Page_Dashboard" xml:space="preserve">
-    <value>Dashboard</value>
-  </data>
-  <data name="Page_Settings" xml:space="preserve">
-    <value>Settings</value>
-  </data>
-  <data name="Page_SyncMode" xml:space="preserve">
-    <value>Sync Mode</value>
-  </data>
-  <data name="Page_About" xml:space="preserve">
-    <value>About</value>
-  </data>
   <data name="TrayIcon_Exit" xml:space="preserve">
     <value>Exit</value>
   </data>
@@ -334,6 +490,9 @@
   <data name="TrayIcon_OpenDashboard" xml:space="preserve">
     <value>Open Dashboard</value>
   </data>
+  <data name="Volume_Control_Title" xml:space="preserve">
+    <value>Volume Control</value>
+  </data>
   <data name="Volume_Effect" xml:space="preserve">
     <value>Effect</value>
   </data>
@@ -342,105 +501,5 @@
   </data>
   <data name="Volume_Music" xml:space="preserve">
     <value>Music</value>
-  </data>
-  <data name="Preset_Standard" xml:space="preserve">
-    <value>Standard</value>
-  </data>
-  <data name="Preset_Extreme" xml:space="preserve">
-    <value>Extreme</value>
-  </data>
-  <data name="Preset_Lightweight" xml:space="preserve">
-    <value>Lightweight</value>
-  </data>
-  <data name="Common_Cancel" xml:space="preserve">
-    <value>Cancel</value>
-  </data>
-  <data name="Common_Later" xml:space="preserve">
-    <value>Later</value>
-  </data>
-  <data name="Common_No" xml:space="preserve">
-    <value>No</value>
-  </data>
-  <data name="Common_Update" xml:space="preserve">
-    <value>Update</value>
-  </data>
-  <data name="Common_Yes" xml:space="preserve">
-    <value>Yes</value>
-  </data>
-  <data name="MainWindow_CheckUpdate_Content_Latest" xml:space="preserve">
-    <value>You are using the latest version.</value>
-  </data>
-  <data name="MainWindow_DeviceInitFailed_Title" xml:space="preserve">
-    <value>Device Initialization Failed</value>
-  </data>
-  <data name="MainWindow_ErrorReporting_Content" xml:space="preserve">
-    <value>Send logs and errors to developer?
-You can change option later.</value>
-  </data>
-  <data name="MainWindow_ErrorReporting_Title" xml:space="preserve">
-    <value>Enable Error Reporting</value>
-  </data>
-  <data name="MainWindow_LoadSkins_Content" xml:space="preserve">
-    <value>Do you want to load skins from osu! folder?</value>
-  </data>
-  <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
-    <value>Load Skins</value>
-  </data>
-  <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
-    <value>Update {0} is Now Available.</value>
-  </data>
-  <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
-    <value>Update Available</value>
-  </data>
-  <data name="MainWindow_Updating_Title" xml:space="preserve">
-    <value>Updating</value>
-  </data>
-  <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
-    <value>Select osu! Folder</value>
-  </data>
-  <data name="Settings_FollowSystem" xml:space="preserve">
-    <value>Follow System</value>
-  </data>
-  <data name="Settings_Theme_Light" xml:space="preserve">
-    <value>Light</value>
-  </data>
-  <data name="Settings_Theme_Dark" xml:space="preserve">
-    <value>Dark</value>
-  </data>
-  <data name="About_Title" xml:space="preserve">
-    <value>KeyASIO Audio Backend</value>
-  </data>
-  <data name="About_Description" xml:space="preserve">
-    <value>An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio.</value>
-  </data>
-  <data name="Error_OSNotSupported" xml:space="preserve">
-    <value>Current OS version {0} is not supported. Requires Windows Vista or later.</value>
-  </data>
-  <data name="App_Title" xml:space="preserve">
-    <value>KeyASIO</value>
-  </data>
-  <data name="Volume_Control_Title" xml:space="preserve">
-    <value>Volume Control</value>
-  </data>
-  <data name="KeyBind_Message" xml:space="preserve">
-    <value>Press any key to bind...</value>
-  </data>
-  <data name="Plugin_Corrupted" xml:space="preserve">
-    <value>Corrupted</value>
-  </data>
-  <data name="About_Visit" xml:space="preserve">
-    <value>Visit</value>
-  </data>
-  <data name="About_ExploreMore" xml:space="preserve">
-    <value>Explore More</value>
-  </data>
-  <data name="Dashboard_Sync_SFX" xml:space="preserve">
-    <value>SFX</value>
-  </data>
-  <data name="Dashboard_Sync_SFX_Tooltip" xml:space="preserve">
-    <value>Sync hitsounds only</value>
-  </data>
-  <data name="Dashboard_Sync_All_Tooltip" xml:space="preserve">
-    <value>Sync both hitsounds and music</value>
   </data>
 </root>

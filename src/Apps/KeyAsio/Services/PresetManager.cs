@@ -7,7 +7,7 @@ namespace KeyAsio.Services;
 public enum PresetMode
 {
     Standard,
-    Lightweight,
+    Fast,
     Extreme
 }
 
@@ -49,14 +49,14 @@ public class PresetManager
                 SR.Preset_Standard,
                 "提供均衡的性能与资源占用，适合大多数常规使用场景",
                 MaterialIconKind.ScaleBalance,
-                "SukiPrimaryColor"
+                "SukiInformationColor"
             ),
             new PresetModel(
-                PresetMode.Lightweight,
+                PresetMode.Fast,
                 SR.Preset_Lightweight,
                 "优化资源占用，适合低配设备或基础使用需求",
                 MaterialIconKind.Feather,
-                "SukiSuccessColor"
+                "#D01373"
             ),
             new PresetModel(
                 PresetMode.Extreme,
@@ -74,7 +74,7 @@ public class PresetManager
             case PresetMode.Standard:
                 ApplyStandard();
                 break;
-            case PresetMode.Lightweight:
+            case PresetMode.Fast:
                 ApplyLightweight();
                 break;
             case PresetMode.Extreme:

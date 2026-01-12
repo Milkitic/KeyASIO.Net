@@ -1,5 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -58,17 +117,32 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Audio_BackendSelection" xml:space="preserve">
-    <value>后端选择</value>
+  <data name="About_Description" xml:space="preserve">
+    <value>致力于为osu!玩家提供极致的低延迟音频体验。支持多种后端模式，兼容性强，配置灵活。</value>
   </data>
   <data name="About_DragToExplore" xml:space="preserve">
     <value>拖动球体探索名单</value>
+  </data>
+  <data name="About_ExploreMore" xml:space="preserve">
+    <value>探索更多</value>
   </data>
   <data name="About_SpecialThanks" xml:space="preserve">
     <value>特别感谢</value>
   </data>
   <data name="About_SpecialThanksDescription" xml:space="preserve">
     <value>感谢所有支持 KeyASIO 的支持者们，你们让这个项目变得更好</value>
+  </data>
+  <data name="About_Title" xml:space="preserve">
+    <value>KeyASIO Audio Backend</value>
+  </data>
+  <data name="About_Visit" xml:space="preserve">
+    <value>访问</value>
+  </data>
+  <data name="App_Title" xml:space="preserve">
+    <value>KeyASIO</value>
+  </data>
+  <data name="Audio_BackendSelection" xml:space="preserve">
+    <value>后端选择</value>
   </data>
   <data name="Audio_Buffer" xml:space="preserve">
     <value>缓冲区</value>
@@ -127,6 +201,9 @@
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>目标延迟</value>
   </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
   <data name="Common_Discard" xml:space="preserve">
     <value>丢弃</value>
   </data>
@@ -136,11 +213,23 @@
   <data name="Common_GoToSettings" xml:space="preserve">
     <value>前往设置</value>
   </data>
+  <data name="Common_Later" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="Common_No" xml:space="preserve">
+    <value>否</value>
+  </data>
   <data name="Common_Off" xml:space="preserve">
     <value>关</value>
   </data>
   <data name="Common_On" xml:space="preserve">
     <value>开</value>
+  </data>
+  <data name="Common_Update" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Common_Yes" xml:space="preserve">
+    <value>是</value>
   </data>
   <data name="Dashboard_Beatmap" xml:space="preserve">
     <value>谱面</value>
@@ -160,14 +249,81 @@
   <data name="Dashboard_SyncStatus" xml:space="preserve">
     <value>同步状态</value>
   </data>
+  <data name="Dashboard_Sync_All_Tooltip" xml:space="preserve">
+    <value>同步打击音效和音乐</value>
+  </data>
+  <data name="Dashboard_Sync_SFX" xml:space="preserve">
+    <value>SFX</value>
+  </data>
+  <data name="Dashboard_Sync_SFX_Tooltip" xml:space="preserve">
+    <value>仅同步打击音效</value>
+  </data>
+  <data name="Error_OSNotSupported" xml:space="preserve">
+    <value>不支持当前操作系统版本 {0}。需要 Windows Vista 或更高版本。</value>
+  </data>
+  <data name="KeyBind_Message" xml:space="preserve">
+    <value>按下任意键以绑定...</value>
+  </data>
+  <data name="MainWindow_CheckUpdate_Content_Latest" xml:space="preserve">
+    <value>您正在使用最新版本。</value>
+  </data>
+  <data name="MainWindow_ClickToUpdate" xml:space="preserve">
+    <value>点击更新</value>
+  </data>
+  <data name="MainWindow_DeviceInitFailed_Title" xml:space="preserve">
+    <value>设备初始化失败</value>
+  </data>
+  <data name="MainWindow_ErrorReporting_Content" xml:space="preserve">
+    <value>是否发送日志和错误报告给开发者？
+您稍后可以在选项中更改。</value>
+  </data>
+  <data name="MainWindow_ErrorReporting_Title" xml:space="preserve">
+    <value>启用错误报告</value>
+  </data>
+  <data name="MainWindow_LoadSkins_Content" xml:space="preserve">
+    <value>您想从 osu! 文件夹加载皮肤吗？</value>
+  </data>
+  <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
+    <value>加载皮肤</value>
+  </data>
+  <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
+    <value>更新 {0} 现已可用。</value>
+  </data>
+  <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
+    <value>更新可用</value>
+  </data>
+  <data name="MainWindow_Updating_Title" xml:space="preserve">
+    <value>更新中</value>
+  </data>
   <data name="Message_RestartRequired" xml:space="preserve">
     <value>更改需要应用后生效</value>
   </data>
-  <data name="Settings_Language" xml:space="preserve">
-    <value>语言</value>
+  <data name="Page_About" xml:space="preserve">
+    <value>关于</value>
   </data>
-  <data name="Settings_Theme" xml:space="preserve">
-    <value>主题</value>
+  <data name="Page_AudioEngine" xml:space="preserve">
+    <value>音频引擎</value>
+  </data>
+  <data name="Page_Dashboard" xml:space="preserve">
+    <value>主控台</value>
+  </data>
+  <data name="Page_Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Page_SyncMode" xml:space="preserve">
+    <value>同步模式</value>
+  </data>
+  <data name="Plugin_Corrupted" xml:space="preserve">
+    <value>已损坏</value>
+  </data>
+  <data name="Preset_Extreme" xml:space="preserve">
+    <value>极限</value>
+  </data>
+  <data name="Preset_Lightweight" xml:space="preserve">
+    <value>快速</value>
+  </data>
+  <data name="Preset_Standard" xml:space="preserve">
+    <value>标准</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>关于</value>
@@ -202,11 +358,17 @@
   <data name="Settings_ExtendedVolumeDescription" xml:space="preserve">
     <value>允许音量最高 150%</value>
   </data>
+  <data name="Settings_FollowSystem" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
   <data name="Settings_General" xml:space="preserve">
     <value>常规</value>
   </data>
   <data name="Settings_InputAndPerformance" xml:space="preserve">
     <value>输入与性能</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>语言</value>
   </data>
   <data name="Settings_LegacyModeDescription" xml:space="preserve">
     <value>禁用同步，仅响应原始按键。用于测试目的。</value>
@@ -231,6 +393,18 @@
   </data>
   <data name="Settings_RawInputDescription" xml:space="preserve">
     <value>禁用时使用低延迟键盘钩子</value>
+  </data>
+  <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
+    <value>选择 osu! 文件夹</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="Settings_Theme_Dark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="Settings_Theme_Light" xml:space="preserve">
+    <value>浅色</value>
   </data>
   <data name="Settings_UpdateAvailablePrefix" xml:space="preserve">
     <value>有可用更新：v</value>
@@ -307,24 +481,6 @@
   <data name="Sync_WidthWide" xml:space="preserve">
     <value>宽</value>
   </data>
-  <data name="MainWindow_ClickToUpdate" xml:space="preserve">
-    <value>点击更新</value>
-  </data>
-  <data name="Page_AudioEngine" xml:space="preserve">
-    <value>音频引擎</value>
-  </data>
-  <data name="Page_Dashboard" xml:space="preserve">
-    <value>主控台</value>
-  </data>
-  <data name="Page_Settings" xml:space="preserve">
-    <value>设置</value>
-  </data>
-  <data name="Page_SyncMode" xml:space="preserve">
-    <value>同步模式</value>
-  </data>
-  <data name="Page_About" xml:space="preserve">
-    <value>关于</value>
-  </data>
   <data name="TrayIcon_Exit" xml:space="preserve">
     <value>退出</value>
   </data>
@@ -334,6 +490,9 @@
   <data name="TrayIcon_OpenDashboard" xml:space="preserve">
     <value>打开主控台</value>
   </data>
+  <data name="Volume_Control_Title" xml:space="preserve">
+    <value>音量控制</value>
+  </data>
   <data name="Volume_Effect" xml:space="preserve">
     <value>音效</value>
   </data>
@@ -342,105 +501,5 @@
   </data>
   <data name="Volume_Music" xml:space="preserve">
     <value>音乐</value>
-  </data>
-  <data name="Common_Cancel" xml:space="preserve">
-    <value>取消</value>
-  </data>
-  <data name="Common_Later" xml:space="preserve">
-    <value>稍后</value>
-  </data>
-  <data name="Common_No" xml:space="preserve">
-    <value>否</value>
-  </data>
-  <data name="Common_Update" xml:space="preserve">
-    <value>更新</value>
-  </data>
-  <data name="Common_Yes" xml:space="preserve">
-    <value>是</value>
-  </data>
-  <data name="MainWindow_CheckUpdate_Content_Latest" xml:space="preserve">
-    <value>您正在使用最新版本。</value>
-  </data>
-  <data name="MainWindow_DeviceInitFailed_Title" xml:space="preserve">
-    <value>设备初始化失败</value>
-  </data>
-  <data name="MainWindow_ErrorReporting_Content" xml:space="preserve">
-    <value>是否发送日志和错误报告给开发者？
-您稍后可以在选项中更改。</value>
-  </data>
-  <data name="MainWindow_ErrorReporting_Title" xml:space="preserve">
-    <value>启用错误报告</value>
-  </data>
-  <data name="MainWindow_LoadSkins_Content" xml:space="preserve">
-    <value>您想从 osu! 文件夹加载皮肤吗？</value>
-  </data>
-  <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
-    <value>加载皮肤</value>
-  </data>
-  <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
-    <value>更新 {0} 现已可用。</value>
-  </data>
-  <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
-    <value>更新可用</value>
-  </data>
-  <data name="MainWindow_Updating_Title" xml:space="preserve">
-    <value>更新中</value>
-  </data>
-  <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
-    <value>选择 osu! 文件夹</value>
-  </data>
-  <data name="Settings_FollowSystem" xml:space="preserve">
-    <value>跟随系统</value>
-  </data>
-  <data name="Settings_Theme_Light" xml:space="preserve">
-    <value>浅色</value>
-  </data>
-  <data name="Settings_Theme_Dark" xml:space="preserve">
-    <value>深色</value>
-  </data>
-  <data name="About_Title" xml:space="preserve">
-    <value>KeyASIO Audio Backend</value>
-  </data>
-  <data name="About_Description" xml:space="preserve">
-    <value>致力于为osu!玩家提供极致的低延迟音频体验。支持多种后端模式，兼容性强，配置灵活。</value>
-  </data>
-  <data name="Error_OSNotSupported" xml:space="preserve">
-    <value>不支持当前操作系统版本 {0}。需要 Windows Vista 或更高版本。</value>
-  </data>
-  <data name="App_Title" xml:space="preserve">
-    <value>KeyASIO</value>
-  </data>
-  <data name="Volume_Control_Title" xml:space="preserve">
-    <value>音量控制</value>
-  </data>
-  <data name="KeyBind_Message" xml:space="preserve">
-    <value>按下任意键以绑定...</value>
-  </data>
-  <data name="Plugin_Corrupted" xml:space="preserve">
-    <value>已损坏</value>
-  </data>
-  <data name="About_Visit" xml:space="preserve">
-    <value>访问</value>
-  </data>
-  <data name="About_ExploreMore" xml:space="preserve">
-    <value>探索更多</value>
-  </data>
-  <data name="Dashboard_Sync_SFX" xml:space="preserve">
-    <value>SFX</value>
-  </data>
-  <data name="Dashboard_Sync_SFX_Tooltip" xml:space="preserve">
-    <value>仅同步打击音效</value>
-  </data>
-  <data name="Dashboard_Sync_All_Tooltip" xml:space="preserve">
-    <value>同步打击音效和音乐</value>
-  </data>
-  <data name="Preset_Standard" xml:space="preserve">
-    <value>标准模式</value>
-  </data>
-  <data name="Preset_Lightweight" xml:space="preserve">
-    <value>快速模式</value>
-  </data>
-  <data name="Preset_Extreme" xml:space="preserve">
-    <value>极限模式</value>
   </data>
 </root>

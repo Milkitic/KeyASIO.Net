@@ -34,92 +34,81 @@
     </Style>
   </UserControl.Styles>
 
-  <suki:GlassCard Width="800" Margin="10">
-    <StackPanel Spacing="20">
-      <TextBlock
-        HorizontalAlignment="Center"
-        Classes="h3"
-        FontWeight="Bold"
-        Text="选择预设模式" />
-      <TextBlock
-        HorizontalAlignment="Center"
-        Classes="h5"
-        Opacity="0.6"
-        Text="请根据您的设备性能和使用需求选择合适的模式。"
-        TextWrapping="Wrap" />
+  <StackPanel Spacing="20">
+    <TextBlock
+      HorizontalAlignment="Center"
+      Classes="h3"
+      FontWeight="Bold"
+      Text="选择预设模式" />
+    <TextBlock
+      HorizontalAlignment="Center"
+      Classes="h5"
+      Opacity="0.6"
+      Text="请根据您的设备性能和使用需求选择合适的模式。"
+      TextWrapping="Wrap" />
 
-      <ItemsControl ItemsSource="{Binding Presets}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <UniformGrid
-              HorizontalAlignment="Center"
-              Columns="3"
-              Rows="1" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate DataType="services:PresetModel">
-            <suki:GlassCard
-              Width="220"
-              Margin="15"
-              BorderBrush="{Binding ColorOrKey, Converter={StaticResource StringColorToBrushConverter}}"
-              BorderThickness="2"
-              Classes="Surface PresetCard"
-              Command="{Binding $parent[UserControl].DataContext.SelectPresetCommand}"
-              CommandParameter="{Binding}"
-              Cursor="Hand"
-              IsInteractive="True">
-              <StackPanel Spacing="15">
-                <!--  Icon and Title  -->
-                <StackPanel
-                  HorizontalAlignment="Center"
-                  Orientation="Vertical"
-                  Spacing="10">
-                  <Border
-                    Width="64"
-                    Height="64"
-                    Background="{Binding ColorOrKey, Converter={StaticResource StringColorToBrushConverter}, ConverterParameter=0.1}"
-                    CornerRadius="50">
-                    <materialIcons:MaterialIcon
-                      Width="32"
-                      Height="32"
-                      Foreground="{DynamicResource SukiDangerColor}"
-                      Kind="{Binding Icon}" />
-                  </Border>
-                  <TextBlock
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="{Binding Title}"
-                    TextAlignment="Center"
-                    TextWrapping="Wrap" />
-                </StackPanel>
-
-                <!--  Description  -->
+    <ItemsControl ItemsSource="{Binding Presets}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <UniformGrid
+            HorizontalAlignment="Center"
+            Columns="3"
+            Rows="1" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="services:PresetModel">
+          <suki:GlassCard
+            Width="220"
+            Margin="15"
+            Padding="15"
+            BorderBrush="{Binding ColorOrKey, Converter={StaticResource StringColorToBrushConverter}}"
+            BorderThickness="2"
+            Classes="Surface PresetCard"
+            Command="{Binding $parent[UserControl].DataContext.SelectPresetCommand}"
+            CommandParameter="{Binding}"
+            Cursor="Hand"
+            IsInteractive="True">
+            <StackPanel Spacing="15">
+              <!--  Icon and Title  -->
+              <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Vertical"
+                Spacing="10">
+                <Border
+                  Width="64"
+                  Height="64"
+                  Background="{Binding ColorOrKey, Converter={StaticResource StringColorToBrushConverter}, ConverterParameter=0.9}"
+                  CornerRadius="50">
+                  <materialIcons:MaterialIcon
+                    Width="32"
+                    Height="32"
+                    Foreground="White"
+                    Kind="{Binding Icon}" />
+                </Border>
                 <TextBlock
-                  Height="60"
-                  Opacity="0.7"
-                  Text="{Binding Description}"
+                  FontSize="18"
+                  FontWeight="Bold"
+                  Text="{Binding Title}"
                   TextAlignment="Center"
                   TextWrapping="Wrap" />
-
-                <!--  Button  -->
-                <!--             <Button
-                  HorizontalAlignment="Stretch"
-                    BorderThickness="1"
-                  Classes="Flat"
-                  Command="{Binding $parent[UserControl].DataContext.SelectPresetCommand}"
-                  CommandParameter="{Binding}"
-                  Content="确认应用"/>-->
               </StackPanel>
-            </suki:GlassCard>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
 
-      <Button
-        HorizontalAlignment="Right"
-        Command="{Binding CloseCommand}"
-        Content="取消" />
-    </StackPanel>
-  </suki:GlassCard>
+              <!--  Description  -->
+              <TextBlock
+                Opacity="0.7"
+                Text="{Binding Description}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+            </StackPanel>
+          </suki:GlassCard>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <Button
+      HorizontalAlignment="Right"
+      Command="{Binding CloseCommand}"
+      Content="取消" />
+  </StackPanel>
 </UserControl>

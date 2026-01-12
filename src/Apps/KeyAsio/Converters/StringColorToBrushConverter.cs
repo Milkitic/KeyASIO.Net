@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Avalonia.Styling;
 
 namespace KeyAsio.Converters;
 
@@ -28,18 +28,14 @@ public class StringColorToBrushConverter : IValueConverter
                 return new SolidColorBrush(color, opacity);
             }
 
-            object? res = null;
-            if (Application.Current?.TryFindResource(colorStr, out res) == true ||
-                (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
-                 desktop.MainWindow?.TryFindResource(colorStr, out res) == true))
+            if (Application.Current?.TryFindResource(colorStr, Application.Current?.ActualThemeVariant, out var res) != true) return null;
             {
-                if (res is Color c)
+                switch (res)
                 {
-                    // Apply opacity if parameter is present
-                    if (parameter != null)
-                    {
+                    case Color c when parameter != null:
                         double opacity = 1.0;
-                        if (parameter is string paramStr && double.TryParse(paramStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedOpacity))
+                        if (parameter is string paramStr && double.TryParse(paramStr, NumberStyles.Any,
+                                CultureInfo.InvariantCulture, out var parsedOpacity))
                         {
                             opacity = parsedOpacity;
                         }
@@ -47,13 +43,15 @@ public class StringColorToBrushConverter : IValueConverter
                         {
                             opacity = paramDouble;
                         }
-                        return new SolidColorBrush(c, opacity);
-                    }
-                    return new SolidColorBrush(c);
-                }
 
-                if (res is IBrush b) return b;
-                return null;
+                        return new SolidColorBrush(c, opacity);
+                    case Color c:
+                        return new SolidColorBrush(c);
+                    case IBrush b:
+                        return b;
+                    default:
+                        return null;
+                }
             }
         }
 
