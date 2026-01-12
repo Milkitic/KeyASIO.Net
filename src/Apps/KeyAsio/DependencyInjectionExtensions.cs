@@ -1,4 +1,4 @@
-using KeyAsio.Services;
+﻿﻿﻿using KeyAsio.Services;
 using KeyAsio.Shared.Models;
 using KeyAsio.ViewModels;
 using KeyAsio.Views;
@@ -19,6 +19,7 @@ public static class DependencyInjectionExtensions
 
         services.AddSingleton<LanguageManager>();
         services.AddSingleton<SettingsManager>();
+        services.AddSingleton<PresetManager>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();

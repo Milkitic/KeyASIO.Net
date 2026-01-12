@@ -448,7 +448,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Sync both hitsounds and music. 的本地化字符串。
+        ///   查找类似 Sync both hitsounds and music 的本地化字符串。
         /// </summary>
         internal static string Dashboard_Sync_All_Tooltip {
             get {
@@ -466,7 +466,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Sync hitsounds only. 的本地化字符串。
+        ///   查找类似 Sync hitsounds only 的本地化字符串。
         /// </summary>
         internal static string Dashboard_Sync_SFX_Tooltip {
             get {
@@ -652,6 +652,33 @@ namespace KeyAsio.Lang {
         internal static string Plugin_Corrupted {
             get {
                 return ResourceManager.GetString("Plugin_Corrupted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Extreme 的本地化字符串。
+        /// </summary>
+        internal static string Preset_Extreme {
+            get {
+                return ResourceManager.GetString("Preset_Extreme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Lightweight 的本地化字符串。
+        /// </summary>
+        internal static string Preset_Lightweight {
+            get {
+                return ResourceManager.GetString("Preset_Lightweight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Standard 的本地化字符串。
+        /// </summary>
+        internal static string Preset_Standard {
+            get {
+                return ResourceManager.GetString("Preset_Standard", resourceCulture);
             }
         }
         

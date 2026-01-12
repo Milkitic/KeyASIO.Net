@@ -493,4 +493,13 @@ You can change option later.</value>
   <data name="Dashboard_Sync_All_Tooltip" xml:space="preserve">
     <value>Sync both hitsounds and music</value>
   </data>
+  <data name="Preset_Standard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="Preset_Lightweight" xml:space="preserve">
+    <value>Lightweight</value>
+  </data>
+  <data name="Preset_Extreme" xml:space="preserve">
+    <value>Extreme</value>
+  </data>
 </root>

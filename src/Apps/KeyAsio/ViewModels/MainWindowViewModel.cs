@@ -11,6 +11,8 @@ using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync;
+using KeyAsio.ViewModels.Dialogs;
+using KeyAsio.Views.Dialogs;
 using Microsoft.Extensions.Logging;
 using SukiUI.Dialogs;
 using SukiUI.Toasts;
@@ -22,6 +24,7 @@ public partial class MainWindowViewModel : IDisposable
 {
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly SettingsManager _settingsManager;
+    private readonly PresetManager _presetManager;
     private bool _isNavigating;
     private bool _disposed;
 
@@ -44,6 +47,7 @@ public partial class MainWindowViewModel : IDisposable
         KeyBinding = new KeyBindingViewModel(null!, DialogManager, AppSettings, null!);
 
         LanguageManager = new LanguageManager(null!, AppSettings);
+        _presetManager = new PresetManager(AppSettings);
 
         UpdateService = null!;
         _logger = null!;
@@ -63,7 +67,8 @@ public partial class MainWindowViewModel : IDisposable
         KeyBindingViewModel keyBindingViewModel,
         ISukiDialogManager dialogManager,
         ISukiToastManager toastManager,
-        LanguageManager languageManager)
+        LanguageManager languageManager,
+        PresetManager presetManager)
     {
         AppSettings = appSettings;
         UpdateService = updateService;
@@ -81,6 +86,7 @@ public partial class MainWindowViewModel : IDisposable
         KeyBinding = keyBindingViewModel;
 
         LanguageManager = languageManager;
+        _presetManager = presetManager;
         IsVerified = VerifyUtils.IsOfficialBuildUnsafe();
 #if DEBUG
         IsDevelopment = true;
@@ -115,9 +121,18 @@ public partial class MainWindowViewModel : IDisposable
 
     [ObservableProperty]
     public partial bool IsExiting { get; set; }
-    
+
     [ObservableProperty]
     public partial int Hue { get; set; } = 150;
+
+    [RelayCommand]
+    public void OpenPresetSelection()
+    {
+        var vm = new PresetSelectionDialogViewModel(_presetManager, DialogManager, MainToastManager);
+        DialogManager.CreateDialog()
+            .WithContent(new PresetSelectionDialog { DataContext = vm })
+            .TryShow();
+    }
 
     [RelayCommand]
     public void ShowMainWindow()

@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
   x:Class="KeyAsio.Views.Pages.SettingsPage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -23,6 +23,19 @@
 
   <ScrollViewer>
     <StackPanel Margin="20" Spacing="20">
+      <suki:GlassCard>
+        <suki:GroupBox Header="预设模式">
+          <StackPanel Spacing="10">
+            <TextBlock Text="快速应用预设配置以适应不同的使用场景。" Opacity="0.7" />
+            <Button
+              HorizontalAlignment="Left"
+              Classes="Flat"
+              Command="{Binding OpenPresetSelectionCommand}"
+              Content="选择预设模式" />
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
       <suki:GlassCard>
         <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_General}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">

@@ -1,0 +1,125 @@
+﻿<UserControl
+  x:Class="KeyAsio.Views.Dialogs.PresetSelectionDialog"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:converters="using:KeyAsio.Converters"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:services="using:KeyAsio.Services"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels.Dialogs"
+  d:DesignHeight="500"
+  d:DesignWidth="900"
+  x:DataType="vm:PresetSelectionDialogViewModel"
+  mc:Ignorable="d">
+  <UserControl.Resources>
+    <converters:StringColorToBrushConverter x:Key="StringColorToBrushConverter" />
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="suki|GlassCard.PresetCard">
+      <Setter Property="RenderTransform" Value="scale(1)" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition
+            Easing="CubicEaseOut"
+            Property="RenderTransform"
+            Duration="0:0:0.2" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="suki|GlassCard.PresetCard:pointerover">
+      <Setter Property="RenderTransform" Value="scale(1.05)" />
+    </Style>
+  </UserControl.Styles>
+
+  <suki:GlassCard Width="800" Margin="10">
+    <StackPanel Spacing="20">
+      <TextBlock
+        HorizontalAlignment="Center"
+        Classes="h3"
+        FontWeight="Bold"
+        Text="选择预设模式" />
+      <TextBlock
+        HorizontalAlignment="Center"
+        Classes="h5"
+        Opacity="0.6"
+        Text="请根据您的设备性能和使用需求选择合适的模式。"
+        TextWrapping="Wrap" />
+
+      <ItemsControl ItemsSource="{Binding Presets}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid
+              HorizontalAlignment="Center"
+              Columns="3"
+              Rows="1" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="services:PresetModel">
+            <suki:GlassCard
+              Width="220"
+              Margin="15"
+              BorderBrush="{Binding Color, Converter={StaticResource StringColorToBrushConverter}}"
+              BorderThickness="2"
+              Classes="Surface PresetCard"
+              Command="{Binding $parent[UserControl].DataContext.SelectPresetCommand}"
+              CommandParameter="{Binding}"
+              Cursor="Hand"
+              IsInteractive="True">
+              <StackPanel Spacing="15">
+                <!--  Icon and Title  -->
+                <StackPanel
+                  HorizontalAlignment="Center"
+                  Orientation="Vertical"
+                  Spacing="10">
+                  <Border
+                    Width="64"
+                    Height="64"
+                    Background="{Binding Color, Converter={StaticResource StringColorToBrushConverter}, ConverterParameter=0.1}"
+                    CornerRadius="50">
+                    <materialIcons:MaterialIcon
+                      Width="32"
+                      Height="32"
+                      Foreground="{Binding Color, Converter={StaticResource StringColorToBrushConverter}}"
+                      Kind="{Binding Icon}" />
+                  </Border>
+                  <TextBlock
+                    FontSize="18"
+                    FontWeight="Bold"
+                    Text="{Binding Title}"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!--  Description  -->
+                <TextBlock
+                  Height="60"
+                  Opacity="0.7"
+                  Text="{Binding Description}"
+                  TextAlignment="Center"
+                  TextWrapping="Wrap" />
+
+                <!--  Button  -->
+                <!--             <Button
+                  HorizontalAlignment="Stretch"
+                    BorderThickness="1"
+                  Classes="Flat"
+                  Command="{Binding $parent[UserControl].DataContext.SelectPresetCommand}"
+                  CommandParameter="{Binding}"
+                  Content="确认应用"/>-->
+              </StackPanel>
+            </suki:GlassCard>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Button
+        HorizontalAlignment="Right"
+        Command="{Binding CloseCommand}"
+        Content="取消" />
+    </StackPanel>
+  </suki:GlassCard>
+</UserControl>

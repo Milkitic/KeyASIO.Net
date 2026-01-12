@@ -15,6 +15,8 @@
   Title="{I18N {x:Static lang:SRKeys.App_Title}}"
   Width="905"
   Height="697"
+  MinWidth="800"
+  MinHeight="600"
   x:DataType="vm:MainWindowViewModel"
   BackgroundAnimationEnabled="False"
   BackgroundStyle="Flat"

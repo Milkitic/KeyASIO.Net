@@ -343,6 +343,15 @@
   <data name="Volume_Music" xml:space="preserve">
     <value>Music</value>
   </data>
+  <data name="Preset_Standard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="Preset_Extreme" xml:space="preserve">
+    <value>Extreme</value>
+  </data>
+  <data name="Preset_Lightweight" xml:space="preserve">
+    <value>Lightweight</value>
+  </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
