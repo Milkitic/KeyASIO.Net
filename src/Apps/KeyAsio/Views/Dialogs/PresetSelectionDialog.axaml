@@ -62,7 +62,7 @@
             <suki:GlassCard
               Width="220"
               Margin="15"
-              BorderBrush="{Binding Color, Converter={StaticResource StringColorToBrushConverter}}"
+              BorderBrush="{Binding ColorOrKey, Converter={StaticResource StringColorToBrushConverter}}"
               BorderThickness="2"
               Classes="Surface PresetCard"
               Command="{Binding $parent[UserControl].DataContext.SelectPresetCommand}"
@@ -78,12 +78,12 @@
                   <Border
                     Width="64"
                     Height="64"
-                    Background="{Binding Color, Converter={StaticResource StringColorToBrushConverter}, ConverterParameter=0.1}"
+                    Background="{Binding ColorOrKey, Converter={StaticResource StringColorToBrushConverter}, ConverterParameter=0.1}"
                     CornerRadius="50">
                     <materialIcons:MaterialIcon
                       Width="32"
                       Height="32"
-                      Foreground="{Binding Color, Converter={StaticResource StringColorToBrushConverter}}"
+                      Foreground="{DynamicResource SukiDangerColor}"
                       Kind="{Binding Icon}" />
                   </Border>
                   <TextBlock

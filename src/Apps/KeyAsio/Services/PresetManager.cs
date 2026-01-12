@@ -1,5 +1,4 @@
-﻿using Avalonia.Media;
-using KeyAsio.Lang;
+﻿using KeyAsio.Lang;
 using KeyAsio.Shared;
 using Material.Icons;
 
@@ -18,15 +17,15 @@ public class PresetModel
     public string Title { get; }
     public string Description { get; }
     public MaterialIconKind Icon { get; }
-    public string Color { get; } // Hex color string or resource key
+    public string ColorOrKey { get; }
 
-    public PresetModel(PresetMode mode, string title, string description, MaterialIconKind icon, string color)
+    public PresetModel(PresetMode mode, string title, string description, MaterialIconKind icon, string colorOrKey)
     {
         Mode = mode;
         Title = title;
         Description = description;
         Icon = icon;
-        Color = color;
+        ColorOrKey = colorOrKey;
     }
 }
 
@@ -37,35 +36,36 @@ public class PresetManager
     public PresetManager(AppSettings appSettings)
     {
         _appSettings = appSettings;
-
-        if (!App.Current.TryGetResource("SukiWarningColor", null, out var val))
-        {
-            val = SolidColorBrush.Parse("#CD771D");
-        }
     }
 
-    public List<PresetModel> AvailablePresets { get; } = new()
-    {
-        new PresetModel(
-            PresetMode.Standard,
-            SR.Preset_Standard,
-            "提供均衡的性能与资源占用，适合大多数常规使用场景",
-            MaterialIconKind.ScaleBalance,
-            "#2196F3"), // Blue
-        new PresetModel(
-            PresetMode.Lightweight,
-            SR.Preset_Lightweight,
-            "优化资源占用，适合低配设备或基础使用需求",
-            MaterialIconKind.Feather,
-            ), // Green
+    public List<PresetModel> AvailablePresets { get; private set; } = [];
 
-        new PresetModel(
-            PresetMode.Extreme,
-            SR.Preset_Extreme,
-            "最大化性能输出，适合专业需求或高性能场景",
-            MaterialIconKind.RocketLaunch,
-            "#F44336") // Red
-    };
+    public void Initialize()
+    {
+        AvailablePresets =
+        [
+            new PresetModel(
+                PresetMode.Standard,
+                SR.Preset_Standard,
+                "提供均衡的性能与资源占用，适合大多数常规使用场景",
+                MaterialIconKind.ScaleBalance,
+                "SukiPrimaryColor"
+            ),
+            new PresetModel(
+                PresetMode.Lightweight,
+                SR.Preset_Lightweight,
+                "优化资源占用，适合低配设备或基础使用需求",
+                MaterialIconKind.Feather,
+                "SukiSuccessColor"
+            ),
+            new PresetModel(
+                PresetMode.Extreme,
+                SR.Preset_Extreme,
+                "最大化性能输出，适合专业需求或高性能场景",
+                MaterialIconKind.RocketLaunch,
+                "SukiDangerColor")
+        ];
+    }
 
     public void ApplyPreset(PresetMode mode)
     {

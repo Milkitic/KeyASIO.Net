@@ -63,6 +63,9 @@ public partial class App : Application
             var syncController = Program.Host.Services.GetRequiredService<SyncController>();
             syncController.Start();
 
+            var presetManager = Program.Host.Services.GetRequiredService<PresetManager>();
+            presetManager.Initialize();
+
             var mainWindow = Program.Host.Services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
             desktop.Exit += Desktop_Exit;
