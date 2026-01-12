@@ -1,0 +1,10 @@
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <!-- <Assembly Name="NAudio" Dynamic="Required All" /> -->
+    <Assembly Name="NAudio.Asio" Dynamic="Required All" />
+    <Assembly Name="NAudio.Vorbis" Dynamic="Required All" />
+    <Assembly Name="NAudio.Wasapi" Dynamic="Required All" />
+    <Assembly Name="NAudio.WinMM" Dynamic="Required All" />
+    <Assembly Name="Octokit" Dynamic="Required All" />
+  </Application>
+</Directives>
