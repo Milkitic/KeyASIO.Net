@@ -448,7 +448,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Sync both hitsounds and music. 的本地化字符串。
+        ///   查找类似 Sync both hitsounds and music 的本地化字符串。
         /// </summary>
         internal static string Dashboard_Sync_All_Tooltip {
             get {
@@ -466,7 +466,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Sync hitsounds only. 的本地化字符串。
+        ///   查找类似 Sync hitsounds only 的本地化字符串。
         /// </summary>
         internal static string Dashboard_Sync_SFX_Tooltip {
             get {

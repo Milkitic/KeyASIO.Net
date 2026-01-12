@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Services;
@@ -115,15 +115,6 @@ public partial class KeyBindingViewModel : ObservableObject
         _appSettings.Input.ManiaKeys[keyCount] = keys;
     }
 
-    [ObservableProperty]
-    public partial bool IsEditingKeys { get; set; }
-
-    [RelayCommand]
-    public void ToggleEditKeys()
-    {
-        IsEditingKeys = !IsEditingKeys;
-    }
-
     [RelayCommand]
     public void AddKey()
     {
@@ -135,25 +126,13 @@ public partial class KeyBindingViewModel : ObservableObject
             return;
         }
 
-        var vm = new KeyBindDialogViewModel(_keyboardBindingInitializer.KeyboardHook, key =>
-            {
-                if (!BoundKeys.Contains(key))
-                {
-                    BoundKeys.Add(key);
-                }
-            },
-            () => { _dialogManager.DismissDialog(); });
+        // Pass BoundKeys directly to the dialog view model
+        var vm = new KeyEditorDialogViewModel(_keyboardBindingInitializer.KeyboardHook, BoundKeys);
 
         _dialogManager.CreateDialog()
-            .WithContent(new KeyBindDialogView { DataContext = vm })
-            .WithTitle("Bind Key")
-            .WithActionButton("Cancel", _ => vm.Dispose(), true)
+            .WithContent(new KeyEditorDialogView { DataContext = vm })
+            .WithTitle("Edit Bindings")
+            .WithActionButton("OK", _ => vm.Dispose(), true)
             .TryShow();
-    }
-
-    [RelayCommand]
-    public void RemoveKey(HookKeys key)
-    {
-        BoundKeys.Remove(key);
     }
 }

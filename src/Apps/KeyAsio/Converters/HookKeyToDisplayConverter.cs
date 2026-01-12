@@ -15,20 +15,21 @@ public class HookKeyToDisplayConverter : IValueConverter
         if (targetType == typeof(object))
         {
             // Return icon or text based on key
+            var size = 19;
             switch (key)
             {
                 case HookKeys.LButton:
-                    return new MaterialIcon { Kind = MaterialIconKind.MouseLeftClick, Width = 24, Height = 24 };
+                    return new MaterialIcon { Kind = MaterialIconKind.MouseLeftClick, Width = size, Height = size };
                 case HookKeys.RButton:
-                    return new MaterialIcon { Kind = MaterialIconKind.MouseRightClick, Width = 24, Height = 24 };
+                    return new MaterialIcon { Kind = MaterialIconKind.MouseRightClick, Width = size, Height = size };
                 //case HookKeys.MButton:
                 //    return new MaterialIcon { Kind = MaterialIconKind.MouseMiddleClick, Width = 24, Height = 24 };
                 case HookKeys.XButton1:
-                    return new MaterialIcon { Kind = MaterialIconKind.MouseMoveVertical, Width = 24, Height = 24 }; // Approximate
+                    return new MaterialIcon { Kind = MaterialIconKind.MouseMoveVertical, Width = size, Height = size }; // Approximate
                 case HookKeys.XButton2:
-                    return new MaterialIcon { Kind = MaterialIconKind.MouseMoveVertical, Width = 24, Height = 24 }; // Approximate
+                    return new MaterialIcon { Kind = MaterialIconKind.MouseMoveVertical, Width = size, Height = size }; // Approximate
                 case HookKeys.Space:
-                    return new MaterialIcon { Kind = MaterialIconKind.KeyboardSpace, Width = 24, Height = 24 };
+                    return new MaterialIcon { Kind = MaterialIconKind.KeyboardSpace, Width = size, Height = size };
                 default:
                     return key.ToString();
             }
