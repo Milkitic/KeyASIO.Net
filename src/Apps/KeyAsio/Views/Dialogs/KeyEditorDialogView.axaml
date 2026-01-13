@@ -4,6 +4,7 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:converters="using:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
@@ -19,7 +20,6 @@
 
   <Grid RowDefinitions="Auto,*,Auto" RowSpacing="20">
     <TextBlock
-      HorizontalAlignment="Center"
       Classes="h5"
       Opacity="0.6"
       Text="{Binding Message}"
@@ -88,7 +88,7 @@
       Grid.Row="2"
       HorizontalAlignment="Stretch"
       Command="{Binding BindMouseLeftCommand}"
-      Content="Bind Left Mouse Button"
-      ToolTip.Tip="Click here to bind Left Mouse Button" />
+      Content="{I18N {x:Static lang:SRKeys.KeyBind_BindLeftMouse}}"
+      ToolTip.Tip="{I18N {x:Static lang:SRKeys.KeyBind_BindLeftMouseTooltip}}" />
   </Grid>
 </UserControl>

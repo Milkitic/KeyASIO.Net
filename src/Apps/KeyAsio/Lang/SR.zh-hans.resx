@@ -267,6 +267,12 @@
   <data name="KeyBinding_EditBindings" xml:space="preserve">
     <value>编辑按键绑定</value>
   </data>
+  <data name="KeyBind_BindLeftMouse" xml:space="preserve">
+    <value>绑定鼠标左键</value>
+  </data>
+  <data name="KeyBind_BindLeftMouseTooltip" xml:space="preserve">
+    <value>点击此处绑定鼠标左键</value>
+  </data>
   <data name="KeyBind_Message" xml:space="preserve">
     <value>按下任意键以绑定...</value>
   </data>

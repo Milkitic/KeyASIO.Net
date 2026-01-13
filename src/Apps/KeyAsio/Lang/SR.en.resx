@@ -267,6 +267,12 @@
   <data name="KeyBinding_EditBindings" xml:space="preserve">
     <value>Edit Bindings</value>
   </data>
+  <data name="KeyBind_BindLeftMouse" xml:space="preserve">
+    <value>Bind Left Mouse Button</value>
+  </data>
+  <data name="KeyBind_BindLeftMouseTooltip" xml:space="preserve">
+    <value>Click here to bind Left Mouse Button</value>
+  </data>
   <data name="KeyBind_Message" xml:space="preserve">
     <value>Press any key to bind...</value>
   </data>

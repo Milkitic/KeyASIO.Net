@@ -49,9 +49,9 @@ public partial class LanguageManager : ObservableObject
             var culture = string.IsNullOrEmpty(languageCode)
                 ? CultureInfo.InstalledUICulture
                 : new CultureInfo(languageCode);
-
+            
+            CultureInfo.CurrentUICulture = culture;
             I18NExtension.Culture = culture;
-            CultureInfo.CurrentCulture = culture;
         }
         catch (Exception ex)
         {

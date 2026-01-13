@@ -502,6 +502,24 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Bind Left Mouse Button 的本地化字符串。
+        /// </summary>
+        internal static string KeyBind_BindLeftMouse {
+            get {
+                return ResourceManager.GetString("KeyBind_BindLeftMouse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Click here to bind Left Mouse Button 的本地化字符串。
+        /// </summary>
+        internal static string KeyBind_BindLeftMouseTooltip {
+            get {
+                return ResourceManager.GetString("KeyBind_BindLeftMouseTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Press any key to bind... 的本地化字符串。
         /// </summary>
         internal static string KeyBind_Message {
