@@ -114,7 +114,7 @@ public sealed class OsuBeatmapsets
         RawHitObject hitObject, ConcurrentQueue<HitsoundNode> elements)
     {
         var ignoreBalance = generalSection.Mode == GameMode.Taiko;
-        var ignoreBase = generalSection.Mode == GameMode.Mania;
+        var ignoreBase = generalSection.Mode is GameMode.Mania or GameMode.Taiko;
 
         if (hitObject.ObjectType != HitObjectType.Slider)
         {
@@ -128,10 +128,17 @@ public sealed class OsuBeatmapsets
             var tuples = AnalyzeHitsoundFiles(hitObject.Hitsound,
                 hitObject.SampleSet, hitObject.AdditionSet,
                 timingPoint, hitObject, ignoreBase);
+        
             var guid = Guid.NewGuid();
             foreach (var (filename, useUserSkin, _) in tuples)
             {
-                var element = HitsoundNode.Create(guid, itemOffset, volume, balance, filename, useUserSkin,
+                string actualFilename = filename;
+                if (generalSection.Mode is GameMode.Taiko)
+                {
+                    actualFilename = "taiko-" + filename;
+                }
+
+                var element = HitsoundNode.Create(guid, itemOffset, volume, balance, actualFilename, useUserSkin,
                     hitObject.ObjectType == HitObjectType.Spinner
                         ? PlayablePriority.Secondary
                         : PlayablePriority.Primary);

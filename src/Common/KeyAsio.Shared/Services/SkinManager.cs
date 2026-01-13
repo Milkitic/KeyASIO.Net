@@ -14,6 +14,9 @@ public class SkinManager
 {
     private static readonly HashSet<string> ResourcesKeys =
     [
+        "taiko-normal-hitclap", "taiko-normal-hitfinish", "taiko-normal-hitnormal", "taiko-normal-hitwhistle",
+        "taiko-soft-hitclap", "taiko-soft-hitfinish", "taiko-soft-hitnormal", "taiko-soft-hitwhistle",
+
         "drum-hitclap", "drum-hitfinish", "drum-hitnormal", "drum-hitwhistle",
         "drum-sliderslide", "drum-slidertick", "drum-sliderwhistle",
 
