@@ -10,12 +10,9 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
+  x:Name="Self"
   x:DataType="vm:MainWindowViewModel"
   mc:Ignorable="d">
-
-  <UserControl.Resources>
-    <converters:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
-  </UserControl.Resources>
 
   <Design.DataContext>
     <vm:MainWindowViewModel />
@@ -55,7 +52,14 @@
                 SelectedItem="{Binding AppSettings.General.Theme}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                    <TextBlock>
+                      <TextBlock.Text>
+                        <MultiBinding Converter="{x:Static converters:EnumDescriptionConverter.Instance}">
+                          <Binding />
+                          <Binding ElementName="Self" Path="DataContext.LanguageManager.SelectedLanguageItem" />
+                        </MultiBinding>
+                      </TextBlock.Text>
+                    </TextBlock>
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>

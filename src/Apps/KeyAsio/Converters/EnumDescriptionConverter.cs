@@ -5,7 +5,7 @@ using KeyAsio.Lang;
 
 namespace KeyAsio.Converters;
 
-public class EnumDescriptionConverter : IValueConverter
+public class EnumDescriptionConverter : IValueConverter, IMultiValueConverter
 {
     public static readonly EnumDescriptionConverter Instance = new();
 
@@ -28,6 +28,16 @@ public class EnumDescriptionConverter : IValueConverter
         }
 
         return value;
+    }
+
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values is { Count: > 0 })
+        {
+            return Convert(values[0], targetType, parameter, culture);
+        }
+
+        return null;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
