@@ -1,4 +1,7 @@
-﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<Styles
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:lang="clr-namespace:KeyAsio.Lang">
   <Style Selector="NumericUpDown.SettingItem">
     <Setter Property="Width" Value="75" />
     <!--<Setter Property="HorizontalAlignment" Value="Right" />-->
@@ -9,8 +12,8 @@
   </Style>
 
   <Style Selector="ToggleSwitch.SettingItem">
-    <Setter Property="OnContent" Value="On" />
-    <Setter Property="OffContent" Value="Off" />
+    <Setter Property="OnContent" Value="{I18N {x:Static lang:SRKeys.Common_On}}" />
+    <Setter Property="OffContent" Value="{I18N {x:Static lang:SRKeys.Common_Off}}" />
   </Style>
 
   <Style Selector="Slider.SettingItem">
