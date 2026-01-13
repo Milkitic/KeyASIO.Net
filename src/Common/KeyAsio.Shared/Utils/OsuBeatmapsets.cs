@@ -128,12 +128,22 @@ public sealed class OsuBeatmapsets
             var tuples = AnalyzeHitsoundFiles(hitObject.Hitsound,
                 hitObject.SampleSet, hitObject.AdditionSet,
                 timingPoint, hitObject, ignoreBase);
-        
+
             var guid = Guid.NewGuid();
-            foreach (var (filename, useUserSkin, _) in tuples)
+            if (generalSection.Mode == GameMode.Taiko)
             {
-                string actualFilename = filename;
-                if (generalSection.Mode is GameMode.Taiko)
+                var (filename, useUserSkin, hitsoundType) = tuples.First();
+                bool isBig = (hitsoundType & HitsoundType.Finish) != 0;
+                bool isBlue = (hitsoundType & HitsoundType.Clap) != 0 ||
+                              (hitsoundType & HitsoundType.Whistle) != 0;
+
+                string actualFilename;
+                if (isBlue && isBig)
+                {
+                    var indexOf = filename.IndexOf('-');
+                    actualFilename = string.Concat("taiko-", filename.AsSpan(0, indexOf), "-hitwhistle");
+                }
+                else
                 {
                     actualFilename = "taiko-" + filename;
                 }
@@ -143,6 +153,17 @@ public sealed class OsuBeatmapsets
                         ? PlayablePriority.Secondary
                         : PlayablePriority.Primary);
                 elements.Enqueue(element);
+            }
+            else
+            {
+                foreach (var (filename, useUserSkin, _) in tuples)
+                {
+                    var element = HitsoundNode.Create(guid, itemOffset, volume, balance, filename, useUserSkin,
+                        hitObject.ObjectType == HitObjectType.Spinner
+                            ? PlayablePriority.Secondary
+                            : PlayablePriority.Primary);
+                    elements.Enqueue(element);
+                }
             }
         }
         else // sliders
