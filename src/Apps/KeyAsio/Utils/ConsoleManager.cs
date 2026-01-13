@@ -122,7 +122,7 @@ public static class ConsoleManager
         {
             AutoFlush = true
         };
-        Console.SetOut(stdOut);
+        Console.SetOut(new FilteredTextWriter(stdOut));
 
         var stdErr = new StreamWriter(Console.OpenStandardError(), Console.OutputEncoding)
         {
@@ -145,5 +145,31 @@ public static class ConsoleManager
         if (success) return;
         var errorCode = Marshal.GetLastWin32Error();
         if (errorCode != 0) throw new InvalidOperationException(error, new Win32Exception(errorCode));
+    }
+
+    private class FilteredTextWriter : TextWriter
+    {
+        private readonly TextWriter _inner;
+
+        public FilteredTextWriter(TextWriter inner)
+        {
+            _inner = inner;
+        }
+
+        public override System.Text.Encoding Encoding => _inner.Encoding;
+
+        public override void Write(char value) => _inner.Write(value);
+
+        public override void Write(string? value)
+        {
+            if (value is "Unsub") return;
+            _inner.Write(value);
+        }
+
+        public override void WriteLine(string? value)
+        {
+            if (value is "Unsub") return;
+            _inner.WriteLine(value);
+        }
     }
 }
