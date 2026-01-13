@@ -33,24 +33,24 @@ public class BeatmapHitsoundLoader
         _keyList.Clear();
         _playbackList.Clear();
 
-        var osuDir = new OsuDirectory(folder);
+        var osuBeatmapsets = new OsuBeatmapsets(folder);
         using (DebugUtils.CreateTimer("InitFolder", _logger))
         {
-            await osuDir.InitializeAsync(diffFilename,
+            await osuBeatmapsets.InitializeAsync(diffFilename,
                 ignoreWaveFiles: _appSettings.Sync.Filters.DisableBeatmapHitsounds);
         }
 
-        if (osuDir.OsuFiles.Count <= 0)
+        if (osuBeatmapsets.OsuFiles.Count <= 0)
         {
             _logger.LogWarning("There is no available beatmaps after scanning. Directory: {Folder}; File: {Filename}",
                 folder, diffFilename);
             return null;
         }
 
-        var osuFile = osuDir.OsuFiles[0];
+        var osuFile = osuBeatmapsets.OsuFiles[0];
 
         using var _ = DebugUtils.CreateTimer("InitAudio", _logger);
-        var hitsoundList = await osuDir.GetHitsoundNodesAsync(osuFile);
+        var hitsoundList = await osuBeatmapsets.GetHitsoundNodesAsync(osuFile);
         await Task.Delay(100);
 
         var isNightcore = playMods != Mods.Unknown && (playMods & Mods.Nightcore) != 0;

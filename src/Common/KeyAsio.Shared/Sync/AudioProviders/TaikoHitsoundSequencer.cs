@@ -1,6 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.IO;
+using System.Runtime.CompilerServices;
+using System.Diagnostics;
 using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
@@ -20,6 +23,10 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
 
     private Queue<PlayableNode> _hitQueue = new();
     private Queue<HitsoundNode> _playbackQueue = new();
+
+    private long _lastDonTime = 0;
+    private long _lastKatTime = 0;
+    private const double MinIntervalMs = 30.0;
 
     public TaikoHitsoundSequencer(ILogger<TaikoHitsoundSequencer> logger,
         AppSettings appSettings,
@@ -96,6 +103,20 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
         bool isDonInput = keyIndex == 1 || keyIndex == 2;
         bool isKatInput = keyIndex == 0 || keyIndex == 3;
 
+        // 获取参考 Note 用于空打音效
+        HitsoundNode? refNode = null;
+
+        if (_hitQueue.TryPeek(out var headNode))
+        {
+            refNode = headNode;
+        }
+        else if (_playbackQueue.TryPeek(out var pbNode))
+        {
+            refNode = pbNode;
+        }
+
+        bool soundPlayed = false;
+
         // 循环处理队列，直到：
         // 1. 队列空了
         // 2. 判定太早（Early Reject）
@@ -129,13 +150,15 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
             if (diff > KeyThresholdMilliseconds)
             {
                 _hitQueue.Dequeue(); // 移除过期音符
+                // 更新参考 Note
+                if (_hitQueue.TryPeek(out var nextNode)) refNode = nextNode;
                 continue;
             }
 
             // --- 情况 3: 点击太早 (Too Early) ---
             if (diff < -KeyThresholdMilliseconds)
             {
-                return;
+                break;
             }
 
             // --- 情况 4: 命中判定窗口 (Hit) ---
@@ -156,7 +179,18 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
                 currentGroupGuid = node.Guid;
 
                 // 播放并移除
-                DequeueAndPlay(buffer, _hitQueue);
+                if (ShouldPlaySound(isDonInput))
+                {
+                    DequeueAndPlay(buffer, _hitQueue);
+                    UpdateLastPlayTime(isDonInput);
+                    soundPlayed = true;
+                }
+                else
+                {
+                    // 防抖生效：只移除不播放
+                    _hitQueue.Dequeue();
+                    soundPlayed = true; // 视为已处理，避免触发后续空打逻辑
+                }
             }
             else
             {
@@ -169,11 +203,87 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
                 // 暂时假设：消耗掉音符，不播放。
                 
                 _hitQueue.Dequeue();
+                refNode = node; // 使用这个 Miss 的 Note 作为空打声音的参考
                 
                 // 既然这次点击消耗了这个音符（判定为 Miss），那么我们就不能再用这次点击去匹配其他音符了。
-                return;
+                break;
             }
         }
+
+        if (!soundPlayed && refNode != null)
+        {
+            if (ShouldPlaySound(isDonInput))
+            {
+                if (GetFallbackAudio(refNode, isDonInput, out var cachedAudio))
+                {
+                    buffer.Add(new PlaybackInfo(cachedAudio!, refNode));
+                    UpdateLastPlayTime(isDonInput);
+                }
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool ShouldPlaySound(bool isDon)
+    {
+        long currentTimestamp = Stopwatch.GetTimestamp();
+        long lastTime = isDon ? _lastDonTime : _lastKatTime;
+        double elapsedMs = (currentTimestamp - lastTime) * 1000.0 / Stopwatch.Frequency;
+        return elapsedMs >= MinIntervalMs;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void UpdateLastPlayTime(bool isDon)
+    {
+        if (isDon) _lastDonTime = Stopwatch.GetTimestamp();
+        else _lastKatTime = Stopwatch.GetTimestamp();
+    }
+
+    private bool GetFallbackAudio(HitsoundNode node, bool isDon, out CachedAudio? cachedAudio)
+    {
+        cachedAudio = null;
+        if (node.Filename == null) return false;
+
+        var originalFilename = Path.GetFileNameWithoutExtension(node.Filename);
+        string newFilename = originalFilename;
+
+        if (isDon)
+        {
+            // 确保移除 clap/whistle 等元素，只保留 normal
+            // 这里假设文件名格式是标准的，或者包含这些关键字
+            newFilename = newFilename
+                .Replace("hitclap", "hitnormal")
+                .Replace("hitwhistle", "hitnormal")
+                .Replace("hitfinish", "hitnormal");
+        }
+        else
+        {
+            // 如果是 Kat，优先使用 clap
+            // 如果原文件名是 hitwhistle，保留（Whistle 也是 Kat）
+            if (!newFilename.Contains("hitwhistle"))
+            {
+                newFilename = newFilename
+                    .Replace("hitnormal", "hitclap")
+                    .Replace("hitfinish", "hitclap");
+            }
+        }
+        
+        if (_gameplayAudioService.TryGetCachedAudio(newFilename, out cachedAudio))
+            return true;
+
+        string sampleSet = "normal";
+        if (originalFilename.Contains("soft")) sampleSet = "soft";
+        else if (originalFilename.Contains("drum")) sampleSet = "drum";
+
+        string suffix = isDon ? "hitnormal" : "hitclap";
+        
+        if (_gameplayAudioService.TryGetCachedAudio($"taiko-{sampleSet}-{suffix}", out cachedAudio))
+            return true;
+            
+        if (_gameplayAudioService.TryGetCachedAudio($"{sampleSet}-{suffix}", out cachedAudio))
+            return true;
+
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

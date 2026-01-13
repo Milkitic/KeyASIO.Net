@@ -20,7 +20,7 @@ public class GameplayAudioService : IDisposable
 
     private static readonly string[] SkinAudioFiles = ["combobreak"];
 
-    private HitsoundFileCache _hitsoundFileCache = new();
+    private OsuAudioFileCache _osuAudioFileCache = new();
     private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedAudioMapping = new();
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
@@ -73,7 +73,7 @@ public class GameplayAudioService : IDisposable
 
     public void ClearCaches()
     {
-        _hitsoundFileCache = new HitsoundFileCache();
+        _osuAudioFileCache = new OsuAudioFileCache();
         _audioCacheManager.ClearAll();
         _playNodeToCachedAudioMapping.Clear();
         _filenameToCachedAudioMapping.Clear();
@@ -204,7 +204,7 @@ public class GameplayAudioService : IDisposable
         if (_filenameToCachedAudioMapping.TryGetValue(filenameWithoutExt, out var value)) return value;
 
         string category;
-        var filename = _hitsoundFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var useUserSkin);
+        var filename = _osuAudioFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var useUserSkin);
 
         CachedAudio result;
         if (useUserSkin)
@@ -270,7 +270,7 @@ public class GameplayAudioService : IDisposable
     private async Task<CachedAudio> ResolveAndLoadSkinAudioAsync(string filenameKey, string skinFolder, string category,
         WaveFormat waveFormat)
     {
-        var filename = _hitsoundFileCache.GetFileUntilFind(skinFolder, filenameKey, out var useDefaultSkin);
+        var filename = _osuAudioFileCache.GetFileUntilFind(skinFolder, filenameKey, out var useDefaultSkin);
         if (!useDefaultSkin)
         {
             var path = Path.Combine(skinFolder, filename);
