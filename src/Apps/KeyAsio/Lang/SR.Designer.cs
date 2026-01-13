@@ -421,20 +421,20 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Keys 的本地化字符串。
+        /// </summary>
+        internal static string Dashboard_Keys {
+            get {
+                return ResourceManager.GetString("Dashboard_Keys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Play Time 的本地化字符串。
         /// </summary>
         internal static string Dashboard_PlayTime {
             get {
                 return ResourceManager.GetString("Dashboard_PlayTime", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Quick Bindings 的本地化字符串。
-        /// </summary>
-        internal static string Dashboard_QuickBindings {
-            get {
-                return ResourceManager.GetString("Dashboard_QuickBindings", resourceCulture);
             }
         }
         

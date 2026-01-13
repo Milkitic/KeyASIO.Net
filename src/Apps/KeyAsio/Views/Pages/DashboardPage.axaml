@@ -367,7 +367,7 @@
               <TextBlock
                 VerticalAlignment="Center"
                 FontWeight="Bold"
-                Text="{I18N {x:Static lang:SRKeys.Dashboard_QuickBindings}}" />
+                Text="{I18N {x:Static lang:SRKeys.Dashboard_Keys}}" />
 
               <ComboBox
                 Width="165"

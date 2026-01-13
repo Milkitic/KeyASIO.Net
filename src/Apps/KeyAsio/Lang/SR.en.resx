@@ -237,11 +237,11 @@
   <data name="Dashboard_EditBindings" xml:space="preserve">
     <value>Edit Bindings</value>
   </data>
+  <data name="Dashboard_Keys" xml:space="preserve">
+    <value>Keys</value>
+  </data>
   <data name="Dashboard_PlayTime" xml:space="preserve">
     <value>Play Time</value>
-  </data>
-  <data name="Dashboard_QuickBindings" xml:space="preserve">
-    <value>Quick Bindings</value>
   </data>
   <data name="Dashboard_Status" xml:space="preserve">
     <value>Status</value>

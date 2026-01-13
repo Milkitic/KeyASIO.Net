@@ -47,21 +47,21 @@ public class PresetManager
         [
             new PresetModel(
                 PresetMode.Standard,
-                SR.Preset_Standard,
+                SRKeys.Preset_Standard,
                 "提供均衡的性能与资源占用，适合大多数常规使用场景",
                 MaterialIconKind.ScaleBalance,
                 "SukiInformationColor"
             ),
             new PresetModel(
                 PresetMode.Fast,
-                SR.Preset_Lightweight,
+                SRKeys.Preset_Lightweight,
                 "优化资源占用，适合低配设备或基础使用需求",
                 MaterialIconKind.Feather,
                 "#D01373"
             ),
             new PresetModel(
                 PresetMode.Extreme,
-                SR.Preset_Extreme,
+                SRKeys.Preset_Extreme,
                 "最大化性能输出，适合专业需求或高性能场景",
                 MaterialIconKind.RocketLaunch,
                 "SukiDangerColor")

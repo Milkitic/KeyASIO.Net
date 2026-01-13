@@ -62,10 +62,9 @@
             Width="220"
             Margin="15"
             Padding="15"
-            BorderBrush="{Binding ColorOrKey, Converter={StaticResource StringColorToBrushConverter}}"
             BorderThickness="2"
             Classes="Surface PresetCard"
-            Command="{Binding $parent[UserControl].DataContext.SelectPresetCommand}"
+            Command="{Binding $parent[UserControl].((vm:PresetSelectionDialogViewModel)DataContext).SelectPresetCommand}"
             CommandParameter="{Binding}"
             Cursor="Hand"
             IsInteractive="True">
