@@ -264,20 +264,17 @@
   <data name="Error_OSNotSupported" xml:space="preserve">
     <value>不支持当前操作系统版本 {0}。需要 Windows Vista 或更高版本。</value>
   </data>
+  <data name="KeyBinding_BindLeftMouse" xml:space="preserve">
+    <value>绑定鼠标左键</value>
+  </data>
+  <data name="KeyBinding_BindLeftMouseTooltip" xml:space="preserve">
+    <value>点击此处绑定鼠标左键</value>
+  </data>
   <data name="KeyBinding_EditBindings" xml:space="preserve">
     <value>编辑按键绑定</value>
   </data>
-  <data name="KeyBind_BindLeftMouse" xml:space="preserve">
-    <value>绑定鼠标左键</value>
-  </data>
-  <data name="KeyBind_BindLeftMouseTooltip" xml:space="preserve">
-    <value>点击此处绑定鼠标左键</value>
-  </data>
-  <data name="KeyBind_Message" xml:space="preserve">
+  <data name="KeyBinding_Message" xml:space="preserve">
     <value>按下任意键以绑定...</value>
-  </data>
-  <data name="MainWindow_CheckUpdate_Content_Latest" xml:space="preserve">
-    <value>您正在使用最新版本。</value>
   </data>
   <data name="MainWindow_ClickToUpdate" xml:space="preserve">
     <value>点击更新</value>
@@ -303,6 +300,9 @@
   </data>
   <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
     <value>更新可用</value>
+  </data>
+  <data name="MainWindow_UpdateLatest_Content" xml:space="preserve">
+    <value>您正在使用最新版本。</value>
   </data>
   <data name="MainWindow_Updating_Title" xml:space="preserve">
     <value>更新中</value>
@@ -523,9 +523,6 @@
   <data name="TrayIcon_OpenDashboard" xml:space="preserve">
     <value>打开主控台</value>
   </data>
-  <data name="Volume_Control_Title" xml:space="preserve">
-    <value>音量控制</value>
-  </data>
   <data name="Volume_Effect" xml:space="preserve">
     <value>音效</value>
   </data>
@@ -534,5 +531,8 @@
   </data>
   <data name="Volume_Music" xml:space="preserve">
     <value>音乐</value>
+  </data>
+  <data name="Volume_Title" xml:space="preserve">
+    <value>音量控制</value>
   </data>
 </root>

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿﻿using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -23,7 +23,7 @@ public partial class KeyEditorDialogViewModel : ViewModelBase, IDisposable
     public ObservableCollection<HookKeys> BoundKeys { get; }
 
     [ObservableProperty]
-    public partial string Message { get; set; } = SR.KeyBind_Message;
+    public partial string Message { get; set; } = SR.KeyBinding_Message;
 
     private void OnKeyPressed(HookModifierKeys hookModifierKeys, HookKeys hookKey, KeyAction type)
     {

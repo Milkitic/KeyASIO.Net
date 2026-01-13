@@ -504,27 +504,18 @@ namespace KeyAsio.Lang {
         /// <summary>
         ///   查找类似 Bind Left Mouse Button 的本地化字符串。
         /// </summary>
-        internal static string KeyBind_BindLeftMouse {
+        internal static string KeyBinding_BindLeftMouse {
             get {
-                return ResourceManager.GetString("KeyBind_BindLeftMouse", resourceCulture);
+                return ResourceManager.GetString("KeyBinding_BindLeftMouse", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 Click here to bind Left Mouse Button 的本地化字符串。
         /// </summary>
-        internal static string KeyBind_BindLeftMouseTooltip {
+        internal static string KeyBinding_BindLeftMouseTooltip {
             get {
-                return ResourceManager.GetString("KeyBind_BindLeftMouseTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Press any key to bind... 的本地化字符串。
-        /// </summary>
-        internal static string KeyBind_Message {
-            get {
-                return ResourceManager.GetString("KeyBind_Message", resourceCulture);
+                return ResourceManager.GetString("KeyBinding_BindLeftMouseTooltip", resourceCulture);
             }
         }
         
@@ -538,11 +529,11 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 You are using the latest version. 的本地化字符串。
+        ///   查找类似 Press any key to bind... 的本地化字符串。
         /// </summary>
-        internal static string MainWindow_CheckUpdate_Content_Latest {
+        internal static string KeyBinding_Message {
             get {
-                return ResourceManager.GetString("MainWindow_CheckUpdate_Content_Latest", resourceCulture);
+                return ResourceManager.GetString("KeyBinding_Message", resourceCulture);
             }
         }
         
@@ -616,6 +607,15 @@ namespace KeyAsio.Lang {
         internal static string MainWindow_UpdateAvailable_Title {
             get {
                 return ResourceManager.GetString("MainWindow_UpdateAvailable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 You are using the latest version. 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_UpdateLatest_Content {
+            get {
+                return ResourceManager.GetString("MainWindow_UpdateLatest_Content", resourceCulture);
             }
         }
         
@@ -1277,15 +1277,6 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Volume Control 的本地化字符串。
-        /// </summary>
-        internal static string Volume_Control_Title {
-            get {
-                return ResourceManager.GetString("Volume_Control_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Effect 的本地化字符串。
         /// </summary>
         internal static string Volume_Effect {
@@ -1309,6 +1300,15 @@ namespace KeyAsio.Lang {
         internal static string Volume_Music {
             get {
                 return ResourceManager.GetString("Volume_Music", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Volume Control 的本地化字符串。
+        /// </summary>
+        internal static string Volume_Title {
+            get {
+                return ResourceManager.GetString("Volume_Title", resourceCulture);
             }
         }
     }

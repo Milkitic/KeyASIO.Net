@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿﻿using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
@@ -157,7 +157,7 @@ public partial class MainWindow : SukiWindow
                 {
                     _viewModel.MainToastManager.CreateSimpleInfoToast()
                         .WithTitle(SR.Settings_CheckForUpdates)
-                        .WithContent(SR.MainWindow_CheckUpdate_Content_Latest)
+                        .WithContent(SR.MainWindow_UpdateLatest_Content)
                         .Queue();
                 }
             };

@@ -264,20 +264,17 @@
   <data name="Error_OSNotSupported" xml:space="preserve">
     <value>Current OS version {0} is not supported. Requires Windows Vista or later.</value>
   </data>
+  <data name="KeyBinding_BindLeftMouse" xml:space="preserve">
+    <value>Bind Left Mouse Button</value>
+  </data>
+  <data name="KeyBinding_BindLeftMouseTooltip" xml:space="preserve">
+    <value>Click here to bind Left Mouse Button</value>
+  </data>
   <data name="KeyBinding_EditBindings" xml:space="preserve">
     <value>Edit Bindings</value>
   </data>
-  <data name="KeyBind_BindLeftMouse" xml:space="preserve">
-    <value>Bind Left Mouse Button</value>
-  </data>
-  <data name="KeyBind_BindLeftMouseTooltip" xml:space="preserve">
-    <value>Click here to bind Left Mouse Button</value>
-  </data>
-  <data name="KeyBind_Message" xml:space="preserve">
+  <data name="KeyBinding_Message" xml:space="preserve">
     <value>Press any key to bind...</value>
-  </data>
-  <data name="MainWindow_CheckUpdate_Content_Latest" xml:space="preserve">
-    <value>You are using the latest version.</value>
   </data>
   <data name="MainWindow_ClickToUpdate" xml:space="preserve">
     <value>Click to Update</value>
@@ -303,6 +300,9 @@ You can change option later.</value>
   </data>
   <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
     <value>Update Available</value>
+  </data>
+  <data name="MainWindow_UpdateLatest_Content" xml:space="preserve">
+    <value>You are using the latest version.</value>
   </data>
   <data name="MainWindow_Updating_Title" xml:space="preserve">
     <value>Updating</value>
@@ -523,9 +523,6 @@ You can change option later.</value>
   <data name="TrayIcon_OpenDashboard" xml:space="preserve">
     <value>Open Dashboard</value>
   </data>
-  <data name="Volume_Control_Title" xml:space="preserve">
-    <value>Volume Control</value>
-  </data>
   <data name="Volume_Effect" xml:space="preserve">
     <value>Effect</value>
   </data>
@@ -534,5 +531,8 @@ You can change option later.</value>
   </data>
   <data name="Volume_Music" xml:space="preserve">
     <value>Music</value>
+  </data>
+  <data name="Volume_Title" xml:space="preserve">
+    <value>Volume Control</value>
   </data>
 </root>
