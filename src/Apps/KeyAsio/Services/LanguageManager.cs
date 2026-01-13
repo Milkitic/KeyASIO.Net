@@ -51,6 +51,7 @@ public partial class LanguageManager : ObservableObject
                 : new CultureInfo(languageCode);
 
             I18NExtension.Culture = culture;
+            CultureInfo.CurrentCulture = culture;
         }
         catch (Exception ex)
         {

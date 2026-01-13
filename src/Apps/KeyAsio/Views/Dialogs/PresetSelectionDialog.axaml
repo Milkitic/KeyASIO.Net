@@ -84,7 +84,7 @@
                 <TextBlock
                   FontSize="18"
                   FontWeight="Bold"
-                  Text="{I18N {Binding Title}}"
+                  Text="{Binding Title, Converter={x:Static converters:I18NConverter.Instance}}"
                   TextAlignment="Center"
                   TextWrapping="Wrap" />
               </StackPanel>
@@ -92,7 +92,7 @@
               <!--  Description  -->
               <TextBlock
                 Opacity="0.7"
-                Text="{I18N {Binding Description}}"
+                Text="{Binding Description, Converter={x:Static converters:I18NConverter.Instance}}"
                 TextAlignment="Center"
                 TextWrapping="Wrap" />
             </StackPanel>

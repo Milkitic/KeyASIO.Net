@@ -35,16 +35,16 @@ public partial class AppSettingsInput : INotifyPropertyChanged
                  "Switch only if you encounter issues.")]
     public bool UseRawInput { get; set; } = true;
 
-    [Description("Trigger keys for osu! standard mode. Refer to https://docs.microsoft.com/en-us/dotnet/api/System.Windows.Forms.Keys.")]
+    [Description("Trigger keys for standard mode. Refer to https://docs.microsoft.com/en-us/dotnet/api/System.Windows.Forms.Keys.")]
     public List<HookKeys> OsuKeys { get; set; } = [HookKeys.Z, HookKeys.X];
 
-    [Description("Trigger keys for osu!taiko mode.")]
+    [Description("Trigger keys for taiko mode.")]
     public List<HookKeys> TaikoKeys { get; set; } = [HookKeys.Z, HookKeys.X, HookKeys.C, HookKeys.V];
 
-    [Description("Trigger keys for osu!catch mode.")]
+    [Description("Trigger keys for catch mode.")]
     public List<HookKeys> CatchKeys { get; set; } = [HookKeys.Shift, HookKeys.Left, HookKeys.Right];
 
-    [Description("Trigger keys for osu!mania mode (4k-10k). Key is key count, Value is list of keys.")]
+    [Description("Trigger keys for mania mode (4k-10k). Key is key count, Value is list of keys.")]
     public Dictionary<int, List<HookKeys>> ManiaKeys { get; set; } = new()
     {
         [4] = [HookKeys.D, HookKeys.F, HookKeys.J, HookKeys.K],

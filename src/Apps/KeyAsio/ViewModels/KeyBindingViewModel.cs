@@ -33,15 +33,15 @@ public partial class KeyBindingViewModel : ObservableObject
         UpdateBoundKeys();
     }
 
-    public List<string> Modes { get; } = new()
-    {
-        "osu!", "osu!taiko", "osu!catch",
-        "osu!mania 4K", "osu!mania 5K", "osu!mania 6K", "osu!mania 7K",
-        "osu!mania 8K", "osu!mania 9K", "osu!mania 10K"
-    };
+    public List<string> Modes { get; } =
+    [
+        "standard", "taiko", "catch",
+        "mania 4K", "mania 5K", "mania 6K", "mania 7K",
+        "mania 8K", "mania 9K", "mania 10K"
+    ];
 
     [ObservableProperty]
-    public partial string SelectedMode { get; set; } = "osu!";
+    public partial string SelectedMode { get; set; } = "standard";
 
     partial void OnSelectedModeChanged(string value)
     {
@@ -79,10 +79,10 @@ public partial class KeyBindingViewModel : ObservableObject
     {
         return SelectedMode switch
         {
-            "osu!" => _appSettings.Input.OsuKeys,
-            "osu!taiko" => _appSettings.Input.TaikoKeys,
-            "osu!catch" => _appSettings.Input.CatchKeys,
-            var m when m.StartsWith("osu!mania") => GetManiaKeys(m),
+            "standard" => _appSettings.Input.OsuKeys,
+            "taiko" => _appSettings.Input.TaikoKeys,
+            "catch" => _appSettings.Input.CatchKeys,
+            var m when m.StartsWith("mania") => GetManiaKeys(m),
             _ => new List<HookKeys>()
         };
     }
@@ -91,10 +91,10 @@ public partial class KeyBindingViewModel : ObservableObject
     {
         switch (SelectedMode)
         {
-            case "osu!": _appSettings.Input.OsuKeys = keys; break;
-            case "osu!taiko": _appSettings.Input.TaikoKeys = keys; break;
-            case "osu!catch": _appSettings.Input.CatchKeys = keys; break;
-            case var m when m.StartsWith("osu!mania"): SaveManiaKeys(m, keys); break;
+            case "standard": _appSettings.Input.OsuKeys = keys; break;
+            case "taiko": _appSettings.Input.TaikoKeys = keys; break;
+            case "catch": _appSettings.Input.CatchKeys = keys; break;
+            case var m when m.StartsWith("mania"): SaveManiaKeys(m, keys); break;
         }
     }
 
