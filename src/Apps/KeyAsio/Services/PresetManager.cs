@@ -48,21 +48,21 @@ public class PresetManager
             new PresetModel(
                 PresetMode.Standard,
                 SRKeys.Preset_Standard,
-                SRKeys.Preset_Standard_Description,
+                SRKeys.Preset_StandardDescription,
                 MaterialIconKind.ScaleBalance,
                 "SukiInformationColor"
             ),
             new PresetModel(
                 PresetMode.Fast,
                 SRKeys.Preset_Fast,
-                SRKeys.Preset_Fast_Description,
+                SRKeys.Preset_FastDescription,
                 MaterialIconKind.Feather,
                 "#D01373"
             ),
             new PresetModel(
                 PresetMode.Extreme,
                 SRKeys.Preset_Extreme,
-                SRKeys.Preset_Extreme_Description,
+                SRKeys.Preset_ExtremeDescription,
                 MaterialIconKind.RocketLaunch,
                 "SukiDangerColor")
         ];

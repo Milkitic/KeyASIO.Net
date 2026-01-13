@@ -328,28 +328,28 @@
   <data name="Plugin_Corrupted" xml:space="preserve">
     <value>已损坏</value>
   </data>
-  <data name="PresetSelection_Description" xml:space="preserve">
-    <value>请根据您的设备性能和使用需求选择合适的模式。</value>
-  </data>
-  <data name="PresetSelection_Title" xml:space="preserve">
-    <value>选择预设模式</value>
-  </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>极限</value>
   </data>
-  <data name="Preset_Extreme_Description" xml:space="preserve">
+  <data name="Preset_ExtremeDescription" xml:space="preserve">
     <value>最大化性能输出，适合专业需求或高性能场景</value>
   </data>
   <data name="Preset_Fast" xml:space="preserve">
     <value>快速</value>
   </data>
-  <data name="Preset_Fast_Description" xml:space="preserve">
+  <data name="Preset_FastDescription" xml:space="preserve">
     <value>优化资源占用，适合低配设备或基础使用需求</value>
+  </data>
+  <data name="Preset_SelectionDescription" xml:space="preserve">
+    <value>请根据您的设备性能和使用需求选择合适的模式。</value>
+  </data>
+  <data name="Preset_SelectionTitle" xml:space="preserve">
+    <value>选择预设模式</value>
   </data>
   <data name="Preset_Standard" xml:space="preserve">
     <value>标准</value>
   </data>
-  <data name="Preset_Standard_Description" xml:space="preserve">
+  <data name="Preset_StandardDescription" xml:space="preserve">
     <value>提供均衡的性能与资源占用，适合大多数常规使用场景</value>
   </data>
   <data name="Settings_About" xml:space="preserve">

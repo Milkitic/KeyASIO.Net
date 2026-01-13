@@ -26,12 +26,12 @@
       <suki:GlassCard>
         <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_PresetMode}}">
           <StackPanel Spacing="10">
-            <TextBlock Text="{I18N {x:Static lang:SRKeys.Settings_PresetModeDescription}}" Opacity="0.7" />
+            <TextBlock Opacity="0.7" Text="{I18N {x:Static lang:SRKeys.Settings_PresetModeDescription}}" />
             <Button
               HorizontalAlignment="Left"
               Classes="Flat"
               Command="{Binding OpenPresetSelectionCommand}"
-              Content="{I18N {x:Static lang:SRKeys.PresetSelection_Title}}" />
+              Content="{I18N {x:Static lang:SRKeys.Preset_SelectionTitle}}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>

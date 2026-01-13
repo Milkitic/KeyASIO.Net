@@ -40,7 +40,7 @@
       HorizontalAlignment="Center"
       Classes="h5"
       Opacity="0.6"
-      Text="{I18N {x:Static lang:SRKeys.PresetSelection_Description}}"
+      Text="{I18N {x:Static lang:SRKeys.Preset_SelectionDescription}}"
       TextWrapping="Wrap" />
 
     <ItemsControl ItemsSource="{Binding Presets}">

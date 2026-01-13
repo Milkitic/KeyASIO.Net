@@ -328,28 +328,28 @@ You can change option later.</value>
   <data name="Plugin_Corrupted" xml:space="preserve">
     <value>Corrupted</value>
   </data>
-  <data name="PresetSelection_Description" xml:space="preserve">
-    <value>Please select a suitable mode based on your device performance and usage requirements.</value>
-  </data>
-  <data name="PresetSelection_Title" xml:space="preserve">
-    <value>Select Preset Mode</value>
-  </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>Extreme</value>
   </data>
-  <data name="Preset_Extreme_Description" xml:space="preserve">
+  <data name="Preset_ExtremeDescription" xml:space="preserve">
     <value>Maximizes performance output, suitable for professional needs or high-performance scenarios.</value>
   </data>
   <data name="Preset_Fast" xml:space="preserve">
     <value>Fast</value>
   </data>
-  <data name="Preset_Fast_Description" xml:space="preserve">
+  <data name="Preset_FastDescription" xml:space="preserve">
     <value>Optimizes resource usage, suitable for low-end devices or basic needs.</value>
+  </data>
+  <data name="Preset_SelectionDescription" xml:space="preserve">
+    <value>Please select a suitable mode based on your device performance and usage requirements.</value>
+  </data>
+  <data name="Preset_SelectionTitle" xml:space="preserve">
+    <value>Select Preset Mode</value>
   </data>
   <data name="Preset_Standard" xml:space="preserve">
     <value>Standard</value>
   </data>
-  <data name="Preset_Standard_Description" xml:space="preserve">
+  <data name="Preset_StandardDescription" xml:space="preserve">
     <value>Provides balanced performance and resource usage, suitable for most general use cases.</value>
   </data>
   <data name="Settings_About" xml:space="preserve">

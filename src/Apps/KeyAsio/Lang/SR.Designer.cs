@@ -703,9 +703,9 @@ namespace KeyAsio.Lang {
         /// <summary>
         ///   查找类似 Maximizes performance output, suitable for professional needs or high-performance scenarios. 的本地化字符串。
         /// </summary>
-        internal static string Preset_Extreme_Description {
+        internal static string Preset_ExtremeDescription {
             get {
-                return ResourceManager.GetString("Preset_Extreme_Description", resourceCulture);
+                return ResourceManager.GetString("Preset_ExtremeDescription", resourceCulture);
             }
         }
         
@@ -721,9 +721,27 @@ namespace KeyAsio.Lang {
         /// <summary>
         ///   查找类似 Optimizes resource usage, suitable for low-end devices or basic needs. 的本地化字符串。
         /// </summary>
-        internal static string Preset_Fast_Description {
+        internal static string Preset_FastDescription {
             get {
-                return ResourceManager.GetString("Preset_Fast_Description", resourceCulture);
+                return ResourceManager.GetString("Preset_FastDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Please select a suitable mode based on your device performance and usage requirements. 的本地化字符串。
+        /// </summary>
+        internal static string Preset_SelectionDescription {
+            get {
+                return ResourceManager.GetString("Preset_SelectionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Select Preset Mode 的本地化字符串。
+        /// </summary>
+        internal static string Preset_SelectionTitle {
+            get {
+                return ResourceManager.GetString("Preset_SelectionTitle", resourceCulture);
             }
         }
         
@@ -739,27 +757,9 @@ namespace KeyAsio.Lang {
         /// <summary>
         ///   查找类似 Provides balanced performance and resource usage, suitable for most general use cases. 的本地化字符串。
         /// </summary>
-        internal static string Preset_Standard_Description {
+        internal static string Preset_StandardDescription {
             get {
-                return ResourceManager.GetString("Preset_Standard_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Please select a suitable mode based on your device performance and usage requirements. 的本地化字符串。
-        /// </summary>
-        internal static string PresetSelection_Description {
-            get {
-                return ResourceManager.GetString("PresetSelection_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Select Preset Mode 的本地化字符串。
-        /// </summary>
-        internal static string PresetSelection_Title {
-            get {
-                return ResourceManager.GetString("PresetSelection_Title", resourceCulture);
+                return ResourceManager.GetString("Preset_StandardDescription", resourceCulture);
             }
         }
         

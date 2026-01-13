@@ -131,7 +131,7 @@ public partial class MainWindowViewModel : IDisposable
     {
         var vm = new PresetSelectionDialogViewModel(_presetManager, DialogManager, MainToastManager, AudioSettings);
         DialogManager.CreateDialog()
-            .WithTitle(SR.PresetSelection_Title)
+            .WithTitle(SR.Preset_SelectionTitle)
             .WithContent(new PresetSelectionDialog { DataContext = vm })
             .TryShow();
     }
