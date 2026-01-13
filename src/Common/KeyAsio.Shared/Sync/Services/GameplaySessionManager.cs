@@ -58,10 +58,11 @@ public class GameplaySessionManager
     public List<PlayableNode> KeyList => _beatmapHitsoundLoader.KeyList;
 
     public void InitializeProviders(IHitsoundSequencer standardHitsoundSequencer,
+        IHitsoundSequencer taikoHitsoundSequencer,
         IHitsoundSequencer maniaHitsoundSequencer)
     {
         _audioProviderDictionary[GameMode.Circle] = standardHitsoundSequencer;
-        _audioProviderDictionary[GameMode.Taiko] = standardHitsoundSequencer;
+        _audioProviderDictionary[GameMode.Taiko] = taikoHitsoundSequencer;
         _audioProviderDictionary[GameMode.Catch] = standardHitsoundSequencer;
         _audioProviderDictionary[GameMode.Mania] = maniaHitsoundSequencer;
         UpdateCachedSequencer();

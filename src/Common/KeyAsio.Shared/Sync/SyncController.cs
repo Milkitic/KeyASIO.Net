@@ -48,10 +48,13 @@ public class SyncController : IDisposable
         var standardAudioProvider = new StandardHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<StandardHitsoundSequencer>>(),
             appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
+        var taikoAudioProvider = new TaikoHitsoundSequencer(
+            serviceProvider.GetRequiredService<ILogger<TaikoHitsoundSequencer>>(),
+            appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
         var maniaAudioProvider = new ManiaHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<ManiaHitsoundSequencer>>(),
             appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
-        gameplaySessionManager.InitializeProviders(standardAudioProvider, maniaAudioProvider);
+        gameplaySessionManager.InitializeProviders(standardAudioProvider, taikoAudioProvider, maniaAudioProvider);
 
         // Initialize realtime state machine with scene mappings
         _stateMachine = new GameStateMachine(new Dictionary<OsuMemoryStatus, IGameState>
