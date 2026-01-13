@@ -24,14 +24,14 @@
   <ScrollViewer>
     <StackPanel Margin="20" Spacing="20">
       <suki:GlassCard>
-        <suki:GroupBox Header="预设模式">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_PresetMode}}">
           <StackPanel Spacing="10">
-            <TextBlock Text="快速应用预设配置以适应不同的使用场景。" Opacity="0.7" />
+            <TextBlock Text="{I18N {x:Static lang:SRKeys.Settings_PresetModeDescription}}" Opacity="0.7" />
             <Button
               HorizontalAlignment="Left"
               Classes="Flat"
               Command="{Binding OpenPresetSelectionCommand}"
-              Content="选择预设模式" />
+              Content="{I18N {x:Static lang:SRKeys.PresetSelection_Title}}" />
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>

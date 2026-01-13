@@ -376,6 +376,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 OK 的本地化字符串。
+        /// </summary>
+        internal static string Common_OK {
+            get {
+                return ResourceManager.GetString("Common_OK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 On 的本地化字符串。
         /// </summary>
         internal static string Common_On {
@@ -498,6 +507,15 @@ namespace KeyAsio.Lang {
         internal static string KeyBind_Message {
             get {
                 return ResourceManager.GetString("KeyBind_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Edit Bindings 的本地化字符串。
+        /// </summary>
+        internal static string KeyBinding_EditBindings {
+            get {
+                return ResourceManager.GetString("KeyBinding_EditBindings", resourceCulture);
             }
         }
         
@@ -665,11 +683,29 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Lightweight 的本地化字符串。
+        ///   查找类似 Maximizes performance output, suitable for professional needs or high-performance scenarios. 的本地化字符串。
         /// </summary>
-        internal static string Preset_Lightweight {
+        internal static string Preset_Extreme_Description {
             get {
-                return ResourceManager.GetString("Preset_Lightweight", resourceCulture);
+                return ResourceManager.GetString("Preset_Extreme_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fast 的本地化字符串。
+        /// </summary>
+        internal static string Preset_Fast {
+            get {
+                return ResourceManager.GetString("Preset_Fast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Optimizes resource usage, suitable for low-end devices or basic needs. 的本地化字符串。
+        /// </summary>
+        internal static string Preset_Fast_Description {
+            get {
+                return ResourceManager.GetString("Preset_Fast_Description", resourceCulture);
             }
         }
         
@@ -679,6 +715,33 @@ namespace KeyAsio.Lang {
         internal static string Preset_Standard {
             get {
                 return ResourceManager.GetString("Preset_Standard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Provides balanced performance and resource usage, suitable for most general use cases. 的本地化字符串。
+        /// </summary>
+        internal static string Preset_Standard_Description {
+            get {
+                return ResourceManager.GetString("Preset_Standard_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Please select a suitable mode based on your device performance and usage requirements. 的本地化字符串。
+        /// </summary>
+        internal static string PresetSelection_Description {
+            get {
+                return ResourceManager.GetString("PresetSelection_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Select Preset Mode 的本地化字符串。
+        /// </summary>
+        internal static string PresetSelection_Title {
+            get {
+                return ResourceManager.GetString("PresetSelection_Title", resourceCulture);
             }
         }
         
@@ -868,6 +931,24 @@ namespace KeyAsio.Lang {
         internal static string Settings_PerformanceBoost {
             get {
                 return ResourceManager.GetString("Settings_PerformanceBoost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Preset Mode 的本地化字符串。
+        /// </summary>
+        internal static string Settings_PresetMode {
+            get {
+                return ResourceManager.GetString("Settings_PresetMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Quickly apply preset configurations to suit different usage scenarios. 的本地化字符串。
+        /// </summary>
+        internal static string Settings_PresetModeDescription {
+            get {
+                return ResourceManager.GetString("Settings_PresetModeDescription", resourceCulture);
             }
         }
         

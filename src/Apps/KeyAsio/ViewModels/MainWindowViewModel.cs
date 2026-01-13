@@ -6,6 +6,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Lang;
 using KeyAsio.Secrets;
 using KeyAsio.Services;
 using KeyAsio.Shared;
@@ -130,6 +131,7 @@ public partial class MainWindowViewModel : IDisposable
     {
         var vm = new PresetSelectionDialogViewModel(_presetManager, DialogManager, MainToastManager, AudioSettings);
         DialogManager.CreateDialog()
+            .WithTitle(SR.PresetSelection_Title)
             .WithContent(new PresetSelectionDialog { DataContext = vm })
             .TryShow();
     }

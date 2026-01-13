@@ -1,6 +1,7 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Lang;
 using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Views.Dialogs;
@@ -131,8 +132,8 @@ public partial class KeyBindingViewModel : ObservableObject
 
         _dialogManager.CreateDialog()
             .WithContent(new KeyEditorDialogView { DataContext = vm })
-            .WithTitle("Edit Bindings")
-            .WithActionButton("OK", _ => vm.Dispose(), true)
+            .WithTitle(SR.KeyBinding_EditBindings)
+            .WithActionButton(SR.Common_OK, _ => vm.Dispose(), true)
             .TryShow();
     }
 }

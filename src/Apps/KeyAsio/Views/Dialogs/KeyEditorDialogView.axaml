@@ -17,12 +17,16 @@
     <converters:HookKeyToDisplayConverter x:Key="HookKeyToDisplayConverter" />
   </UserControl.Resources>
 
-  <Grid RowDefinitions="Auto,*,Auto">
-    <TextBlock FontSize="16" Text="{Binding Message}" />
+  <Grid RowDefinitions="Auto,*,Auto" RowSpacing="20">
+    <TextBlock
+      HorizontalAlignment="Center"
+      Classes="h5"
+      Opacity="0.6"
+      Text="{Binding Message}"
+      TextWrapping="Wrap" />
 
     <ScrollViewer
       Grid.Row="1"
-      Margin="0,20,0,0"
       HorizontalScrollBarVisibility="Disabled"
       VerticalScrollBarVisibility="Auto">
       <ItemsControl ItemsSource="{Binding BoundKeys}">
@@ -82,9 +86,7 @@
 
     <Button
       Grid.Row="2"
-      Margin="0,20,0,0"
       HorizontalAlignment="Stretch"
-
       Command="{Binding BindMouseLeftCommand}"
       Content="Bind Left Mouse Button"
       ToolTip.Tip="Click here to bind Left Mouse Button" />

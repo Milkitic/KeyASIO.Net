@@ -4,6 +4,7 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:converters="using:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:services="using:KeyAsio.Services"
@@ -37,14 +38,9 @@
   <StackPanel Spacing="20">
     <TextBlock
       HorizontalAlignment="Center"
-      Classes="h3"
-      FontWeight="Bold"
-      Text="选择预设模式" />
-    <TextBlock
-      HorizontalAlignment="Center"
       Classes="h5"
       Opacity="0.6"
-      Text="请根据您的设备性能和使用需求选择合适的模式。"
+      Text="{I18N {x:Static lang:SRKeys.PresetSelection_Description}}"
       TextWrapping="Wrap" />
 
     <ItemsControl ItemsSource="{Binding Presets}">
@@ -88,7 +84,7 @@
                 <TextBlock
                   FontSize="18"
                   FontWeight="Bold"
-                  Text="{Binding Title}"
+                  Text="{I18N {Binding Title}}"
                   TextAlignment="Center"
                   TextWrapping="Wrap" />
               </StackPanel>
@@ -96,7 +92,7 @@
               <!--  Description  -->
               <TextBlock
                 Opacity="0.7"
-                Text="{Binding Description}"
+                Text="{I18N {Binding Description}}"
                 TextAlignment="Center"
                 TextWrapping="Wrap" />
             </StackPanel>
@@ -108,6 +104,6 @@
     <Button
       HorizontalAlignment="Right"
       Command="{Binding CloseCommand}"
-      Content="取消" />
+      Content="{I18N {x:Static lang:SRKeys.Common_Cancel}}" />
   </StackPanel>
 </UserControl>

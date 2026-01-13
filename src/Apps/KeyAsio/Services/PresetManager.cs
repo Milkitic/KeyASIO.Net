@@ -1,4 +1,4 @@
-using KeyAsio.Lang;
+﻿using KeyAsio.Lang;
 using KeyAsio.Shared;
 using KeyAsio.ViewModels;
 using Material.Icons;
@@ -48,21 +48,21 @@ public class PresetManager
             new PresetModel(
                 PresetMode.Standard,
                 SRKeys.Preset_Standard,
-                "提供均衡的性能与资源占用，适合大多数常规使用场景",
+                SRKeys.Preset_Standard_Description,
                 MaterialIconKind.ScaleBalance,
                 "SukiInformationColor"
             ),
             new PresetModel(
                 PresetMode.Fast,
-                SRKeys.Preset_Lightweight,
-                "优化资源占用，适合低配设备或基础使用需求",
+                SRKeys.Preset_Fast,
+                SRKeys.Preset_Fast_Description,
                 MaterialIconKind.Feather,
                 "#D01373"
             ),
             new PresetModel(
                 PresetMode.Extreme,
                 SRKeys.Preset_Extreme,
-                "最大化性能输出，适合专业需求或高性能场景",
+                SRKeys.Preset_Extreme_Description,
                 MaterialIconKind.RocketLaunch,
                 "SukiDangerColor")
         ];

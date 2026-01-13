@@ -222,6 +222,9 @@
   <data name="Common_Off" xml:space="preserve">
     <value>关</value>
   </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>确定</value>
+  </data>
   <data name="Common_On" xml:space="preserve">
     <value>开</value>
   </data>
@@ -260,6 +263,9 @@
   </data>
   <data name="Error_OSNotSupported" xml:space="preserve">
     <value>不支持当前操作系统版本 {0}。需要 Windows Vista 或更高版本。</value>
+  </data>
+  <data name="KeyBinding_EditBindings" xml:space="preserve">
+    <value>编辑按键绑定</value>
   </data>
   <data name="KeyBind_Message" xml:space="preserve">
     <value>按下任意键以绑定...</value>
@@ -316,14 +322,29 @@
   <data name="Plugin_Corrupted" xml:space="preserve">
     <value>已损坏</value>
   </data>
+  <data name="PresetSelection_Description" xml:space="preserve">
+    <value>请根据您的设备性能和使用需求选择合适的模式。</value>
+  </data>
+  <data name="PresetSelection_Title" xml:space="preserve">
+    <value>选择预设模式</value>
+  </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>极限</value>
   </data>
-  <data name="Preset_Lightweight" xml:space="preserve">
+  <data name="Preset_Extreme_Description" xml:space="preserve">
+    <value>最大化性能输出，适合专业需求或高性能场景</value>
+  </data>
+  <data name="Preset_Fast" xml:space="preserve">
     <value>快速</value>
+  </data>
+  <data name="Preset_Fast_Description" xml:space="preserve">
+    <value>优化资源占用，适合低配设备或基础使用需求</value>
   </data>
   <data name="Preset_Standard" xml:space="preserve">
     <value>标准</value>
+  </data>
+  <data name="Preset_Standard_Description" xml:space="preserve">
+    <value>提供均衡的性能与资源占用，适合大多数常规使用场景</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>关于</value>
@@ -387,6 +408,12 @@
   </data>
   <data name="Settings_PerformanceBoost" xml:space="preserve">
     <value>性能提升</value>
+  </data>
+  <data name="Settings_PresetMode" xml:space="preserve">
+    <value>预设模式</value>
+  </data>
+  <data name="Settings_PresetModeDescription" xml:space="preserve">
+    <value>快速应用预设配置以适应不同的使用场景。</value>
   </data>
   <data name="Settings_RawInput" xml:space="preserve">
     <value>原始输入</value>
