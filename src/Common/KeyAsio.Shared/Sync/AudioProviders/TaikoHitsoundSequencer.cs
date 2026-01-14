@@ -1,6 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Diagnostics;
 using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
@@ -117,6 +116,8 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
 
         bool soundPlayed = false;
 
+        // 借用 mania 的逻辑来处理 Taiko 的判定，Chord 实际上不应存在
+
         // 循环处理队列，直到：
         // 1. 队列空了
         // 2. 判定太早（Early Reject）
@@ -137,11 +138,6 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
                     return;
                 }
 
-                // 同组音符，检查类型是否匹配
-                // 在 Taiko 中，同组音符通常是 Big Note 的一部分，或者是重叠音符
-                // 这里我们假设如果之前的音符匹配了，同组的也应该匹配（或者忽略类型？）
-                // 为了简单起见，我们对同组音符也进行类型检查，或者直接播放（如果是 Big Note，需要两个键，这里可能需要更复杂的逻辑）
-                // 目前简化处理：直接播放
                 DequeueAndPlay(buffer, _hitQueue);
                 continue;
             }
@@ -162,11 +158,11 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
             }
 
             // --- 情况 4: 命中判定窗口 (Hit) ---
-            
+
             // Check Note Type
             // Filename check is a heuristic
             var filename = node.Filename ?? "";
-            bool isKatNode = filename.Contains("clap", StringComparison.OrdinalIgnoreCase) || 
+            bool isKatNode = filename.Contains("clap", StringComparison.OrdinalIgnoreCase) ||
                              filename.Contains("whistle", StringComparison.OrdinalIgnoreCase);
             bool isDonNode = !isKatNode;
 
@@ -195,16 +191,10 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
             else
             {
                 // 类型不匹配
-                // 在 osu!taiko 中，打错颜色是 Miss。
-                // 我们应该消耗掉这个音符，但是不播放声音（或者播放 Miss 音效，但这里没有 Miss 音效）
-                // 并且我们应该停止处理后续音符（因为这次点击已经被消耗了）
-                
-                // 但是，如果这是 Big Note，可能需要特殊的逻辑。
-                // 暂时假设：消耗掉音符，不播放。
-                
+                // 消耗掉音符，不播放。
                 _hitQueue.Dequeue();
                 refNode = node; // 使用这个 Miss 的 Note 作为空打声音的参考
-                
+
                 // 既然这次点击消耗了这个音符（判定为 Miss），那么我们就不能再用这次点击去匹配其他音符了。
                 break;
             }
@@ -267,7 +257,7 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
                     .Replace("hitfinish", "hitclap");
             }
         }
-        
+
         if (_gameplayAudioService.TryGetCachedAudio(newFilename, out cachedAudio))
             return true;
 
@@ -276,10 +266,10 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
         else if (originalFilename.Contains("drum")) sampleSet = "drum";
 
         string suffix = isDon ? "hitnormal" : "hitclap";
-        
+
         if (_gameplayAudioService.TryGetCachedAudio($"taiko-{sampleSet}-{suffix}", out cachedAudio))
             return true;
-            
+
         if (_gameplayAudioService.TryGetCachedAudio($"{sampleSet}-{suffix}", out cachedAudio))
             return true;
 
