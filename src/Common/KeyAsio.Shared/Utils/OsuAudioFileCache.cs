@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+﻿﻿using System.Collections.Concurrent;
 
 namespace KeyAsio.Shared.Utils;
 
@@ -10,7 +10,10 @@ public class OsuAudioFileCache
 
     private readonly ConcurrentDictionary<string, (string filename, bool useUserSkin)> _pathCache = new();
 
-    public static string[] SupportExtensions { get; } = [WavExtension, Mp3Extension, OggExtension];
+    private static readonly string[] SupportExtensionsInPriorityOrder = [WavExtension, Mp3Extension, OggExtension];
+
+    public static IReadOnlySet<string> SupportExtensions { get; } =
+        new HashSet<string>(SupportExtensionsInPriorityOrder, StringComparer.OrdinalIgnoreCase);
 
     public string GetFileUntilFind(string sourceFolder, string fileNameWithoutExtension, out bool useUserSkin)
     {
@@ -22,7 +25,7 @@ public class OsuAudioFileCache
         }
 
         string name = "";
-        foreach (var extension in SupportExtensions)
+        foreach (var extension in SupportExtensionsInPriorityOrder)
         {
             name = fileNameWithoutExtension + extension;
             var path = Path.Combine(sourceFolder, name);

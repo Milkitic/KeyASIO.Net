@@ -1,4 +1,4 @@
-﻿using System.Threading.Channels;
+using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Utils;
@@ -33,6 +33,37 @@ public sealed class AsyncSequentialWorker : IDisposable
         _channel.Writer.TryWrite(_ => workItem());
     }
 
+    public Task EnqueueAsync(Func<CancellationToken, Task> workItem)
+    {
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        _channel.Writer.TryWrite(async ct =>
+        {
+            try
+            {
+                await workItem(ct).ConfigureAwait(false);
+                tcs.TrySetResult();
+            }
+            catch (OperationCanceledException oce)
+            {
+                tcs.TrySetCanceled(oce.CancellationToken);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+                throw;
+            }
+        });
+
+        return tcs.Task;
+    }
+
+    public Task EnqueueAsync(Func<Task> workItem)
+    {
+        return EnqueueAsync(_ => workItem());
+    }
+
     private async Task LoopAsync()
     {
         var reader = _channel.Reader;
@@ -45,7 +76,7 @@ public sealed class AsyncSequentialWorker : IDisposable
                     if (_cts.IsCancellationRequested) break;
                     try
                     {
-                        await workItem(_cts.Token);
+                        await workItem(_cts.Token).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {

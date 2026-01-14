@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Extensions.Playback;
@@ -14,6 +13,7 @@ namespace KeyAsio.Shared.Utils;
 public sealed class OsuBeatmapsets
 {
     private static readonly Type ObjectSamplesetType = typeof(ObjectSamplesetType);
+    private static readonly AsyncSequentialWorker Worker = new(name: nameof(OsuBeatmapsets));
 
     private readonly OsuAudioFileCache _cache = new();
     private readonly string _directory;
@@ -25,46 +25,44 @@ public sealed class OsuBeatmapsets
     }
 
     public IReadOnlyList<OsuFile> OsuFiles { get; private set; } = [];
-    public IReadOnlyCollection<string> WaveFiles { get; private set; } = [];
+    public IReadOnlySet<string> WaveFiles { get; private set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     public async Task InitializeAsync(string? specificOsuFilename = null, bool ignoreWaveFiles = false)
     {
         var directoryInfo = new DirectoryInfo(_directory);
-        var waveFiles = new HashSet<string>();
+        var waveFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var osuFiles = new List<OsuFile>();
-        await Task.Run(() => directoryInfo
-            .EnumerateFiles("*", SearchOption.TopDirectoryOnly)
-            .AsParallel()
-            .ForAll(k =>
+        await Worker.EnqueueAsync(() =>
+        {
+            foreach (var fileInfo in directoryInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
             {
-                var ext = Path.GetExtension(k.Name);
-                if (Array.IndexOf(OsuAudioFileCache.SupportExtensions, ext) != -1)
+                var ext = fileInfo.Extension;
+                if (OsuAudioFileCache.SupportExtensions.Contains(ext))
                 {
                     if (!ignoreWaveFiles)
                     {
-                        lock (waveFiles)
-                        {
-                            waveFiles.Add(Path.GetFileNameWithoutExtension(k.FullName));
-                        }
-                    }
-                }
-                else if (ext == ".osu")
-                {
-                    if (specificOsuFilename != null)
-                    {
-                        if (specificOsuFilename != k.Name)
-                        {
-                            return;
-                        }
+                        waveFiles.Add(Path.GetFileNameWithoutExtension(fileInfo.Name));
                     }
 
-                    lock (osuFiles)
-                    {
-                        osuFiles.Add(OsuFile.ReadFromFile(k.FullName));
-                    }
+                    continue;
                 }
-            })
-        );
+
+                if (!string.Equals(ext, ".osu", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (specificOsuFilename != null &&
+                    !string.Equals(specificOsuFilename, fileInfo.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                osuFiles.Add(OsuFile.ReadFromFile(fileInfo.FullName));
+            }
+
+            return Task.CompletedTask;
+        }).ConfigureAwait(false);
 
         WaveFiles = waveFiles;
         OsuFiles = osuFiles;
@@ -81,37 +79,41 @@ public sealed class OsuBeatmapsets
         osuFile.HitObjects.ComputeSlidersByCurrentSettings();
 
         var hitObjects = osuFile.HitObjects.HitObjectList;
-        var elements = new ConcurrentQueue<HitsoundNode>();
-        await Task.Run(() =>
+        var elements = new List<HitsoundNode>(hitObjects.Count);
+        await Worker.EnqueueAsync(() =>
         {
-            hitObjects
-                .AsParallel()
-                .WithDegreeOfParallelism(1)
-                .ForAll(obj =>
-                {
-                    try
-                    {
-                        AddSingleHitObject(osuFile.General, osuFile.TimingPoints, obj, elements);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new HitsoundAnalyzingException(
-                            "Error while analyzing hitsound. Object Info: " + obj.ToSerializedString(), e);
-                    }
-                });
-
-            osuFile.Events?.Samples.AsParallel().ForAll(sampleData =>
+            foreach (var obj in hitObjects)
             {
-                elements.Enqueue(HitsoundNode.Create(Guid.NewGuid(), sampleData.Offset, sampleData.Volume / 100f, 0,
+                try
+                {
+                    AddSingleHitObject(osuFile.General, osuFile.TimingPoints, obj, elements);
+                }
+                catch (Exception e)
+                {
+                    throw new HitsoundAnalyzingException(
+                        "Error while analyzing hitsound. Object Info: " + obj.ToSerializedString(), e);
+                }
+            }
+
+            if (osuFile.Events?.Samples == null)
+            {
+                return Task.CompletedTask;
+            }
+
+            foreach (var sampleData in osuFile.Events.Samples)
+            {
+                elements.Add(HitsoundNode.Create(Guid.NewGuid(), sampleData.Offset, sampleData.Volume / 100f, 0,
                     sampleData.Filename, false, PlayablePriority.Sampling));
-            });
+            }
+
+            return Task.CompletedTask;
         }).ConfigureAwait(false);
 
         return elements.OrderBy(k => k.Offset).ToList();
     }
 
     private void AddSingleHitObject(GeneralSection generalSection, TimingSection timingSection,
-        RawHitObject hitObject, ConcurrentQueue<HitsoundNode> elements)
+        RawHitObject hitObject, List<HitsoundNode> elements)
     {
         var ignoreBalance = generalSection.Mode == GameMode.Taiko;
         var ignoreBase = generalSection.Mode is GameMode.Mania or GameMode.Taiko;
@@ -152,7 +154,7 @@ public sealed class OsuBeatmapsets
                     hitObject.ObjectType == HitObjectType.Spinner
                         ? PlayablePriority.Secondary
                         : PlayablePriority.Primary);
-                elements.Enqueue(element);
+                elements.Add(element);
             }
             else
             {
@@ -162,7 +164,7 @@ public sealed class OsuBeatmapsets
                         hitObject.ObjectType == HitObjectType.Spinner
                             ? PlayablePriority.Secondary
                             : PlayablePriority.Primary);
-                    elements.Enqueue(element);
+                    elements.Add(element);
                 }
             }
         }
@@ -198,7 +200,7 @@ public sealed class OsuBeatmapsets
                 {
                     var element = HitsoundNode.Create(guid, (int)itemOffset, volume, balance, filename, useUserSkin,
                         i == 0 ? PlayablePriority.Primary : PlayablePriority.Secondary);
-                    elements.Enqueue(element);
+                    elements.Add(element);
                 }
             }
 
@@ -226,7 +228,7 @@ public sealed class OsuBeatmapsets
 
                 var element = HitsoundNode.Create(Guid.NewGuid(), (int)itemOffset, volume, balance, filename,
                     useUserSkin, PlayablePriority.Effects);
-                elements.Enqueue(element);
+                elements.Add(element);
             }
 
             // sliding
@@ -320,22 +322,17 @@ public sealed class OsuBeatmapsets
                 slideElements.Add(stopElement2);
                 foreach (var slideElement in slideElements)
                 {
-                    elements.Enqueue(slideElement);
+                    elements.Add(slideElement);
                 }
             }
 
             // change balance while sliding (not supported in original game)
             var trails = sliderInfo.GetSliderSlides();
-            var all = trails
-                .Select(k => new
-                {
-                    offset = k.Offset,
-                    balance = ignoreBalance ? 0 : GetObjectBalance(k.Point.X)
-                })
-                .Select(k => HitsoundNode.CreateLoopBalanceSignal((int)k.offset, k.balance));
-            foreach (var balanceElement in all)
+            foreach (var sliderTick in trails)
             {
-                elements.Enqueue(balanceElement);
+                var balanceElement = HitsoundNode.CreateLoopBalanceSignal((int)sliderTick.Offset,
+                    ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X));
+                elements.Add(balanceElement);
             }
         }
     }
