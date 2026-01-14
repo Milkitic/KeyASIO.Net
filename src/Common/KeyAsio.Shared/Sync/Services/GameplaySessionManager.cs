@@ -5,6 +5,7 @@ using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
 using KeyAsio.Shared.Events;
+using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.Sync.Services;
@@ -115,9 +116,18 @@ public class GameplaySessionManager
             _syncSessionContext.IsStarted = true;
 
             _oldLatencyMode = GCSettings.LatencyMode;
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            if (!RuntimeInfo.IsSatori)
+            {
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+                _logger.LogInformation("GC LatencyMode set to SustainedLowLatency");
+            }
+            else
+            {
+                GCSettings.LatencyMode = GCLatencyMode.LowLatency;
+                _logger.LogInformation("GC LatencyMode set to LowLatency (Satori)");
+            }
+
             _isLowLatencyModeActive = true;
-            _logger.LogInformation("GC LatencyMode set to SustainedLowLatency");
         }
         catch (Exception ex)
         {

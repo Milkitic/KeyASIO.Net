@@ -152,6 +152,8 @@ internal sealed class Program
 
         try
         {
+            RuntimeInfo.CheckCoreClr(Host.Services.GetRequiredService<ILogger<RuntimeInfo>>());
+
             if (OperatingSystem.IsWindowsVersionAtLeast(8))
                 PowerThrottling.DisableThrottling();
 
