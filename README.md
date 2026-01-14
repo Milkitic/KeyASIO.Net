@@ -1,6 +1,7 @@
 <div align="center">
 
-<!--[![Discord](https://img.shields.io/discord/dicord_id?label=Discord&logo=discord&style=flat-square&color=5865F2)](link)-->
+<!--[![Discord](https://img.shields.io/discord/dicord_id?label=Discord&logo=discord&style=flat-square&color=5865F2)](link)
+Join our [Discord](YOUR_DISCORD_LINK) for early access and updates.-->
 # ⚡ KeyASIO.Net
 **The Ultimate Low-Latency Audio Middleware for osu!**
 
@@ -66,7 +67,6 @@ KeyASIO offers two main modes. Choose the one that fits your hardware.
     * Adjust your audio offset (likely below -40ms) to sync the audio.
 
 </details>
-
 <details>
 <summary><h3>💻 Option B: Software Mix (FullMode ENABLED)</h3></summary>
 
@@ -119,8 +119,6 @@ If you are using Exclusive Mode, osu!'s internal clock might desync because it l
 ## 🚧 Roadmap (v4 Preview)
 
 We are currently working on a complete rewrite (**KeyASIO v4**).
-
-Join our [Discord](YOUR_DISCORD_LINK) for early access and updates.
 
 ---
 
