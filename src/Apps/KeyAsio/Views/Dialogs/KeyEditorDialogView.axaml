@@ -19,20 +19,22 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
-    <Style Selector="Border.KeyBorder">
-      <Setter Property="Transitions">
+    <Style Selector="Border.FlashBorder">
+      <Setter Property="Background" Value="{DynamicResource SukiText}" />
+      <Setter Property="Opacity" Value="0" />
+      <!--<Setter Property="Transitions">
         <Transitions>
-          <BrushTransition Property="Background" Duration="0:0:0.5" />
+          <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
         </Transitions>
-      </Setter>
+      </Setter>-->
     </Style>
-    <Style Selector="Border.KeyBorder.active">
-      <Setter Property="Transitions">
+    <Style Selector="Border.FlashBorder.active">
+      <Setter Property="Opacity" Value="0.6" />
+      <!--<Setter Property="Transitions">
         <Transitions>
-          <BrushTransition Property="Background" Duration="0:0:0.0" />
+          <DoubleTransition Property="Opacity" Duration="0:0:0.0" />
         </Transitions>
-      </Setter>
-      <Setter Property="Background" Value="{DynamicResource SukiMuteText}" />
+      </Setter>-->
     </Style>
   </UserControl.Styles>
 
@@ -70,14 +72,19 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 CornerRadius="8">
-                <Border Classes="KeyBorder" Classes.active="{Binding IsActive}" CornerRadius="8">
+                <Panel>
                   <ContentControl
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Content="{Binding Key, Converter={StaticResource HookKeyToDisplayConverter}}"
                     FontSize="16"
                     FontWeight="Bold" />
-                </Border>
+                  <Border
+                    Classes="FlashBorder"
+                    Classes.active="{Binding IsActive}"
+                    CornerRadius="8"
+                    IsHitTestVisible="False" />
+                </Panel>
               </suki:GlassCard>
 
               <Button

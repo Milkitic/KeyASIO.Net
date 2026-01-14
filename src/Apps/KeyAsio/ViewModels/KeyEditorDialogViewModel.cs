@@ -7,29 +7,6 @@ using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.ViewModels;
 
-public partial class KeyItemWrapper : ObservableObject
-{
-    public KeyItemWrapper(HookKeys key)
-    {
-        Key = key;
-    }
-
-    public HookKeys Key { get; }
-
-    [ObservableProperty]
-    private bool _isActive;
-
-    public void Trigger()
-    {
-        IsActive = true;
-        Dispatcher.UIThread.Post(async () =>
-        {
-            await Task.Delay(20);
-            IsActive = false;
-        });
-    }
-}
-
 public partial class KeyEditorDialogViewModel : ViewModelBase, IDisposable
 {
     private readonly IKeyboardHook _keyboardHook;
@@ -105,5 +82,28 @@ public partial class KeyEditorDialogViewModel : ViewModelBase, IDisposable
 
         _keyboardHook.KeyPressed -= OnKeyPressed;
         GC.SuppressFinalize(this);
+    }
+}
+
+public partial class KeyItemWrapper : ObservableObject
+{
+    public KeyItemWrapper(HookKeys key)
+    {
+        Key = key;
+    }
+
+    public HookKeys Key { get; }
+
+    [ObservableProperty]
+    private bool _isActive;
+
+    public void Trigger()
+    {
+        IsActive = true;
+        Dispatcher.UIThread.Post(async () =>
+        {
+            await Task.Delay(20);
+            IsActive = false;
+        });
     }
 }
