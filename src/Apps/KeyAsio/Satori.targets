@@ -46,8 +46,8 @@
         <RuntimeIdentifier>$(RuntimeIdentifier)</RuntimeIdentifier>
         <CopyLocal>true</CopyLocal>
         <NuGetPackageId>Microsoft.NETCore.App.Runtime.win-x64</NuGetPackageId>
-        <FileVersion>10.0.1.42424</FileVersion>
-        <NuGetPackageVersion>10.0.1.42424</NuGetPackageVersion>
+        <FileVersion>42.42.42.42424</FileVersion>
+        <NuGetPackageVersion>42.42.42.42424</NuGetPackageVersion>
       </RuntimePackAsset>
     </ItemGroup>
   </Target>
