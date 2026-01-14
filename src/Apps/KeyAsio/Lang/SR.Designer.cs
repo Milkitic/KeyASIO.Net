@@ -1311,5 +1311,248 @@ namespace KeyAsio.Lang {
                 return ResourceManager.GetString("Volume_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   查找类似 Output Device 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Config_Device {
+            get {
+                return ResourceManager.GetString("Wizard_Config_Device", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Driver Type 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Config_Driver {
+            get {
+                return ResourceManager.GetString("Wizard_Config_Driver", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Audio Configuration 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Config_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Config_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Finish 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Finish {
+            get {
+                return ResourceManager.GetString("Wizard_Finish", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Hardware Mix (Multi-Output) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Hardware {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Hardware", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 I have a dedicated sound card or mixer. I can route osu! and KeyASIO to different outputs. 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Hardware_Desc {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Hardware_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Software Mix (ProMix) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Software {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Software", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 I use standard headphones/speakers. Let KeyASIO handle the mixing. 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Software_Desc {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Software_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Select Audio Mode 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Next 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Next {
+            get {
+                return ResourceManager.GetString("Wizard_Next", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Previous 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Previous {
+            get {
+                return ResourceManager.GetString("Wizard_Previous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Check for updates automatically 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Privacy_CheckUpdates {
+            get {
+                return ResourceManager.GetString("Wizard_Privacy_CheckUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Send anonymous crash reports 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Privacy_CrashReport {
+            get {
+                return ResourceManager.GetString("Wizard_Privacy_CrashReport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Privacy &amp; Updates 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Privacy_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Privacy_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Skip 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Skip {
+            get {
+                return ResourceManager.GetString("Wizard_Skip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Start Setup 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Start {
+            get {
+                return ResourceManager.GetString("Wizard_Start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Test Key Sound 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Test_KeySound {
+            get {
+                return ResourceManager.GetString("Wizard_Test_KeySound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Test Music 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Test_Music {
+            get {
+                return ResourceManager.GetString("Wizard_Test_Music", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Audio Test 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Test_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Test_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Setup Wizard 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Virtual Driver Detected 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_VirtualDriver_Detected {
+            get {
+                return ResourceManager.GetString("Wizard_VirtualDriver_Detected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Install Virtual Driver 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_VirtualDriver_Install {
+            get {
+                return ResourceManager.GetString("Wizard_VirtualDriver_Install", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Ultra Low Latency (ASIO) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Feature1 {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Feature1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Automatic Sync (osu! Integration) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Feature2 {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Feature2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Advanced Mixing (DSP) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Feature3 {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Feature3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 The Ultimate Low-Latency Audio Middleware for osu! 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Subtitle {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Welcome to KeyASIO 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Title", resourceCulture);
+            }
+        }
     }
 }

@@ -535,4 +535,85 @@
   <data name="Volume_Title" xml:space="preserve">
     <value>音量控制</value>
   </data>
+  <data name="Wizard_Config_Device" xml:space="preserve">
+    <value>输出设备</value>
+  </data>
+  <data name="Wizard_Config_Driver" xml:space="preserve">
+    <value>驱动类型</value>
+  </data>
+  <data name="Wizard_Config_Title" xml:space="preserve">
+    <value>音频配置</value>
+  </data>
+  <data name="Wizard_Finish" xml:space="preserve">
+    <value>完成配置</value>
+  </data>
+  <data name="Wizard_Mode_Hardware" xml:space="preserve">
+    <value>硬件混音 (多路输出)</value>
+  </data>
+  <data name="Wizard_Mode_Hardware_Desc" xml:space="preserve">
+    <value>我有独立声卡或调音台，可以让 osu! 和 KeyASIO 分别输出。</value>
+  </data>
+  <data name="Wizard_Mode_Software" xml:space="preserve">
+    <value>软件混音 (ProMix)</value>
+  </data>
+  <data name="Wizard_Mode_Software_Desc" xml:space="preserve">
+    <value>我使用普通耳机/音响。让 KeyASIO 处理混音。</value>
+  </data>
+  <data name="Wizard_Mode_Title" xml:space="preserve">
+    <value>选择运行模式</value>
+  </data>
+  <data name="Wizard_Next" xml:space="preserve">
+    <value>下一步</value>
+  </data>
+  <data name="Wizard_Previous" xml:space="preserve">
+    <value>上一步</value>
+  </data>
+  <data name="Wizard_Privacy_CheckUpdates" xml:space="preserve">
+    <value>自动检查更新</value>
+  </data>
+  <data name="Wizard_Privacy_CrashReport" xml:space="preserve">
+    <value>发送匿名崩溃报告</value>
+  </data>
+  <data name="Wizard_Privacy_Title" xml:space="preserve">
+    <value>隐私与更新</value>
+  </data>
+  <data name="Wizard_Skip" xml:space="preserve">
+    <value>跳过</value>
+  </data>
+  <data name="Wizard_Start" xml:space="preserve">
+    <value>开始配置</value>
+  </data>
+  <data name="Wizard_Test_KeySound" xml:space="preserve">
+    <value>测试按键音</value>
+  </data>
+  <data name="Wizard_Test_Music" xml:space="preserve">
+    <value>测试音乐</value>
+  </data>
+  <data name="Wizard_Test_Title" xml:space="preserve">
+    <value>音频测试</value>
+  </data>
+  <data name="Wizard_Title" xml:space="preserve">
+    <value>初次配置向导</value>
+  </data>
+  <data name="Wizard_VirtualDriver_Detected" xml:space="preserve">
+    <value>已检测到虚拟驱动</value>
+  </data>
+  <data name="Wizard_VirtualDriver_Install" xml:space="preserve">
+    <value>安装虚拟驱动</value>
+  </data>
+  <data name="Wizard_Welcome_Feature1" xml:space="preserve">
+    <value>极致低延迟 (ASIO)</value>
+  </data>
+  <data name="Wizard_Welcome_Feature2" xml:space="preserve">
+    <value>自动同步 (osu! 内存读取)</value>
+  </data>
+  <data name="Wizard_Welcome_Feature3" xml:space="preserve">
+    <value>高级混音 (DSP 处理)</value>
+  </data>
+  <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
+    <value>osu! 终极低延迟音频中间件</value>
+  </data>
+  <data name="Wizard_Welcome_Title" xml:space="preserve">
+    <value>欢迎使用 KeyASIO</value>
+  </data>
 </root>

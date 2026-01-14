@@ -535,4 +535,85 @@ You can change option later.</value>
   <data name="Volume_Title" xml:space="preserve">
     <value>Volume Control</value>
   </data>
+  <data name="Wizard_Config_Device" xml:space="preserve">
+    <value>Output Device</value>
+  </data>
+  <data name="Wizard_Config_Driver" xml:space="preserve">
+    <value>Driver Type</value>
+  </data>
+  <data name="Wizard_Config_Title" xml:space="preserve">
+    <value>Audio Configuration</value>
+  </data>
+  <data name="Wizard_Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Wizard_Mode_Hardware" xml:space="preserve">
+    <value>Hardware Mix (Multi-Output)</value>
+  </data>
+  <data name="Wizard_Mode_Hardware_Desc" xml:space="preserve">
+    <value>I have a dedicated sound card or mixer. I can route osu! and KeyASIO to different outputs.</value>
+  </data>
+  <data name="Wizard_Mode_Software" xml:space="preserve">
+    <value>Software Mix (ProMix)</value>
+  </data>
+  <data name="Wizard_Mode_Software_Desc" xml:space="preserve">
+    <value>I use standard headphones/speakers. Let KeyASIO handle the mixing.</value>
+  </data>
+  <data name="Wizard_Mode_Title" xml:space="preserve">
+    <value>Select Audio Mode</value>
+  </data>
+  <data name="Wizard_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Wizard_Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Wizard_Privacy_CheckUpdates" xml:space="preserve">
+    <value>Check for updates automatically</value>
+  </data>
+  <data name="Wizard_Privacy_CrashReport" xml:space="preserve">
+    <value>Send anonymous crash reports</value>
+  </data>
+  <data name="Wizard_Privacy_Title" xml:space="preserve">
+    <value>Privacy &amp; Updates</value>
+  </data>
+  <data name="Wizard_Skip" xml:space="preserve">
+    <value>Skip</value>
+  </data>
+  <data name="Wizard_Start" xml:space="preserve">
+    <value>Start Setup</value>
+  </data>
+  <data name="Wizard_Test_KeySound" xml:space="preserve">
+    <value>Test Key Sound</value>
+  </data>
+  <data name="Wizard_Test_Music" xml:space="preserve">
+    <value>Test Music</value>
+  </data>
+  <data name="Wizard_Test_Title" xml:space="preserve">
+    <value>Audio Test</value>
+  </data>
+  <data name="Wizard_Title" xml:space="preserve">
+    <value>Setup Wizard</value>
+  </data>
+  <data name="Wizard_VirtualDriver_Detected" xml:space="preserve">
+    <value>Virtual Driver Detected</value>
+  </data>
+  <data name="Wizard_VirtualDriver_Install" xml:space="preserve">
+    <value>Install Virtual Driver</value>
+  </data>
+  <data name="Wizard_Welcome_Feature1" xml:space="preserve">
+    <value>Ultra Low Latency (ASIO)</value>
+  </data>
+  <data name="Wizard_Welcome_Feature2" xml:space="preserve">
+    <value>Automatic Sync (osu! Integration)</value>
+  </data>
+  <data name="Wizard_Welcome_Feature3" xml:space="preserve">
+    <value>Advanced Mixing (DSP)</value>
+  </data>
+  <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
+    <value>The Ultimate Low-Latency Audio Middleware for osu!</value>
+  </data>
+  <data name="Wizard_Welcome_Title" xml:space="preserve">
+    <value>Welcome to KeyASIO</value>
+  </data>
 </root>

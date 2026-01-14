@@ -27,6 +27,8 @@ public partial class AppSettingsGeneral : INotifyPropertyChanged
 
     [Description("Application theme.")]
     public AppTheme Theme { get; set; } = AppTheme.System;
+
+    public bool IsFirstRun { get; set; } = true;
 }
 
 public partial class AppSettingsInput : INotifyPropertyChanged
