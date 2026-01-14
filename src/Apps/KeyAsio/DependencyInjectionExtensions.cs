@@ -23,6 +23,7 @@ public static class DependencyInjectionExtensions
 
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<WizardViewModel>();
         services.AddTransient<AudioSettingsViewModel>();
         services.AddTransient<KeyBindingViewModel>();
         services.AddTransient<PluginManagerViewModel>();

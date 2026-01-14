@@ -1,0 +1,287 @@
+﻿<UserControl
+  x:Class="KeyAsio.Views.Dialogs.WizardDialogView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
+  xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+  xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:vm="using:KeyAsio.ViewModels"
+  Width="700"
+  Height="530"
+  x:DataType="vm:WizardViewModel">
+  <Design.DataContext>
+    <vm:WizardViewModel />
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+    <!--  Header / Stepper  -->
+    <suki:Stepper
+      AlternativeStyle="True"
+      Index="{Binding StepIndex}"
+      Steps="{Binding Steps}" />
+
+    <!--  Content  -->
+    <Carousel
+      Grid.Row="1"
+      Margin="20"
+      SelectedIndex="{Binding StepIndex}">
+      <Carousel.PageTransition>
+        <PageSlide Orientation="Horizontal" Duration="0.5" />
+      </Carousel.PageTransition>
+
+      <!--  Step 0: Welcome  -->
+
+      <Grid
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Center"
+        RowDefinitions="Auto,Auto,Auto,*">
+        <Image
+          Grid.Row="0"
+          Width="96"
+          Height="96"
+          Source="/Assets/KeyAsio.ico" />
+        <TextBlock
+          Grid.Row="1"
+          Margin="0,20,0,0"
+          HorizontalAlignment="Center"
+          Classes="h3"
+          Text="{I18N {x:Static lang:SRKeys.Wizard_Welcome_Title}}" />
+        <TextBlock
+          Grid.Row="2"
+          Margin="0,20,0,0"
+          HorizontalAlignment="Center"
+          Classes="h5"
+          Opacity="0.7"
+          Text="{I18N {x:Static lang:SRKeys.Wizard_Welcome_Subtitle}}" />
+        <StackPanel
+          Grid.Row="3"
+          Margin="0,30,0,0"
+          HorizontalAlignment="Center"
+          Orientation="Horizontal"
+          Spacing="30">
+          <suki:GlassCard Width="180" Height="140">
+            <StackPanel VerticalAlignment="Center" Spacing="10">
+              <materialIcons:MaterialIcon
+                Width="30"
+                Height="30"
+                Foreground="{DynamicResource SukiPrimaryColor}"
+                Kind="LightningBolt" />
+              <TextBlock
+                Text="{I18N {x:Static lang:SRKeys.Wizard_Welcome_Feature1}}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+            </StackPanel>
+          </suki:GlassCard>
+          <suki:GlassCard Width="180" Height="140">
+            <StackPanel VerticalAlignment="Center" Spacing="10">
+              <materialIcons:MaterialIcon
+                Width="30"
+                Height="30"
+                Foreground="{DynamicResource SukiPrimaryColor}"
+                Kind="Sync" />
+              <TextBlock
+                Text="{I18N {x:Static lang:SRKeys.Wizard_Welcome_Feature2}}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+            </StackPanel>
+          </suki:GlassCard>
+          <suki:GlassCard Width="180" Height="140">
+            <StackPanel VerticalAlignment="Center" Spacing="10">
+              <materialIcons:MaterialIcon
+                Width="30"
+                Height="30"
+                Foreground="{DynamicResource SukiPrimaryColor}"
+                Kind="Tune" />
+              <TextBlock
+                Text="{I18N {x:Static lang:SRKeys.Wizard_Welcome_Feature3}}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+            </StackPanel>
+          </suki:GlassCard>
+        </StackPanel>
+      </Grid>
+
+
+      <!--  Step 1: Mode Selection  -->
+      <Grid ColumnDefinitions="*,*">
+        <suki:GlassCard
+          Margin="10"
+          Command="{Binding SelectModeCommand}"
+          IsInteractive="True">
+          <suki:GlassCard.CommandParameter>
+            <vm:WizardMode>Hardware</vm:WizardMode>
+          </suki:GlassCard.CommandParameter>
+          <StackPanel
+            Margin="20"
+            VerticalAlignment="Center"
+            Spacing="20">
+            <materialIcons:MaterialIcon
+              Width="60"
+              Height="60"
+              Kind="DeveloperBoard" />
+            <TextBlock
+              Classes="h3"
+              Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Hardware}}"
+              TextAlignment="Center" />
+            <TextBlock
+              Opacity="0.7"
+              Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Hardware_Desc}}"
+              TextAlignment="Center"
+              TextWrapping="Wrap" />
+            <RadioButton
+              HorizontalAlignment="Center"
+              Content="Select"
+              IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Hardware}}"
+              IsHitTestVisible="False" />
+          </StackPanel>
+        </suki:GlassCard>
+
+        <suki:GlassCard
+          Grid.Column="1"
+          Margin="10"
+          Command="{Binding SelectModeCommand}"
+          IsInteractive="True">
+          <suki:GlassCard.CommandParameter>
+            <vm:WizardMode>Software</vm:WizardMode>
+          </suki:GlassCard.CommandParameter>
+          <StackPanel
+            Margin="20"
+            VerticalAlignment="Center"
+            Spacing="20">
+            <materialIcons:MaterialIcon
+              Width="60"
+              Height="60"
+              Kind="SurroundSound51" />
+            <TextBlock
+              Classes="h3"
+              Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Software}}"
+              TextAlignment="Center" />
+            <TextBlock
+              Opacity="0.7"
+              Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Software_Desc}}"
+              TextAlignment="Center"
+              TextWrapping="Wrap" />
+            <RadioButton
+              HorizontalAlignment="Center"
+              Content="Select"
+              IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Software}}"
+              IsHitTestVisible="False" />
+          </StackPanel>
+        </suki:GlassCard>
+      </Grid>
+
+      <!--  Step 2: Configuration  -->
+      <Grid>
+        <StackPanel
+          Width="400"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Spacing="20">
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="h2"
+            Text="{I18N {x:Static lang:SRKeys.Wizard_Config_Title}}" />
+
+          <suki:GlassCard>
+            <StackPanel Spacing="15">
+              <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Config_Driver}}" Icon="DeveloperBoard">
+                <ComboBox
+                  MinWidth="200"
+                  ItemsSource="{Binding AvailableDriverTypes}"
+                  SelectedItem="{Binding SelectedDriverType}" />
+              </controls:SettingItem>
+
+              <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Config_Device}}" Icon="Speaker">
+                <ComboBox
+                  MinWidth="200"
+                  ItemsSource="{Binding AvailableAudioDevices}"
+                  SelectedItem="{Binding SelectedAudioDevice}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding FriendlyName}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </controls:SettingItem>
+            </StackPanel>
+          </suki:GlassCard>
+
+          <!--  ProMix warning  -->
+          <StackPanel IsVisible="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Software}}">
+            <TextBlock
+              HorizontalAlignment="Center"
+              Foreground="LightGreen"
+              IsVisible="{Binding IsVirtualDriverDetected}"
+              Text="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Detected}}" />
+
+            <Button
+              HorizontalAlignment="Center"
+              Classes="Flat"
+              Content="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Install}}"
+              IsVisible="{Binding !IsVirtualDriverDetected}" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+
+      <!--  Step 3: Test  -->
+      <Grid>
+        <StackPanel
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Spacing="20">
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="h2"
+            Text="{I18N {x:Static lang:SRKeys.Wizard_Test_Title}}" />
+          <Button
+            Width="200"
+            Height="50"
+            Classes="Accent"
+            Command="{Binding TestKeySoundCommand}"
+            Content="{I18N {x:Static lang:SRKeys.Wizard_Test_KeySound}}" />
+        </StackPanel>
+      </Grid>
+
+      <!--  Step 4: Privacy  -->
+      <Grid>
+        <StackPanel
+          Width="400"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Spacing="20">
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="h2"
+            Text="{I18N {x:Static lang:SRKeys.Wizard_Privacy_Title}}" />
+          <suki:GlassCard>
+            <StackPanel Spacing="10">
+              <CheckBox Content="{I18N {x:Static lang:SRKeys.Wizard_Privacy_CrashReport}}" IsChecked="{Binding EnableCrashReport}" />
+              <CheckBox Content="{I18N {x:Static lang:SRKeys.Wizard_Privacy_CheckUpdates}}" IsChecked="{Binding EnableUpdates}" />
+            </StackPanel>
+          </suki:GlassCard>
+        </StackPanel>
+      </Grid>
+    </Carousel>
+
+    <!--  Footer  -->
+    <StackPanel
+      Grid.Row="2"
+      HorizontalAlignment="Right"
+      Orientation="Horizontal"
+      Spacing="10">
+      <Button
+        Classes="Flat"
+        Command="{Binding SkipCommand}"
+        Content="{I18N {x:Static lang:SRKeys.Wizard_Skip}}" />
+      <Button
+        Command="{Binding PreviousCommand}"
+        Content="{I18N {x:Static lang:SRKeys.Wizard_Previous}}"
+        IsVisible="{Binding StepIndex, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=0}" />
+      <Button
+        Classes="Flat Primary"
+        Command="{Binding NextCommand}"
+        Content="{I18N {x:Static lang:SRKeys.Wizard_Next}}" />
+    </StackPanel>
+  </Grid>
+</UserControl>
