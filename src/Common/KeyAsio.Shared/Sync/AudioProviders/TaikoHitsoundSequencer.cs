@@ -307,6 +307,8 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
                 if (hitsoundNode is ControlNode controlNode &&
                     controlNode.ControlType != ControlType.ChangeBalance &&
                     controlNode.ControlType != ControlType.None &&
+                    controlNode.ControlType != ControlType.StartSliding &&
+                    controlNode.ControlType != ControlType.StopSliding &&
                     !options.Filters.DisableSliderTicksAndSlides)
                 {
                     playbackList.Add(controlNode);
