@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,6 +6,29 @@ using KeyAsio.Lang;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.ViewModels;
+
+public partial class KeyItemWrapper : ObservableObject
+{
+    public KeyItemWrapper(HookKeys key)
+    {
+        Key = key;
+    }
+
+    public HookKeys Key { get; }
+
+    [ObservableProperty]
+    private bool _isActive;
+
+    public void Trigger()
+    {
+        IsActive = true;
+        Dispatcher.UIThread.Post(async () =>
+        {
+            await Task.Delay(20);
+            IsActive = false;
+        });
+    }
+}
 
 public partial class KeyEditorDialogViewModel : ViewModelBase, IDisposable
 {
@@ -17,10 +40,16 @@ public partial class KeyEditorDialogViewModel : ViewModelBase, IDisposable
         _keyboardHook = keyboardHook;
         BoundKeys = boundKeys;
 
+        foreach (var key in boundKeys)
+        {
+            DisplayKeys.Add(new KeyItemWrapper(key));
+        }
+
         _keyboardHook.KeyPressed += OnKeyPressed;
     }
 
     public ObservableCollection<HookKeys> BoundKeys { get; }
+    public ObservableCollection<KeyItemWrapper> DisplayKeys { get; } = new();
 
     [ObservableProperty]
     public partial string Message { get; set; } = SR.KeyBinding_Message;
@@ -36,9 +65,17 @@ public partial class KeyEditorDialogViewModel : ViewModelBase, IDisposable
             {
                 if (_isDisposed) return;
 
-                if (!BoundKeys.Contains(hookKey))
+                var wrapper = DisplayKeys.FirstOrDefault(x => x.Key == hookKey);
+                if (wrapper != null)
+                {
+                    wrapper.Trigger();
+                }
+                else if (!BoundKeys.Contains(hookKey))
                 {
                     BoundKeys.Add(hookKey);
+                    var newWrapper = new KeyItemWrapper(hookKey);
+                    DisplayKeys.Add(newWrapper);
+                    newWrapper.Trigger();
                 }
             });
         }
@@ -50,13 +87,15 @@ public partial class KeyEditorDialogViewModel : ViewModelBase, IDisposable
         if (!BoundKeys.Contains(HookKeys.LButton))
         {
             BoundKeys.Add(HookKeys.LButton);
+            DisplayKeys.Add(new KeyItemWrapper(HookKeys.LButton));
         }
     }
 
     [RelayCommand]
-    public void RemoveKey(HookKeys key)
+    public void RemoveKey(KeyItemWrapper wrapper)
     {
-        BoundKeys.Remove(key);
+        BoundKeys.Remove(wrapper.Key);
+        DisplayKeys.Remove(wrapper);
     }
 
     public void Dispose()

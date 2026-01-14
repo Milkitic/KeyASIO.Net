@@ -18,6 +18,24 @@
     <converters:HookKeyToDisplayConverter x:Key="HookKeyToDisplayConverter" />
   </UserControl.Resources>
 
+  <UserControl.Styles>
+    <Style Selector="Border.KeyBorder">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.5" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Border.KeyBorder.active">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.0" />
+        </Transitions>
+      </Setter>
+      <Setter Property="Background" Value="{DynamicResource SukiMuteText}" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,*,Auto" RowSpacing="20">
     <TextBlock
       Classes="h5"
@@ -29,7 +47,7 @@
       Grid.Row="1"
       HorizontalScrollBarVisibility="Disabled"
       VerticalScrollBarVisibility="Auto">
-      <ItemsControl ItemsSource="{Binding BoundKeys}">
+      <ItemsControl ItemsSource="{Binding DisplayKeys}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel
@@ -52,12 +70,14 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 CornerRadius="8">
-                <ContentControl
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Content="{Binding Converter={StaticResource HookKeyToDisplayConverter}}"
-                  FontSize="16"
-                  FontWeight="Bold" />
+                <Border Classes="KeyBorder" Classes.active="{Binding IsActive}" CornerRadius="8">
+                  <ContentControl
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Content="{Binding Key, Converter={StaticResource HookKeyToDisplayConverter}}"
+                    FontSize="16"
+                    FontWeight="Bold" />
+                </Border>
               </suki:GlassCard>
 
               <Button
