@@ -33,7 +33,7 @@
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel
-              MaxWidth="500"
+              Width="500"
               ClipToBounds="False"
               Orientation="Horizontal" />
           </ItemsPanelTemplate>

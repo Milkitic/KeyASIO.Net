@@ -11,7 +11,7 @@ public class HookKeyToDisplayConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not HookKeys key) return value;
-
+        bool useString = false;
         if (targetType == typeof(object))
         {
             // Return icon or text based on key
@@ -49,8 +49,8 @@ public class HookKeyToDisplayConverter : IValueConverter
                     return new MaterialIcon { Kind = MaterialIconKind.KeyboardBackspace, Width = size, Height = size };
                 case HookKeys.Tab:
                     return new MaterialIcon { Kind = MaterialIconKind.KeyboardTab, Width = size, Height = size };
-                case HookKeys.Escape:
-                    return new MaterialIcon { Kind = MaterialIconKind.KeyboardEsc, Width = size, Height = size };
+                //case HookKeys.Escape:
+                //    return new MaterialIcon { Kind = MaterialIconKind.KeyboardEsc, Width = size, Height = size };
                 case HookKeys.Delete:
                     return new MaterialIcon { Kind = MaterialIconKind.Delete, Width = size, Height = size };
                 case HookKeys.Home:
@@ -97,6 +97,12 @@ public class HookKeyToDisplayConverter : IValueConverter
                     return new MaterialIcon { Kind = MaterialIconKind.SkipPrevious, Width = size, Height = size };
                 case HookKeys.MediaStop:
                     return new MaterialIcon { Kind = MaterialIconKind.Stop, Width = size, Height = size };
+                case HookKeys.LaunchMail:
+                    return new MaterialIcon { Kind = MaterialIconKind.Mail, Width = size, Height = size };
+                case HookKeys.LaunchApplication1:
+                    return new MaterialIcon { Kind = MaterialIconKind.Application, Width = size, Height = size };
+                case HookKeys.LaunchApplication2:
+                    return new MaterialIcon { Kind = MaterialIconKind.Calculator, Width = size, Height = size };
 
                 // System
                 case HookKeys.CapsLock:
@@ -105,29 +111,48 @@ public class HookKeyToDisplayConverter : IValueConverter
                     return new MaterialIcon { Kind = MaterialIconKind.MonitorScreenshot, Width = size, Height = size };
 
                 default:
-                    // Shorten common names if no icon
-                    return key switch
-                    {
-                        HookKeys.Oemtilde => "~",
-                        HookKeys.OemMinus => "-",
-                        HookKeys.Oemplus => "+",
-                        HookKeys.OemOpenBrackets => "[",
-                        HookKeys.OemCloseBrackets => "]",
-                        HookKeys.OemPipe => "\\",
-                        HookKeys.OemSemicolon => ";",
-                        HookKeys.OemQuotes => "'",
-                        HookKeys.Oemcomma => ",",
-                        HookKeys.OemPeriod => ".",
-                        HookKeys.OemQuestion => "/",
-                        _ => key.ToString()
-                    };
+                    useString = true;
+                    break;
             }
         }
-        else if (targetType == typeof(string))
+
+        if (useString || targetType == typeof(string))
         {
             // Fallback for string-only binding if needed
             return key switch
             {
+                HookKeys.Divide => "[/]",
+                HookKeys.Multiply => "[*]",
+                HookKeys.Subtract => "[-]",
+                HookKeys.Add => "[+]",
+                HookKeys.Decimal => "[.]",
+                HookKeys.NumPad1 => "[1]",
+                HookKeys.NumPad2 => "[2]",
+                HookKeys.NumPad3 => "[3]",
+                HookKeys.NumPad4 => "[4]",
+                HookKeys.NumPad5 => "[5]",
+                HookKeys.NumPad6 => "[6]",
+                HookKeys.NumPad7 => "[7]",
+                HookKeys.NumPad8 => "[8]",
+                HookKeys.NumPad9 => "[9]",
+                HookKeys.NumPad0 => "[0]",
+
+                HookKeys.D1 => "1",
+                HookKeys.D2 => "2",
+                HookKeys.D3 => "3",
+                HookKeys.D4 => "4",
+                HookKeys.D5 => "5",
+                HookKeys.D6 => "6",
+                HookKeys.D7 => "7",
+                HookKeys.D8 => "8",
+                HookKeys.D9 => "9",
+                HookKeys.D0 => "0",
+
+                HookKeys.Insert => "INS",
+                HookKeys.Clear => "CLR",
+                HookKeys.Pause => "PSE",
+                HookKeys.NumLock => "NUM",
+
                 HookKeys.LButton => "M1",
                 HookKeys.RButton => "M2",
                 HookKeys.MButton => "M3",
@@ -141,8 +166,8 @@ public class HookKeyToDisplayConverter : IValueConverter
                 HookKeys.Return => "↵",
                 HookKeys.Back => "⌫",
                 HookKeys.Tab => "↹",
-                HookKeys.Escape => "Esc",
-                HookKeys.Delete => "Del",
+                HookKeys.Escape => "ESC",
+                HookKeys.Delete => "DEL",
                 HookKeys.Home => "Home",
                 HookKeys.End => "End",
                 HookKeys.PageUp => "PgUp",
