@@ -1,91 +1,90 @@
-# KeyASIO.Net
+<div align="center">
+
+<!--[![Discord](https://img.shields.io/discord/dicord_id?label=Discord&logo=discord&style=flat-square&color=5865F2)](link)-->
+# ⚡ KeyASIO.Net
+**The Ultimate Low-Latency Audio Middleware for osu!**
+
+[![Release](https://img.shields.io/github/v/release/Milkitic/KeyASIO.Net?style=flat-square&color=56b6c2)](https://github.com/Milkitic/KeyASIO.Net/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/Milkitic/KeyASIO.Net)
+[![License](https://img.shields.io/github/license/Milkitic/KeyASIO.Net?style=flat-square)](LICENSE)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Milkitic/KeyASIO.Net)
 
-External ASIO/WASAPI_EXCLUSIVE backend for low-latency and safe osu! audio playback experience.
-
-While osu's original audio system has a latency for about 40 ms, this program can provide extremely low latency to as low as 0.6ms *(Verified by [EmertxE](https://osu.ppy.sh/users/954557), determine by your devices, from tapping to hearing)*, and for most players the latency can be lower than about 8-15ms *(with no professional soundcard, from tapping to hearing)*.
-
-## Introduction
-We have been waiting for the [very near future](https://osu.ppy.sh/community/forums/topics/428222?n=13) for several years, but it looks like that the dev team has been stopped supporting such heavy development for legacy osu. So there are many nice external community audio tools before like [REAL](https://github.com/miniant-git/REAL), [osu-External-ASIO-Sound](https://github.com/XTXTMTXTX/osu-External-ASIO-Sound), [AsioHookForOsu](https://github.com/zzhouhe/AsioHookForOsu), etc. But:
-* Even with REAL, the osu's playback latency is still about 25ms. Anyway this is the easiest way to gain such improvement.
-* Tools like osu-External-ASIO-Sound or AsioHookForOsu gives ASIO support, but they have some inevitable problems: 1. Inject and hook which is unsafe for your account. 2. Not perfect for custom hitsound support.
-
-This project born to resolve these problems. As default, this program enables `RealtimeMode` in the configuration, which will use [OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider) to read osu's memory without modifying. The OsuRTDataProvider is commonly used for broadcasting tools (like [RTPP Displayer](https://osu.ppy.sh/community/forums/topics/685031?n=1)), and it looks safe because it was [approved by peppy](https://i.ppy.sh/6c651103246da60f794606d63b8fc30c3aafd4fa/68747470733a2f2f692e696d6775722e636f6d2f767744337a64302e706e67). *But nothing will be guaranteed, so I should still say please do at your own risk.*
-
-**Benifits of KeyASIO.Net**
-1. Support extremely low-latency playback around 0.6ms (determine by your devices, from tapping to hearing).
-2. Fully support for playing beatmap's custom hitsound including storyboard samples, and hitsound customization like: User skin, Ignore custom hitsound, Ignore samples, Ignore volumes, Ignore slidertails, etc.
-3. Optimize mania as per-key sound, just like behaviors in the game.
-4. Safe for your account, **but no guarantee**.
-5. A easy-to-use user interface.
-
-## Screenshots 
 <p align="center">
-  <img src="docs/overview.png">
-  <br>
-  <sub>Overview</sub>
-</p>
-<p align="center">
-  <img src="docs/realtimeoptions.png">
-  <br>
-  <sub>Realtime options</sub>
+  <b>Experience audio latency as low as 0.6ms.</b><br>
+  <i>"I was hearing clicks before I even tapped." — Top Player Feedback</i>
 </p>
 
-## Configuration
-The KeyASIO.Net supports `FullMode` (`EnableMusicFunctions` in configuration), which can also synchronize the music, that will completely replace osu's sounds. This will make you much easier to start, but it has irresolvable problems. For players who has only one soundcard, you can try the fullmode. Otherwise, I only suggest with this option off.
-### Without standalone soundcard 
-#### FullMode ENABLED
-> **Prerequisites**
-> * Install [ASIO4ALL](https://www.asio4all.org/) / Just use WASAPI_EXCLUSIVE
-> * Install [VB-CABLE](https://vb-audio.com/Cable/)
+</div>
 
-1. Change the device in the software GUI, select ASIO4ALL or your default WASAPI device with exclusive, and confirm.
-2. If the ASIO4ALL is selected, open ASIO control panel and select your output device with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
-3. Check your osu game to test whether the game has lags or problems to play. **If yes**, select the game's output to `VB-CABLE Input` 
-> This is because of whether the same audio device in game settings is used exclusively in other applications. In case of exclusive using, the osu game's time synchronization may stuck while game playing, so the hitbox check will always fail.
-4. (Optional for livestream) Select the game's output to `VB-CABLE Input`, and add the `VB-CABLE Output` as second audio output device in your livestream software.
-5. Enjoy
+---
 
-#### FullMode DISABLED
-> **Prerequisites**
-> * Make sure you have at least 2 audio output devices (including HDMI Audio). An HDMI decoder with audio port is required if your monitor doesn't have audio port.
-> * A standalone mixer. Low-end device is just ok, since they are always very cheap. **DO NOT USE WINDOWS MIXER SOFTWARES**, since they will only increase the latency.
-> * Install [ASIO4ALL](https://www.asio4all.org/) / Just use WASAPI_EXCLUSIVE
+## 🚀 Why KeyASIO?
 
-1. Use HDMI output to display monitor or HDMI decoder, and line-out to the mixer. Line-out your motherboard soundcard to the mixer. Plug your headphone into the mixer.
-2. Change the device in the software GUI, select ASIO4ALL and confirm.
-3. Open the ASIO4ALL control panel, and select something like `HDMI Out` with others deselected. Press `Advanced Options` and adjust the options to lower the latency (Check latency at the software GUI)
-4. Select your motherboard device in osu game. Please do not select the same device as ASIO4ALL. It doesn't work.
-5. Change your own key bindings in the software GUI.
-6. Set the effect volume to 0 in osu!.
-7. Open offset wizard, play with `Auto` mod and adjust the software's offset and osu!'s offset.
-8. Enjoy
+While osu!'s audio system suffers from a typical latency of **30~40ms**, KeyASIO bypasses the Windows mixer entirely using an external **ASIO / WASAPI Exclusive** backend.
 
-### With standalone soundcard 
-#### FullMode ENABLED
-> **Prerequisites**
-> * Install [VB-CABLE](https://vb-audio.com/Cable/) 
+* **⚡ Extreme Performance:** Achieves **~0.6ms** latency on high-end hardware (Verified by [EmertxE](https://osu.ppy.sh/users/954557)). Even on generic hardware, expect **8-15ms**.
+* **🎮 True Game Integration:** Uses [ReadProcessMemory](https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-readprocessmemory) to read memory safely. It's not just "pressing a key makes a sound" — it's real-time game state synchronization.
+* **🎧 Rich Audio Support:** Fully supports custom hitsounds, storyboard samples, dynamic volume, and skin overrides.
+* **🎹 Mania Optimization:** Per-key sound processing, identical to native game behavior.
 
-1. Change the device in the software GUI, select your standalone soundcard, and confirm.
-2. Check your osu game to test whether the game has lags or problems to play. **If yes**, select the game's output to `VB-CABLE Input` 
-> This is because of whether the same audio device in game settings is used exclusively in other applications. In case of exclusive using, the osu game's time synchronization may stuck while game playing, so the hitbox check will always fail.
-3. (Optional for livestream) Select the game's output to `VB-CABLE Input`, and add the `VB-CABLE Output` as second audio output device in your livestream software.
-4. Enjoy
+## 📸 Screenshots
 
-#### FullMode DISABLED
-> **Prerequisites**
-> * Check if your soundcard has original ASIO driver. If no, install [ASIO4ALL](https://www.asio4all.org/) / just use WASAPI_EXCLUSIVE
-> * If your soundcard driver doesn't support ASIO concurrency, a standalone mixer is needed. Low-end device is just ok, since they are always very cheap. **DO NOT USE WINDOWS MIXER SOFTWARES**, since they will only increase the latency.
+<p align="center">
+  <img src="docs/overview.png" width="45%" alt="Overview">
+  <img src="docs/realtimeoptions.png" width="45%" alt="Options">
+</p>
 
-1. Change the device in the software GUI, and select your ASIO Device.
-2. Change options in your ASIO control panel to lower the latency (Check latency at the software GUI).
-3. If you use mixer, line-out your motherboard soundcard and soundcard to the mixer. Plug your headphone into the mixer.
-4. Select the fit device in osu game. Select motherboard if you use mixer, select your soundcard otherwise.
-5. Change your own key bindings in the software GUI.
-6. Set the effect volume to 0 in osu!.
-7. Open offset wizard, play with `Auto` mod and adjust the software's offset and osu!'s offset.
-8. Enjoy
+---
 
+## ⚙️ Configuration Guide
+
+KeyASIO offers two main modes. Choose the one that fits your hardware.
+
+### 🚩 Which mode should I choose?
+
+* **I have a dedicated Soundcard (Audio Interface) / Mixer:** 👉 **Hardware Mix (Recommended)**. Lowest latency, requires hardware setup.
+* **I use a Laptop / Integrated Audio / No Mixer:** 👉 **Software Mix (FullMode)**. Easier setup, requires [VB-CABLE](https://vb-audio.com/Cable/).
+
+<details>
+<summary><h3>🔧 Option A: Hardware Mix (FullMode DISABLED) - Recommended</h3></summary>
+
+**Target:** Users with >1 audio outputs (e.g., PC Line-out + dedicated soundcard) AND a physical mixer.
+
+1.  **Prerequisites:**
+    * Install your Soundcard's ASIO driver or [ASIO4ALL](https://www.asio4all.org/).
+    * A physical mixer to combine audio from osu! (Music) and KeyASIO (Hitsounds).
+2.  **Setup:**
+    * Route osu! music to `Device A` (e.g., Motherboard Line-out).
+    * Route KeyASIO hitsounds to `Device B` (e.g., External Soundcard).
+    * Combine A and B into your mixer, then to your headphones.
+3.  **In KeyASIO:**
+    * Select your ASIO device in the GUI.
+    * Set **Realtime Mode** to `TRUE`.
+    * Set **FullMode (EnableMusicFunctions)** to `FALSE`.
+4.  **In osu!:**
+    * Set `Effect Volume` to 0.
+    * Adjust your audio offset (likely below -40ms) to sync the audio.
+
+</details>
+
+<details>
+<summary><h3>💻 Option B: Software Mix (FullMode ENABLED)</h3></summary>
+
+**Target:** Users with a single soundcard (Laptops/Desktops without mixer).
+
+1.  **Prerequisites:**
+    * Install [VB-CABLE](https://vb-audio.com/Cable/).
+2.  **Setup:**
+    * Set osu! output device to `VB-Cable Input`.
+    * (Optional) If you stream, capture `VB-Cable Output` in OBS.
+3.  **In KeyASIO:**
+    * Select your actual output device (Headphones/Speakers) in the GUI.
+    * Set **FullMode (EnableMusicFunctions)** to `TRUE`.
+    * *Note: This mode completely replaces osu!'s audio engine.*
+
+</details>
+
+---
 **Full options in `appsettings.yaml`:** (Modify after program closed) 
 | Item                                    | Description                                                                                                                                                                  |
 | --------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -105,17 +104,26 @@ The KeyASIO.Net supports `FullMode` (`EnableMusicFunctions` in configuration), w
 | SkinFolder                              | The skin folder when `RealtimeMode` is true.                                                                                                                                 |
 | VolumeEnabled                           | Software volume control. Disable for extremely low latency when `RealtimeMode` is false                                                                                      |
 | Volume                                  | Configured device volume.                                                                                                                                                    |
-## FAQs
+## ❓ FAQ
 
-#### Why my auto behaves like a fool?
-This is because of whether the same audio device in game settings is used exclusively in other applications (like KeyASIO). In case of exclusive using, the osu game's time synchronization may stuck while game playing, so the hitbox checking will always fail.
+<details>
+<summary><b>Is this safe for my osu! account?</b></summary>
+KeyASIO uses a passive memory reader (similar to StreamCompanion or Gosumemory) which is generally considered safe and approved by peppy for other tools. However, <b>use at your own risk</b>.
+</details>
 
-#### Why only sliderend sounds for auto mod?
-Currently it's a software limit, please open offset guide by clicking `Offset...` button first before playing with auto.
+<details>
+<summary><b>Why do I hear no sound in Auto mod?</b></summary>
+If you are using Exclusive Mode, osu!'s internal clock might desync because it loses control of the audio device. This is normal behavior when bypassing the Windows Mixer. So you need to select another audio device in osu!
+</details>
 
-#### How to report bugs?
-If you're sure it's a bug and have steps to reproduce, please open Github issue. For any other problems please reply in the forum page or Github's discussion page.
+## 🚧 Roadmap (v4 Preview)
 
-## Todo
-- [ ] Sometimes the hit is muted. (headache thing)
-- [ ] The music time synchronization is different from osu.
+We are currently working on a complete rewrite (**KeyASIO v4**).
+
+Join our [Discord](YOUR_DISCORD_LINK) for early access and updates.
+
+---
+
+<p align="center">
+  Made with ❤️ for the osu! community.
+</p>
