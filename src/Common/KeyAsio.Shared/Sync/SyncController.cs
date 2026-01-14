@@ -54,7 +54,10 @@ public class SyncController : IDisposable
         var maniaAudioProvider = new ManiaHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<ManiaHitsoundSequencer>>(),
             appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
-        gameplaySessionManager.InitializeProviders(standardAudioProvider, taikoAudioProvider, maniaAudioProvider);
+        var catchAudioProvider = new CatchHitsoundSequencer(
+            serviceProvider.GetRequiredService<ILogger<CatchHitsoundSequencer>>(),
+            appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
+        gameplaySessionManager.InitializeProviders(standardAudioProvider, taikoAudioProvider, catchAudioProvider, maniaAudioProvider);
 
         // Initialize realtime state machine with scene mappings
         _stateMachine = new GameStateMachine(new Dictionary<OsuMemoryStatus, IGameState>

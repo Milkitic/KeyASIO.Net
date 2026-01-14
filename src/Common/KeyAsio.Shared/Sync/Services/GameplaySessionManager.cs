@@ -60,11 +60,12 @@ public class GameplaySessionManager
 
     public void InitializeProviders(IHitsoundSequencer standardHitsoundSequencer,
         IHitsoundSequencer taikoHitsoundSequencer,
+        IHitsoundSequencer catchHitsoundSequencer,
         IHitsoundSequencer maniaHitsoundSequencer)
     {
         _audioProviderDictionary[GameMode.Circle] = standardHitsoundSequencer;
         _audioProviderDictionary[GameMode.Taiko] = taikoHitsoundSequencer;
-        _audioProviderDictionary[GameMode.Catch] = standardHitsoundSequencer;
+        _audioProviderDictionary[GameMode.Catch] = catchHitsoundSequencer;
         _audioProviderDictionary[GameMode.Mania] = maniaHitsoundSequencer;
         UpdateCachedSequencer();
     }
