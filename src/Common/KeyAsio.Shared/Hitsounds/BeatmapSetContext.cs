@@ -104,7 +104,7 @@ public sealed class BeatmapSetContext
             foreach (var sampleData in osuFile.Events.Samples)
             {
                 elements.Add(PlaybackEvent.Create(Guid.NewGuid(), sampleData.Offset, sampleData.Volume / 100f, 0,
-                    sampleData.Filename, false, SampleLayer.Sampling));
+                    sampleData.Filename, ResourceOwner.Beatmap, SampleLayer.Sampling));
             }
 
             return Task.CompletedTask;
@@ -135,7 +135,7 @@ public sealed class BeatmapSetContext
             var guid = Guid.NewGuid();
             if (generalSection.Mode == GameMode.Taiko)
             {
-                var (filename, useUserSkin, hitsoundType) = tuples.First();
+                var (filename, resourceOwner, hitsoundType) = tuples.First();
                 bool isBig = (hitsoundType & HitsoundType.Finish) != 0;
                 bool isBlue = (hitsoundType & HitsoundType.Clap) != 0 ||
                               (hitsoundType & HitsoundType.Whistle) != 0;
@@ -151,7 +151,7 @@ public sealed class BeatmapSetContext
                     actualFilename = "taiko-" + filename;
                 }
 
-                var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, actualFilename, useUserSkin,
+                var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, actualFilename, resourceOwner,
                     hitObject.ObjectType == HitObjectType.Spinner
                         ? SampleLayer.Secondary
                         : SampleLayer.Primary);
@@ -159,9 +159,9 @@ public sealed class BeatmapSetContext
             }
             else
             {
-                foreach (var (filename, useUserSkin, _) in tuples)
+                foreach (var (filename, resourceOwner, _) in tuples)
                 {
-                    var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, filename, useUserSkin,
+                    var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, filename, resourceOwner,
                         hitObject.ObjectType == HitObjectType.Spinner
                             ? SampleLayer.Secondary
                             : SampleLayer.Primary);
@@ -197,9 +197,9 @@ public sealed class BeatmapSetContext
                     sample, addition,
                     timingPoint, hitObject, ignoreBase);
                 var guid = Guid.NewGuid();
-                foreach (var (filename, useUserSkin, _) in tuples)
+                foreach (var (filename, resourceOwner, _) in tuples)
                 {
-                    var element = PlaybackEvent.Create(guid, (int)itemOffset, volume, balance, filename, useUserSkin,
+                    var element = PlaybackEvent.Create(guid, (int)itemOffset, volume, balance, filename, resourceOwner,
                         i == 0 ? SampleLayer.Primary : SampleLayer.Secondary);
                     elements.Add(element);
                 }
@@ -222,13 +222,13 @@ public sealed class BeatmapSetContext
                 float balance = ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X);
                 float volume = GetObjectVolume(hitObject, timingPoint) /* * 1.25f*/; // ticks x1.25?
 
-                var (filename, useUserSkin, _) = AnalyzeHitsoundFiles(HitsoundType.Tick,
+                var (filename, resourceOwner, _) = AnalyzeHitsoundFiles(HitsoundType.Tick,
                         hitObject.SampleSet, hitObject.AdditionSet,
                         timingPoint, hitObject, ignoreBase)
                     .First();
 
                 var element = PlaybackEvent.Create(Guid.NewGuid(), (int)itemOffset, volume, balance, filename,
-                    useUserSkin, SampleLayer.Effects);
+                    resourceOwner, SampleLayer.Effects);
                 elements.Add(element);
             }
 
@@ -245,10 +245,10 @@ public sealed class BeatmapSetContext
 
                 // start sliding
                 var tuples = AnalyzeHitsoundFiles(
-                    hitObject.Hitsound & HitsoundType.SlideWhistle | HitsoundType.Slide,
+                    (hitObject.Hitsound & HitsoundType.SlideWhistle) | HitsoundType.Slide,
                     hitObject.SampleSet, hitObject.AdditionSet,
                     timingPoint, hitObject, ignoreBase);
-                foreach (var (filename, useUserSkin, hitsoundType) in tuples)
+                foreach (var (filename, resourceOwner, hitsoundType) in tuples)
                 {
                     LoopChannel channel;
                     if (hitsoundType.HasFlag(HitsoundType.Slide))
@@ -259,7 +259,7 @@ public sealed class BeatmapSetContext
                         continue;
 
                     var element =
-                        PlaybackEvent.CreateLoopSignal(startOffset, volume, balance, filename, useUserSkin, channel);
+                        PlaybackEvent.CreateLoopSignal(startOffset, volume, balance, filename, resourceOwner, channel);
                     slideElements.Add(element);
                 }
 
@@ -277,10 +277,10 @@ public sealed class BeatmapSetContext
                     {
                         volume = GetObjectVolume(hitObject, timing);
                         tuples = AnalyzeHitsoundFiles(
-                            hitObject.Hitsound & HitsoundType.SlideWhistle | HitsoundType.Slide,
+                            (hitObject.Hitsound & HitsoundType.SlideWhistle) | HitsoundType.Slide,
                             hitObject.SampleSet, hitObject.AdditionSet,
                             timing, hitObject, ignoreBase);
-                        foreach (var (filename, useUserSkin, hitsoundType) in tuples)
+                        foreach (var (filename, resourceOwner, hitsoundType) in tuples)
                         {
                             PlaybackEvent element;
                             if (hitsoundType.HasFlag(HitsoundType.Slide) && slideElements
@@ -302,7 +302,7 @@ public sealed class BeatmapSetContext
 
                                 // new sample
                                 element = PlaybackEvent.CreateLoopSignal((int)timing.Offset, volume, balance,
-                                    filename, useUserSkin, channel);
+                                    filename, resourceOwner, channel);
                             }
 
                             slideElements.Add(element);
@@ -338,7 +338,7 @@ public sealed class BeatmapSetContext
         }
     }
 
-    private IEnumerable<(string filename, bool useUserSkin, HitsoundType hitsoundType)> AnalyzeHitsoundFiles(
+    private IEnumerable<(string filename, ResourceOwner resourceOwner, HitsoundType hitsoundType)> AnalyzeHitsoundFiles(
         HitsoundType itemHitsound,
         ObjectSamplesetType itemSample,
         ObjectSamplesetType itemAddition,
@@ -351,10 +351,10 @@ public sealed class BeatmapSetContext
             var filename = _cache.GetFileUntilFind(_directory,
                 Path.GetFileNameWithoutExtension(hitObject.FileName)!,
                 out _);
-            return [ValueTuple.Create(filename, false, itemHitsound)];
+            return [ValueTuple.Create(filename, ResourceOwner.Beatmap, itemHitsound)];
         }
 
-        var tuples = new List<(string, bool, HitsoundType)>();
+        var tuples = new List<(string, ResourceOwner, HitsoundType)>();
 
         // hitnormal, sliderslide
         string sampleStr = Enum.IsDefined(ObjectSamplesetType, itemSample) &&
@@ -392,24 +392,24 @@ public sealed class BeatmapSetContext
 
             var fileNameWithoutExt = fileNameWithoutIndex + indexStr;
 
-            bool useUserSkin;
+            ResourceOwner resourceOwner;
             using var filenameVsb = new ValueStringBuilder(chars);
             if (timingPoint.Track == 0)
             {
                 filenameVsb.Append(fileNameWithoutExt);
-                useUserSkin = true;
+                resourceOwner = ResourceOwner.UserSkin;
             }
             else if (WaveFiles.Contains(fileNameWithoutExt))
             {
-                filenameVsb.Append(_cache.GetFileUntilFind(_directory, fileNameWithoutExt, out useUserSkin));
+                filenameVsb.Append(_cache.GetFileUntilFind(_directory, fileNameWithoutExt, out resourceOwner));
             }
             else
             {
                 filenameVsb.Append(fileNameWithoutIndex);
-                useUserSkin = true;
+                resourceOwner = ResourceOwner.UserSkin;
             }
 
-            tuples[i] = (filenameVsb.ToString(), useUserSkin, hitsoundType);
+            tuples[i] = (filenameVsb.ToString(), resourceOwner, hitsoundType);
         }
 
         return tuples;
@@ -429,40 +429,40 @@ public sealed class BeatmapSetContext
         return (obj.SampleVolume != 0 ? obj.SampleVolume : timingPoint.Volume) / 100f;
     }
 
-    private static IEnumerable<(string, bool, HitsoundType)> GetHitsounds(RawHitObject rawHitObject, HitsoundType type,
+    private static IEnumerable<(string, ResourceOwner, HitsoundType)> GetHitsounds(RawHitObject rawHitObject, HitsoundType type,
         string? sampleStr, string? additionStr, bool ignoreBase = false)
     {
         if (type == HitsoundType.Tick)
         {
-            yield return (additionStr + "-slidertick", false, type);
+            yield return (additionStr + "-slidertick", ResourceOwner.Beatmap, type);
             yield break;
         }
 
         if (type.HasFlag(HitsoundType.Slide))
         {
-            yield return (sampleStr + "-sliderslide", false, type);
+            yield return (sampleStr + "-sliderslide", ResourceOwner.Beatmap, type);
             if (rawHitObject.Hitsound == HitsoundType.Whistle)
-                yield return (additionStr + "-sliderwhistle", false, HitsoundType.SlideWhistle);
+                yield return (additionStr + "-sliderwhistle", ResourceOwner.Beatmap, HitsoundType.SlideWhistle);
         }
 
         if (type.HasFlag(HitsoundType.SlideWhistle))
-            yield return (additionStr + "-sliderwhistle", false, HitsoundType.SlideWhistle);
+            yield return (additionStr + "-sliderwhistle", ResourceOwner.Beatmap, HitsoundType.SlideWhistle);
 
         if (type.HasFlag(HitsoundType.Slide) || type.HasFlag(HitsoundType.SlideWhistle))
             yield break;
 
         if (type.HasFlag(HitsoundType.Whistle))
-            yield return (additionStr + "-hitwhistle", false, type);
+            yield return (additionStr + "-hitwhistle", ResourceOwner.Beatmap, type);
         if (type.HasFlag(HitsoundType.Clap))
-            yield return (additionStr + "-hitclap", false, type);
+            yield return (additionStr + "-hitclap", ResourceOwner.Beatmap, type);
         if (type.HasFlag(HitsoundType.Finish))
-            yield return (additionStr + "-hitfinish", false, type);
+            yield return (additionStr + "-hitfinish", ResourceOwner.Beatmap, type);
 
         if (ignoreBase && type != 0)
             yield break;
 
         if (type.HasFlag(HitsoundType.Normal) ||
             (type & HitsoundType.Normal) == 0)
-            yield return (sampleStr + "-hitnormal", false, type);
+            yield return (sampleStr + "-hitnormal", ResourceOwner.Beatmap, type);
     }
 }

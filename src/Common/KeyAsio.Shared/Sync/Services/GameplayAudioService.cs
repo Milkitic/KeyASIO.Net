@@ -203,10 +203,10 @@ public class GameplayAudioService : IDisposable
         if (_filenameToCachedAudioMapping.TryGetValue(filenameWithoutExt, out var value)) return value;
 
         string category;
-        var filename = _osuAudioFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var useUserSkin);
+        var filename = _osuAudioFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var resourceOwner);
 
         CachedAudio result;
-        if (useUserSkin)
+        if (resourceOwner == ResourceOwner.UserSkin)
         {
             category = UserCacheIdentifier;
             result = await ResolveAndLoadSkinAudioAsync(filenameWithoutExt, skinFolder, category, waveFormat);
@@ -250,7 +250,7 @@ public class GameplayAudioService : IDisposable
         string category;
         CachedAudio result;
 
-        if (playbackEvent.UseUserSkin)
+        if (playbackEvent.ResourceOwner == ResourceOwner.UserSkin)
         {
             category = UserCacheIdentifier;
             result = await ResolveAndLoadSkinAudioAsync(playbackEvent.Filename, skinFolder, category, waveFormat);
@@ -269,8 +269,8 @@ public class GameplayAudioService : IDisposable
     private async Task<CachedAudio> ResolveAndLoadSkinAudioAsync(string filenameKey, string skinFolder, string category,
         WaveFormat waveFormat)
     {
-        var filename = _osuAudioFileCache.GetFileUntilFind(skinFolder, filenameKey, out var useDefaultSkin);
-        if (!useDefaultSkin)
+        var filename = _osuAudioFileCache.GetFileUntilFind(skinFolder, filenameKey, out var resourceOwner);
+        if (resourceOwner == ResourceOwner.Beatmap) // Here means file exists in skin folder
         {
             var path = Path.Combine(skinFolder, filename);
             return await LoadAndCacheAudioAsync(path, category, waveFormat);

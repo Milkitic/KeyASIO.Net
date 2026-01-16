@@ -11,7 +11,7 @@ public class SampleEvent : PlaybackEvent
     public Guid Guid { get; set; }
     public SampleLayer Layer { get; set; }
 
-    public string DebuggerDisplay => $"PL{(UseUserSkin ? "D" : "")}:{Offset}: " +
+    public string DebuggerDisplay => $"PL{(ResourceOwner == ResourceOwner.UserSkin ? "D" : "")}:{Offset}: " +
                                      $"P{(int)Layer}: " +
                                      $"V{(Volume * 10):#.#}: " +
                                      $"B{(Balance * 10):#.#}: " +

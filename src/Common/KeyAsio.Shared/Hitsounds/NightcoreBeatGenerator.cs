@@ -123,7 +123,7 @@ public static class NightcoreBeatGenerator
     private static PlaybackEvent GetHitsoundAndSkip(ref double currentTime, double skipTime,
         string fileName)
     {
-        var ele = PlaybackEvent.Create(Guid.NewGuid(), (int)currentTime, 1, 0, fileName, true,
+        var ele = PlaybackEvent.Create(Guid.NewGuid(), (int)currentTime, 1, 0, fileName, ResourceOwner.UserSkin,
             SampleLayer.Sampling);
         currentTime += skipTime;
         return ele;

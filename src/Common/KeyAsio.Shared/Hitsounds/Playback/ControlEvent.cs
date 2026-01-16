@@ -8,7 +8,7 @@ public class ControlEvent : PlaybackEvent
     public LoopChannel LoopChannel { get; internal set; }
     public ControlEventType ControlEventType { get; internal set; }
 
-    public string DebuggerDisplay => $"CT{(UseUserSkin ? "D" : "")}:{Offset}: " +
+    public string DebuggerDisplay => $"CT{(ResourceOwner == ResourceOwner.UserSkin ? "D" : "")}:{Offset}: " +
                                      $"O{Offset}: " +
                                      $"T{(int)ControlEventType}{(ControlEventType is ControlEventType.LoopStart or ControlEventType.LoopStop ? (int)LoopChannel : "")}: " +
                                      $"V{(Volume * 10):#.#}: " +

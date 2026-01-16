@@ -5,15 +5,15 @@ public abstract class PlaybackEvent
     /// <summary>
     /// 0 - 1.0f
     /// </summary>
-    public float Balance { get; internal set; }
-    public string? Filename { get; internal set; }
-    public double Offset { get; internal set; }
-    public bool UseUserSkin { get; internal set; }
+    public float Balance { get; private set; }
+    public string? Filename { get; private set; }
+    public double Offset { get; private set; }
+    public ResourceOwner ResourceOwner { get; private set; }
 
     /// <summary>
     /// 0 - 1.0f
     /// </summary>
-    public float Volume { get; internal set; }
+    public float Volume { get; private set; }
 
     public static SampleEvent Create(
         Guid guid,
@@ -21,7 +21,7 @@ public abstract class PlaybackEvent
         float volume,
         float balance,
         string filename,
-        bool useUserSkin,
+        ResourceOwner resourceOwner,
         SampleLayer layer)
     {
         var soundElement = new SampleEvent
@@ -31,7 +31,7 @@ public abstract class PlaybackEvent
             Volume = volume,
             Balance = balance,
             Filename = filename,
-            UseUserSkin = useUserSkin,
+            ResourceOwner = resourceOwner,
             Layer = layer
         };
         return soundElement;
@@ -42,7 +42,7 @@ public abstract class PlaybackEvent
         float volume,
         float balance,
         string filename,
-        bool useUserSkin,
+        ResourceOwner resourceOwner,
         LoopChannel loopChannel)
     {
         return new ControlEvent
@@ -51,7 +51,7 @@ public abstract class PlaybackEvent
             Volume = volume,
             Balance = balance,
             Filename = filename,
-            UseUserSkin = useUserSkin,
+            ResourceOwner = resourceOwner,
 
             ControlEventType = ControlEventType.LoopStart,
             LoopChannel = loopChannel
