@@ -24,8 +24,8 @@ public sealed class BeatmapSetContext
         _directory = new DirectoryInfo(directory).FullName;
     }
 
-    public IReadOnlyList<OsuFile> OsuFiles { get; private set; } = [];
-    public IReadOnlySet<string> WaveFiles { get; private set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public List<OsuFile> OsuFiles { get; private set; } = [];
+    public HashSet<string> WaveFiles { get; private set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public async Task InitializeAsync(string? specificOsuFilename = null, bool ignoreWaveFiles = false)
     {
@@ -121,7 +121,8 @@ public sealed class BeatmapSetContext
 
         if (hitObject.ObjectType != HitObjectType.Slider)
         {
-            AddCircleOrSpinnerHitObject(generalSection, timingSection, hitObject, elements, hitsoundBuffer, ignoreBalance, ignoreBase);
+            AddCircleOrSpinnerHitObject(generalSection, timingSection, hitObject, elements, hitsoundBuffer,
+                ignoreBalance, ignoreBase);
         }
         else
         {
@@ -129,7 +130,8 @@ public sealed class BeatmapSetContext
         }
     }
 
-    private void AddCircleOrSpinnerHitObject(GeneralSection generalSection, TimingSection timingSection, RawHitObject hitObject,
+    private void AddCircleOrSpinnerHitObject(GeneralSection generalSection, TimingSection timingSection,
+        RawHitObject hitObject,
         List<PlaybackEvent> elements, List<HitsoundInfo> hitsoundBuffer, bool ignoreBalance, bool ignoreBase)
     {
         var itemOffset = hitObject.ObjectType == HitObjectType.Spinner
@@ -355,7 +357,8 @@ public sealed class BeatmapSetContext
         }
     }
 
-    private static void AddSliderBalanceChanges(RawHitObject hitObject, List<PlaybackEvent> elements, bool ignoreBalance)
+    private static void AddSliderBalanceChanges(RawHitObject hitObject, List<PlaybackEvent> elements,
+        bool ignoreBalance)
     {
         // change balance while sliding (not supported in original game)
         var trails = hitObject.SliderInfo!.GetSliderSlides();
@@ -468,11 +471,13 @@ public sealed class BeatmapSetContext
         {
             result.Add(new HitsoundInfo(sampleStr + "-sliderslide", ResourceOwner.Beatmap, type));
             if (rawHitObject.Hitsound == HitsoundType.Whistle)
-                result.Add(new HitsoundInfo(additionStr + "-sliderwhistle", ResourceOwner.Beatmap, HitsoundType.SlideWhistle));
+                result.Add(new HitsoundInfo(additionStr + "-sliderwhistle", ResourceOwner.Beatmap,
+                    HitsoundType.SlideWhistle));
         }
 
         if (type.HasFlag(HitsoundType.SlideWhistle))
-            result.Add(new HitsoundInfo(additionStr + "-sliderwhistle", ResourceOwner.Beatmap, HitsoundType.SlideWhistle));
+            result.Add(new HitsoundInfo(additionStr + "-sliderwhistle", ResourceOwner.Beatmap,
+                HitsoundType.SlideWhistle));
 
         if (type.HasFlag(HitsoundType.Slide) || type.HasFlag(HitsoundType.SlideWhistle))
             return;
