@@ -1,9 +1,10 @@
 ﻿using Coosu.Beatmap;
-using Coosu.Beatmap.Extensions.Playback;
+using KeyAsio.Shared.Hitsounds.Playback;
+using KeyAsio.Shared.Utils;
 
-namespace KeyAsio.Shared.Utils;
+namespace KeyAsio.Shared.Hitsounds;
 
-public static class NightcoreTilingHelper
+public static class NightcoreBeatGenerator
 {
     private class RhythmGroup
     {
@@ -50,7 +51,7 @@ public static class NightcoreTilingHelper
             })
         };
 
-    public static List<HitsoundNode> GetHitsoundNodes(OsuFile osuFile, TimeSpan mp3MaxDuration)
+    public static List<PlaybackEvent> GetHitsoundNodes(OsuFile osuFile, TimeSpan mp3MaxDuration)
     {
         var timingSection = osuFile.TimingPoints;
         var redLines = timingSection.TimingList.Where(k => !k.IsInherit);
@@ -65,7 +66,7 @@ public static class NightcoreTilingHelper
             osuFile.HitObjects.MaxTime,
             timingSection.MaxTime
         );
-        var hitsoundList = new List<HitsoundNode>();
+        var hitsoundList = new List<PlaybackEvent>();
 
         for (int i = 0; i < redLineGroups.Count; i++)
         {
@@ -119,10 +120,11 @@ public static class NightcoreTilingHelper
         return hitsoundList;
     }
 
-    private static HitsoundNode GetHitsoundAndSkip(ref double currentTime, double skipTime,
+    private static PlaybackEvent GetHitsoundAndSkip(ref double currentTime, double skipTime,
         string fileName)
     {
-        var ele = HitsoundNode.Create(Guid.NewGuid(), (int)currentTime, 1, 0, fileName, true, PlayablePriority.Sampling);
+        var ele = PlaybackEvent.Create(Guid.NewGuid(), (int)currentTime, 1, 0, fileName, true,
+            SampleLayer.Sampling);
         currentTime += skipTime;
         return ele;
     }

@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
-using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.Services;
@@ -159,9 +159,9 @@ public class PlayingState : IGameState
         {
             var playbackObject = _playbackBuffer[i];
             if (_gameplaySessionManager.OsuFile.General.Mode == GameMode.Mania &&
-                playbackObject.HitsoundNode is PlayableNode { PlayablePriority: PlayablePriority.Sampling })
+                playbackObject.PlaybackEvent is SampleEvent { Layer: SampleLayer.Sampling })
             {
-                _sfxPlaybackService.DispatchPlayback(playbackObject, playbackObject.HitsoundNode.Volume * 0.6666666f);
+                _sfxPlaybackService.DispatchPlayback(playbackObject, playbackObject.PlaybackEvent.Volume * 0.6666666f);
                 continue;
             }
 

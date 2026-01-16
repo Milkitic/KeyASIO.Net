@@ -1,10 +1,10 @@
 ﻿using System.Runtime;
 using System.Runtime.CompilerServices;
 using Coosu.Beatmap;
-using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
 using KeyAsio.Shared.Events;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 
@@ -55,8 +55,8 @@ public class GameplaySessionManager
 
     public string? AudioFilename { get; internal set; }
     public string? BeatmapFolder { get; private set; }
-    public IReadOnlyList<HitsoundNode> PlaybackList => _beatmapHitsoundLoader.PlaybackList;
-    public List<PlayableNode> KeyList => _beatmapHitsoundLoader.KeyList;
+    public IReadOnlyList<PlaybackEvent> PlaybackList => _beatmapHitsoundLoader.PlaybackList;
+    public List<SampleEvent> KeyList => _beatmapHitsoundLoader.KeyList;
 
     public void InitializeProviders(IHitsoundSequencer standardHitsoundSequencer,
         IHitsoundSequencer taikoHitsoundSequencer,

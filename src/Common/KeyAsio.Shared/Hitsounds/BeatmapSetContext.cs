@@ -1,25 +1,26 @@
 ﻿using System.Diagnostics;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Extensions;
-using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections;
 using Coosu.Beatmap.Sections.GamePlay;
 using Coosu.Beatmap.Sections.HitObject;
 using Coosu.Beatmap.Sections.Timing;
 using Coosu.Shared;
+using KeyAsio.Shared.Hitsounds.Playback;
+using KeyAsio.Shared.Utils;
 
-namespace KeyAsio.Shared.Utils;
+namespace KeyAsio.Shared.Hitsounds;
 
-public sealed class OsuBeatmapsets
+public sealed class BeatmapSetContext
 {
     private static readonly Type ObjectSamplesetType = typeof(ObjectSamplesetType);
-    private static readonly AsyncSequentialWorker Worker = new(name: nameof(OsuBeatmapsets));
+    private static readonly AsyncSequentialWorker Worker = new(name: nameof(BeatmapSetContext));
 
     private readonly OsuAudioFileCache _cache = new();
     private readonly string _directory;
     private bool _isInitialized;
 
-    public OsuBeatmapsets(string directory)
+    public BeatmapSetContext(string directory)
     {
         _directory = new DirectoryInfo(directory).FullName;
     }
@@ -69,7 +70,7 @@ public sealed class OsuBeatmapsets
         _isInitialized = true;
     }
 
-    public async Task<List<HitsoundNode>> GetHitsoundNodesAsync(OsuFile osuFile)
+    public async Task<List<PlaybackEvent>> GetHitsoundNodesAsync(OsuFile osuFile)
     {
         if (_isInitialized == false) throw new Exception("The directory was not initialized");
         if (osuFile.HitObjects == null) return [];
@@ -79,7 +80,7 @@ public sealed class OsuBeatmapsets
         osuFile.HitObjects.ComputeSlidersByCurrentSettings();
 
         var hitObjects = osuFile.HitObjects.HitObjectList;
-        var elements = new List<HitsoundNode>(hitObjects.Count);
+        var elements = new List<PlaybackEvent>(hitObjects.Count);
         await Worker.EnqueueAsync(() =>
         {
             foreach (var obj in hitObjects)
@@ -102,8 +103,8 @@ public sealed class OsuBeatmapsets
 
             foreach (var sampleData in osuFile.Events.Samples)
             {
-                elements.Add(HitsoundNode.Create(Guid.NewGuid(), sampleData.Offset, sampleData.Volume / 100f, 0,
-                    sampleData.Filename, false, PlayablePriority.Sampling));
+                elements.Add(PlaybackEvent.Create(Guid.NewGuid(), sampleData.Offset, sampleData.Volume / 100f, 0,
+                    sampleData.Filename, false, SampleLayer.Sampling));
             }
 
             return Task.CompletedTask;
@@ -113,7 +114,7 @@ public sealed class OsuBeatmapsets
     }
 
     private void AddSingleHitObject(GeneralSection generalSection, TimingSection timingSection,
-        RawHitObject hitObject, List<HitsoundNode> elements)
+        RawHitObject hitObject, List<PlaybackEvent> elements)
     {
         var ignoreBalance = generalSection.Mode == GameMode.Taiko;
         var ignoreBase = generalSection.Mode is GameMode.Mania or GameMode.Taiko;
@@ -150,20 +151,20 @@ public sealed class OsuBeatmapsets
                     actualFilename = "taiko-" + filename;
                 }
 
-                var element = HitsoundNode.Create(guid, itemOffset, volume, balance, actualFilename, useUserSkin,
+                var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, actualFilename, useUserSkin,
                     hitObject.ObjectType == HitObjectType.Spinner
-                        ? PlayablePriority.Secondary
-                        : PlayablePriority.Primary);
+                        ? SampleLayer.Secondary
+                        : SampleLayer.Primary);
                 elements.Add(element);
             }
             else
             {
                 foreach (var (filename, useUserSkin, _) in tuples)
                 {
-                    var element = HitsoundNode.Create(guid, itemOffset, volume, balance, filename, useUserSkin,
+                    var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, filename, useUserSkin,
                         hitObject.ObjectType == HitObjectType.Spinner
-                            ? PlayablePriority.Secondary
-                            : PlayablePriority.Primary);
+                            ? SampleLayer.Secondary
+                            : SampleLayer.Primary);
                     elements.Add(element);
                 }
             }
@@ -198,8 +199,8 @@ public sealed class OsuBeatmapsets
                 var guid = Guid.NewGuid();
                 foreach (var (filename, useUserSkin, _) in tuples)
                 {
-                    var element = HitsoundNode.Create(guid, (int)itemOffset, volume, balance, filename, useUserSkin,
-                        i == 0 ? PlayablePriority.Primary : PlayablePriority.Secondary);
+                    var element = PlaybackEvent.Create(guid, (int)itemOffset, volume, balance, filename, useUserSkin,
+                        i == 0 ? SampleLayer.Primary : SampleLayer.Secondary);
                     elements.Add(element);
                 }
             }
@@ -226,14 +227,14 @@ public sealed class OsuBeatmapsets
                         timingPoint, hitObject, ignoreBase)
                     .First();
 
-                var element = HitsoundNode.Create(Guid.NewGuid(), (int)itemOffset, volume, balance, filename,
-                    useUserSkin, PlayablePriority.Effects);
+                var element = PlaybackEvent.Create(Guid.NewGuid(), (int)itemOffset, volume, balance, filename,
+                    useUserSkin, SampleLayer.Effects);
                 elements.Add(element);
             }
 
             // sliding
             {
-                var slideElements = new List<HitsoundNode>();
+                var slideElements = new List<PlaybackEvent>();
 
                 var startOffset = hitObject.Offset;
                 var endOffset = sliderEdges[sliderEdges.Length - 1].Offset;
@@ -249,16 +250,16 @@ public sealed class OsuBeatmapsets
                     timingPoint, hitObject, ignoreBase);
                 foreach (var (filename, useUserSkin, hitsoundType) in tuples)
                 {
-                    SlideChannel channel;
+                    LoopChannel channel;
                     if (hitsoundType.HasFlag(HitsoundType.Slide))
-                        channel = SlideChannel.Normal;
+                        channel = LoopChannel.Normal;
                     else if (hitsoundType.HasFlag(HitsoundType.SlideWhistle))
-                        channel = SlideChannel.Whistle;
+                        channel = LoopChannel.Whistle;
                     else
                         continue;
 
                     var element =
-                        HitsoundNode.CreateLoopSignal(startOffset, volume, balance, filename, useUserSkin, channel);
+                        PlaybackEvent.CreateLoopSignal(startOffset, volume, balance, filename, useUserSkin, channel);
                     slideElements.Add(element);
                 }
 
@@ -281,26 +282,26 @@ public sealed class OsuBeatmapsets
                             timing, hitObject, ignoreBase);
                         foreach (var (filename, useUserSkin, hitsoundType) in tuples)
                         {
-                            HitsoundNode element;
+                            PlaybackEvent element;
                             if (hitsoundType.HasFlag(HitsoundType.Slide) && slideElements
-                                    .Last(k => k is ControlNode { ControlType: ControlType.StartSliding })
+                                    .Last(k => k is ControlEvent { ControlEventType: ControlEventType.LoopStart })
                                     .Filename == filename)
                             {
                                 // optimize by only change volume
-                                element = HitsoundNode.CreateLoopVolumeSignal((int)timing.Offset, volume);
+                                element = PlaybackEvent.CreateLoopVolumeSignal((int)timing.Offset, volume);
                             }
                             else
                             {
-                                SlideChannel channel;
+                                LoopChannel channel;
                                 if (hitsoundType.HasFlag(HitsoundType.Slide))
-                                    channel = SlideChannel.Normal;
+                                    channel = LoopChannel.Normal;
                                 else if (hitsoundType.HasFlag(HitsoundType.SlideWhistle))
-                                    channel = SlideChannel.Whistle;
+                                    channel = LoopChannel.Whistle;
                                 else
                                     continue;
 
                                 // new sample
-                                element = HitsoundNode.CreateLoopSignal((int)timing.Offset, volume, balance,
+                                element = PlaybackEvent.CreateLoopSignal((int)timing.Offset, volume, balance,
                                     filename, useUserSkin, channel);
                             }
 
@@ -316,8 +317,8 @@ public sealed class OsuBeatmapsets
                 }
 
                 // end slide
-                var stopElement = HitsoundNode.CreateLoopStopSignal((int)endOffset, SlideChannel.Normal);
-                var stopElement2 = HitsoundNode.CreateLoopStopSignal((int)endOffset, SlideChannel.Whistle);
+                var stopElement = PlaybackEvent.CreateLoopStopSignal((int)endOffset, LoopChannel.Normal);
+                var stopElement2 = PlaybackEvent.CreateLoopStopSignal((int)endOffset, LoopChannel.Whistle);
                 slideElements.Add(stopElement);
                 slideElements.Add(stopElement2);
                 foreach (var slideElement in slideElements)
@@ -330,7 +331,7 @@ public sealed class OsuBeatmapsets
             var trails = sliderInfo.GetSliderSlides();
             foreach (var sliderTick in trails)
             {
-                var balanceElement = HitsoundNode.CreateLoopBalanceSignal((int)sliderTick.Offset,
+                var balanceElement = PlaybackEvent.CreateLoopBalanceSignal((int)sliderTick.Offset,
                     ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X));
                 elements.Add(balanceElement);
             }

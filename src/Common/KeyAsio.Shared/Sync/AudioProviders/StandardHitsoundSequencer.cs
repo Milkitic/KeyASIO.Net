@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
-using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Core.Audio;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
@@ -18,8 +18,8 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
-    private Queue<PlayableNode> _hitQueue = new();
-    private Queue<HitsoundNode> _playbackQueue = new();
+    private Queue<SampleEvent> _hitQueue = new();
+    private Queue<PlaybackEvent> _playbackQueue = new();
 
     public StandardHitsoundSequencer(ILogger<StandardHitsoundSequencer> logger,
         AppSettings appSettings,
@@ -40,10 +40,10 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
 
     public void SeekTo(int playTime)
     {
-        _hitQueue = new Queue<PlayableNode>(
+        _hitQueue = new Queue<SampleEvent>(
             _gameplaySessionManager.KeyList.Where(k => k.Offset >= playTime - KeyThresholdMilliseconds)
         );
-        _playbackQueue = new Queue<HitsoundNode>(_gameplaySessionManager.PlaybackList
+        _playbackQueue = new Queue<PlaybackEvent>(_gameplaySessionManager.PlaybackList
             .Where(k => k.Offset >= playTime));
     }
 
@@ -166,19 +166,19 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         return true;
     }
 
-    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
-        List<HitsoundNode> playbackList)
+    public void FillAudioList(IReadOnlyList<PlaybackEvent> nodeList, List<SampleEvent> keyList,
+        List<PlaybackEvent> playbackList)
     {
-        var secondaryCache = new List<PlayableNode>();
+        var secondaryCache = new List<SampleEvent>();
         var options = _appSettings.Sync;
 
         foreach (var hitsoundNode in nodeList)
         {
-            if (hitsoundNode is not PlayableNode playableNode)
+            if (hitsoundNode is not SampleEvent playableNode)
             {
-                if (hitsoundNode is ControlNode controlNode &&
-                    controlNode.ControlType != ControlType.ChangeBalance &&
-                    controlNode.ControlType != ControlType.None &&
+                if (hitsoundNode is ControlEvent controlNode &&
+                    controlNode.ControlEventType != ControlEventType.Balance &&
+                    controlNode.ControlEventType != ControlEventType.None &&
                     !options.Filters.DisableSliderTicksAndSlides)
                 {
                     playbackList.Add(controlNode);
@@ -187,24 +187,24 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
                 continue;
             }
 
-            switch (playableNode.PlayablePriority)
+            switch (playableNode.Layer)
             {
-                case PlayablePriority.Primary:
+                case SampleLayer.Primary:
                     CheckSecondary();
                     secondaryCache.Clear();
                     keyList.Add(playableNode);
                     break;
-                case PlayablePriority.Secondary:
+                case SampleLayer.Secondary:
                     if (options.Playback.TailPlaybackBehavior == SliderTailPlaybackBehavior.Normal)
                         playbackList.Add(playableNode);
                     else if (options.Playback.TailPlaybackBehavior == SliderTailPlaybackBehavior.KeepReverse)
                         secondaryCache.Add(playableNode);
                     break;
-                case PlayablePriority.Effects:
+                case SampleLayer.Effects:
                     if (!options.Filters.DisableSliderTicksAndSlides)
                         playbackList.Add(playableNode);
                     break;
-                case PlayablePriority.Sampling:
+                case SampleLayer.Sampling:
                     if (!options.Filters.DisableStoryboardSamples)
                         playbackList.Add(playableNode);
                     break;
@@ -223,7 +223,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
     }
 
     private void ProcessTimeBasedQueue<T>(List<PlaybackInfo> buffer, Queue<T> queue, int playTime)
-        where T : HitsoundNode
+        where T : PlaybackEvent
     {
         while (queue.TryPeek(out var node))
         {
@@ -247,7 +247,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         }
     }
 
-    private void DequeueAndPlay<T>(List<PlaybackInfo> buffer, Queue<T> queue) where T : HitsoundNode
+    private void DequeueAndPlay<T>(List<PlaybackInfo> buffer, Queue<T> queue) where T : PlaybackEvent
     {
         var node = queue.Dequeue();
         if (_gameplayAudioService.TryGetAudioByNode(node, out var cachedSound))

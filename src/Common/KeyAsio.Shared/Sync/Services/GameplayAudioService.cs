@@ -1,10 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Coosu.Beatmap.Extensions;
-using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Utils;
@@ -21,7 +20,7 @@ public class GameplayAudioService : IDisposable
     private static readonly string[] SkinAudioFiles = ["combobreak"];
 
     private OsuAudioFileCache _osuAudioFileCache = new();
-    private readonly ConcurrentDictionary<HitsoundNode, CachedAudio> _playNodeToCachedAudioMapping = new();
+    private readonly ConcurrentDictionary<PlaybackEvent, CachedAudio> _playNodeToCachedAudioMapping = new();
     private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
 
     private readonly ILogger<GameplayAudioService> _logger;
@@ -79,7 +78,7 @@ public class GameplayAudioService : IDisposable
         _filenameToCachedAudioMapping.Clear();
     }
 
-    public bool TryGetAudioByNode(HitsoundNode node, [NotNullWhen(true)] out CachedAudio? cachedAudio)
+    public bool TryGetAudioByNode(PlaybackEvent node, [NotNullWhen(true)] out CachedAudio? cachedAudio)
     {
         if (!_playNodeToCachedAudioMapping.TryGetValue(node, out cachedAudio)) return false;
         return true;
@@ -149,7 +148,7 @@ public class GameplayAudioService : IDisposable
     public void PrecacheHitsoundsRangeInBackground(
         int startTime,
         int endTime,
-        IEnumerable<HitsoundNode> playableNodes,
+        IEnumerable<PlaybackEvent> playableNodes,
         [CallerArgumentExpression("playableNodes")]
         string? expression = null)
     {
@@ -225,7 +224,7 @@ public class GameplayAudioService : IDisposable
     }
 
     public async Task AddHitsoundCacheAsync(
-        HitsoundNode hitsoundNode,
+        PlaybackEvent playbackEvent,
         string beatmapFolder,
         string skinFolder,
         WaveFormat waveFormat)
@@ -236,35 +235,35 @@ public class GameplayAudioService : IDisposable
             return;
         }
 
-        if (hitsoundNode.Filename == null)
+        if (playbackEvent.Filename == null)
         {
-            if (hitsoundNode is PlayableNode)
+            if (playbackEvent is SampleEvent)
             {
                 _logger.LogWarning("Filename is null, add null cache.");
             }
 
             var cacheResult = await _audioCacheManager.GetOrCreateEmptyAsync("null", waveFormat);
-            _playNodeToCachedAudioMapping.TryAdd(hitsoundNode, cacheResult.CachedAudio!);
+            _playNodeToCachedAudioMapping.TryAdd(playbackEvent, cacheResult.CachedAudio!);
             return;
         }
 
         string category;
         CachedAudio result;
 
-        if (hitsoundNode.UseUserSkin)
+        if (playbackEvent.UseUserSkin)
         {
             category = UserCacheIdentifier;
-            result = await ResolveAndLoadSkinAudioAsync(hitsoundNode.Filename, skinFolder, category, waveFormat);
+            result = await ResolveAndLoadSkinAudioAsync(playbackEvent.Filename, skinFolder, category, waveFormat);
         }
         else
         {
             category = BeatmapCacheIdentifier;
-            var path = Path.Combine(beatmapFolder, hitsoundNode.Filename);
+            var path = Path.Combine(beatmapFolder, playbackEvent.Filename);
             result = await LoadAndCacheAudioAsync(path, category, waveFormat);
         }
 
-        _playNodeToCachedAudioMapping.TryAdd(hitsoundNode, result);
-        _filenameToCachedAudioMapping.TryAdd(hitsoundNode.Filename, result);
+        _playNodeToCachedAudioMapping.TryAdd(playbackEvent, result);
+        _filenameToCachedAudioMapping.TryAdd(playbackEvent.Filename, result);
     }
 
     private async Task<CachedAudio> ResolveAndLoadSkinAudioAsync(string filenameKey, string skinFolder, string category,
