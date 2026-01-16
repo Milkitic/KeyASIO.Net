@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using Coosu.Beatmap;
-using Coosu.Beatmap.Extensions;
 using Coosu.Beatmap.Sections;
 using Coosu.Beatmap.Sections.GamePlay;
 using Coosu.Beatmap.Sections.HitObject;
@@ -92,7 +91,7 @@ public sealed class BeatmapSetContext
                 catch (Exception e)
                 {
                     throw new HitsoundAnalyzingException(
-                        "Error while analyzing hitsound. Object Info: " + obj.ToSerializedString(), e);
+                        "Error while analyzing hitsound. Object Info: " + obj.ToSerializedString(osuFile.Version), e);
                 }
             }
 
