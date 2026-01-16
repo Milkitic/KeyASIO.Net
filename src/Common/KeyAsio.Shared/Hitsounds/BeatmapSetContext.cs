@@ -121,220 +121,249 @@ public sealed class BeatmapSetContext
 
         if (hitObject.ObjectType != HitObjectType.Slider)
         {
-            var itemOffset = hitObject.ObjectType == HitObjectType.Spinner
-                ? hitObject.HoldEnd // spinner
-                : hitObject.Offset; // hold & circle
-            var timingPoint = timingSection.GetLine(itemOffset);
+            AddCircleOrSpinnerHitObject(generalSection, timingSection, hitObject, elements, hitsoundBuffer, ignoreBalance, ignoreBase);
+        }
+        else
+        {
+            AddSliderHitObject(timingSection, hitObject, elements, hitsoundBuffer, ignoreBalance, ignoreBase);
+        }
+    }
 
-            float balance = ignoreBalance ? 0 : GetObjectBalance(hitObject.X);
-            float volume = GetObjectVolume(hitObject, timingPoint);
+    private void AddCircleOrSpinnerHitObject(GeneralSection generalSection, TimingSection timingSection, RawHitObject hitObject,
+        List<PlaybackEvent> elements, List<HitsoundInfo> hitsoundBuffer, bool ignoreBalance, bool ignoreBase)
+    {
+        var itemOffset = hitObject.ObjectType == HitObjectType.Spinner
+            ? hitObject.HoldEnd // spinner
+            : hitObject.Offset; // hold & circle
+        var timingPoint = timingSection.GetLine(itemOffset);
 
-            AnalyzeHitsoundFiles(hitObject.Hitsound,
-                hitObject.SampleSet, hitObject.AdditionSet,
-                timingPoint, hitObject, hitsoundBuffer, ignoreBase);
+        float balance = ignoreBalance ? 0 : GetObjectBalance(hitObject.X);
+        float volume = GetObjectVolume(hitObject, timingPoint);
 
-            var guid = Guid.NewGuid();
-            if (generalSection.Mode == GameMode.Taiko)
+        AnalyzeHitsoundFiles(hitObject.Hitsound,
+            hitObject.SampleSet, hitObject.AdditionSet,
+            timingPoint, hitObject, hitsoundBuffer, ignoreBase);
+
+        var guid = Guid.NewGuid();
+        if (generalSection.Mode == GameMode.Taiko)
+        {
+            var (filename, resourceOwner, hitsoundType) = hitsoundBuffer.First();
+            bool isBig = (hitsoundType & HitsoundType.Finish) != 0;
+            bool isBlue = (hitsoundType & HitsoundType.Clap) != 0 ||
+                          (hitsoundType & HitsoundType.Whistle) != 0;
+
+            string actualFilename;
+            if (isBlue && isBig)
             {
-                var (filename, resourceOwner, hitsoundType) = hitsoundBuffer.First();
-                bool isBig = (hitsoundType & HitsoundType.Finish) != 0;
-                bool isBlue = (hitsoundType & HitsoundType.Clap) != 0 ||
-                              (hitsoundType & HitsoundType.Whistle) != 0;
+                var indexOf = filename.IndexOf('-');
+                actualFilename = string.Concat("taiko-", filename.AsSpan(0, indexOf), "-hitwhistle");
+            }
+            else
+            {
+                actualFilename = "taiko-" + filename;
+            }
 
-                string actualFilename;
-                if (isBlue && isBig)
-                {
-                    var indexOf = filename.IndexOf('-');
-                    actualFilename = string.Concat("taiko-", filename.AsSpan(0, indexOf), "-hitwhistle");
-                }
-                else
-                {
-                    actualFilename = "taiko-" + filename;
-                }
-
-                var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, actualFilename, resourceOwner,
+            var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, actualFilename, resourceOwner,
+                hitObject.ObjectType == HitObjectType.Spinner
+                    ? SampleLayer.Secondary
+                    : SampleLayer.Primary);
+            elements.Add(element);
+        }
+        else
+        {
+            foreach (var (filename, resourceOwner, _) in hitsoundBuffer)
+            {
+                var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, filename, resourceOwner,
                     hitObject.ObjectType == HitObjectType.Spinner
                         ? SampleLayer.Secondary
                         : SampleLayer.Primary);
                 elements.Add(element);
             }
-            else
-            {
-                foreach (var (filename, resourceOwner, _) in hitsoundBuffer)
-                {
-                    var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, filename, resourceOwner,
-                        hitObject.ObjectType == HitObjectType.Spinner
-                            ? SampleLayer.Secondary
-                            : SampleLayer.Primary);
-                    elements.Add(element);
-                }
-            }
         }
-        else // sliders
+    }
+
+    private void AddSliderHitObject(TimingSection timingSection, RawHitObject hitObject,
+        List<PlaybackEvent> elements, List<HitsoundInfo> hitsoundBuffer, bool ignoreBalance, bool ignoreBase)
+    {
+        AddSliderEdges(timingSection, hitObject, elements, hitsoundBuffer, ignoreBalance, ignoreBase);
+        AddSliderTicks(timingSection, hitObject, elements, hitsoundBuffer, ignoreBalance, ignoreBase);
+        AddSliderSliding(timingSection, hitObject, elements, hitsoundBuffer, ignoreBalance, ignoreBase);
+        AddSliderBalanceChanges(hitObject, elements, ignoreBalance);
+    }
+
+    private void AddSliderEdges(TimingSection timingSection, RawHitObject hitObject,
+        List<PlaybackEvent> elements, List<HitsoundInfo> hitsoundBuffer, bool ignoreBalance, bool ignoreBase)
+    {
+        var sliderInfo = hitObject.SliderInfo!;
+        bool forceUseSlide = sliderInfo.EdgeHitsounds == null;
+        var sliderEdges = sliderInfo.GetEdges();
+        for (var i = 0; i < sliderEdges.Length; i++)
         {
-            // edges
-            var sliderInfo = hitObject.SliderInfo!;
-            bool forceUseSlide = sliderInfo.EdgeHitsounds == null;
-            var sliderEdges = sliderInfo.GetEdges();
-            for (var i = 0; i < sliderEdges.Length; i++)
+            var item = sliderEdges[i];
+            var itemOffset = item.Offset;
+            var timingPoint = timingSection.GetLine(itemOffset);
+
+            float balance = ignoreBalance ? 0 : GetObjectBalance(item.Point.X);
+            float volume = GetObjectVolume(hitObject, timingPoint);
+
+            var hitsoundType = forceUseSlide
+                ? hitObject.Hitsound
+                : item.EdgeHitsound;
+            var addition = forceUseSlide
+                ? hitObject.AdditionSet
+                : item.EdgeAddition;
+            var sample = forceUseSlide
+                ? hitObject.SampleSet
+                : item.EdgeSample;
+
+            AnalyzeHitsoundFiles(hitsoundType,
+                sample, addition,
+                timingPoint, hitObject, hitsoundBuffer, ignoreBase);
+
+            var guid = Guid.NewGuid();
+            foreach (var (filename, resourceOwner, _) in hitsoundBuffer)
             {
-                var item = sliderEdges[i];
-                var itemOffset = item.Offset;
-                var timingPoint = timingSection.GetLine(itemOffset);
-
-                float balance = ignoreBalance ? 0 : GetObjectBalance(item.Point.X);
-                float volume = GetObjectVolume(hitObject, timingPoint);
-
-                var hitsoundType = forceUseSlide
-                    ? hitObject.Hitsound
-                    : item.EdgeHitsound;
-                var addition = forceUseSlide
-                    ? hitObject.AdditionSet
-                    : item.EdgeAddition;
-                var sample = forceUseSlide
-                    ? hitObject.SampleSet
-                    : item.EdgeSample;
-
-                AnalyzeHitsoundFiles(hitsoundType,
-                    sample, addition,
-                    timingPoint, hitObject, hitsoundBuffer, ignoreBase);
-
-                var guid = Guid.NewGuid();
-                foreach (var (filename, resourceOwner, _) in hitsoundBuffer)
-                {
-                    var element = PlaybackEvent.Create(guid, (int)itemOffset, volume, balance, filename, resourceOwner,
-                        i == 0 ? SampleLayer.Primary : SampleLayer.Secondary);
-                    elements.Add(element);
-                }
-            }
-
-            // ticks
-            var ticks = sliderInfo.GetSliderTicks();
-            foreach (var sliderTick in ticks)
-            {
-                var itemOffset = sliderTick.Offset;
-
-                var edgeOffset = (itemOffset - sliderInfo.StartTime) / sliderInfo.CurrentSingleDuration;
-                if (Math.Abs(Math.Round(edgeOffset, 0) - edgeOffset) <= 0.01)
-                {
-                    continue;
-                }
-
-                var timingPoint = timingSection.GetLine(itemOffset);
-
-                float balance = ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X);
-                float volume = GetObjectVolume(hitObject, timingPoint) /* * 1.25f*/; // ticks x1.25?
-
-                AnalyzeHitsoundFiles(HitsoundType.Tick,
-                    hitObject.SampleSet, hitObject.AdditionSet,
-                    timingPoint, hitObject, hitsoundBuffer, ignoreBase);
-                var (filename, resourceOwner, _) = hitsoundBuffer.First();
-
-                var element = PlaybackEvent.Create(Guid.NewGuid(), (int)itemOffset, volume, balance, filename,
-                    resourceOwner, SampleLayer.Effects);
+                var element = PlaybackEvent.Create(guid, (int)itemOffset, volume, balance, filename, resourceOwner,
+                    i == 0 ? SampleLayer.Primary : SampleLayer.Secondary);
                 elements.Add(element);
             }
+        }
+    }
 
-            // sliding
+    private void AddSliderTicks(TimingSection timingSection, RawHitObject hitObject,
+        List<PlaybackEvent> elements, List<HitsoundInfo> hitsoundBuffer, bool ignoreBalance, bool ignoreBase)
+    {
+        var sliderInfo = hitObject.SliderInfo!;
+        var ticks = sliderInfo.GetSliderTicks();
+        foreach (var sliderTick in ticks)
+        {
+            var itemOffset = sliderTick.Offset;
+
+            var edgeOffset = (itemOffset - sliderInfo.StartTime) / sliderInfo.CurrentSingleDuration;
+            if (Math.Abs(Math.Round(edgeOffset, 0) - edgeOffset) <= 0.01)
             {
-                var slideElements = new List<PlaybackEvent>();
+                continue;
+            }
 
-                var startOffset = hitObject.Offset;
-                var endOffset = sliderEdges[sliderEdges.Length - 1].Offset;
-                var timingPoint = timingSection.GetLine(startOffset);
+            var timingPoint = timingSection.GetLine(itemOffset);
 
-                float balance = ignoreBalance ? 0 : GetObjectBalance(hitObject.X);
-                float volume = GetObjectVolume(hitObject, timingPoint);
+            float balance = ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X);
+            float volume = GetObjectVolume(hitObject, timingPoint) /* * 1.25f*/; // ticks x1.25?
 
-                // start sliding
+            AnalyzeHitsoundFiles(HitsoundType.Tick,
+                hitObject.SampleSet, hitObject.AdditionSet,
+                timingPoint, hitObject, hitsoundBuffer, ignoreBase);
+            var (filename, resourceOwner, _) = hitsoundBuffer.First();
+
+            var element = PlaybackEvent.Create(Guid.NewGuid(), (int)itemOffset, volume, balance, filename,
+                resourceOwner, SampleLayer.Effects);
+            elements.Add(element);
+        }
+    }
+
+    private void AddSliderSliding(TimingSection timingSection, RawHitObject hitObject,
+        List<PlaybackEvent> elements, List<HitsoundInfo> hitsoundBuffer, bool ignoreBalance, bool ignoreBase)
+    {
+        var slideElements = new List<PlaybackEvent>();
+        var sliderEdges = hitObject.SliderInfo!.GetEdges();
+
+        var startOffset = hitObject.Offset;
+        var endOffset = sliderEdges[sliderEdges.Length - 1].Offset;
+        var timingPoint = timingSection.GetLine(startOffset);
+
+        float balance = ignoreBalance ? 0 : GetObjectBalance(hitObject.X);
+        float volume = GetObjectVolume(hitObject, timingPoint);
+
+        // start sliding
+        AnalyzeHitsoundFiles(
+            (hitObject.Hitsound & HitsoundType.SlideWhistle) | HitsoundType.Slide,
+            hitObject.SampleSet, hitObject.AdditionSet,
+            timingPoint, hitObject, hitsoundBuffer, ignoreBase);
+
+        foreach (var (filename, resourceOwner, hitsoundType) in hitsoundBuffer)
+        {
+            LoopChannel channel;
+            if (hitsoundType.HasFlag(HitsoundType.Slide))
+                channel = LoopChannel.Normal;
+            else if (hitsoundType.HasFlag(HitsoundType.SlideWhistle))
+                channel = LoopChannel.Whistle;
+            else
+                continue;
+
+            var element =
+                PlaybackEvent.CreateLoopSignal(startOffset, volume, balance, filename, resourceOwner, channel);
+            slideElements.Add(element);
+        }
+
+        // change sample (will optimize if only adjust volume) by timing points
+        var timingsOnSlider = timingSection.TimingList
+            .Where(k => k.Offset > startOffset + 0.5 && k.Offset < endOffset);
+
+        var prevTiming = timingPoint;
+
+        foreach (var timing in timingsOnSlider)
+        {
+            if (timing.Track != prevTiming.Track ||
+                timing.TimingSampleset != prevTiming.TimingSampleset)
+            {
+                volume = GetObjectVolume(hitObject, timing);
                 AnalyzeHitsoundFiles(
                     (hitObject.Hitsound & HitsoundType.SlideWhistle) | HitsoundType.Slide,
                     hitObject.SampleSet, hitObject.AdditionSet,
-                    timingPoint, hitObject, hitsoundBuffer, ignoreBase);
+                    timing, hitObject, hitsoundBuffer, ignoreBase);
 
                 foreach (var (filename, resourceOwner, hitsoundType) in hitsoundBuffer)
                 {
-                    LoopChannel channel;
-                    if (hitsoundType.HasFlag(HitsoundType.Slide))
-                        channel = LoopChannel.Normal;
-                    else if (hitsoundType.HasFlag(HitsoundType.SlideWhistle))
-                        channel = LoopChannel.Whistle;
+                    PlaybackEvent element;
+                    if (hitsoundType.HasFlag(HitsoundType.Slide) && slideElements
+                            .Last(k => k is ControlEvent { ControlEventType: ControlEventType.LoopStart })
+                            .Filename == filename)
+                    {
+                        // optimize by only change volume
+                        element = PlaybackEvent.CreateLoopVolumeSignal((int)timing.Offset, volume);
+                    }
                     else
-                        continue;
+                    {
+                        LoopChannel channel;
+                        if (hitsoundType.HasFlag(HitsoundType.Slide))
+                            channel = LoopChannel.Normal;
+                        else if (hitsoundType.HasFlag(HitsoundType.SlideWhistle))
+                            channel = LoopChannel.Whistle;
+                        else
+                            continue;
 
-                    var element =
-                        PlaybackEvent.CreateLoopSignal(startOffset, volume, balance, filename, resourceOwner, channel);
+                        // new sample
+                        element = PlaybackEvent.CreateLoopSignal((int)timing.Offset, volume, balance,
+                            filename, resourceOwner, channel);
+                    }
+
                     slideElements.Add(element);
                 }
 
-                // change sample (will optimize if only adjust volume) by timing points
-                var timingsOnSlider = timingSection.TimingList
-                    .Where(k => k.Offset > startOffset + 0.5 && k.Offset < endOffset);
-
-                var prevTiming = timingPoint;
-
-                foreach (var timing in timingsOnSlider)
-                {
-                    if (timing.Track != prevTiming.Track ||
-                        timing.TimingSampleset != prevTiming.TimingSampleset)
-                    {
-                        volume = GetObjectVolume(hitObject, timing);
-                        AnalyzeHitsoundFiles(
-                            (hitObject.Hitsound & HitsoundType.SlideWhistle) | HitsoundType.Slide,
-                            hitObject.SampleSet, hitObject.AdditionSet,
-                            timing, hitObject, hitsoundBuffer, ignoreBase);
-
-                        foreach (var (filename, resourceOwner, hitsoundType) in hitsoundBuffer)
-                        {
-                            PlaybackEvent element;
-                            if (hitsoundType.HasFlag(HitsoundType.Slide) && slideElements
-                                    .Last(k => k is ControlEvent { ControlEventType: ControlEventType.LoopStart })
-                                    .Filename == filename)
-                            {
-                                // optimize by only change volume
-                                element = PlaybackEvent.CreateLoopVolumeSignal((int)timing.Offset, volume);
-                            }
-                            else
-                            {
-                                LoopChannel channel;
-                                if (hitsoundType.HasFlag(HitsoundType.Slide))
-                                    channel = LoopChannel.Normal;
-                                else if (hitsoundType.HasFlag(HitsoundType.SlideWhistle))
-                                    channel = LoopChannel.Whistle;
-                                else
-                                    continue;
-
-                                // new sample
-                                element = PlaybackEvent.CreateLoopSignal((int)timing.Offset, volume, balance,
-                                    filename, resourceOwner, channel);
-                            }
-
-                            slideElements.Add(element);
-                        }
-
-                        prevTiming = timing;
-                    }
-                }
-
-                // end slide
-                var stopElement = PlaybackEvent.CreateLoopStopSignal((int)endOffset, LoopChannel.Normal);
-                var stopElement2 = PlaybackEvent.CreateLoopStopSignal((int)endOffset, LoopChannel.Whistle);
-                slideElements.Add(stopElement);
-                slideElements.Add(stopElement2);
-                foreach (var slideElement in slideElements)
-                {
-                    elements.Add(slideElement);
-                }
+                prevTiming = timing;
             }
+        }
 
-            // change balance while sliding (not supported in original game)
-            var trails = sliderInfo.GetSliderSlides();
-            foreach (var sliderTick in trails)
-            {
-                var balanceElement = PlaybackEvent.CreateLoopBalanceSignal((int)sliderTick.Offset,
-                    ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X));
-                elements.Add(balanceElement);
-            }
+        // end slide
+        var stopElement = PlaybackEvent.CreateLoopStopSignal((int)endOffset, LoopChannel.Normal);
+        var stopElement2 = PlaybackEvent.CreateLoopStopSignal((int)endOffset, LoopChannel.Whistle);
+        slideElements.Add(stopElement);
+        slideElements.Add(stopElement2);
+        foreach (var slideElement in slideElements)
+        {
+            elements.Add(slideElement);
+        }
+    }
+
+    private static void AddSliderBalanceChanges(RawHitObject hitObject, List<PlaybackEvent> elements, bool ignoreBalance)
+    {
+        // change balance while sliding (not supported in original game)
+        var trails = hitObject.SliderInfo!.GetSliderSlides();
+        foreach (var sliderTick in trails)
+        {
+            var balanceElement = PlaybackEvent.CreateLoopBalanceSignal((int)sliderTick.Offset,
+                ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X));
+            elements.Add(balanceElement);
         }
     }
 
