@@ -27,6 +27,9 @@ public record DeviceDescription
     [IgnoreDataMember]
     public double AsioLatencyMs { get; init; }
 
+    [IgnoreDataMember]
+    public int AsioActualSamples { get; init; }
+
     public static DeviceDescription WasapiDefault { get; } = new()
     {
         WavePlayerType = WavePlayerType.WASAPI,

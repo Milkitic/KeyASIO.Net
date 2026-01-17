@@ -147,18 +147,18 @@ public sealed class AudioDeviceManager : IDisposable
         //driverExt.Driver.GetBufferSize(out int minSize, out int maxSize, out int preferredSize, out int granularity);
         //var error = driverExt.Driver.GetLatencies(out int inputLatency, out var outputLatency);
 
-        var latency = GetOutputLatency(driverExt);
+        var (samples, latency) = GetOutputLatency(driverExt);
         //var latency = GetRoundtripLatency(driverExt);
 
-        return (device, description with { AsioLatencyMs = latency });
+        return (device, description with { AsioLatencyMs = latency, AsioActualSamples = samples });
     }
 
-    private double GetOutputLatency(AsioDriverExt driverExt)
+    private (int, double) GetOutputLatency(AsioDriverExt driverExt)
     {
         double sampleRate = driverExt.Driver.GetSampleRate();
         int outputLatencySamples = driverExt.Capabilities.OutputLatency;
         double outputLatencyMs = (outputLatencySamples / sampleRate) * 1000.0;
-        return outputLatencyMs;
+        return (outputLatencySamples, outputLatencyMs);
     }
 
     private static double GetRoundtripLatency(AsioDriverExt driverExt)

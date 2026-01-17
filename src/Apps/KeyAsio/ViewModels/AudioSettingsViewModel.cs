@@ -99,7 +99,10 @@ public partial class AudioSettingsViewModel : ObservableObject
     public partial bool IsLimiterEnabled { get; set; }
 
     [ObservableProperty]
-    public partial int FramesPerBuffer { get; set; }
+    public partial string FramesPerBuffer { get; set; }
+
+    [ObservableProperty]
+    public partial double AsioLatencyMs { get; set; }
 
     [ObservableProperty]
     public partial string? DeviceErrorMessage { get; set; }
@@ -362,8 +365,10 @@ public partial class AudioSettingsViewModel : ObservableObject
 
             if (AudioEngine.CurrentDevice is AsioOut asioOut)
             {
+                var actualDd = AudioEngine.CurrentDeviceDescription;
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
-                FramesPerBuffer = asioOut.FramesPerBuffer;
+                FramesPerBuffer = $"{asioOut.FramesPerBuffer}→{actualDd.AsioActualSamples} samples";
+                AsioLatencyMs = actualDd.AsioLatencyMs;
             }
 
             OnDeviceChanged?.Invoke(AudioEngine.CurrentDeviceDescription);
