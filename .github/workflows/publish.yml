@@ -33,7 +33,12 @@ jobs:
     - name: Secrets
       shell: pwsh
       run: |
-        echo 'public partial class Secrets { internal static readonly string Dsn ="${{ secrets.SENTRY_DSN }}"; internal static readonly string OfficialPublicKey = ""; }' > src/Common/KeyAsio.Secrets/Secrets.cs      
+        echo 'public partial class Secrets { internal static readonly string Dsn ="${{ secrets.SENTRY_DSN }}"; internal static readonly string OfficialPublicKey = "${{ secrets.OFFICIAL_PUBLIC_KEY }}"; }' > src/Common/KeyAsio.Secrets/Secrets.cs      
+        
+        $privateKey = '${{ secrets.OFFICIAL_PRIVATE_KEY }}'
+        if ($privateKey) {
+            echo $privateKey > src/Apps/KeyAsio/keyasio_private.key
+        }      
    
     - name: Publish
       run: |
