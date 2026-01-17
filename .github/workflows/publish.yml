@@ -26,9 +26,9 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: Restore dependencies
-      run: |
-        dotnet restore src/Apps/KeyAsio -r win-x64
+    # - name: Restore dependencies
+    #   run: |
+    #     dotnet restore src/Apps/KeyAsio -r win-x64
 
     - name: Secrets
       shell: pwsh
@@ -46,10 +46,10 @@ jobs:
     - name: Publish
       run: |
         echo ${{ github.ref }}      
-        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64 -p:PublishReadyToRun=false
-        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64-r2r -p:PublishReadyToRun=true
-        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained false --configuration Release --output ci-publish-win64-fd -p:PublishReadyToRun=false
-        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained false --configuration Release --output ci-publish-win64-fd-r2r -p:PublishReadyToRun=true
+        dotnet publish src/Apps/KeyAsio --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64 -p:PublishReadyToRun=false
+        dotnet publish src/Apps/KeyAsio --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64-r2r -p:PublishReadyToRun=true
+        dotnet publish src/Apps/KeyAsio --framework net10.0 --runtime win-x64 --self-contained false --configuration Release --output ci-publish-win64-fd -p:PublishReadyToRun=false
+        dotnet publish src/Apps/KeyAsio --framework net10.0 --runtime win-x64 --self-contained false --configuration Release --output ci-publish-win64-fd-r2r -p:PublishReadyToRun=true
    
     - name: Confuser
       shell: pwsh
