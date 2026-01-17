@@ -28,7 +28,7 @@ jobs:
 
     - name: Restore dependencies
       run: |
-        dotnet restore src/Apps/KeyAsio
+        dotnet restore src/Apps/KeyAsio -r win-x64
 
     - name: Secrets
       shell: pwsh
