@@ -326,7 +326,7 @@
     <value>同步模式</value>
   </data>
   <data name="Plugin_Corrupted" xml:space="preserve">
-    <value>已损坏</value>
+    <value>不可用</value>
   </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>极限</value>

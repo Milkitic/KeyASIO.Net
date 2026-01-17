@@ -683,7 +683,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Corrupted 的本地化字符串。
+        ///   查找类似 Unavailable 的本地化字符串。
         /// </summary>
         internal static string Plugin_Corrupted {
             get {
