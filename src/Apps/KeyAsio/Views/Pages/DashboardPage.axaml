@@ -156,7 +156,7 @@
         </Grid>
       </suki:GlassCard>
 
-      <Grid>
+      <Grid ColumnSpacing="15">
         <!--  Stats  -->
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" MinWidth="320" />
@@ -164,7 +164,6 @@
         </Grid.ColumnDefinitions>
         <suki:GlassCard
           Height="140"
-          Margin="0,0,10,0"
           Padding="15"
           Command="{Binding ShowDeviceErrorCommand}"
           IsInteractive="{Binding AudioSettings.DeviceErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -367,7 +366,6 @@
         <suki:GlassCard
           Grid.Column="1"
           Height="140"
-          Margin="10,0,0,0"
           Padding="15">
           <Grid RowDefinitions="Auto,*">
             <DockPanel LastChildFill="False">
