@@ -111,4 +111,13 @@
     <Message Text="Signing the published output assembly to $(PublishDir)..." Importance="High" />
     <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\Signer.ps1&quot; sign &quot;$(PublishDir)$(TargetFileName)&quot; &quot;$(MSBuildProjectDirectory)\keyasio_private.key&quot;" />
   </Target>
+
+  <Target Name="ObfuscateSecretsInBundle" BeforeTargets="GenerateSingleFileBundle" Condition="'$(ConfuserExe)' != '' And '$(PublishSingleFile)' == 'true'">
+    <Message Text="Obfuscating KeyAsio.Secrets.dll before bundling..." Importance="High" />
+    <PropertyGroup>
+        <SecretsDllPath>$(PublishDir)KeyAsio.Secrets.dll</SecretsDllPath>
+    </PropertyGroup>
+    <Exec Command="&quot;$(ConfuserExe)&quot; -file &quot;$(SecretsDllPath)&quot; -targetfile &quot;$(SecretsDllPath)&quot; -anti_debug 1 -hide_calls 1 -control_flow 1 -flow_level 9 -virtualization 1 -naming stealth" />
+  </Target>
+
 </Project>
