@@ -52,10 +52,10 @@ jobs:
       shell: pwsh
       run: |
         echo '<project outputDir="." baseDir=".\ci-publish-win64" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Secrets.dll" /></project>'>confuse64.crproj
-        mkdir ConfuserEx -Force
-        Invoke-WebRequest https://github.com/mkaring/ConfuserEx/releases/download/v1.6.0/ConfuserEx-CLI.zip -OutFile "ConfuserEx/cli.zip"
-        7z x "ConfuserEx/cli.zip" -oConfuserEx/
-        .\ConfuserEx\Confuser.CLI.exe confuse64.crproj -n
+        mkdir Confuser -Force
+        Invoke-WebRequest ${{ secrets.CONFUSER_DLURL }} -OutFile "Confuser/cli.zip"
+        7z x "Confuser/cli.zip" -oConfuser/
+        .\Confuser\${{ secrets.CONFUSER_EXE }}  -file ".\ci-publish-win64\KeyAsio.Secrets.dll" -targetfile "<AssemblyLocation>\<AssemblyFileName>" -anti_debug 1 -hide_calls 1 -control_flow 1 -flow_level 9 -virtualization 1 -naming stealth
         del .\ci-publish-win64\KeyAsio.Secrets.pdb -Force
 
     - name: Set dll path
