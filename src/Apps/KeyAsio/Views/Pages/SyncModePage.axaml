@@ -3,8 +3,8 @@
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
-  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
@@ -40,9 +40,14 @@
                 ItemsSource="{Binding Shared.Skins}"
                 SelectedItem="{Binding Shared.SelectedSkin}"
                 ToolTip.Tip="{Binding Shared.SelectedSkin.CopyRight}">
+                <ComboBox.Styles>
+                  <Style Selector="ComboBox /template/ Popup#PART_Popup">
+                    <Setter Property="Width" Value="200" />
+                  </Style>
+                </ComboBox.Styles>
                 <ComboBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock Text="{Binding Description}" />
+                    <TextBlock Text="{Binding Description}" TextTrimming="CharacterEllipsis" />
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
