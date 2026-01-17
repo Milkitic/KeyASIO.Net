@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Coosu.Shared.IO;
 using KeyAsio.Core.Memory;
 using KeyAsio.Core.Memory.Configuration;
 using KeyAsio.Core.Memory.Utils;
@@ -37,7 +38,11 @@ public class MemoryScan
         _logger = logger;
     }
 
-    public MemoryReadObject MemoryReadObject { [MethodImpl(MethodImplOptions.AggressiveInlining)] get; } = new();
+    public MemoryReadObject MemoryReadObject
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+    } = new();
 
     public void Start(int generalInterval, int timingInterval)
     {
@@ -243,10 +248,52 @@ public class MemoryScan
             if (string.IsNullOrEmpty(mainModuleFileName)) return;
 
             var baseDirectory = Path.GetDirectoryName(mainModuleFileName);
-            if (baseDirectory != null)
+            if (baseDirectory == null) return;
+
+            var beatmapDirectory = "Songs";
+            var configPath = Path.Combine(baseDirectory, $"osu!.{Environment.UserName}.cfg");
+
+            if (File.Exists(configPath))
             {
-                _songsDirectory = Path.Combine(baseDirectory, "Songs");
+                try
+                {
+                    using var sr = new StreamReader(configPath);
+                    using var lineReader = new EphemeralLineReader(sr);
+                    while (lineReader.ReadLine() is { } memory)
+                    {
+                        var span = memory.Span.Trim();
+                        if (span.StartsWith('#')) continue;
+                        if (span.IsEmpty) continue;
+
+                        var commentIndex = span.IndexOf('#');
+                        var validSpan = commentIndex == -1 ? span : span.Slice(0, commentIndex).TrimEnd();
+
+                        var splitterIndex = span.IndexOf('=');
+                        if (splitterIndex == -1) continue;
+
+                        var key = validSpan.Slice(0, splitterIndex).TrimEnd();
+                        var value = validSpan.Slice(splitterIndex + 1).TrimStart();
+
+                        if (key.Equals("BeatmapDirectory", StringComparison.OrdinalIgnoreCase))
+                        {
+                            beatmapDirectory = value.ToString();
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to read osu! configuration file");
+                }
             }
+            else
+            {
+                _logger.LogWarning("osu! configuration file not found at {ConfigPath}", configPath);
+            }
+
+            _songsDirectory = Path.IsPathRooted(beatmapDirectory)
+                ? beatmapDirectory
+                : Path.Combine(baseDirectory, beatmapDirectory);
         }
         catch (Exception ex)
         {
