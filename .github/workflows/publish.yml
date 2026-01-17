@@ -32,12 +32,15 @@ jobs:
 
     - name: Secrets
       shell: pwsh
+      env:
+        OFFICIAL_PUBLIC_KEY: ${{ secrets.OFFICIAL_PUBLIC_KEY }}
+        OFFICIAL_PRIVATE_KEY: ${{ secrets.OFFICIAL_PRIVATE_KEY }}
       run: |
-        echo 'public partial class Secrets { internal static readonly string Dsn ="${{ secrets.SENTRY_DSN }}"; internal static readonly string OfficialPublicKey = "${{ secrets.OFFICIAL_PUBLIC_KEY }}"; }' > src/Common/KeyAsio.Secrets/Secrets.cs      
+        $secretsContent = 'public partial class Secrets { internal static readonly string Dsn ="${{ secrets.SENTRY_DSN }}"; internal static readonly string OfficialPublicKey = @"' + $env:OFFICIAL_PUBLIC_KEY + '"; }'
+        Set-Content -Path "src/Common/KeyAsio.Secrets/Secrets.cs" -Value $secretsContent
         
-        $privateKey = '${{ secrets.OFFICIAL_PRIVATE_KEY }}'
-        if ($privateKey) {
-            echo $privateKey > src/Apps/KeyAsio/keyasio_private.key
+        if ($env:OFFICIAL_PRIVATE_KEY) {
+            Set-Content -Path "src/Apps/KeyAsio/keyasio_private.key" -Value $env:OFFICIAL_PRIVATE_KEY
         }      
    
     - name: Publish
