@@ -156,8 +156,12 @@
         </Grid>
       </suki:GlassCard>
 
-      <Grid ColumnDefinitions="*,*">
+      <Grid>
         <!--  Stats  -->
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" MinWidth="320" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         <suki:GlassCard
           Height="140"
           Margin="0,0,10,0"
@@ -294,7 +298,10 @@
                   Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.FriendlyName}"
                   TextWrapping="Wrap" />
 
-                <WrapPanel Grid.Row="1" Orientation="Horizontal">
+                <WrapPanel
+                  Grid.Row="1"
+                  Margin="0,0,-10,0"
+                  Orientation="Horizontal">
                   <!--  Sample Rate  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
