@@ -22,51 +22,51 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
 
     - name: Restore dependencies
       run: |
-        dotnet restore src/KeyAsio
+        dotnet restore src/Apps/KeyAsio
 
     - name: Secrets
       if: ${{ success() }}
       shell: pwsh
       run: |
-        echo 'public partial class EmbeddedSentryConfiguration { private static readonly string __dsn ="${{ secrets.SENTRY_DSN }}"; }'>src/KeyAsio.Sentry/EmbeddedSentryConfiguration.Secret.cs      
+        echo 'public partial class Secrets { internal static readonly string Dsn ="${{ secrets.SENTRY_DSN }}"; internal static readonly string OfficialPublicKey = ""; }' > src/Common/KeyAsio.Secrets/Secrets.cs      
    
-    # dotnet publish src/KeyAsio --framework net8.0-windows --configuration Release --output ci-publish
+    # dotnet publish src/Apps/KeyAsio --framework net10.0 --configuration Release --output ci-publish
     - name: Publish
       if: ${{ success() }}
       run: |
         echo ${{ github.ref }}      
-        dotnet publish src/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64
-        dotnet publish src/KeyAsio --no-restore --framework net10.0 --runtime win-x86 --self-contained --configuration Release --output ci-publish-win32
+        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64
+        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x86 --self-contained --configuration Release --output ci-publish-win32
    
-    # echo '<project outputDir="." baseDir=".\ci-publish" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse.crproj
+    # echo '<project outputDir="." baseDir=".\ci-publish" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Secrets.dll" /></project>'>confuse.crproj
     # .\ConfuserEx\Confuser.CLI.exe confuse.crproj -n
-    # del .\ci-publish\KeyAsio.Sentry.pdb -Force
+    # del .\ci-publish\KeyAsio.Secrets.pdb -Force
     - name: Confuser
       if: ${{ success() }}
       shell: pwsh
       run: |
-        echo '<project outputDir="." baseDir=".\ci-publish-win64" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse64.crproj
-        echo '<project outputDir="." baseDir=".\ci-publish-win32" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Sentry.dll" /></project>'>confuse32.crproj
+        echo '<project outputDir="." baseDir=".\ci-publish-win64" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Secrets.dll" /></project>'>confuse64.crproj
+        echo '<project outputDir="." baseDir=".\ci-publish-win32" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Secrets.dll" /></project>'>confuse32.crproj
         mkdir ConfuserEx -Force
         Invoke-WebRequest https://github.com/mkaring/ConfuserEx/releases/download/v1.6.0/ConfuserEx-CLI.zip -OutFile "ConfuserEx/cli.zip"
         7z x "ConfuserEx/cli.zip" -oConfuserEx/
         .\ConfuserEx\Confuser.CLI.exe confuse64.crproj -n
         .\ConfuserEx\Confuser.CLI.exe confuse32.crproj -n
-        del .\ci-publish-win64\KeyAsio.Sentry.pdb -Force
-        del .\ci-publish-win32\KeyAsio.Sentry.pdb -Force
+        del .\ci-publish-win64\KeyAsio.Secrets.pdb -Force
+        del .\ci-publish-win32\KeyAsio.Secrets.pdb -Force
 
-    # .\KeyAsio\afterbuild.ps1 .\ci-publish\KeyAsio.exe
+    # .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish\KeyAsio.exe
     - name: Set dll path
       if: ${{ success() }}
       shell: pwsh
       run: | 
-        copy .\src\KeyAsio\DotNetDllPathPatcher.ps1 .\DotNetDllPathPatcher.ps1
-        .\src\KeyAsio\afterbuild.ps1 .\ci-publish-win64\KeyAsio.exe
-        .\src\KeyAsio\afterbuild.ps1 .\ci-publish-win32\KeyAsio.exe
+        copy .\src\Apps\KeyAsio\DotNetDllPathPatcher.ps1 .\DotNetDllPathPatcher.ps1
+        .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64\KeyAsio.exe
+        .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win32\KeyAsio.exe
 
     - name: Get tag
       uses: dawidd6/action-get-tag@v1
