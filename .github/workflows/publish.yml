@@ -39,33 +39,27 @@ jobs:
       run: |
         echo ${{ github.ref }}      
         dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64
-        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x86 --self-contained --configuration Release --output ci-publish-win32
    
     - name: Confuser
       shell: pwsh
       run: |
         echo '<project outputDir="." baseDir=".\ci-publish-win64" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Secrets.dll" /></project>'>confuse64.crproj
-        echo '<project outputDir="." baseDir=".\ci-publish-win32" xmlns="http://confuser.codeplex.com"><rule pattern="true" preset="maximum" inherit="false" /><module path="KeyAsio.Secrets.dll" /></project>'>confuse32.crproj
         mkdir ConfuserEx -Force
         Invoke-WebRequest https://github.com/mkaring/ConfuserEx/releases/download/v1.6.0/ConfuserEx-CLI.zip -OutFile "ConfuserEx/cli.zip"
         7z x "ConfuserEx/cli.zip" -oConfuserEx/
         .\ConfuserEx\Confuser.CLI.exe confuse64.crproj -n
-        .\ConfuserEx\Confuser.CLI.exe confuse32.crproj -n
         del .\ci-publish-win64\KeyAsio.Secrets.pdb -Force
-        del .\ci-publish-win32\KeyAsio.Secrets.pdb -Force
 
     - name: Set dll path
       shell: pwsh
       run: | 
         copy .\src\Apps\KeyAsio\DotNetDllPathPatcher.ps1 .\DotNetDllPathPatcher.ps1
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64\KeyAsio.exe
-        .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win32\KeyAsio.exe
         
     - name: Pack via 7z
       run: |
         mkdir -p ./ci-pack/
         7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.7z" "./ci-publish-win64/*" -x!"${{ env.ProjectName }}" -r
-        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win32.7z" "./ci-publish-win32/*" -x!"${{ env.ProjectName }}" -r
         
     - name: Upload Artifacts
       if: contains(github.ref_name, 'alpha')
@@ -90,4 +84,3 @@ jobs:
         draft: false
         files: |
           ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.7z
-          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win32.7z
