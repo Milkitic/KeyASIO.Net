@@ -62,7 +62,7 @@ jobs:
       shell: pwsh
       run: | 
         copy .\src\Apps\KeyAsio\DotNetDllPathPatcher.ps1 .\DotNetDllPathPatcher.ps1
-        .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64\KeyAsio.exe
+        .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64\KeyASIO.exe
         
     - name: Pack via 7z
       run: |
