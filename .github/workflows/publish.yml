@@ -46,8 +46,10 @@ jobs:
     - name: Publish
       run: |
         echo ${{ github.ref }}      
-        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64
-        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained false --configuration Release --output ci-publish-win64-fd
+        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64 -p:PublishReadyToRun=false
+        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained --configuration Release --output ci-publish-win64-r2r -p:PublishReadyToRun=true
+        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained false --configuration Release --output ci-publish-win64-fd -p:PublishReadyToRun=false
+        dotnet publish src/Apps/KeyAsio --no-restore --framework net10.0 --runtime win-x64 --self-contained false --configuration Release --output ci-publish-win64-fd-r2r -p:PublishReadyToRun=true
    
     - name: Confuser
       shell: pwsh
@@ -59,15 +61,23 @@ jobs:
         .\Confuser\${{ secrets.CONFUSER_EXE }}  -file ".\ci-publish-win64\KeyAsio.Secrets.dll" -targetfile "<AssemblyLocation>\<AssemblyFileName>" -anti_debug 1 -hide_calls 1 -control_flow 1 -flow_level 9 -virtualization 1 -naming stealth
         del .\ci-publish-win64\KeyAsio.Secrets.pdb -Force
 
+        .\Confuser\${{ secrets.CONFUSER_EXE }}  -file ".\ci-publish-win64-r2r\KeyAsio.Secrets.dll" -targetfile "<AssemblyLocation>\<AssemblyFileName>" -anti_debug 1 -hide_calls 1 -control_flow 1 -flow_level 9 -virtualization 1 -naming stealth
+        del .\ci-publish-win64-r2r\KeyAsio.Secrets.pdb -Force
+
         .\Confuser\${{ secrets.CONFUSER_EXE }}  -file ".\ci-publish-win64-fd\KeyAsio.Secrets.dll" -targetfile "<AssemblyLocation>\<AssemblyFileName>" -anti_debug 1 -hide_calls 1 -control_flow 1 -flow_level 9 -virtualization 1 -naming stealth
         del .\ci-publish-win64-fd\KeyAsio.Secrets.pdb -Force
+
+        .\Confuser\${{ secrets.CONFUSER_EXE }}  -file ".\ci-publish-win64-fd-r2r\KeyAsio.Secrets.dll" -targetfile "<AssemblyLocation>\<AssemblyFileName>" -anti_debug 1 -hide_calls 1 -control_flow 1 -flow_level 9 -virtualization 1 -naming stealth
+        del .\ci-publish-win64-fd-r2r\KeyAsio.Secrets.pdb -Force
 
     - name: Set dll path
       shell: pwsh
       run: | 
         copy .\src\Apps\KeyAsio\DotNetDllPathPatcher.ps1 .\DotNetDllPathPatcher.ps1
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64\KeyASIO.exe
+        .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64-r2r\KeyASIO.exe
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64-fd\KeyASIO.exe
+        .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64-fd-r2r\KeyASIO.exe
 
     - name: Upload Artifacts
       if: contains(github.ref_name, 'alpha')
@@ -76,6 +86,13 @@ jobs:
         name: ${{ env.ProjectName }}-${{ github.ref_name }}-win64
         path: ./ci-publish-win64/*
 
+    - name: Upload Artifacts (R2R)
+      if: contains(github.ref_name, 'alpha')
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ProjectName }}-${{ github.ref_name }}-win64-r2r
+        path: ./ci-publish-win64-r2r/*
+
     - name: Upload Artifacts (FD)
       if: contains(github.ref_name, 'alpha')
       uses: actions/upload-artifact@v4
@@ -83,12 +100,21 @@ jobs:
         name: ${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent
         path: ./ci-publish-win64-fd/*
 
+    - name: Upload Artifacts (FD R2R)
+      if: contains(github.ref_name, 'alpha')
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent-r2r
+        path: ./ci-publish-win64-fd-r2r/*
+
     - name: Pack via 7z
       if: ${{ !contains(github.ref_name, 'alpha') }}
       run: |
         mkdir -p ./ci-pack/
         7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.7z" "./ci-publish-win64/*" -x!"${{ env.ProjectName }}" -r
+        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-r2r.7z" "./ci-publish-win64-r2r/*" -x!"${{ env.ProjectName }}" -r
         7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent.7z" "./ci-publish-win64-fd/*" -x!"${{ env.ProjectName }}" -r
+        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent-r2r.7z" "./ci-publish-win64-fd-r2r/*" -x!"${{ env.ProjectName }}" -r
 
     - name: Create a new GitHub release if a new tag is pushed
       if: ${{ !contains(github.ref_name, 'alpha') }}
@@ -106,4 +132,6 @@ jobs:
         draft: false
         files: |
           ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.7z
+          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-r2r.7z
           ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent.7z
+          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent-r2r.7z

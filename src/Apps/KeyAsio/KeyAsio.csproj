@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,7 +7,6 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ImplicitUsings>enable</ImplicitUsings>
-    <PublishReadyToRun>true</PublishReadyToRun>
     <LangVersion>preview</LangVersion>
 
     <Product>KeyASIO</Product>
