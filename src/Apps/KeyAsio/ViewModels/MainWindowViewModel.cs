@@ -1,3 +1,4 @@
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
@@ -26,6 +27,7 @@ public partial class MainWindowViewModel : IDisposable
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly SettingsManager _settingsManager;
     private readonly PresetManager _presetManager;
+    private readonly PropertyChangedEventHandler _languageManagerPropertyChangedHandler;
     private bool _isNavigating;
     private bool _disposed;
 
@@ -56,6 +58,15 @@ public partial class MainWindowViewModel : IDisposable
 #if DEBUG
         IsDevelopment = true;
 #endif
+
+        _languageManagerPropertyChangedHandler = (_, args) =>
+        {
+            if (args.PropertyName == nameof(LanguageManager.SelectedLanguageItem))
+            {
+                OnPropertyChanged(nameof(WindowTitle));
+            }
+        };
+        LanguageManager.PropertyChanged += _languageManagerPropertyChangedHandler;
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
@@ -92,6 +103,15 @@ public partial class MainWindowViewModel : IDisposable
 #if DEBUG
         IsDevelopment = true;
 #endif
+
+        _languageManagerPropertyChangedHandler = (_, args) =>
+        {
+            if (args.PropertyName == nameof(LanguageManager.SelectedLanguageItem))
+            {
+                OnPropertyChanged(nameof(WindowTitle));
+            }
+        };
+        LanguageManager.PropertyChanged += _languageManagerPropertyChangedHandler;
     }
 
     public LanguageManager LanguageManager { get; }
@@ -108,6 +128,11 @@ public partial class MainWindowViewModel : IDisposable
     public AboutPageViewModel About { get; } = new();
     public bool IsDevelopment { get; }
 
+    public string WindowTitle =>
+        (!IsVerified || IsDevelopment)
+            ? $"{SR.App_Title} (Development Build)"
+            : SR.App_Title;
+
     public SliderTailPlaybackBehavior[] SliderTailBehaviors { get; } = Enum.GetValues<SliderTailPlaybackBehavior>();
     public AppTheme[] AvailableThemes { get; } = Enum.GetValues<AppTheme>();
 
@@ -116,6 +141,11 @@ public partial class MainWindowViewModel : IDisposable
 
     [ObservableProperty]
     public partial bool IsVerified { get; set; }
+
+    partial void OnIsVerifiedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(WindowTitle));
+    }
 
     public object? SettingsPageItem { get; set; }
     public object? AudioEnginePageItem { get; set; }
@@ -254,6 +284,7 @@ public partial class MainWindowViewModel : IDisposable
         if (_disposed) return;
         _disposed = true;
 
+        LanguageManager.PropertyChanged -= _languageManagerPropertyChangedHandler;
         SyncDisplay.Dispose();
         PluginManager.Dispose();
 
