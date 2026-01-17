@@ -63,18 +63,19 @@ jobs:
       run: | 
         copy .\src\Apps\KeyAsio\DotNetDllPathPatcher.ps1 .\DotNetDllPathPatcher.ps1
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64\KeyASIO.exe
-        
-    - name: Pack via 7z
-      run: |
-        mkdir -p ./ci-pack/
-        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.7z" "./ci-publish-win64/*" -x!"${{ env.ProjectName }}" -r
-        
+
     - name: Upload Artifacts
       if: contains(github.ref_name, 'alpha')
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.ProjectName }}-${{ github.ref_name }}
-        path: ./ci-pack/*
+        path: ./ci-publish-win64/*
+
+    - name: Pack via 7z
+      if: ${{ !contains(github.ref_name, 'alpha') }}
+      run: |
+        mkdir -p ./ci-pack/
+        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.7z" "./ci-publish-win64/*" -x!"${{ env.ProjectName }}" -r
 
     - name: Create a new GitHub release if a new tag is pushed
       if: ${{ !contains(github.ref_name, 'alpha') }}
