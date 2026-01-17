@@ -1,18 +1,18 @@
 ﻿using System.Reflection;
 using Coosu.Beatmap;
-using Coosu.Beatmap.Extensions.Playback;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Plugins;
 using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Sync.States;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Shared.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
@@ -80,7 +80,8 @@ public class Program
         // Manually set OsuFile on GameplaySessionManager
         // OsuFile property has internal setter. We can use reflection or if it's in the same assembly (internals visible to).
         // Since we are in a different project, we need reflection.
-        var propOsuFile = typeof(GameplaySessionManager).GetProperty("OsuFile", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+        var propOsuFile = typeof(GameplaySessionManager).GetProperty("OsuFile",
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
         propOsuFile?.SetValue(gameplaySessionManager, osuFile);
 
         // Setup HitsoundSequencer
@@ -108,8 +109,24 @@ public class Program
             gameplayAudioService,
             gameplaySessionManager
         );
+        var taikoSequencer = new KeyAsio.Shared.Sync.AudioProviders.TaikoHitsoundSequencer(
+            loggerFactory.CreateLogger<KeyAsio.Shared.Sync.AudioProviders.TaikoHitsoundSequencer>(),
+            provider.GetRequiredService<AppSettings>(),
+            ctx,
+            audioEngine,
+            gameplayAudioService,
+            gameplaySessionManager
+        );
+        var catchSequencer = new KeyAsio.Shared.Sync.AudioProviders.CatchHitsoundSequencer(
+            loggerFactory.CreateLogger<KeyAsio.Shared.Sync.AudioProviders.CatchHitsoundSequencer>(),
+            provider.GetRequiredService<AppSettings>(),
+            ctx,
+            audioEngine,
+            gameplayAudioService,
+            gameplaySessionManager
+        );
 
-        gameplaySessionManager.InitializeProviders(stdSequencer, maniaSequencer);
+        gameplaySessionManager.InitializeProviders(stdSequencer, taikoSequencer, catchSequencer, maniaSequencer);
 
         // Populate BeatmapHitsoundLoader (via PlaybackList/KeyList which are lists in Loader)
         // Access Loader directly
@@ -120,8 +137,9 @@ public class Program
         // But we can add to KeyList directly.
         // For PlaybackList, we might need reflection to access _playbackList.
 
-        var fieldPlaybackList = typeof(BeatmapHitsoundLoader).GetField("_playbackList", BindingFlags.NonPublic | BindingFlags.Instance);
-        var playbackList = (List<HitsoundNode>)fieldPlaybackList!.GetValue(loader)!;
+        var fieldPlaybackList =
+            typeof(BeatmapHitsoundLoader).GetField("_playbackList", BindingFlags.NonPublic | BindingFlags.Instance);
+        var playbackList = (List<PlaybackEvent>)fieldPlaybackList!.GetValue(loader)!;
 
         await audioCacheManager.GetOrCreateOrEmptyFromFileAsync("test.wav", audioEngine.EngineWaveFormat);
         await audioCacheManager.GetOrCreateOrEmptyFromFileAsync("effect.wav", audioEngine.EngineWaveFormat);
@@ -134,23 +152,23 @@ public class Program
             // Create PlayableNode
             // PlayableNode is likely abstract or simple class.
             // Let's try to instantiate it. It inherits HitsoundNode.
-            var node = HitsoundNode.Create(
+            var node = PlaybackEvent.Create(
                 Guid.NewGuid(),
                 offset,
                 volume: 1f,
                 balance: 0f,
                 filename: "test.wav",
-                useUserSkin: false,
-                PlayablePriority.Primary); // Key sound
+                resourceOwner: ResourceOwner.Beatmap,
+                layer: SampleLayer.Primary); // Key sound
             loader.KeyList.Add(node);
-            var playbackNode = HitsoundNode.Create(
+            var playbackNode = PlaybackEvent.Create(
                 Guid.NewGuid(),
                 offset + 5,
                 volume: 0.8f,
                 balance: 0f,
                 filename: "effect.wav",
-                useUserSkin: false,
-                PlayablePriority.Effects);
+                resourceOwner: ResourceOwner.Beatmap,
+                layer: SampleLayer.Effects);
             playbackList.Add(playbackNode);
         }
 
@@ -166,17 +184,15 @@ public class Program
         int keyCount = 4;
         foreach (var node in loader.KeyList)
         {
-            if (node is PlayableNode playable)
+            var ratio = (node.Balance + 1d) / 2;
+            var column = (int)Math.Round(ratio * keyCount - 0.5);
+            if (!keyMap.TryGetValue((int)node.Offset, out var list))
             {
-                var ratio = (playable.Balance + 1d) / 2;
-                var column = (int)Math.Round(ratio * keyCount - 0.5);
-                if (!keyMap.TryGetValue((int)node.Offset, out var list))
-                {
-                    list = new List<int>();
-                    keyMap[(int)node.Offset] = list;
-                }
-                list.Add(column);
+                list = new List<int>();
+                keyMap[(int)node.Offset] = list;
             }
+
+            list.Add(column);
         }
 
         // Set Started
@@ -251,7 +267,8 @@ public class Program
         var player = new NoOpWavePlayer();
 
         // 2. Set CurrentDevice via reflection
-        var propCurrentDevice = typeof(AudioEngine).GetProperty("CurrentDevice", BindingFlags.Public | BindingFlags.Instance);
+        var propCurrentDevice =
+            typeof(AudioEngine).GetProperty("CurrentDevice", BindingFlags.Public | BindingFlags.Instance);
         propCurrentDevice?.SetValue(engine, player);
 
         // 3. Initialize Mixers
@@ -279,9 +296,12 @@ public class Program
         // Wire up mixers (as done in StartDevice)
         // We need access to private fields _effectVolumeSampleProvider, etc. to set their Source.
 
-        var fieldEffectVol = typeof(AudioEngine).GetField("_effectVolumeSampleProvider", BindingFlags.NonPublic | BindingFlags.Instance);
-        var fieldMusicVol = typeof(AudioEngine).GetField("_musicVolumeSampleProvider", BindingFlags.NonPublic | BindingFlags.Instance);
-        var fieldMainVol = typeof(AudioEngine).GetField("_mainVolumeSampleProvider", BindingFlags.NonPublic | BindingFlags.Instance);
+        var fieldEffectVol = typeof(AudioEngine).GetField("_effectVolumeSampleProvider",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        var fieldMusicVol = typeof(AudioEngine).GetField("_musicVolumeSampleProvider",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        var fieldMainVol =
+            typeof(AudioEngine).GetField("_mainVolumeSampleProvider", BindingFlags.NonPublic | BindingFlags.Instance);
 
         var effectVol = (EnhancedVolumeSampleProvider)fieldEffectVol!.GetValue(engine)!;
         var musicVol = (EnhancedVolumeSampleProvider)fieldMusicVol!.GetValue(engine)!;
@@ -305,7 +325,8 @@ public class Program
 
     private static void SetPrivateProperty(object obj, string propName, object value)
     {
-        var prop = obj.GetType().GetProperty(propName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        var prop = obj.GetType()
+            .GetProperty(propName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         prop?.SetValue(obj, value);
     }
 }
