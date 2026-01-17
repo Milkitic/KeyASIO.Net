@@ -102,4 +102,9 @@
   </ItemGroup>
 
   <Import Project="Satori.targets" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+
+  <Target Name="SignOutput" AfterTargets="PostBuildEvent" Condition="Exists('$(MSBuildProjectDirectory)\keyasio_private.key')">
+    <Message Text="Signing the output assembly to $(MSBuildProjectDirectory)..." Importance="High" />
+    <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\Signer.ps1&quot; sign &quot;$(TargetPath)&quot; &quot;$(MSBuildProjectDirectory)\keyasio_private.key&quot;" />
+  </Target>
 </Project>
