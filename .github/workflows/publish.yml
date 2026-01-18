@@ -74,9 +74,17 @@ jobs:
       shell: pwsh
       run: | 
         copy .\src\Apps\KeyAsio\DotNetDllPathPatcher.ps1 .\DotNetDllPathPatcher.ps1
+        
+        copy .\ci-publish-win64\KeyASIO.exe .\ci-publish-win64\KeyASIO.original.exe
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64\KeyASIO.exe
+        
+        copy .\ci-publish-win64-r2r\KeyASIO.exe .\ci-publish-win64-r2r\KeyASIO.original.exe
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64-r2r\KeyASIO.exe
+        
+        copy .\ci-publish-win64-fd\KeyASIO.exe .\ci-publish-win64-fd\KeyASIO.original.exe
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64-fd\KeyASIO.exe
+        
+        copy .\ci-publish-win64-fd-r2r\KeyASIO.exe .\ci-publish-win64-fd-r2r\KeyASIO.original.exe
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64-fd-r2r\KeyASIO.exe
 
     - name: Upload Artifacts
