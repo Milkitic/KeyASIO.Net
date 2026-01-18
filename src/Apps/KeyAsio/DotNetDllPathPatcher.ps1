@@ -24,7 +24,7 @@ function Update-Exe {
         throw [PathTooLongException] 'old dll path is too long'
     }
 
-    $new_dll_path = "$target_path$separator$dll_name"
+    $new_dll_path = ".$separator$target_path$separator$dll_name"
     $new_bytes = [Encoding]::UTF8.GetBytes("$new_dll_path`0")
     Write-Host "Dll path Change to `"$new_dll_path`""
     if ($new_bytes.Count -gt $max_path_length) {
