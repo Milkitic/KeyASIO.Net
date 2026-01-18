@@ -78,7 +78,7 @@ KeyASIO offers two main modes. Choose the one that fits your hardware.
     * Set osu! output device to `VB-Cable Input`.
     * (Optional) If you stream, capture `VB-Cable Output` in OBS.
 3.  **In KeyASIO:**
-    * Select your actual output device (Headphones/Speakers) in the GUI.
+    * Select your actual output device (Headphones/Speakers) in the GUI with **WASAPI Exclusive ON**.
     * Set **FullMode (EnableMusicFunctions)** to `TRUE`.
     * *Note: This mode completely replaces osu!'s audio engine.*
 
