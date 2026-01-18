@@ -11,7 +11,7 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
     /// <summary>
     /// 一个特殊的返回值，表示该 Provider 虽然没有数据，但仍需保持在混合器中（不被移除）。
     /// </summary>
-    public const int SignalKeepAlive = -114514;
+    public const int SignalKeepAlive = -0x1BF52;
 
     private const int MaxInputs = 1024;
 
