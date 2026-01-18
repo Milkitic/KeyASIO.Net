@@ -112,24 +112,12 @@
     <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\Signer.ps1&quot; sign &quot;$(PublishDir)$(TargetFileName)&quot; &quot;$(MSBuildProjectDirectory)\keyasio_private.key&quot;" />
   </Target>
 
-  <Target Name="ExcludeMainAssemblyFromBundle" BeforeTargets="GenerateSingleFileBundle" Condition="'$(PublishSingleFile)' == 'true'">
-    <ItemGroup>
-      <MainAssemblyToExclude Include="@(FilesToBundle)" Condition="'%(Filename)%(Extension)' == 'KeyASIO.dll'" />
-    </ItemGroup>
-    <Message Text="Excluding main assembly from bundle and copying to publish dir: @(MainAssemblyToExclude)" Importance="High" />
-    <Copy SourceFiles="@(MainAssemblyToExclude)" DestinationFolder="$(PublishDir)" />
-    <ItemGroup>
-      <FilesToBundle Remove="@(FilesToBundle)" Condition="'%(Filename)%(Extension)' == 'KeyASIO.dll'" />
-    </ItemGroup>
-  </Target>
-
   <Target Name="ObfuscateSecretsInBundle" BeforeTargets="GenerateSingleFileBundle" Condition="'$(ConfuserExe)' != '' And '$(PublishSingleFile)' == 'true'">
     <Message Text="Obfuscating KeyAsio.Secrets.dll before bundling..." Importance="High" />
-    <ItemGroup>
-        <SecretsDllToObfuscate Include="@(FilesToBundle)" Condition="'%(Filename)%(Extension)' == 'KeyAsio.Secrets.dll'" />
-    </ItemGroup>
-    <Message Text="Found Secrets DLL at: @(SecretsDllToObfuscate)" Importance="High" />
-    <Exec Command="&quot;$(ConfuserExe)&quot; -file &quot;%(SecretsDllToObfuscate.Identity)&quot; -targetfile &quot;%(SecretsDllToObfuscate.Identity)&quot; -anti_debug 1 -hide_calls 1 -control_flow 1 -flow_level 9 -virtualization 1 -naming stealth" Condition="'@(SecretsDllToObfuscate)' != ''" />
+    <PropertyGroup>
+        <SecretsDllPath>$(PublishDir)KeyAsio.Secrets.dll</SecretsDllPath>
+    </PropertyGroup>
+    <Exec Command="&quot;$(ConfuserExe)&quot; -file &quot;$(SecretsDllPath)&quot; -targetfile &quot;$(SecretsDllPath)&quot; -anti_debug 1 -hide_calls 1 -control_flow 1 -flow_level 9 -virtualization 1 -naming stealth" />
   </Target>
 
 </Project>
