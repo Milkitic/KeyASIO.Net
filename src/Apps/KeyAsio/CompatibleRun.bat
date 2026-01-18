@@ -1,2 +1,2 @@
 @echo off
-bin\KeyASIO.original.exe %*
+start "" "bin\KeyASIO.original.exe" %*
