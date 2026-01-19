@@ -1,5 +1,5 @@
-﻿using System.Collections.ObjectModel;
-using KeyAsio.Core.Audio;
+﻿using KeyAsio.Core.Audio;
+using KeyAsio.Shared.Utils;
 
 namespace KeyAsio.Shared.Models;
 
@@ -14,7 +14,7 @@ public class SharedViewModel : ViewModelBase
     {
         AppSettings = appSettings;
     }
-    public RangeObservableCollection<SkinDescription> Skins { get; } = [SkinDescription.Internal];
+    public ObservableRangeCollection<SkinDescription> Skins { get; } = [SkinDescription.Internal];
 
     public SkinDescription? SelectedSkin
     {
