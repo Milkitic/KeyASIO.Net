@@ -1,6 +1,7 @@
 ﻿using Coosu.Beatmap;
-using Coosu.Beatmap.Extensions.Playback;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
+using KeyAsio.Shared.Hitsounds;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 
@@ -12,8 +13,8 @@ public class BeatmapHitsoundLoader
     private readonly AppSettings _appSettings;
     private readonly GameplayAudioService _gameplayAudioService;
 
-    private readonly List<PlayableNode> _keyList = new();
-    private readonly List<HitsoundNode> _playbackList = new();
+    private readonly List<SampleEvent> _keyList = new();
+    private readonly List<PlaybackEvent> _playbackList = new();
     private int _nextCachingTime;
 
     public BeatmapHitsoundLoader(ILogger<BeatmapHitsoundLoader> logger, AppSettings appSettings,
@@ -24,8 +25,8 @@ public class BeatmapHitsoundLoader
         _gameplayAudioService = gameplayAudioService;
     }
 
-    public IReadOnlyList<HitsoundNode> PlaybackList => _playbackList;
-    public List<PlayableNode> KeyList => _keyList;
+    public IReadOnlyList<PlaybackEvent> PlaybackList => _playbackList;
+    public List<SampleEvent> KeyList => _keyList;
 
     public async Task<OsuFile?> InitializeNodeListsAsync(string folder, string diffFilename,
         IHitsoundSequencer hitsoundSequencer, Mods playMods)
@@ -33,24 +34,24 @@ public class BeatmapHitsoundLoader
         _keyList.Clear();
         _playbackList.Clear();
 
-        var osuBeatmapsets = new OsuBeatmapsets(folder);
+        var beatmapSetContext = new BeatmapSetContext(folder);
         using (DebugUtils.CreateTimer("InitFolder", _logger))
         {
-            await osuBeatmapsets.InitializeAsync(diffFilename,
+            await beatmapSetContext.InitializeAsync(diffFilename,
                 ignoreWaveFiles: _appSettings.Sync.Filters.DisableBeatmapHitsounds);
         }
 
-        if (osuBeatmapsets.OsuFiles.Count <= 0)
+        if (beatmapSetContext.OsuFiles.Count <= 0)
         {
             _logger.LogWarning("There is no available beatmaps after scanning. Directory: {Folder}; File: {Filename}",
                 folder, diffFilename);
             return null;
         }
 
-        var osuFile = osuBeatmapsets.OsuFiles[0];
+        var osuFile = beatmapSetContext.OsuFiles[0];
 
         using var _ = DebugUtils.CreateTimer("InitAudio", _logger);
-        var hitsoundList = await osuBeatmapsets.GetHitsoundNodesAsync(osuFile);
+        var hitsoundList = await beatmapSetContext.GetHitsoundNodesAsync(osuFile);
         await Task.Delay(100);
 
         var isNightcore = playMods != Mods.Unknown && (playMods & Mods.Nightcore) != 0;
@@ -61,7 +62,7 @@ public class BeatmapHitsoundLoader
                 _logger.LogInformation("Current Mods: {PlayMods}", playMods);
             }
 
-            var list = NightcoreTilingHelper.GetHitsoundNodes(osuFile, TimeSpan.Zero);
+            var list = NightcoreBeatGenerator.GetHitsoundNodes(osuFile, TimeSpan.Zero);
             hitsoundList.AddRange(list);
             hitsoundList = hitsoundList.OrderBy(k => k.Offset).ToList();
         }
@@ -94,7 +95,7 @@ public class BeatmapHitsoundLoader
         }
     }
 
-    private void AddAudioCacheInBackground(int startTime, int endTime, IEnumerable<HitsoundNode> playableNodes)
+    private void AddAudioCacheInBackground(int startTime, int endTime, IEnumerable<PlaybackEvent> playableNodes)
     {
         _gameplayAudioService.PrecacheHitsoundsRangeInBackground(startTime, endTime, playableNodes);
     }

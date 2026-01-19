@@ -1,5 +1,5 @@
-﻿using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Core.Audio;
+﻿using KeyAsio.Core.Audio;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Utils;
@@ -16,14 +16,14 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
-    private List<Queue<PlayableNode>> _hitQueue = new();
-    private PlayableNode?[] _hitQueueCache = Array.Empty<PlayableNode>();
+    private List<Queue<SampleEvent>> _hitQueue = new();
+    private SampleEvent?[] _hitQueueCache = Array.Empty<SampleEvent>();
 
-    private Queue<HitsoundNode> _playQueue = new();
-    private Queue<HitsoundNode> _autoPlayQueue = new();
+    private Queue<PlaybackEvent> _playQueue = new();
+    private Queue<PlaybackEvent> _autoPlayQueue = new();
 
-    private HitsoundNode? _firstAutoNode;
-    private HitsoundNode? _firstPlayNode;
+    private PlaybackEvent? _firstAutoNode;
+    private PlaybackEvent? _firstPlayNode;
 
     public ManiaHitsoundSequencer(ILogger<ManiaHitsoundSequencer> logger,
         AppSettings appSettings,
@@ -149,14 +149,14 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
         }
     }
 
-    public void FillAudioList(IReadOnlyList<HitsoundNode> nodeList, List<PlayableNode> keyList,
-        List<HitsoundNode> playbackList)
+    public void FillAudioList(IReadOnlyList<PlaybackEvent> nodeList, List<SampleEvent> keyList,
+        List<PlaybackEvent> playbackList)
     {
         foreach (var hitsoundNode in nodeList)
         {
-            if (hitsoundNode is not PlayableNode playableNode) continue;
+            if (hitsoundNode is not SampleEvent playableNode) continue;
 
-            if (playableNode.PlayablePriority is PlayablePriority.Sampling)
+            if (playableNode.Layer is SampleLayer.Sampling)
             {
                 if (!_appSettings.Sync.Filters.DisableStoryboardSamples)
                 {
@@ -173,24 +173,24 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
     public void SeekTo(int playTime)
     {
         _hitQueue = GetHitQueue(_gameplaySessionManager.KeyList, playTime);
-        _hitQueueCache = new PlayableNode[_hitQueue.Count];
+        _hitQueueCache = new SampleEvent[_hitQueue.Count];
 
-        _autoPlayQueue = new Queue<HitsoundNode>(_gameplaySessionManager.KeyList);
-        _playQueue = new Queue<HitsoundNode>(_gameplaySessionManager.PlaybackList.Where(k => k.Offset >= playTime));
+        _autoPlayQueue = new Queue<PlaybackEvent>(_gameplaySessionManager.KeyList);
+        _playQueue = new Queue<PlaybackEvent>(_gameplaySessionManager.PlaybackList.Where(k => k.Offset >= playTime));
         _autoPlayQueue.TryDequeue(out _firstAutoNode);
         _playQueue.TryDequeue(out _firstPlayNode);
     }
 
-    private List<Queue<PlayableNode>> GetHitQueue(IReadOnlyList<PlayableNode> keyList, int playTime)
+    private List<Queue<SampleEvent>> GetHitQueue(IReadOnlyList<SampleEvent> keyList, int playTime)
     {
         if (_gameplaySessionManager.OsuFile == null)
-            return new List<Queue<PlayableNode>>();
+            return new List<Queue<SampleEvent>>();
 
         var keyCount = (int)_gameplaySessionManager.OsuFile.Difficulty.CircleSize;
-        var list = new List<Queue<PlayableNode>>(keyCount);
+        var list = new List<Queue<SampleEvent>>(keyCount);
         for (int i = 0; i < keyCount; i++)
         {
-            list.Add(new Queue<PlayableNode>());
+            list.Add(new Queue<SampleEvent>());
         }
 
         foreach (var playableNode in keyList.Where(k => k.Offset >= playTime))
@@ -203,7 +203,8 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
         return list;
     }
 
-    private void FillNextPlaybackAudio(List<PlaybackInfo> buffer, HitsoundNode? firstNode, int playTime, bool includeKey)
+    private void FillNextPlaybackAudio(List<PlaybackInfo> buffer, PlaybackEvent? firstNode, int playTime,
+        bool includeKey)
     {
         while (firstNode != null)
         {

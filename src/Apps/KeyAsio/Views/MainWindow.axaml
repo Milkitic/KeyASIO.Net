@@ -1,4 +1,4 @@
-﻿<suki:SukiWindow
+<suki:SukiWindow
   x:Class="KeyAsio.Views.MainWindow"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -12,7 +12,7 @@
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:utils="clr-namespace:KeyAsio.Utils"
   xmlns:vm="using:KeyAsio.ViewModels"
-  Title="{I18N {x:Static lang:SRKeys.App_Title}}"
+  Title="{Binding WindowTitle}"
   Width="905"
   Height="697"
   MinWidth="800"

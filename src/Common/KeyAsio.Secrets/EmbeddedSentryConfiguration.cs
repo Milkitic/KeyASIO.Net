@@ -1,6 +1,4 @@
-﻿namespace KeyAsio.Secrets;
-
-public class EmbeddedSentryConfiguration : IDisposable
+﻿public class EmbeddedSentryConfiguration : IDisposable
 {
     private readonly IDisposable _sentrySdk;
 
@@ -15,7 +13,7 @@ public class EmbeddedSentryConfiguration : IDisposable
 
     public static void Configure(SentryOptions options)
     {
-        options.Dsn = global::Secrets.Dsn;
+        options.Dsn = Secrets.Dsn;
 #if !RELEASE
         options.Debug = true;
         options.Environment = "debug";

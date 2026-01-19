@@ -8,6 +8,11 @@ namespace KeyAsio.Core.Audio.SampleProviders;
 
 public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposable
 {
+    /// <summary>
+    /// 一个特殊的返回值，表示该 Provider 虽然没有数据，但仍需保持在混合器中（不被移除）。
+    /// </summary>
+    public const int SignalKeepAlive = -0x1BF52;
+
     private const int MaxInputs = 1024;
 
     private readonly List<ISampleProvider> _sources = new(64);
@@ -87,7 +92,7 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
         {
             if (WantsKeep)
             {
-                return -114514;
+                return SignalKeepAlive;
             }
 
             if (ReadFully)
@@ -124,7 +129,7 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
                 }
             }
 
-            if (samplesRead == -114514)
+            if (samplesRead == SignalKeepAlive)
             {
                 continue;
             }

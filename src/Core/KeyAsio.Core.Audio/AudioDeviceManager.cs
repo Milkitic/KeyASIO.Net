@@ -2,6 +2,7 @@
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using NAudio.Wave;
+using NAudio.Wave.Asio;
 
 namespace KeyAsio.Core.Audio;
 
@@ -143,11 +144,28 @@ public sealed class AudioDeviceManager : IDisposable
             _logger.LogDebug("Successfully forced ASIO buffer size to {BufferSize}", description.ForceASIOBufferSize);
         }
 
+        //driverExt.Driver.GetBufferSize(out int minSize, out int maxSize, out int preferredSize, out int granularity);
+        //var error = driverExt.Driver.GetLatencies(out int inputLatency, out var outputLatency);
+
+        var (samples, latency) = GetOutputLatency(driverExt);
+        //var latency = GetRoundtripLatency(driverExt);
+
+        return (device, description with { AsioLatencyMs = latency, AsioActualSamples = samples });
+    }
+
+    private (int, double) GetOutputLatency(AsioDriverExt driverExt)
+    {
+        double sampleRate = driverExt.Driver.GetSampleRate();
+        int outputLatencySamples = driverExt.Capabilities.OutputLatency;
+        double outputLatencyMs = (outputLatencySamples / sampleRate) * 1000.0;
+        return (outputLatencySamples, outputLatencyMs);
+    }
+
+    private static double GetRoundtripLatency(AsioDriverExt driverExt)
+    {
         var inputLatency = driverExt.Capabilities.InputLatency;
         var outputLatency = driverExt.Capabilities.OutputLatency;
         var preferredSize = driverExt.Capabilities.BufferPreferredSize;
-        //driverExt.Driver.GetBufferSize(out int minSize, out int maxSize, out int preferredSize, out int granularity);
-        //var error = driverExt.Driver.GetLatencies(out int inputLatency, out var outputLatency);
 
         int userBufferComponent = preferredSize * 2;
         int totalRoundTrip = inputLatency + outputLatency;
@@ -157,8 +175,7 @@ public sealed class AudioDeviceManager : IDisposable
         double sampleRate = driverExt.Driver.GetSampleRate();
         double overheadMs = (hiddenOverhead / sampleRate) * 1000.0;
         double totalMs = (totalRoundTrip / sampleRate) * 1000.0;
-
-        return (device, description with { AsioLatencyMs = totalMs });
+        return totalMs;
     }
 
     private IEnumerable<DeviceDescription> EnumerateAllDevices()

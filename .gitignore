@@ -428,3 +428,4 @@ FodyWeavers.xsd
 *.msp
 
 Secrets.Development.cs
+*.key

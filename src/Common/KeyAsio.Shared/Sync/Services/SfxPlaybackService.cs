@@ -1,9 +1,9 @@
-﻿using Coosu.Beatmap.Extensions.Playback;
-using KeyAsio.Core.Audio;
+﻿using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Core.Audio.Utils;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
 
@@ -26,8 +26,8 @@ public class SfxPlaybackService
     public void DispatchPlayback(PlaybackInfo playbackInfo, float? overrideVolume = null)
     {
         var cachedAudio = playbackInfo.CachedAudio;
-        var hitsoundNode = playbackInfo.HitsoundNode;
-        if (hitsoundNode is PlayableNode playableNode)
+        var hitsoundNode = playbackInfo.PlaybackEvent;
+        if (hitsoundNode is SampleEvent playableNode)
         {
             float volume;
             if (_appSettings.Sync.Filters.IgnoreLineVolumes)
@@ -38,7 +38,7 @@ public class SfxPlaybackService
             {
                 if (overrideVolume != null)
                     volume = overrideVolume.Value;
-                else if (playableNode.PlayablePriority == PlayablePriority.Effects)
+                else if (playableNode.Layer == SampleLayer.Effects)
                     volume = playableNode.Volume * 1.25f;
                 else
                     volume = playableNode.Volume;
@@ -48,7 +48,7 @@ public class SfxPlaybackService
         }
         else
         {
-            var controlNode = (ControlNode)hitsoundNode;
+            var controlNode = (ControlEvent)hitsoundNode;
             PlayLoopAudio(cachedAudio!, controlNode);
         }
     }
@@ -143,32 +143,32 @@ public class SfxPlaybackService
         _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
     }
 
-    public void PlayLoopAudio(CachedAudio cachedAudio, ControlNode controlNode)
+    public void PlayLoopAudio(CachedAudio cachedAudio, ControlEvent controlEvent)
     {
         var effectMixer = _audioEngine.EffectMixer;
-        var volume = _appSettings.Sync.Filters.IgnoreLineVolumes ? 1 : controlNode.Volume;
+        var volume = _appSettings.Sync.Filters.IgnoreLineVolumes ? 1 : controlEvent.Volume;
 
-        if (controlNode.ControlType == ControlType.StartSliding)
+        if (controlEvent.ControlEventType == ControlEventType.LoopStart)
         {
-            if (_loopProviderManager.ShouldRemoveAll((int)controlNode.SlideChannel))
+            if (_loopProviderManager.ShouldRemoveAll((int)controlEvent.LoopChannel))
             {
                 _loopProviderManager.RemoveAll(effectMixer);
             }
 
             try
             {
-                _loopProviderManager.Create((int)controlNode.SlideChannel, cachedAudio, effectMixer, volume, 0, balanceFactor: 0);
+                _loopProviderManager.Create((int)controlEvent.LoopChannel, cachedAudio, effectMixer, volume, 0, balanceFactor: 0);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurs while playing looped audio.");
             }
         }
-        else if (controlNode.ControlType == ControlType.StopSliding)
+        else if (controlEvent.ControlEventType == ControlEventType.LoopStop)
         {
-            _loopProviderManager.Remove((int)controlNode.SlideChannel, effectMixer);
+            _loopProviderManager.Remove((int)controlEvent.LoopChannel, effectMixer);
         }
-        else if (controlNode.ControlType == ControlType.ChangeVolume)
+        else if (controlEvent.ControlEventType == ControlEventType.Volume)
         {
             _loopProviderManager.ChangeAllVolumes(volume);
         }

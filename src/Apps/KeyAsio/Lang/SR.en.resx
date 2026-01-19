@@ -326,7 +326,7 @@ You can change option later.</value>
     <value>Sync Mode</value>
   </data>
   <data name="Plugin_Corrupted" xml:space="preserve">
-    <value>Corrupted</value>
+    <value>Unavailable</value>
   </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>Extreme</value>

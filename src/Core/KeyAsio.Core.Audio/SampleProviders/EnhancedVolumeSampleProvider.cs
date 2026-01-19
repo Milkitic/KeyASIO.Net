@@ -65,6 +65,12 @@ public sealed class EnhancedVolumeSampleProvider : IRecyclableProvider, IPoolabl
 
         if (sampleCount == 0) return 0;
         int samplesRead = Source.Read(buffer, offset, sampleCount);
+        if (samplesRead == 0) return 0;
+        if (samplesRead == QueueMixingSampleProvider.SignalKeepAlive)
+        {
+            Array.Clear(buffer, offset, sampleCount);
+            return sampleCount;
+        }
 
         float currentVolume = Volume;
         if (Math.Abs(currentVolume - 1f) <= VolumeTolerance)

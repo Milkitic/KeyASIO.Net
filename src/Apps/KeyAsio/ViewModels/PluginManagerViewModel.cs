@@ -77,7 +77,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             .OrderByDescending(x => x.OptionPriority)
             .FirstOrDefault();
         ActivePlugin = selected;
-        MixModeDisplayName = selected?.OptionName ?? "Corrupted";
+        MixModeDisplayName = selected?.OptionName ?? SR.Plugin_Corrupted;
         MixModeTag = selected?.OptionTag;
         IsMixSwitchEnabled = _appSettings.Sync.EnableSync && (selected?.CanEnableOption ?? false);
     }

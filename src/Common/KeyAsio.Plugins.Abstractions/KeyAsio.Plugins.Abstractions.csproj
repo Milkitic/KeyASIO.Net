@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
-    <PackageReference Include="Coosu.Beatmap" Version="2.3.41" />
+    <PackageReference Include="Coosu.Beatmap" Version="2.5.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Coosu.Shared.IO;
 using dnlib.DotNet;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared.Models;
