@@ -259,6 +259,51 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Master (Lookahead) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Master {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Master", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Off 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Off {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Off", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Polynomial (Zero‑latency) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Polynomial {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Polynomial", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Quadratic (Lightweight) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Quadratic {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Quadratic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Soft (Saturation) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Soft {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Soft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 No device selected.  的本地化字符串。
         /// </summary>
         internal static string Audio_NoDeviceSelected {

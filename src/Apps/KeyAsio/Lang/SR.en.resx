@@ -183,6 +183,21 @@
   <data name="Audio_LimiterDescription" xml:space="preserve">
     <value>Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters.</value>
   </data>
+  <data name="Audio_LimiterType_Master" xml:space="preserve">
+    <value>Master (Lookahead)</value>
+  </data>
+  <data name="Audio_LimiterType_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
+    <value>Polynomial (Zero‑latency)</value>
+  </data>
+  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
+    <value>Quadratic (Lightweight)</value>
+  </data>
+  <data name="Audio_LimiterType_Soft" xml:space="preserve">
+    <value>Soft (Saturation)</value>
+  </data>
   <data name="Audio_NoDeviceSelected" xml:space="preserve">
     <value>No device selected. </value>
   </data>

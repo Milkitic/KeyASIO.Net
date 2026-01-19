@@ -20,6 +20,7 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
     private readonly EnhancedVolumeSampleProvider _mainVolumeSampleProvider = new(null) { ExcludeFromPool = true };
     private ILimiterSampleProvider? _limiterProvider;
     private bool _enableLimiter = true;
+    private LimiterType _limiterType = LimiterType.Master;
 
     public AudioEngine(AudioDeviceManager audioDeviceManager, AudioCacheManager audioCacheManager)
     {
@@ -35,6 +36,12 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
             _limiterProvider?.IsEnabled = value;
             _enableLimiter = value;
         }
+    }
+
+    public LimiterType LimiterType
+    {
+        get => _limiterType;
+        set => _limiterType = value;
     }
 
     public IWavePlayer? CurrentDevice { get; private set; }
@@ -108,9 +115,12 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
         RootMixer.AddMixerInput(_musicVolumeSampleProvider);
 
         _mainVolumeSampleProvider.Source = RootMixer;
-        _limiterProvider = MasterLimiterProvider.UltraLowLatencyPreset(_mainVolumeSampleProvider);
-        _limiterProvider.IsEnabled = _enableLimiter;
-        ISampleProvider root = _limiterProvider;
+        _limiterProvider = CreateLimiterProvider(_mainVolumeSampleProvider, _limiterType);
+        if (_limiterProvider != null)
+        {
+            _limiterProvider.IsEnabled = _enableLimiter;
+        }
+        ISampleProvider root = _limiterProvider != null ? _limiterProvider : _mainVolumeSampleProvider;
 
         Exception? ex = null;
         _context.Send(_ =>
@@ -143,6 +153,19 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
         _mainVolumeSampleProvider.Source = null;
         CurrentDevice = null;
         CurrentDeviceDescription = null;
+    }
+
+    private static ILimiterSampleProvider? CreateLimiterProvider(ISampleProvider source, LimiterType limiterType)
+    {
+        return limiterType switch
+        {
+            LimiterType.Off => null,
+            LimiterType.Master => MasterLimiterProvider.UltraLowLatencyPreset(source),
+            LimiterType.Quadratic => new QuadraticLimitProvider(source),
+            LimiterType.Soft => new SoftLimiterProvider(source),
+            LimiterType.Polynomial => new PolynomialLimiterProvider(source),
+            _ => MasterLimiterProvider.UltraLowLatencyPreset(source)
+        };
     }
 
     [Obsolete]

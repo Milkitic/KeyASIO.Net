@@ -273,6 +273,21 @@
   <data name="KeyBinding_EditBindings" xml:space="preserve">
     <value>Edit Bindings</value>
   </data>
+  <data name="Audio_LimiterType_Master" xml:space="preserve">
+    <value>Master (Lookahead)</value>
+  </data>
+  <data name="Audio_LimiterType_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
+    <value>Polynomial (Zero‑latency)</value>
+  </data>
+  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
+    <value>Quadratic (Lightweight)</value>
+  </data>
+  <data name="Audio_LimiterType_Soft" xml:space="preserve">
+    <value>Soft (Saturation)</value>
+  </data>
   <data name="KeyBinding_Message" xml:space="preserve">
     <value>Press any key to bind...</value>
   </data>

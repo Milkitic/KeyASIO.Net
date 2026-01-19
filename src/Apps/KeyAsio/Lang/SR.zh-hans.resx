@@ -183,6 +183,21 @@
   <data name="Audio_LimiterDescription" xml:space="preserve">
     <value>防止音量过大时，多个打击音效叠加时爆音。建议专业用户禁用以使用原始音频。需要更多CPU资源，如果音频卡顿，请禁用。</value>
   </data>
+  <data name="Audio_LimiterType_Master" xml:space="preserve">
+    <value>母带（前瞻）</value>
+  </data>
+  <data name="Audio_LimiterType_Off" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
+    <value>多项式（零延迟）</value>
+  </data>
+  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
+    <value>二次（轻量）</value>
+  </data>
+  <data name="Audio_LimiterType_Soft" xml:space="preserve">
+    <value>柔和（饱和）</value>
+  </data>
   <data name="Audio_NoDeviceSelected" xml:space="preserve">
     <value>未选择设备。</value>
   </data>

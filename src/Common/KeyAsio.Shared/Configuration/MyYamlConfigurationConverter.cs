@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using KeyAsio.Core.Audio;
 using Milki.Extensions.Configuration.Converters;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -107,6 +108,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 SampleRate = s.SampleRate,
                 PlaybackDevice = s.Device,
                 EnableLimiter = s.EnableLimiter,
+                LimiterType = s.EnableLimiter ? LimiterType.Master : LimiterType.Off,
                 MasterVolume = (int)s.Volume,
                 MusicVolume = s.RealtimeOptions.MusicTrackVolume,
                 EffectVolume = s.RealtimeOptions.EffectTrackVolume
@@ -165,7 +167,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         {
             s.SampleRate = y.Audio.SampleRate;
             s.Device = y.Audio.PlaybackDevice;
-            s.EnableLimiter = y.Audio.EnableLimiter;
+            s.EnableLimiter = y.Audio.LimiterType != LimiterType.Off && y.Audio.EnableLimiter;
             s.Volume = y.Audio.MasterVolume;
             s.RealtimeOptions.MusicTrackVolume = y.Audio.MusicVolume;
             s.RealtimeOptions.EffectTrackVolume = y.Audio.EffectVolume;

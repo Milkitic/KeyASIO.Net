@@ -1,8 +1,9 @@
-<UserControl
+﻿<UserControl
   x:Class="KeyAsio.Views.Pages.AudioEnginePage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:converters="using:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
@@ -99,7 +100,17 @@
               Description="{I18N {x:Static lang:SRKeys.Audio_LimiterDescription}}"
               Header="{I18N {x:Static lang:SRKeys.Audio_Limiter}}"
               Icon="Equalizer">
-              <CheckBox IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
+              <ComboBox
+                MinWidth="{StaticResource SettingControlWidthMedium}"
+                Classes="SettingItem"
+                ItemsSource="{Binding AudioSettings.AvailableLimiterTypes}"
+                SelectedItem="{Binding AudioSettings.SelectedLimiterType}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Converter={x:Static converters:EnumDescriptionConverter.Instance}}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
             </controls:SettingItem>
           </suki:GroupBox>
         </suki:GlassCard>

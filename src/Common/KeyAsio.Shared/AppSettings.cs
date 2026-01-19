@@ -87,6 +87,8 @@ public partial class AppSettingsAudio : INotifyPropertyChanged
     // 对于想要所听即所得的用户，建议关闭。
     public bool EnableLimiter { get; set; } = true;
 
+    public LimiterType LimiterType { get; set; } = LimiterType.Master;
+
     [Description("Master volume. Range: 0–150. " +
                  "For values above 100, consider disabling the Limiter to avoid aggressive compression.")]
     public int MasterVolume { get; set; } = 50;

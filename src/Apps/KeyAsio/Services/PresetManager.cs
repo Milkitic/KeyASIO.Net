@@ -1,4 +1,5 @@
-﻿using KeyAsio.Lang;
+﻿using KeyAsio.Core.Audio;
+using KeyAsio.Lang;
 using KeyAsio.Shared;
 using KeyAsio.ViewModels;
 using Material.Icons;
@@ -90,6 +91,7 @@ public class PresetManager
     {
         //_appSettings.Input.UseRawInput = true;
 
+        _appSettings.Audio.LimiterType = LimiterType.Master;
         _appSettings.Audio.EnableLimiter = true;
 
         //_appSettings.Performance.EnableAvx512 = true; 
@@ -102,6 +104,7 @@ public class PresetManager
 
     private void ApplyLightweight()
     {
+        _appSettings.Audio.LimiterType = LimiterType.Quadratic;
         _appSettings.Audio.EnableLimiter = true;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
@@ -110,6 +113,7 @@ public class PresetManager
 
     private void ApplyExtreme()
     {
+        _appSettings.Audio.LimiterType = LimiterType.Off;
         _appSettings.Audio.EnableLimiter = false;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
