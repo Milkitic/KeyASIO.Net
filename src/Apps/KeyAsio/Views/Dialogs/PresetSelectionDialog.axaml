@@ -104,6 +104,7 @@
     <Button
       HorizontalAlignment="Right"
       Command="{Binding CloseCommand}"
-      Content="{I18N {x:Static lang:SRKeys.Common_Cancel}}" />
+      Content="{I18N {x:Static lang:SRKeys.Common_Cancel}}"
+      IsVisible="{Binding ShowCloseButton}" />
   </StackPanel>
 </UserControl>

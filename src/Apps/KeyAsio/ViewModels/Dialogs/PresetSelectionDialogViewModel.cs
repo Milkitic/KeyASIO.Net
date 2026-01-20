@@ -13,6 +13,9 @@ public partial class PresetSelectionDialogViewModel : ObservableObject
     private readonly ISukiDialogManager _dialogManager;
     private readonly ISukiToastManager _toastManager;
     private readonly AudioSettingsViewModel _audioSettingsViewModel;
+    public bool DismissOnSelect { get; set; } = true;
+    public bool ShowCloseButton { get; set; } = true;
+    public event Action? OnPresetApplied;
 
     public PresetSelectionDialogViewModel(PresetManager presetManager, ISukiDialogManager dialogManager,
         ISukiToastManager toastManager, AudioSettingsViewModel audioSettingsViewModel)
@@ -35,7 +38,14 @@ public partial class PresetSelectionDialogViewModel : ObservableObject
             .WithContent($"已成功切换到{preset.Title}")
             .Dismiss().ByClicking()
             .Queue();
-        _dialogManager.DismissDialog();
+        if (DismissOnSelect)
+        {
+            _dialogManager.DismissDialog();
+        }
+        else
+        {
+            OnPresetApplied?.Invoke();
+        }
     }
 
     [RelayCommand]

@@ -1,5 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,6 +10,9 @@ using KeyAsio.Core.Audio;
 using KeyAsio.Lang;
 using KeyAsio.Services;
 using KeyAsio.Shared;
+using KeyAsio.ViewModels.Dialogs;
+using SukiUI.Dialogs;
+using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
 
@@ -20,9 +26,12 @@ public enum WizardMode
 public partial class WizardViewModel : ViewModelBase
 {
     private readonly SettingsManager _settingsManager;
+    private readonly ISukiDialogManager _dialogManager;
     private readonly AudioDeviceManager _audioDeviceManager;
     private readonly AudioEngine _audioEngine;
     private readonly AppSettings _appSettings;
+    private readonly PresetManager _presetManager;
+    private readonly ISukiToastManager _toastManager;
 
     [ObservableProperty]
     private int _stepIndex;
@@ -67,6 +76,53 @@ public partial class WizardViewModel : ViewModelBase
     [ObservableProperty]
     private bool _enableUpdates = true;
 
+    [ObservableProperty]
+    private PresetSelectionDialogViewModel? _presetSelectionViewModel;
+
+    [ObservableProperty]
+    private string _presetAppliedMessage = "";
+
+    [ObservableProperty]
+    private string _osuScanStatus = "正在扫描 osu! 进程...";
+
+    [ObservableProperty]
+    private bool _enableSyncOnLaunch = true;
+
+    [RelayCommand]
+    private async Task BrowseOsuExecutable()
+    {
+        var topLevel = TopLevel.GetTopLevel(
+            Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                ? desktop.MainWindow
+                : null);
+        if (topLevel == null) return;
+
+        var result = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择 osu!.exe",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("osu! executable")
+                {
+                    Patterns = ["osu!.exe"],
+                    MimeTypes = ["application/vnd.microsoft.portable-executable"]
+                }
+            ]
+        });
+
+        if (result.Count > 0)
+        {
+            var filePath = result[0].Path.LocalPath;
+            var folder = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(folder))
+            {
+                _appSettings.Paths.OsuFolderPath = folder;
+                OsuScanStatus = $"已选择路径：{folder}";
+            }
+        }
+    }
+
     public WizardViewModel()
     {
         if (!Design.IsDesignMode)
@@ -88,20 +144,29 @@ public partial class WizardViewModel : ViewModelBase
     }
 
     public WizardViewModel(
+        AudioSettingsViewModel audioSettingsViewModel,
         SettingsManager settingsManager,
+        ISukiDialogManager dialogManager,
         AudioDeviceManager audioDeviceManager,
         AudioEngine audioEngine,
-        AppSettings appSettings)
+        AppSettings appSettings,
+        PresetManager presetManager,
+        ISukiToastManager toastManager)
     {
         _settingsManager = settingsManager;
+        _dialogManager = dialogManager;
         _audioDeviceManager = audioDeviceManager;
         _audioEngine = audioEngine;
         _appSettings = appSettings;
+        _presetManager = presetManager;
+        _toastManager = toastManager;
 
         Steps =
         [
             SR.Wizard_Title, // Welcome
-            SR.Wizard_Config_Title, // Configuration
+            SR.Preset_SelectionTitle, // Preset
+            "连接 osu!", // Game Integration
+            SR.Wizard_Config_Title, // Audio Configuration
             SR.Wizard_Privacy_Title
         ];
 
@@ -117,6 +182,18 @@ public partial class WizardViewModel : ViewModelBase
         SelectedDriverType = WavePlayerType.ASIO;
 
         LoadDevices();
+
+        PresetSelectionViewModel =
+            new PresetSelectionDialogViewModel(_presetManager, _dialogManager, _toastManager, audioSettingsViewModel)
+            {
+                DismissOnSelect = false
+            };
+        PresetSelectionViewModel.OnPresetApplied += () => { PresetAppliedMessage = "预设已应用"; };
+
+        if (!string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
+        {
+            OsuScanStatus = $"已检测到路径：{_appSettings.Paths.OsuFolderPath}";
+        }
     }
 
     [RelayCommand]
@@ -129,7 +206,7 @@ public partial class WizardViewModel : ViewModelBase
     [RelayCommand]
     private async Task Next()
     {
-        if (StepIndex == 1)
+        if (StepIndex == 3)
         {
             if (!IsAudioConfigStarted)
             {
@@ -167,7 +244,7 @@ public partial class WizardViewModel : ViewModelBase
 
         if (StepIndex < Steps.Count - 1)
         {
-            if (StepIndex == 1) // Moving from Config to Privacy
+            if (StepIndex == 3) // Moving from Audio Config to Privacy
             {
                 try
                 {
@@ -186,7 +263,7 @@ public partial class WizardViewModel : ViewModelBase
 
             StepIndex++;
 
-            if (StepIndex == 1) // Config page
+            if (StepIndex == 3) // Audio config page
             {
                 if (SelectedMode == WizardMode.Software)
                 {
@@ -203,7 +280,7 @@ public partial class WizardViewModel : ViewModelBase
     [RelayCommand]
     private void Previous()
     {
-        if (StepIndex == 1 && IsAudioConfigStarted)
+        if (StepIndex == 3 && IsAudioConfigStarted)
         {
             if (AudioConfigStepIndex > 0)
             {
@@ -230,7 +307,7 @@ public partial class WizardViewModel : ViewModelBase
             CheckVirtualDriver();
         }
 
-        if (StepIndex == 1 && IsAudioConfigStarted && AudioConfigStepIndex == 0)
+        if (StepIndex == 3 && IsAudioConfigStarted && AudioConfigStepIndex == 0)
         {
             AudioConfigStepIndex++;
         }
@@ -246,6 +323,7 @@ public partial class WizardViewModel : ViewModelBase
     {
         // Save settings
         _appSettings.Logging.EnableErrorReporting = EnableCrashReport;
+        _appSettings.Sync.EnableSync = EnableSyncOnLaunch;
         // _appSettings.Update.EnableAutoUpdate = EnableUpdates; // Assuming this exists or will be added
 
         _appSettings.General.IsFirstRun = false;
