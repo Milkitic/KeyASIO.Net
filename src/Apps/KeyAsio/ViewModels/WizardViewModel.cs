@@ -50,6 +50,16 @@ public partial class WizardViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isVirtualDriverDetected;
 
+    // Audio Config Sub-stepper
+    [ObservableProperty]
+    private bool _isAudioConfigStarted;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _audioConfigSteps = new();
+
+    [ObservableProperty]
+    private int _audioConfigStepIndex;
+
     // Privacy
     [ObservableProperty]
     private bool _enableCrashReport = true;
@@ -64,10 +74,16 @@ public partial class WizardViewModel : ViewModelBase
         Steps =
         [
             SR.Wizard_Title, // Welcome
-            SR.Wizard_Mode_Title, // Mode Selection
             SR.Wizard_Config_Title, // Configuration
-            SR.Wizard_Test_Title, // Test
             SR.Wizard_Privacy_Title
+        ];
+
+        AudioConfigSteps =
+        [
+            SR.Wizard_Mode_Title,
+            SR.Wizard_Config_Driver,
+            SR.Wizard_Config_Device,
+            SR.Wizard_Test_Title
         ];
     }
 
@@ -85,10 +101,16 @@ public partial class WizardViewModel : ViewModelBase
         Steps =
         [
             SR.Wizard_Title, // Welcome
-            SR.Wizard_Mode_Title, // Mode Selection
             SR.Wizard_Config_Title, // Configuration
-            SR.Wizard_Test_Title, // Test
             SR.Wizard_Privacy_Title
+        ];
+
+        AudioConfigSteps =
+        [
+            SR.Wizard_Mode_Title,
+            SR.Wizard_Config_Driver,
+            SR.Wizard_Config_Device,
+            SR.Wizard_Test_Title
         ];
 
         AvailableDriverTypes = new ObservableCollection<WavePlayerType>(Enum.GetValues<WavePlayerType>());
@@ -98,18 +120,54 @@ public partial class WizardViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void StartAudioConfig()
+    {
+        IsAudioConfigStarted = true;
+        AudioConfigStepIndex = 0;
+    }
+
+    [RelayCommand]
     private async Task Next()
     {
-        if (StepIndex < Steps.Count - 1)
+        if (StepIndex == 1)
         {
-            // Validation before moving
-            if (StepIndex == 1 && SelectedMode == WizardMode.NotSelected)
+            if (!IsAudioConfigStarted)
             {
-                // Show toast? For now just return
                 return;
             }
 
-            if (StepIndex == 2) // Moving from Config to Test
+            if (AudioConfigStepIndex == 0 && SelectedMode == WizardMode.NotSelected)
+            {
+                return;
+            }
+
+            if (AudioConfigStepIndex < AudioConfigSteps.Count - 1)
+            {
+                var nextIndex = AudioConfigStepIndex + 1;
+                if (nextIndex == AudioConfigSteps.Count - 1)
+                {
+                    try
+                    {
+                        if (SelectedAudioDevice != null)
+                        {
+                            _audioEngine.StopDevice();
+                            _audioEngine.StartDevice(SelectedAudioDevice);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        return;
+                    }
+                }
+
+                AudioConfigStepIndex++;
+                return;
+            }
+        }
+
+        if (StepIndex < Steps.Count - 1)
+        {
+            if (StepIndex == 1) // Moving from Config to Privacy
             {
                 try
                 {
@@ -128,7 +186,7 @@ public partial class WizardViewModel : ViewModelBase
 
             StepIndex++;
 
-            if (StepIndex == 2) // Config page
+            if (StepIndex == 1) // Config page
             {
                 if (SelectedMode == WizardMode.Software)
                 {
@@ -145,6 +203,18 @@ public partial class WizardViewModel : ViewModelBase
     [RelayCommand]
     private void Previous()
     {
+        if (StepIndex == 1 && IsAudioConfigStarted)
+        {
+            if (AudioConfigStepIndex > 0)
+            {
+                AudioConfigStepIndex--;
+                return;
+            }
+
+            IsAudioConfigStarted = false;
+            return;
+        }
+
         if (StepIndex > 0)
         {
             StepIndex--;
@@ -155,7 +225,15 @@ public partial class WizardViewModel : ViewModelBase
     private void SelectMode(WizardMode mode)
     {
         SelectedMode = mode;
-        Next();
+        if (SelectedMode == WizardMode.Software)
+        {
+            CheckVirtualDriver();
+        }
+
+        if (StepIndex == 1 && IsAudioConfigStarted && AudioConfigStepIndex == 0)
+        {
+            AudioConfigStepIndex++;
+        }
     }
 
     [RelayCommand]

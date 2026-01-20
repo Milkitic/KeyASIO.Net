@@ -103,145 +103,185 @@
       </Grid>
 
 
-      <!--  Step 1: Mode Selection  -->
-      <Grid ColumnDefinitions="*,*">
-        <suki:GlassCard
-          Margin="10"
-          Command="{Binding SelectModeCommand}"
-          IsInteractive="True">
-          <suki:GlassCard.CommandParameter>
-            <vm:WizardMode>Hardware</vm:WizardMode>
-          </suki:GlassCard.CommandParameter>
-          <StackPanel
-            Margin="20"
-            VerticalAlignment="Center"
-            Spacing="20">
-            <materialIcons:MaterialIcon
-              Width="60"
-              Height="60"
-              Kind="DeveloperBoard" />
-            <TextBlock
-              Classes="h3"
-              Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Hardware}}"
-              TextAlignment="Center" />
-            <TextBlock
-              Opacity="0.7"
-              Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Hardware_Desc}}"
-              TextAlignment="Center"
-              TextWrapping="Wrap" />
-            <RadioButton
-              HorizontalAlignment="Center"
-              Content="Select"
-              IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Hardware}}"
-              IsHitTestVisible="False" />
-          </StackPanel>
-        </suki:GlassCard>
-
-        <suki:GlassCard
-          Grid.Column="1"
-          Margin="10"
-          Command="{Binding SelectModeCommand}"
-          IsInteractive="True">
-          <suki:GlassCard.CommandParameter>
-            <vm:WizardMode>Software</vm:WizardMode>
-          </suki:GlassCard.CommandParameter>
-          <StackPanel
-            Margin="20"
-            VerticalAlignment="Center"
-            Spacing="20">
-            <materialIcons:MaterialIcon
-              Width="60"
-              Height="60"
-              Kind="SurroundSound51" />
-            <TextBlock
-              Classes="h3"
-              Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Software}}"
-              TextAlignment="Center" />
-            <TextBlock
-              Opacity="0.7"
-              Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Software_Desc}}"
-              TextAlignment="Center"
-              TextWrapping="Wrap" />
-            <RadioButton
-              HorizontalAlignment="Center"
-              Content="Select"
-              IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Software}}"
-              IsHitTestVisible="False" />
-          </StackPanel>
-        </suki:GlassCard>
-      </Grid>
-
-      <!--  Step 2: Configuration  -->
       <Grid>
         <StackPanel
           Width="400"
           HorizontalAlignment="Center"
           VerticalAlignment="Center"
+          IsVisible="{Binding !IsAudioConfigStarted}"
           Spacing="20">
           <TextBlock
             HorizontalAlignment="Center"
             Classes="h2"
             Text="{I18N {x:Static lang:SRKeys.Wizard_Config_Title}}" />
-
-          <suki:GlassCard>
-            <StackPanel Spacing="15">
-              <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Config_Driver}}" Icon="DeveloperBoard">
-                <ComboBox
-                  MinWidth="200"
-                  ItemsSource="{Binding AvailableDriverTypes}"
-                  SelectedItem="{Binding SelectedDriverType}" />
-              </controls:SettingItem>
-
-              <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Config_Device}}" Icon="Speaker">
-                <ComboBox
-                  MinWidth="200"
-                  ItemsSource="{Binding AvailableAudioDevices}"
-                  SelectedItem="{Binding SelectedAudioDevice}">
-                  <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding FriendlyName}" />
-                    </DataTemplate>
-                  </ComboBox.ItemTemplate>
-                </ComboBox>
-              </controls:SettingItem>
-            </StackPanel>
-          </suki:GlassCard>
-
-          <!--  ProMix warning  -->
-          <StackPanel IsVisible="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Software}}">
-            <TextBlock
-              HorizontalAlignment="Center"
-              Foreground="LightGreen"
-              IsVisible="{Binding IsVirtualDriverDetected}"
-              Text="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Detected}}" />
-
-            <Button
-              HorizontalAlignment="Center"
-              Classes="Flat"
-              Content="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Install}}"
-              IsVisible="{Binding !IsVirtualDriverDetected}" />
-          </StackPanel>
-        </StackPanel>
-      </Grid>
-
-      <!--  Step 3: Test  -->
-      <Grid>
-        <StackPanel
-          HorizontalAlignment="Center"
-          VerticalAlignment="Center"
-          Spacing="20">
-          <TextBlock
-            HorizontalAlignment="Center"
-            Classes="h2"
-            Text="{I18N {x:Static lang:SRKeys.Wizard_Test_Title}}" />
           <Button
-            Width="200"
-            Height="50"
-            Classes="Accent"
-            Command="{Binding TestKeySoundCommand}"
-            Content="{I18N {x:Static lang:SRKeys.Wizard_Test_KeySound}}" />
+            HorizontalAlignment="Center"
+            Classes="Flat Primary"
+            Command="{Binding StartAudioConfigCommand}"
+            Content="{I18N {x:Static lang:SRKeys.Wizard_Start}}" />
         </StackPanel>
+
+        <Grid IsVisible="{Binding IsAudioConfigStarted}" RowDefinitions="Auto,*">
+          <suki:Stepper
+            Margin="0,20"
+            Index="{Binding AudioConfigStepIndex}"
+            Steps="{Binding AudioConfigSteps}" />
+
+          <Carousel Grid.Row="1" SelectedIndex="{Binding AudioConfigStepIndex}">
+            <Carousel.PageTransition>
+              <PageSlide Orientation="Horizontal" Duration="0.5" />
+            </Carousel.PageTransition>
+
+            <Grid ColumnDefinitions="*,*">
+              <suki:GlassCard
+                Margin="10"
+                Command="{Binding SelectModeCommand}"
+                IsInteractive="True">
+                <suki:GlassCard.CommandParameter>
+                  <vm:WizardMode>Hardware</vm:WizardMode>
+                </suki:GlassCard.CommandParameter>
+                <StackPanel
+                  Margin="20"
+                  VerticalAlignment="Center"
+                  Spacing="20">
+                  <materialIcons:MaterialIcon
+                    Width="60"
+                    Height="60"
+                    Kind="DeveloperBoard" />
+                  <TextBlock
+                    Classes="h3"
+                    Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Hardware}}"
+                    TextAlignment="Center" />
+                  <TextBlock
+                    Opacity="0.7"
+                    Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Hardware_Desc}}"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
+                  <RadioButton
+                    HorizontalAlignment="Center"
+                    Content="Select"
+                    IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Hardware}}"
+                    IsHitTestVisible="False" />
+                </StackPanel>
+              </suki:GlassCard>
+
+              <suki:GlassCard
+                Grid.Column="1"
+                Margin="10"
+                Command="{Binding SelectModeCommand}"
+                IsInteractive="True">
+                <suki:GlassCard.CommandParameter>
+                  <vm:WizardMode>Software</vm:WizardMode>
+                </suki:GlassCard.CommandParameter>
+                <StackPanel
+                  Margin="20"
+                  VerticalAlignment="Center"
+                  Spacing="20">
+                  <materialIcons:MaterialIcon
+                    Width="60"
+                    Height="60"
+                    Kind="SurroundSound51" />
+                  <TextBlock
+                    Classes="h3"
+                    Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Software}}"
+                    TextAlignment="Center" />
+                  <TextBlock
+                    Opacity="0.7"
+                    Text="{I18N {x:Static lang:SRKeys.Wizard_Mode_Software_Desc}}"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
+                  <RadioButton
+                    HorizontalAlignment="Center"
+                    Content="Select"
+                    IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Software}}"
+                    IsHitTestVisible="False" />
+                </StackPanel>
+              </suki:GlassCard>
+            </Grid>
+
+            <Grid>
+              <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="20">
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  Classes="h3"
+                  Text="{I18N {x:Static lang:SRKeys.Wizard_Config_Driver}}" />
+                <suki:GlassCard Width="400">
+                  <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Config_Driver}}" Icon="DeveloperBoard">
+                    <ComboBox
+                      MinWidth="200"
+                      ItemsSource="{Binding AvailableDriverTypes}"
+                      SelectedItem="{Binding SelectedDriverType}" />
+                  </controls:SettingItem>
+                </suki:GlassCard>
+              </StackPanel>
+            </Grid>
+
+            <Grid>
+              <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="20">
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  Classes="h3"
+                  Text="{I18N {x:Static lang:SRKeys.Wizard_Config_Device}}" />
+                <suki:GlassCard Width="400">
+                  <StackPanel Spacing="15">
+                    <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Config_Device}}" Icon="Speaker">
+                      <ComboBox
+                        MinWidth="200"
+                        ItemsSource="{Binding AvailableAudioDevices}"
+                        SelectedItem="{Binding SelectedAudioDevice}">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{Binding FriendlyName}" />
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </controls:SettingItem>
+
+                    <StackPanel IsVisible="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:WizardMode.Software}}">
+                      <TextBlock
+                        HorizontalAlignment="Center"
+                        Foreground="LightGreen"
+                        IsVisible="{Binding IsVirtualDriverDetected}"
+                        Text="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Detected}}" />
+
+                      <Button
+                        HorizontalAlignment="Center"
+                        Classes="Flat"
+                        Content="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Install}}"
+                        IsVisible="{Binding !IsVirtualDriverDetected}" />
+                    </StackPanel>
+                  </StackPanel>
+                </suki:GlassCard>
+              </StackPanel>
+            </Grid>
+
+            <Grid>
+              <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="20">
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  Classes="h2"
+                  Text="{I18N {x:Static lang:SRKeys.Wizard_Test_Title}}" />
+                <Button
+                  Width="200"
+                  Height="50"
+                  Classes="Accent"
+                  Command="{Binding TestKeySoundCommand}"
+                  Content="{I18N {x:Static lang:SRKeys.Wizard_Test_KeySound}}" />
+              </StackPanel>
+            </Grid>
+          </Carousel>
+        </Grid>
       </Grid>
+
 
       <!--  Step 4: Privacy  -->
       <Grid>
