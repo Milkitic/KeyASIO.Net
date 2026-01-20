@@ -69,6 +69,38 @@ public class PresetManager
         ];
     }
 
+    public PresetMode? GetCurrentPresetMode()
+    {
+        // Extreme
+        if (_appSettings.Audio.LimiterType == LimiterType.Off &&
+            !_appSettings.Audio.EnableLimiter &&
+            _appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
+            _appSettings.Sync.Scanning.TimingScanInterval == 1)
+        {
+            return PresetMode.Extreme;
+        }
+
+        // Fast
+        if (_appSettings.Audio.LimiterType == LimiterType.Quadratic &&
+            _appSettings.Audio.EnableLimiter &&
+            _appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
+            _appSettings.Sync.Scanning.TimingScanInterval == 2)
+        {
+            return PresetMode.Fast;
+        }
+
+        // Standard
+        if (_appSettings.Audio.LimiterType == LimiterType.Master &&
+            _appSettings.Audio.EnableLimiter &&
+            _appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
+            _appSettings.Sync.Scanning.TimingScanInterval == 2)
+        {
+            return PresetMode.Standard;
+        }
+
+        return null;
+    }
+
     public async Task ApplyPreset(PresetMode mode, AudioSettingsViewModel audioSettingsViewModel)
     {
         switch (mode)

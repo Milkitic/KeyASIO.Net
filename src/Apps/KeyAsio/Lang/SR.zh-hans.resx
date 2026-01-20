@@ -629,7 +629,7 @@
 (个性化 DSP 处理)</value>
   </data>
   <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
-    <value>专为 osu! 玩家打造的 ASIO/WASAPI 独占音频中间件，探寻极低延迟之极限。</value>
+    <value>专为 osu! 玩家打造的 ASIO/WASAPI 独占音频中间件，探寻低延迟极限。</value>
   </data>
   <data name="Wizard_Welcome_Title" xml:space="preserve">
     <value>欢迎使用 KeyASIO</value>

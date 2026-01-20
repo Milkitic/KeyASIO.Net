@@ -17,6 +17,9 @@ public partial class PresetSelectionDialogViewModel : ObservableObject
     public bool ShowCloseButton { get; set; } = true;
     public event Action? OnPresetApplied;
 
+    [ObservableProperty]
+    private PresetMode? _currentPresetMode;
+
     public PresetSelectionDialogViewModel(PresetManager presetManager, ISukiDialogManager dialogManager,
         ISukiToastManager toastManager, AudioSettingsViewModel audioSettingsViewModel)
     {
@@ -24,6 +27,8 @@ public partial class PresetSelectionDialogViewModel : ObservableObject
         _dialogManager = dialogManager;
         _toastManager = toastManager;
         _audioSettingsViewModel = audioSettingsViewModel;
+
+        CurrentPresetMode = _presetManager.GetCurrentPresetMode();
     }
 
     public List<PresetModel> Presets => _presetManager.AvailablePresets;
@@ -32,6 +37,9 @@ public partial class PresetSelectionDialogViewModel : ObservableObject
     public async Task SelectPreset(PresetModel preset)
     {
         await _presetManager.ApplyPreset(preset.Mode, _audioSettingsViewModel);
+
+        CurrentPresetMode = preset.Mode;
+
         _toastManager.CreateSimpleInfoToast()
             .OfType(NotificationType.Success)
             .WithTitle("已应用预设")
