@@ -183,6 +183,21 @@
   <data name="Audio_LimiterDescription" xml:space="preserve">
     <value>Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters.</value>
   </data>
+  <data name="Audio_LimiterType_Master" xml:space="preserve">
+    <value>Master (Lookahead)</value>
+  </data>
+  <data name="Audio_LimiterType_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
+    <value>Polynomial (Zero‑latency)</value>
+  </data>
+  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
+    <value>Quadratic (Lightweight)</value>
+  </data>
+  <data name="Audio_LimiterType_Soft" xml:space="preserve">
+    <value>Soft (Saturation)</value>
+  </data>
   <data name="Audio_NoDeviceSelected" xml:space="preserve">
     <value>No device selected. </value>
   </data>
@@ -272,21 +287,6 @@
   </data>
   <data name="KeyBinding_EditBindings" xml:space="preserve">
     <value>Edit Bindings</value>
-  </data>
-  <data name="Audio_LimiterType_Master" xml:space="preserve">
-    <value>Master (Lookahead)</value>
-  </data>
-  <data name="Audio_LimiterType_Off" xml:space="preserve">
-    <value>Off</value>
-  </data>
-  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
-    <value>Polynomial (Zero‑latency)</value>
-  </data>
-  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
-    <value>Quadratic (Lightweight)</value>
-  </data>
-  <data name="Audio_LimiterType_Soft" xml:space="preserve">
-    <value>Soft (Saturation)</value>
   </data>
   <data name="KeyBinding_Message" xml:space="preserve">
     <value>Press any key to bind...</value>
@@ -617,16 +617,16 @@ You can change option later.</value>
     <value>Install Virtual Driver</value>
   </data>
   <data name="Wizard_Welcome_Feature1" xml:space="preserve">
-    <value>Ultra Low Latency (ASIO)</value>
+    <value>Extreme Low Latency&#13;&#10;(ASIO / WASAPI Exclusive)</value>
   </data>
   <data name="Wizard_Welcome_Feature2" xml:space="preserve">
-    <value>Automatic Sync (osu! Integration)</value>
+    <value>Automatic Sync&#13;&#10;(osu! Data Sync)</value>
   </data>
   <data name="Wizard_Welcome_Feature3" xml:space="preserve">
-    <value>Advanced Mixing (DSP)</value>
+    <value>Advanced Mixing&#13;&#10;(Personalized DSP Processing)</value>
   </data>
   <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
-    <value>The Ultimate Low-Latency Audio Middleware for osu!</value>
+    <value>An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio.</value>
   </data>
   <data name="Wizard_Welcome_Title" xml:space="preserve">
     <value>Welcome to KeyASIO</value>

@@ -1556,7 +1556,8 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Ultra Low Latency (ASIO) 的本地化字符串。
+        ///   查找类似 Extreme Low Latency
+        ///(ASIO / WASAPI Exclusive) 的本地化字符串。
         /// </summary>
         internal static string Wizard_Welcome_Feature1 {
             get {
@@ -1565,7 +1566,8 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Automatic Sync (osu! Integration) 的本地化字符串。
+        ///   查找类似 Automatic Sync
+        ///(osu! Data Sync) 的本地化字符串。
         /// </summary>
         internal static string Wizard_Welcome_Feature2 {
             get {
@@ -1574,7 +1576,8 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Advanced Mixing (DSP) 的本地化字符串。
+        ///   查找类似 Advanced Mixing
+        ///(Personalized DSP Processing) 的本地化字符串。
         /// </summary>
         internal static string Wizard_Welcome_Feature3 {
             get {
@@ -1583,7 +1586,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 The Ultimate Low-Latency Audio Middleware for osu! 的本地化字符串。
+        ///   查找类似 An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio. 的本地化字符串。
         /// </summary>
         internal static string Wizard_Welcome_Subtitle {
             get {

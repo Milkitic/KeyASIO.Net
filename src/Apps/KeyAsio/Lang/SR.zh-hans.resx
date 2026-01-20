@@ -617,16 +617,16 @@
     <value>安装虚拟驱动</value>
   </data>
   <data name="Wizard_Welcome_Feature1" xml:space="preserve">
-    <value>极致低延迟 (ASIO)</value>
+    <value>极致低延迟&#13;&#10;(ASIO / WASAPI Exclusive支持)</value>
   </data>
   <data name="Wizard_Welcome_Feature2" xml:space="preserve">
-    <value>自动同步 (osu! 内存读取)</value>
+    <value>自动同步&#13;&#10;(osu! 数据同步运行)</value>
   </data>
   <data name="Wizard_Welcome_Feature3" xml:space="preserve">
-    <value>高级混音 (DSP 处理)</value>
+    <value>高级混音&#13;&#10;(个性化 DSP 处理)</value>
   </data>
   <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
-    <value>osu! 终极低延迟音频中间件</value>
+    <value>专为 osu! 玩家打造的 ASIO/WASAPI 独占音频中间件，探寻极低延迟之极限。</value>
   </data>
   <data name="Wizard_Welcome_Title" xml:space="preserve">
     <value>欢迎使用 KeyASIO</value>

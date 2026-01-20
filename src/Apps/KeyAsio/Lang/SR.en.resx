@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -617,16 +617,16 @@ You can change option later.</value>
     <value>Install Virtual Driver</value>
   </data>
   <data name="Wizard_Welcome_Feature1" xml:space="preserve">
-    <value>Ultra Low Latency (ASIO)</value>
+    <value>Extreme Low Latency&#13;&#10;(ASIO / WASAPI Exclusive)</value>
   </data>
   <data name="Wizard_Welcome_Feature2" xml:space="preserve">
-    <value>Automatic Sync (osu! Integration)</value>
+    <value>Automatic Sync&#13;&#10;(osu! Data Sync)</value>
   </data>
   <data name="Wizard_Welcome_Feature3" xml:space="preserve">
-    <value>Advanced Mixing (DSP)</value>
+    <value>Advanced Mixing&#13;&#10;(Personalized DSP Processing)</value>
   </data>
   <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
-    <value>The Ultimate Low-Latency Audio Middleware for osu!</value>
+    <value>An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio.</value>
   </data>
   <data name="Wizard_Welcome_Title" xml:space="preserve">
     <value>Welcome to KeyASIO</value>
