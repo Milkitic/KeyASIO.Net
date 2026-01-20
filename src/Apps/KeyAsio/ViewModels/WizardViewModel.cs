@@ -186,7 +186,8 @@ public partial class WizardViewModel : ViewModelBase
         PresetSelectionViewModel =
             new PresetSelectionDialogViewModel(_presetManager, _dialogManager, _toastManager, audioSettingsViewModel)
             {
-                DismissOnSelect = false
+                DismissOnSelect = false,
+                ShowCloseButton = false
             };
         PresetSelectionViewModel.OnPresetApplied += () => { PresetAppliedMessage = "预设已应用"; };
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,6 +16,12 @@ namespace KeyAsio.ViewModels;
 
 public partial class AudioSettingsViewModel : ObservableObject
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
     public event Action<DeviceDescription?>? OnDeviceChanged;
 
     private readonly ILogger<AudioSettingsViewModel> _logger;
@@ -166,7 +173,8 @@ public partial class AudioSettingsViewModel : ObservableObject
                 {
                     ToastManager?.CreateSimpleInfoToast()
                         .WithTitle("Audio Settings Applied")
-                        .WithContent($"Successfully applied new device: {AudioEngine.CurrentDeviceDescription?.FriendlyName}")
+                        .WithContent(
+                            $"Successfully applied new device: {AudioEngine.CurrentDeviceDescription?.FriendlyName}")
                         .Queue();
                 }
             }
@@ -382,8 +390,38 @@ public partial class AudioSettingsViewModel : ObservableObject
         {
             DeviceErrorMessage = ex.Message;
             DeviceFullErrorMessage = ex.ToString();
-            _logger.LogError(ex, "Error occurs while creating device.");
+            _logger.LogError(ex, "Error occurs while creating device: {Information}",
+                GetConfigInformation(deviceDescription));
             await DisposeDeviceAsync();
+        }
+    }
+
+    private string GetConfigInformation(DeviceDescription deviceDescription)
+    {
+        try
+        {
+            var info = new
+            {
+                Device = new
+                {
+                    deviceDescription.FriendlyName,
+                    deviceDescription.DeviceId,
+                    Type = deviceDescription.WavePlayerType.ToString(),
+                    deviceDescription.Latency,
+                    deviceDescription.IsExclusive,
+                    deviceDescription.ForceASIOBufferSize
+                },
+                Settings = new
+                {
+                    SampleRate = SelectedSampleRate,
+                    Limiter = SelectedLimiterType.ToString()
+                }
+            };
+            return System.Text.Json.JsonSerializer.Serialize(info, JsonSerializerOptions);
+        }
+        catch (Exception ex)
+        {
+            return $"Error generating config info: {ex.Message}";
         }
     }
 
