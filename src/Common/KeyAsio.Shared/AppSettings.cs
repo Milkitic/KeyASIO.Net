@@ -85,8 +85,6 @@ public partial class AppSettingsAudio : INotifyPropertyChanged
     [Description("Prevents distortion when multiple hitsounds stack (e.g. during streams). " +
                  "Disable to preserve raw dynamic range.")]
     // 对于想要所听即所得的用户，建议关闭。
-    public bool EnableLimiter { get; set; } = true;
-
     public LimiterType LimiterType { get; set; } = LimiterType.Master;
 
     [Description("Master volume. Range: 0–150. " +

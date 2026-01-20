@@ -73,7 +73,6 @@ public class PresetManager
     {
         // Extreme
         if (_appSettings.Audio.LimiterType == LimiterType.Off &&
-            !_appSettings.Audio.EnableLimiter &&
             _appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 1)
         {
@@ -82,7 +81,6 @@ public class PresetManager
 
         // Fast
         if (_appSettings.Audio.LimiterType == LimiterType.Quadratic &&
-            _appSettings.Audio.EnableLimiter &&
             _appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 2)
         {
@@ -91,7 +89,6 @@ public class PresetManager
 
         // Standard
         if (_appSettings.Audio.LimiterType == LimiterType.Master &&
-            _appSettings.Audio.EnableLimiter &&
             _appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 2)
         {
@@ -116,7 +113,7 @@ public class PresetManager
                 break;
         }
 
-        await audioSettingsViewModel.ReloadAudioDevice();
+        //await audioSettingsViewModel.ReloadAudioDevice();
     }
 
     private void ApplyStandard()
@@ -124,7 +121,6 @@ public class PresetManager
         //_appSettings.Input.UseRawInput = true;
 
         _appSettings.Audio.LimiterType = LimiterType.Master;
-        _appSettings.Audio.EnableLimiter = true;
 
         //_appSettings.Performance.EnableAvx512 = true; 
 
@@ -137,7 +133,6 @@ public class PresetManager
     private void ApplyLightweight()
     {
         _appSettings.Audio.LimiterType = LimiterType.Quadratic;
-        _appSettings.Audio.EnableLimiter = true;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 2;
@@ -146,7 +141,6 @@ public class PresetManager
     private void ApplyExtreme()
     {
         _appSettings.Audio.LimiterType = LimiterType.Off;
-        _appSettings.Audio.EnableLimiter = false;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 1;

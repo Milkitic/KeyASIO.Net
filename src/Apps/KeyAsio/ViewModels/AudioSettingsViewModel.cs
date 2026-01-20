@@ -30,7 +30,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     private readonly GameplayAudioService _gameplayAudioService;
 
     private bool _isInitializing;
-    private (DeviceDescription? PlaybackDevice, int SampleRate, LimiterType LimiterType) _originalAudioSettings;
+    private (DeviceDescription? PlaybackDevice, int SampleRate) _originalAudioSettings;
 
     public AudioSettingsViewModel()
     {
@@ -104,9 +104,6 @@ public partial class AudioSettingsViewModel : ObservableObject
     public partial int SelectedSampleRate { get; set; }
 
     [ObservableProperty]
-    public partial LimiterType SelectedLimiterType { get; set; }
-
-    [ObservableProperty]
     public partial string FramesPerBuffer { get; set; }
 
     [ObservableProperty]
@@ -142,43 +139,15 @@ public partial class AudioSettingsViewModel : ObservableObject
                 };
             }
 
-            bool deviceChanged = !AreDevicesEqual(_originalAudioSettings.PlaybackDevice, newDeviceSettings);
-            bool sampleRateChanged = _originalAudioSettings.SampleRate != SelectedSampleRate;
-            bool limiterChanged = _originalAudioSettings.LimiterType != SelectedLimiterType;
-            bool isDeviceRunning = AudioEngine.CurrentDevice != null;
-
-            if (newDeviceSettings != null)
-            {
-                _appSettings.Audio.PlaybackDevice = newDeviceSettings;
-            }
-            else
-            {
-                _appSettings.Audio.PlaybackDevice = null;
-            }
-
+            _appSettings.Audio.PlaybackDevice = newDeviceSettings;
             _appSettings.Audio.SampleRate = SelectedSampleRate;
-            _appSettings.Audio.LimiterType = SelectedLimiterType;
-            _appSettings.Audio.EnableLimiter = SelectedLimiterType != LimiterType.Off;
 
-            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate,
-                _appSettings.Audio.LimiterType);
+            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate);
             _appSettings.Save();
             CheckAudioChanges();
 
             if (newDeviceSettings != null)
             {
-                // Optimization: If only limiter changed and device is running, don't restart
-                if (isDeviceRunning && !deviceChanged && !sampleRateChanged && limiterChanged)
-                {
-                    AudioEngine.LimiterType = SelectedLimiterType;
-
-                    ToastManager?.CreateSimpleInfoToast()
-                        .WithTitle("Audio Settings Applied")
-                        .WithContent("Limiter settings updated without restarting device.")
-                        .Queue();
-                    return;
-                }
-
                 await DisposeDeviceAsync();
                 await InitializeDevice();
 
@@ -266,7 +235,7 @@ public partial class AudioSettingsViewModel : ObservableObject
 
         // Also update UI selection if we are on settings page
         SelectedAudioDevice = null;
-        _originalAudioSettings = (null, _appSettings.Audio.SampleRate, _appSettings.Audio.LimiterType);
+        _originalAudioSettings = (null, _appSettings.Audio.SampleRate);
         CheckAudioChanges();
     }
 
@@ -307,8 +276,6 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     partial void OnSelectedSampleRateChanged(int value) => CheckAudioChanges();
 
-    partial void OnSelectedLimiterTypeChanged(LimiterType value) => CheckAudioChanges();
-
     partial void OnTargetBufferSizeChanged(double value) => CheckAudioChanges();
 
     partial void OnForceAsioBufferSizeChanged(int value) => CheckAudioChanges();
@@ -321,8 +288,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         try
         {
             // Save original settings for dirty checking
-            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate,
-                _appSettings.Audio.LimiterType);
+            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate);
 
             var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
 
@@ -352,9 +318,6 @@ public partial class AudioSettingsViewModel : ObservableObject
             }
 
             SelectedSampleRate = _appSettings.Audio.SampleRate;
-            SelectedLimiterType = _appSettings.Audio.EnableLimiter
-                ? _appSettings.Audio.LimiterType
-                : LimiterType.Off;
         }
         finally
         {
@@ -382,8 +345,7 @@ public partial class AudioSettingsViewModel : ObservableObject
 
         HasUnsavedAudioChanges =
             !AreDevicesEqual(potentialDevice, _originalAudioSettings.PlaybackDevice) ||
-            SelectedSampleRate != _originalAudioSettings.SampleRate ||
-            SelectedLimiterType != _originalAudioSettings.LimiterType;
+            SelectedSampleRate != _originalAudioSettings.SampleRate;
     }
 
     private async Task LoadDevice(DeviceDescription deviceDescription)
@@ -392,7 +354,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         DeviceFullErrorMessage = null;
         try
         {
-            AudioEngine.LimiterType = SelectedLimiterType;
+            AudioEngine.LimiterType = _appSettings.Audio.LimiterType;
             AudioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
             AudioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
             AudioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
@@ -436,10 +398,9 @@ public partial class AudioSettingsViewModel : ObservableObject
                 Settings = new
                 {
                     SampleRate = SelectedSampleRate,
-                    Limiter = SelectedLimiterType.ToString()
                 }
             };
-            return System.Text.Json.JsonSerializer.Serialize(info, JsonSerializerOptions);
+            return JsonSerializer.Serialize(info, JsonSerializerOptions);
         }
         catch (Exception ex)
         {
