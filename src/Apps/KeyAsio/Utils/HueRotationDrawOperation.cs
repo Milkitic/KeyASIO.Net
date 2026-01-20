@@ -22,12 +22,13 @@ public static class SkiaColorMatrixUtils
         const float lumB = 0.072f;
 
         // 构建 Hue 旋转矩阵
-        float[] matrix = {
-            lumR + cosA * (1 - lumR) + sinA * (-lumR),   lumG + cosA * (-lumG) + sinA * (-lumG),   lumB + cosA * (-lumB) + sinA * (1 - lumB),   0, 0,
-            lumR + cosA * (-lumR) + sinA * 0.143f,       lumG + cosA * (1 - lumG) + sinA * 0.140f,   lumB + cosA * (-lumB) + sinA * (-0.283f),  0, 0,
-            lumR + cosA * (-lumR) + sinA * (-(1 - lumR)), lumG + cosA * (-lumG) + sinA * lumG,       lumB + cosA * (1 - lumB) + sinA * lumB,      0, 0,
+        float[] matrix =
+        [
+            lumR + cosA * (1 - lumR) + sinA * (-lumR),    lumG + cosA * (-lumG) + sinA * (-lumG),   lumB + cosA * (-lumB) + sinA * (1 - lumB), 0, 0,
+            lumR + cosA * (-lumR) + sinA * 0.143f,        lumG + cosA * (1 - lumG) + sinA * 0.140f, lumB + cosA * (-lumB) + sinA * (-0.283f),  0, 0,
+            lumR + cosA * (-lumR) + sinA * (-(1 - lumR)), lumG + cosA * (-lumG) + sinA * lumG,      lumB + cosA * (1 - lumB) + sinA * lumB,    0, 0,
             0, 0, 0, 1, 0
-        };
+        ];
 
         return SKColorFilter.CreateColorMatrix(matrix);
     }
