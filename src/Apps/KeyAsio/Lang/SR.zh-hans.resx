@@ -617,7 +617,7 @@
     <value>安装虚拟驱动</value>
   </data>
   <data name="Wizard_Welcome_Feature1" xml:space="preserve">
-    <value>极致低延迟&#13;&#10;(ASIO / WASAPI Exclusive支持)</value>
+    <value>极致低延迟&#13;&#10;(ASIO / WASAPI 独占支持)</value>
   </data>
   <data name="Wizard_Welcome_Feature2" xml:space="preserve">
     <value>自动同步&#13;&#10;(osu! 数据同步运行)</value>
