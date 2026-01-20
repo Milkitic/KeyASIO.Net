@@ -12,7 +12,7 @@ namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 /// This is not a lookahead limiter and may cause distortion on fast transients,
 /// but it is very lightweight.
 /// </remarks>
-public sealed class QuadraticLimitProvider : ILimiterSampleProvider
+public sealed class QuadraticLimitProvider : ISampleProvider
 {
     private readonly ISampleProvider _source;
     private float _threshold = 0.95f;
@@ -37,8 +37,6 @@ public sealed class QuadraticLimitProvider : ILimiterSampleProvider
         _source = source;
         UpdateParameters(threshold, ceiling);
     }
-
-    public bool IsEnabled { get; set; }
 
     /// <summary>
     /// Gets the WaveFormat of this sample provider.
@@ -75,7 +73,6 @@ public sealed class QuadraticLimitProvider : ILimiterSampleProvider
     public int Read(float[] buffer, int offset, int count)
     {
         int samplesRead = _source.Read(buffer, offset, count);
-        if (!IsEnabled) return samplesRead;
 
         float threshold = _threshold;
         float ceiling = _ceiling;

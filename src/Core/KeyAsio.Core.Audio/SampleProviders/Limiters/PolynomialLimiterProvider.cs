@@ -6,7 +6,7 @@ namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 /// A high-performance zero-latency soft limiter designed for rhythm games.
 /// It leaves quiet signals untouched and gently saturates peaks using a cubic polynomial curve.
 /// </summary>
-public sealed class PolynomialLimiterProvider : ILimiterSampleProvider
+public sealed class PolynomialLimiterProvider : ISampleProvider
 {
     private readonly ISampleProvider _source;
     private float _threshold;
@@ -19,13 +19,11 @@ public sealed class PolynomialLimiterProvider : ILimiterSampleProvider
         UpdateParameters(threshold, ceiling);
     }
 
-    public bool IsEnabled { get; set; }
     public WaveFormat WaveFormat => _source.WaveFormat;
 
     public int Read(float[] buffer, int offset, int count)
     {
         int samplesRead = _source.Read(buffer, offset, count);
-        if (!IsEnabled) return samplesRead;
 
         float threshold = _threshold;
         float ceiling = _ceiling;

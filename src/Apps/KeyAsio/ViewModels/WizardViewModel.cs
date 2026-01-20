@@ -377,7 +377,6 @@ public partial class WizardViewModel : ViewModelBase
         {
             if (File.Exists(path))
             {
-                await _audioEngine.PlayAudio(path, 1.0f);
             }
         }
         catch

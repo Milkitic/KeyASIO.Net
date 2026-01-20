@@ -15,7 +15,7 @@ namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 /// threshold, it applies gain reduction smoothly (based on attack and release times)
 /// to ensure the output signal does not surpass the ceiling.
 /// </remarks>
-public sealed class MasterLimiterProvider : ILimiterSampleProvider
+public sealed class MasterLimiterProvider : ISampleProvider
 {
     private readonly ISampleProvider _source;
     private readonly int _channels;
@@ -69,14 +69,6 @@ public sealed class MasterLimiterProvider : ILimiterSampleProvider
         _readPos = 0;
         _currentMaxPeak = 0f;
     }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the limiter processing is enabled.
-    /// </summary>
-    /// <value>
-    /// <c>true</c> if enabled; otherwise, <c>false</c>. When <c>false</c>, audio passes through unmodified (bypassed).
-    /// </value>
-    public bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// Gets the current amount of gain reduction being applied, as a linear scalar.
@@ -160,7 +152,6 @@ public sealed class MasterLimiterProvider : ILimiterSampleProvider
     public int Read(float[] buffer, int offset, int count)
     {
         int samplesRead = _source.Read(buffer, offset, count);
-        if (!IsEnabled) return samplesRead;
         if (samplesRead == 0) return 0;
 
         Process(buffer, offset, samplesRead);
