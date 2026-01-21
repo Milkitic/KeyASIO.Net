@@ -8,6 +8,13 @@ namespace KeyAsio.Core.Audio.SampleProviders.BalancePans;
 public enum BalanceMode
 {
     /// <summary>
+    /// 关闭:
+    /// 不进行任何平衡处理。
+    /// </summary>
+    [Description("BalanceMode_Off")]
+    Off,
+
+    /// <summary>
     /// 等幂声像 (标准 Pan):
     /// 衰减相反声道，总音量保持恒定。
     /// 极端值 = [L, 0] 或 [0, R]。
@@ -36,11 +43,4 @@ public enum BalanceMode
     /// </summary>
     [Description("BalanceMode_BinauralMix")]
     BinauralMix,
-
-    /// <summary>
-    /// 关闭:
-    /// 不进行任何平衡处理。
-    /// </summary>
-    [Description("BalanceMode_Off")]
-    Off
 }
