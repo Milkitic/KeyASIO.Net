@@ -8,6 +8,7 @@
   xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:pans="using:KeyAsio.Core.Audio.SampleProviders.BalancePans"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
   x:DataType="vm:MainWindowViewModel"
@@ -124,29 +125,34 @@
               </ComboBox>
             </controls:SettingItem>
 
-            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Sync_StereoWidth}}" Icon="SurroundSound">
-              <TextBlock
-                FontWeight="Bold"
-                Foreground="{DynamicResource SukiPrimaryColor}"
-                Text="{Binding AppSettings.Sync.Playback.BalanceFactor, StringFormat='{}{0:0.00}'}" />
-            </controls:SettingItem>
-            <Slider
-              Maximum="1"
-              Minimum="0"
-              TickFrequency="0.01"
-              Value="{Binding AppSettings.Sync.Playback.BalanceFactor}" />
-            <Grid Margin="0,-10,0,0" ColumnDefinitions="Auto,*,Auto">
-              <TextBlock Classes="SmallHeader" Text="{I18N {x:Static lang:SRKeys.Sync_WidthNarrow}}" />
-              <TextBlock
-                Grid.Column="1"
-                HorizontalAlignment="Center"
-                Classes="SmallHeader"
-                Text="{I18N {x:Static lang:SRKeys.Sync_WidthNormal}}" />
-              <TextBlock
-                Grid.Column="2"
-                Classes="SmallHeader"
-                Text="{I18N {x:Static lang:SRKeys.Sync_WidthWide}}" />
-            </Grid>
+            <StackPanel IsVisible="{Binding AppSettings.Sync.Playback.BalanceMode, Converter={x:Static converters:EnumInequalityConverter.Instance}, ConverterParameter={x:Static pans:BalanceMode.Off}}">
+              <controls:SettingItem
+                Margin="0,8,0,0"
+                Header="{I18N {x:Static lang:SRKeys.Sync_StereoWidth}}"
+                Icon="SurroundSound">
+                <TextBlock
+                  FontWeight="Bold"
+                  Foreground="{DynamicResource SukiPrimaryColor}"
+                  Text="{Binding AppSettings.Sync.Playback.BalanceFactor, StringFormat='{}{0:0.00}'}" />
+              </controls:SettingItem>
+              <Slider
+                Maximum="1"
+                Minimum="0"
+                TickFrequency="0.01"
+                Value="{Binding AppSettings.Sync.Playback.BalanceFactor}" />
+              <Grid Margin="0,-10,0,0" ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Classes="SmallHeader" Text="{I18N {x:Static lang:SRKeys.Sync_WidthNarrow}}" />
+                <TextBlock
+                  Grid.Column="1"
+                  HorizontalAlignment="Center"
+                  Classes="SmallHeader"
+                  Text="{I18N {x:Static lang:SRKeys.Sync_WidthNormal}}" />
+                <TextBlock
+                  Grid.Column="2"
+                  Classes="SmallHeader"
+                  Text="{I18N {x:Static lang:SRKeys.Sync_WidthWide}}" />
+              </Grid>
+            </StackPanel>
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
