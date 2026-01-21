@@ -1277,6 +1277,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Controls stereo balance processing. &apos;ConstantPower&apos; is standard; &apos;CrossMix&apos; preserves ambience. Note: &apos;Mid-Side&apos; mode increases CPU usage. 的本地化字符串。
+        /// </summary>
+        internal static string Sync_BalanceModeDescription {
+            get {
+                return ResourceManager.GetString("Sync_BalanceModeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Disable Combo Break 的本地化字符串。
         /// </summary>
         internal static string Sync_DisableComboBreak {

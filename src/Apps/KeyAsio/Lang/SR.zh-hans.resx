@@ -214,7 +214,8 @@
     <value>限制器</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>防止音效叠加导致削波失真。推荐使用“多项式”模式；追求原始动态可禁用。注意：“母带级”模式会增加 CPU 占用。</value>
+    <value>防止音效叠加导致削波失真。推荐使用“多项式”模式；追求原始动态可禁用。
+注意：“母带级”模式会增加 CPU 占用。</value>
   </data>
   <data name="Audio_LimiterType_Hard" xml:space="preserve">
     <value>硬限制 (原始)</value>
@@ -522,6 +523,10 @@
   </data>
   <data name="Sync_BalanceMode" xml:space="preserve">
     <value>平衡模式</value>
+  </data>
+  <data name="Sync_BalanceModeDescription" xml:space="preserve">
+    <value>控制立体声平衡的处理算法。“等幂”为标准模式，“交叉混合”保留空间感。
+注意：“Mid-Side”模式会增加 CPU 占用。</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>禁用断连音效</value>

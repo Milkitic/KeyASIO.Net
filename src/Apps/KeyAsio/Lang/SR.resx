@@ -523,6 +523,9 @@ You can change option later.</value>
   <data name="Sync_BalanceMode" xml:space="preserve">
     <value>Balance Mode</value>
   </data>
+  <data name="Sync_BalanceModeDescription" xml:space="preserve">
+    <value>Controls stereo balance processing. 'ConstantPower' is standard; 'CrossMix' preserves ambience. Note: 'Mid-Side' mode increases CPU usage.</value>
+  </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>Disable Combo Break</value>
   </data>

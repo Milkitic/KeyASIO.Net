@@ -107,7 +107,10 @@
               </ComboBox>
             </controls:SettingItem>
 
-            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Sync_BalanceMode}}" Icon="CallSplit">
+            <controls:SettingItem
+              Description="{I18N {x:Static lang:SRKeys.Sync_BalanceModeDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Sync_BalanceMode}}"
+              Icon="CallSplit">
               <ComboBox
                 MinWidth="{StaticResource SettingControlWidthMedium}"
                 Classes="SettingItem"

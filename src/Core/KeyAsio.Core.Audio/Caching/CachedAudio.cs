@@ -7,7 +7,7 @@ namespace KeyAsio.Core.Audio.Caching;
 
 public sealed unsafe class CachedAudio : IEquatable<CachedAudio>, IDisposable
 {
-    public readonly string SourceHash;
+    public readonly string? SourceHash;
     public readonly WaveFormat WaveFormat;
     private readonly bool _needSlice;
 
