@@ -178,25 +178,28 @@
     <value>延迟与缓冲</value>
   </data>
   <data name="Audio_Limiter" xml:space="preserve">
-    <value>音频限制器</value>
+    <value>限制器</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>防止音量过大时，多个打击音效叠加时爆音。建议专业用户禁用以使用原始音频。需要更多CPU资源，如果音频卡顿，请禁用。</value>
+    <value>防止音频过载导致削波失真。建议专业用户禁用以获得原始动态。启用会略微增加 CPU 占用。</value>
+  </data>
+  <data name="Audio_LimiterType_Hard" xml:space="preserve">
+    <value>硬限制 (原始)</value>
   </data>
   <data name="Audio_LimiterType_Master" xml:space="preserve">
-    <value>母带（前瞻）</value>
+    <value>母带级 (品质)</value>
   </data>
   <data name="Audio_LimiterType_Off" xml:space="preserve">
-    <value>关闭</value>
+    <value>禁用</value>
   </data>
   <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
-    <value>多项式（零延迟）</value>
+    <value>多项式 (游戏)</value>
   </data>
   <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
-    <value>二次（轻量）</value>
+    <value>二次方</value>
   </data>
   <data name="Audio_LimiterType_Soft" xml:space="preserve">
-    <value>柔和（饱和）</value>
+    <value>软限制 (模拟)</value>
   </data>
   <data name="Audio_NoDeviceSelected" xml:space="preserve">
     <value>未选择设备。</value>
@@ -479,7 +482,7 @@
     <value>禁用谱面打击音</value>
   </data>
   <data name="Sync_DisableSliderTicks" xml:space="preserve">
-    <value>禁用滑条刻度音</value>
+    <value>禁用滑条点音</value>
   </data>
   <data name="Sync_DisableStoryboard" xml:space="preserve">
     <value>禁用故事板</value>

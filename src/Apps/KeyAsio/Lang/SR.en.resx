@@ -183,20 +183,23 @@
   <data name="Audio_LimiterDescription" xml:space="preserve">
     <value>Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters.</value>
   </data>
+  <data name="Audio_LimiterType_Hard" xml:space="preserve">
+    <value>Hard (Raw)</value>
+  </data>
   <data name="Audio_LimiterType_Master" xml:space="preserve">
-    <value>Master (Lookahead)</value>
+    <value>Master (Quality)</value>
   </data>
   <data name="Audio_LimiterType_Off" xml:space="preserve">
     <value>Off</value>
   </data>
   <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
-    <value>Polynomial (Zero‑latency)</value>
+    <value>Polynomial (Game)</value>
   </data>
   <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
-    <value>Quadratic (Lightweight)</value>
+    <value>Quadratic</value>
   </data>
   <data name="Audio_LimiterType_Soft" xml:space="preserve">
-    <value>Soft (Saturation)</value>
+    <value>Soft (Analog)</value>
   </data>
   <data name="Audio_NoDeviceSelected" xml:space="preserve">
     <value>No device selected. </value>
@@ -617,13 +620,16 @@ You can change option later.</value>
     <value>Install Virtual Driver</value>
   </data>
   <data name="Wizard_Welcome_Feature1" xml:space="preserve">
-    <value>Extreme Low Latency&#13;&#10;(ASIO / WASAPI Exclusive)</value>
+    <value>Extreme Low Latency
+(ASIO / WASAPI Exclusive)</value>
   </data>
   <data name="Wizard_Welcome_Feature2" xml:space="preserve">
-    <value>Automatic Sync&#13;&#10;(osu! Data Sync)</value>
+    <value>Automatic Sync
+(osu! Data Sync)</value>
   </data>
   <data name="Wizard_Welcome_Feature3" xml:space="preserve">
-    <value>Advanced Mixing&#13;&#10;(Personalized DSP Processing)</value>
+    <value>Advanced Mixing
+(Personalized DSP Processing)</value>
   </data>
   <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
     <value>An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio.</value>

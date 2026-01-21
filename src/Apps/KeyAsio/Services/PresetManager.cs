@@ -80,7 +80,7 @@ public class PresetManager
         }
 
         // Fast
-        if (_appSettings.Audio.LimiterType == LimiterType.Quadratic &&
+        if (_appSettings.Audio.LimiterType == LimiterType.Polynomial &&
             _appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 2)
         {
@@ -132,7 +132,7 @@ public class PresetManager
 
     private void ApplyLightweight()
     {
-        _appSettings.Audio.LimiterType = LimiterType.Quadratic;
+        _appSettings.Audio.LimiterType = LimiterType.Polynomial;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 2;

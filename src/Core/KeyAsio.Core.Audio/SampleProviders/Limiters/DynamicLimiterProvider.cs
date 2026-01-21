@@ -44,7 +44,7 @@ public class DynamicLimiterProvider : ISampleProvider
         {
             LimiterType.Off => null,
             LimiterType.Master => MasterLimiterProvider.UltraLowLatencyPreset(source),
-            LimiterType.Quadratic => new QuadraticLimitProvider(source),
+            LimiterType.Hard => new HardLimiterProvider(source),
             LimiterType.Soft => new SoftLimiterProvider(source),
             LimiterType.Polynomial => new PolynomialLimiterProvider(source),
             _ => MasterLimiterProvider.UltraLowLatencyPreset(source)

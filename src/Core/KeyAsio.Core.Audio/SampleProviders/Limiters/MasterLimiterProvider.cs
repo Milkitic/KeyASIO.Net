@@ -15,9 +15,8 @@ namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 /// threshold, it applies gain reduction smoothly (based on attack and release times)
 /// to ensure the output signal does not surpass the ceiling.
 /// </remarks>
-public sealed class MasterLimiterProvider : ISampleProvider
+public sealed class MasterLimiterProvider : LimiterBase
 {
-    private readonly ISampleProvider _source;
     private readonly int _channels;
     private readonly int _lookaheadFrames;
 
@@ -52,9 +51,8 @@ public sealed class MasterLimiterProvider : ISampleProvider
         float ceilingDb = -0.1f,
         float attackMs = 0.1f,
         float releaseMs = 50f,
-        float lookaheadMs = 2f)
+        float lookaheadMs = 2f) : base(source)
     {
-        _source = source;
         _channels = source.WaveFormat.Channels;
         _lookaheadFrames = Math.Max(1, (int)(source.WaveFormat.SampleRate * lookaheadMs / 1000f));
         _lookaheadBuffer = new float[_lookaheadFrames * _channels];
@@ -78,12 +76,6 @@ public sealed class MasterLimiterProvider : ISampleProvider
     /// signal is being attenuated by 10% (i.e., multiplied by 0.9).
     /// </value>
     public float CurrentGainReduction => 1.0f - _gainReduction;
-
-    /// <summary>
-    /// Gets the WaveFormat of this sample provider.
-    /// </summary>
-    /// <value>The wave format.</value>
-    public WaveFormat WaveFormat => _source.WaveFormat;
 
     /// <summary>
     /// Gets or sets the limiter threshold in decibels (dB).
@@ -141,24 +133,7 @@ public sealed class MasterLimiterProvider : ISampleProvider
         }
     }
 
-    /// <summary>
-    /// Reads samples from this provider, applying the limiter processing.
-    /// </summary>
-    /// <param name="buffer">The buffer to fill with samples.</param>
-    /// <param name="offset">The offset into the buffer to start writing.</param>
-    /// <param name="count">The number of samples requested.</param>
-    /// <returns>The number of samples read.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int Read(float[] buffer, int offset, int count)
-    {
-        int samplesRead = _source.Read(buffer, offset, count);
-        if (samplesRead == 0) return 0;
-
-        Process(buffer, offset, samplesRead);
-        return samplesRead;
-    }
-
-    private void Process(float[] buffer, int offset, int count)
+    protected override void Process(float[] buffer, int offset, int count)
     {
         int channels = _channels;
         int frameCount = count / _channels;

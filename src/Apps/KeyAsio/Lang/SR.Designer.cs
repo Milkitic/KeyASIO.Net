@@ -259,6 +259,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Hard (Clipping) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Hard {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Hard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Master (Lookahead) 的本地化字符串。
         /// </summary>
         internal static string Audio_LimiterType_Master {
