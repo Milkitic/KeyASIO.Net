@@ -171,6 +171,39 @@
   <data name="Audio_ForceBufferSize" xml:space="preserve">
     <value>强制缓冲区大小</value>
   </data>
+  <data name="Audio_InfoBar_Message_AsioDetected" xml:space="preserve">
+    <value>检测到 ASIO 驱动，建议在驱动类型中选择“ASIO”。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_AsioMissing" xml:space="preserve">
+    <value>未检测到 ASIO 驱动，建议使用 WASAPI 独占模式。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_AsioReady" xml:space="preserve">
+    <value>低延迟系统已就绪。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_DirectSound_AsioAvailable" xml:space="preserve">
+    <value>DirectSound 仅作为兼容模式，延迟较高。建议优先选择“ASIO”驱动。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_DirectSound_WasapiAvailable" xml:space="preserve">
+    <value>DirectSound 仅作为兼容模式，延迟较高。建议优先选择“WASAPI”驱动。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_WasapiExclusiveReady" xml:space="preserve">
+    <value>低延迟系统已就绪。若设备启动失败或出现爆音，请尝试调高“目标延迟”。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_WasapiNonExclusive" xml:space="preserve">
+    <value>未启用独占模式，可能会导致较高的延迟。</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Attention" xml:space="preserve">
+    <value>注意</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Error" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Ready" xml:space="preserve">
+    <value>就绪</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Suggestion" xml:space="preserve">
+    <value>建议</value>
+  </data>
   <data name="Audio_Latency" xml:space="preserve">
     <value>延迟</value>
   </data>

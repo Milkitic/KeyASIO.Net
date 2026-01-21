@@ -21,6 +21,11 @@
   <Grid>
     <ScrollViewer>
       <StackPanel Margin="{StaticResource PagePadding}" Spacing="{StaticResource SpacingLarge}">
+        <suki:InfoBar
+          x:Name="AudioInfoBar"
+          Title="{Binding AudioSettings.InfoBarTitle}"
+          IsClosable="False"
+          Message="{Binding AudioSettings.InfoBarMessage}" />
         <suki:GlassCard>
           <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Audio_BackendSelection}}">
             <StackPanel Spacing="{StaticResource SpacingMedium}">

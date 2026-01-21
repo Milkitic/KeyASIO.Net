@@ -171,6 +171,39 @@
   <data name="Audio_ForceBufferSize" xml:space="preserve">
     <value>Force Buffer Size</value>
   </data>
+  <data name="Audio_InfoBar_Message_AsioDetected" xml:space="preserve">
+    <value>ASIO driver detected. Recommended to select 'ASIO' driver type.</value>
+  </data>
+  <data name="Audio_InfoBar_Message_AsioMissing" xml:space="preserve">
+    <value>ASIO driver not detected. Recommended to use WASAPI Exclusive mode.</value>
+  </data>
+  <data name="Audio_InfoBar_Message_AsioReady" xml:space="preserve">
+    <value>Low latency system is ready.</value>
+  </data>
+  <data name="Audio_InfoBar_Message_DirectSound_AsioAvailable" xml:space="preserve">
+    <value>DirectSound is a high-latency compatibility mode. Recommended to select 'ASIO' instead.</value>
+  </data>
+  <data name="Audio_InfoBar_Message_DirectSound_WasapiAvailable" xml:space="preserve">
+    <value>DirectSound is a high-latency compatibility mode. Recommended to select 'WASAPI' instead.</value>
+  </data>
+  <data name="Audio_InfoBar_Message_WasapiExclusiveReady" xml:space="preserve">
+    <value>Low latency system is ready. If playback fails or crackles, try increasing 'Target Latency'.</value>
+  </data>
+  <data name="Audio_InfoBar_Message_WasapiNonExclusive" xml:space="preserve">
+    <value>Exclusive mode is disabled, which may result in higher latency.</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Attention" xml:space="preserve">
+    <value>Attention</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Suggestion" xml:space="preserve">
+    <value>Suggestion</value>
+  </data>
   <data name="Audio_Latency" xml:space="preserve">
     <value>Latency</value>
   </data>
@@ -218,6 +251,18 @@
   </data>
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>Target Latency</value>
+  </data>
+  <data name="BalanceMode_BinauralMix" xml:space="preserve">
+    <value>Binaural Mix (Mono)</value>
+  </data>
+  <data name="BalanceMode_ConstantPower" xml:space="preserve">
+    <value>Constant Power (Standard)</value>
+  </data>
+  <data name="BalanceMode_CrossMix" xml:space="preserve">
+    <value>Cross Mix (Spatial)</value>
+  </data>
+  <data name="BalanceMode_MidSide" xml:space="preserve">
+    <value>Mid-Side (Professional)</value>
   </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>Cancel</value>

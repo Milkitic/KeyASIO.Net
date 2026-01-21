@@ -223,6 +223,105 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 ASIO driver detected. Recommended to select &apos;ASIO&apos; driver type. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_AsioDetected {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_AsioDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 ASIO driver not detected. Recommended to use WASAPI Exclusive mode. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_AsioMissing {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_AsioMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Low latency system is ready. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_AsioReady {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_AsioReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DirectSound is a high-latency compatibility mode. Recommended to select &apos;ASIO&apos; instead. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_DirectSound_AsioAvailable {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_DirectSound_AsioAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DirectSound is a high-latency compatibility mode. Recommended to select &apos;WASAPI&apos; instead. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_DirectSound_WasapiAvailable {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_DirectSound_WasapiAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Low latency system is ready. If playback fails or crackles, try increasing &apos;Target Latency&apos;. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_WasapiExclusiveReady {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_WasapiExclusiveReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Exclusive mode is disabled, which may result in higher latency. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_WasapiNonExclusive {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_WasapiNonExclusive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Attention 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Title_Attention {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Title_Attention", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Error 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Title_Error {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Title_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Ready 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Title_Ready {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Title_Ready", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Suggestion 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Title_Suggestion {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Title_Suggestion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Latency 的本地化字符串。
         /// </summary>
         internal static string Audio_Latency {

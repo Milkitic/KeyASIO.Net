@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
+using KeyAsio.Lang;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
@@ -117,6 +118,68 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string? DeviceFullErrorMessage { get; set; }
+
+    [ObservableProperty]
+    public partial string InfoBarTitle { get; set; } = SR.Audio_InfoBar_Title_Ready;
+
+    [ObservableProperty]
+    public partial string InfoBarMessage { get; set; } = SR.Audio_InfoBar_Message_AsioReady;
+
+    [ObservableProperty]
+    public partial NotificationType InfoBarSeverity { get; set; } = NotificationType.Success;
+
+    private bool _hasAsio;
+
+    private void UpdateInfoBarState()
+    {
+        if (SelectedDriverType == WavePlayerType.ASIO)
+        {
+            if (!_hasAsio)
+            {
+                InfoBarSeverity = NotificationType.Error;
+                InfoBarTitle = SR.Audio_InfoBar_Title_Error;
+                InfoBarMessage = SR.Audio_InfoBar_Message_AsioMissing;
+            }
+            else
+            {
+                InfoBarSeverity = NotificationType.Success;
+                InfoBarTitle = SR.Audio_InfoBar_Title_Ready;
+                InfoBarMessage = SR.Audio_InfoBar_Message_AsioReady;
+            }
+        }
+        else if (SelectedDriverType == WavePlayerType.DirectSound)
+        {
+            InfoBarSeverity = NotificationType.Warning;
+            InfoBarTitle = SR.Audio_InfoBar_Title_Attention;
+            InfoBarMessage = _hasAsio
+                ? SR.Audio_InfoBar_Message_DirectSound_AsioAvailable
+                : SR.Audio_InfoBar_Message_DirectSound_WasapiAvailable;
+        }
+        else if (SelectedDriverType == WavePlayerType.WASAPI)
+        {
+            if (_hasAsio)
+            {
+                InfoBarSeverity = NotificationType.Warning;
+                InfoBarTitle = SR.Audio_InfoBar_Title_Suggestion;
+                InfoBarMessage = SR.Audio_InfoBar_Message_AsioDetected;
+            }
+            else
+            {
+                if (!IsExclusiveMode)
+                {
+                    InfoBarSeverity = NotificationType.Warning;
+                    InfoBarTitle = SR.Audio_InfoBar_Title_Attention;
+                    InfoBarMessage = SR.Audio_InfoBar_Message_WasapiNonExclusive;
+                }
+                else
+                {
+                    InfoBarSeverity = NotificationType.Success;
+                    InfoBarTitle = SR.Audio_InfoBar_Title_Ready;
+                    InfoBarMessage = SR.Audio_InfoBar_Message_WasapiExclusiveReady;
+                }
+            }
+        }
+    }
 
     public async Task InitializeDevice()
     {
@@ -247,6 +310,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         try
         {
             var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
+            _hasAsio = devices.Any(d => d.WavePlayerType == WavePlayerType.ASIO);
             var filtered = devices.Where(d => d.WavePlayerType == value).ToList();
             AvailableAudioDevices = new ObservableCollection<DeviceDescription>(filtered);
 
@@ -258,6 +322,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             }
 
             CheckAudioChanges();
+            UpdateInfoBarState();
         }
         catch (Exception e)
         {
@@ -283,7 +348,11 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     partial void OnForceAsioBufferSizeChanged(int value) => CheckAudioChanges();
 
-    partial void OnIsExclusiveModeChanged(bool value) => CheckAudioChanges();
+    partial void OnIsExclusiveModeChanged(bool value)
+    {
+        CheckAudioChanges();
+        UpdateInfoBarState();
+    }
 
     private async Task InitializeAudioSettingsAsync()
     {
@@ -294,6 +363,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate);
 
             var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
+            _hasAsio = devices.Any(d => d.WavePlayerType == WavePlayerType.ASIO);
 
             if (_appSettings.Audio.PlaybackDevice != null)
             {
@@ -327,6 +397,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             _isInitializing = false;
             // Force check initial state (should be false)
             CheckAudioChanges();
+            UpdateInfoBarState();
         }
     }
 
