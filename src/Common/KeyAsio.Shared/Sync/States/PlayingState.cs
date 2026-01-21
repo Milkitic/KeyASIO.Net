@@ -25,6 +25,7 @@ public class PlayingState : IGameState
 
     private long _lastHitsoundSyncTimestamp;
     private bool _disableComboBreakSfx;
+    private bool? _lastIsReplay;
 
     public PlayingState(
         ILogger<PlayingState> logger,
@@ -73,6 +74,13 @@ public class PlayingState : IGameState
     public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isPaused)
     {
         if (!ctx.IsStarted) return;
+
+        if (_lastIsReplay != ctx.IsReplay)
+        {
+            _logger.LogInformation("IsReplay status changed: {Old} -> {New} (Mods: {Mods})", _lastIsReplay,
+                ctx.IsReplay, ctx.PlayMods);
+            _lastIsReplay = ctx.IsReplay;
+        }
 
         // Retry: song time moved backward during playing
         if (prevMs > currMs)
@@ -137,7 +145,11 @@ public class PlayingState : IGameState
 
     private void PlayAutoPlaybackIfNeeded(SyncSessionContext ctx)
     {
-        if (!_sharedViewModel.AutoMode && (ctx.PlayMods & Mods.Autoplay) == 0 && !ctx.IsReplay) return;
+        if (!_sharedViewModel.AutoMode &&
+            (ctx.PlayMods & Mods.Autoplay) == 0 &&
+            (ctx.PlayMods & Mods.Relax) == 0 &&
+            !ctx.IsReplay) return;
+
         _playbackBuffer.Clear();
         _gameplaySessionManager.CurrentHitsoundSequencer.ProcessAutoPlay(_playbackBuffer, false);
 
