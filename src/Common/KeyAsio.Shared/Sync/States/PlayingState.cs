@@ -173,7 +173,7 @@ public class PlayingState : IGameState
             if (_gameplaySessionManager.OsuFile.General.Mode == GameMode.Mania &&
                 playbackObject.PlaybackEvent is SampleEvent { Layer: SampleLayer.Sampling })
             {
-                _sfxPlaybackService.DispatchPlayback(playbackObject, playbackObject.PlaybackEvent.Volume * 0.6666666f);
+                _sfxPlaybackService.DispatchPlayback(playbackObject, playbackObject.PlaybackEvent.Volume * 0.866666666f);
                 continue;
             }
 
