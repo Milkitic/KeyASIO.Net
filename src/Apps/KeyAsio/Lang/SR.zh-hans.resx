@@ -181,7 +181,7 @@
     <value>限制器</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>防止音频过载导致削波失真。建议专业用户禁用以获得原始动态。启用会略微增加 CPU 占用。</value>
+    <value>防止音效叠加导致削波失真。推荐使用“多项式”模式；追求原始动态可禁用。注意：“母带级”模式会增加 CPU 占用。</value>
   </data>
   <data name="Audio_LimiterType_Hard" xml:space="preserve">
     <value>硬限制 (原始)</value>
@@ -218,6 +218,18 @@
   </data>
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>目标延迟</value>
+  </data>
+  <data name="BalanceMode_BinauralMix" xml:space="preserve">
+    <value>双耳混合 (单声道)</value>
+  </data>
+  <data name="BalanceMode_ConstantPower" xml:space="preserve">
+    <value>等幂声像 (标准)</value>
+  </data>
+  <data name="BalanceMode_CrossMix" xml:space="preserve">
+    <value>交叉混合 (空间感)</value>
+  </data>
+  <data name="BalanceMode_MidSide" xml:space="preserve">
+    <value>Mid-Side (专业)</value>
   </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>取消</value>
@@ -470,10 +482,13 @@
     <value>音频声场</value>
   </data>
   <data name="Sync_AudioFilters" xml:space="preserve">
-    <value>音频过滤</value>
+    <value>音频过滤器</value>
   </data>
   <data name="Sync_AutoLoadSkins" xml:space="preserve">
     <value>自动从 osu! 加载皮肤</value>
+  </data>
+  <data name="Sync_BalanceMode" xml:space="preserve">
+    <value>平衡模式</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>禁用断连音效</value>

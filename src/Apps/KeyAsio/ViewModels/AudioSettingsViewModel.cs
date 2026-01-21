@@ -5,6 +5,7 @@ using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
@@ -66,6 +67,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     public int[] SupportedSampleRates { get; } = [44100, 48000, 96000, 192000];
     public WavePlayerType[] AvailableDriverTypes { get; } = Enum.GetValues<WavePlayerType>();
     public LimiterType[] AvailableLimiterTypes { get; } = Enum.GetValues<LimiterType>();
+    public BalanceMode[] AvailableBalanceModes { get; } = Enum.GetValues<BalanceMode>();
 
     public AudioEngine AudioEngine { get; }
     public ISukiToastManager? ToastManager { get; set; }
@@ -87,6 +89,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsWasapi))]
     [NotifyPropertyChangedFor(nameof(IsDirectSound))]
     public partial WavePlayerType SelectedDriverType { get; set; }
+
     public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO && SelectedAudioDevice != null;
     public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI && SelectedAudioDevice != null;
     public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound && SelectedAudioDevice != null;

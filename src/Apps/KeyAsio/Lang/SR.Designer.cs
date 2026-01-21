@@ -250,7 +250,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters. 的本地化字符串。
+        ///   查找类似 Prevents clipping when hitsounds stack. &apos;Polynomial&apos; mode is recommended; disable for raw audio. Note: &apos;Master&apos; mode increases CPU usage. 的本地化字符串。
         /// </summary>
         internal static string Audio_LimiterDescription {
             get {
@@ -363,6 +363,42 @@ namespace KeyAsio.Lang {
         internal static string Audio_TargetLatency {
             get {
                 return ResourceManager.GetString("Audio_TargetLatency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Binaural Mix (Mono) 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_BinauralMix {
+            get {
+                return ResourceManager.GetString("BalanceMode_BinauralMix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Constant Power (Standard) 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_ConstantPower {
+            get {
+                return ResourceManager.GetString("BalanceMode_ConstantPower", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Cross Mix (Spatial) 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_CrossMix {
+            get {
+                return ResourceManager.GetString("BalanceMode_CrossMix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Mid-Side (Professional) 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_MidSide {
+            get {
+                return ResourceManager.GetString("BalanceMode_MidSide", resourceCulture);
             }
         }
         
@@ -1129,6 +1165,15 @@ namespace KeyAsio.Lang {
         internal static string Sync_AutoLoadSkins {
             get {
                 return ResourceManager.GetString("Sync_AutoLoadSkins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Balance Mode 的本地化字符串。
+        /// </summary>
+        internal static string Sync_BalanceMode {
+            get {
+                return ResourceManager.GetString("Sync_BalanceMode", resourceCulture);
             }
         }
         

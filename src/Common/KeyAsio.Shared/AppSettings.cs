@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;
@@ -152,6 +153,9 @@ public partial class AppSettingsSyncPlayback : INotifyPropertyChanged
 
     [Description("Force use of nightcore beats.")]
     public bool NightcoreBeats { get; set; }
+
+    [Description("Stereo balance processing mode.")]
+    public BalanceMode BalanceMode { get; set; } = BalanceMode.MidSide;
 
     [Description("Balance factor.")]
     public float BalanceFactor { get; set; } = 0.6666667f;

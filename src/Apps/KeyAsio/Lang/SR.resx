@@ -181,7 +181,7 @@
     <value>Audio Limiter</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters.</value>
+    <value>Prevents clipping when hitsounds stack. 'Polynomial' mode is recommended; disable for raw audio. Note: 'Master' mode increases CPU usage.</value>
   </data>
   <data name="Audio_LimiterType_Hard" xml:space="preserve">
     <value>Hard (Clipping)</value>
@@ -218,6 +218,18 @@
   </data>
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>Target Latency</value>
+  </data>
+  <data name="BalanceMode_BinauralMix" xml:space="preserve">
+    <value>Binaural Mix (Mono)</value>
+  </data>
+  <data name="BalanceMode_ConstantPower" xml:space="preserve">
+    <value>Constant Power (Standard)</value>
+  </data>
+  <data name="BalanceMode_CrossMix" xml:space="preserve">
+    <value>Cross Mix (Spatial)</value>
+  </data>
+  <data name="BalanceMode_MidSide" xml:space="preserve">
+    <value>Mid-Side (Professional)</value>
   </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>Cancel</value>
@@ -474,6 +486,9 @@ You can change option later.</value>
   </data>
   <data name="Sync_AutoLoadSkins" xml:space="preserve">
     <value>Auto Load Skins from osu!</value>
+  </data>
+  <data name="Sync_BalanceMode" xml:space="preserve">
+    <value>Balance Mode</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>Disable Combo Break</value>

@@ -14,18 +14,23 @@ internal sealed class LoopProvider : IDisposable
 
     private IMixingSampleProvider? _baseMixer;
 
-    public LoopProvider(CachedAudio cachedAudio, float initialVolume, float initialBalance)
+    public LoopProvider(CachedAudio cachedAudio, float initialVolume, float initialBalance, BalanceMode balanceMode)
     {
         _sourceProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
         _loopWrapper = RecyclableSampleProviderFactory.RentLoopProvider(_sourceProvider);
         _volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(_loopWrapper, initialVolume);
         _balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(_volumeProvider, initialBalance,
-            BalanceMode.MidSide, AntiClipStrategy.None); // 由 MasterLimiterProvider 统一处理防削波
+            balanceMode, AntiClipStrategy.None); // 由 MasterLimiterProvider 统一处理防削波
     }
 
     public void SetBalance(float balance)
     {
         _balanceProvider.Balance = balance;
+    }
+
+    public void SetBalanceMode(BalanceMode mode)
+    {
+        _balanceProvider.Mode = mode;
     }
 
     public void SetVolume(float volume)

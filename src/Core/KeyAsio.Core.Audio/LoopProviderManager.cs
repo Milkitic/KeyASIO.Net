@@ -1,5 +1,6 @@
 ﻿using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 
 namespace KeyAsio.Core.Audio;
 
@@ -31,6 +32,17 @@ public class LoopProviderManager
             var channel = kvp.Key;
             var loopProvider = kvp.Value;
             loopProvider.SetBalance(balance * balanceFactor);
+        }
+
+        return true;
+    }
+
+    public bool ChangeAllBalanceModes(BalanceMode mode)
+    {
+        foreach (var kvp in _dictionary.ToList())
+        {
+            var loopProvider = kvp.Value;
+            loopProvider.SetBalanceMode(mode);
         }
 
         return true;
@@ -102,6 +114,7 @@ public class LoopProviderManager
         IMixingSampleProvider mixingSampleProvider,
         float volume,
         float balance,
+        BalanceMode balanceMode,
         float volumeFactor = 1.25f,
         float balanceFactor = 1)
     {
@@ -114,7 +127,8 @@ public class LoopProviderManager
 
         var loopProvider = new LoopProvider(cachedAudio,
             volume * volumeFactor,
-            balance * balanceFactor
+            balance * balanceFactor,
+            balanceMode
         );
 
         _dictionary.Add(slideChannel, loopProvider);
