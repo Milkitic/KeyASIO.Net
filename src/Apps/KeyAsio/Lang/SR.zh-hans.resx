@@ -265,6 +265,9 @@
   <data name="BalanceMode_MidSide" xml:space="preserve">
     <value>Mid-Side (专业)</value>
   </data>
+  <data name="BalanceMode_Off" xml:space="preserve">
+    <value>禁用</value>
+  </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>取消</value>
   </data>

@@ -83,11 +83,6 @@ public partial class AppSettingsAudio : INotifyPropertyChanged
     [Description("Playback device configuration (configure in GUI).")]
     public DeviceDescription? PlaybackDevice { get; set; }
 
-    [Description("Prevents distortion when multiple hitsounds stack (e.g. during streams). " +
-                 "Disable to preserve raw dynamic range.")]
-    // 对于想要所听即所得的用户，建议关闭。
-    public LimiterType LimiterType { get; set; } = LimiterType.Master;
-
     [Description("Master volume. Range: 0–150. " +
                  "For values above 100, consider disabling the Limiter to avoid aggressive compression.")]
     public int MasterVolume { get; set; } = 50;
@@ -153,6 +148,11 @@ public partial class AppSettingsSyncPlayback : INotifyPropertyChanged
 
     [Description("Force use of nightcore beats.")]
     public bool NightcoreBeats { get; set; }
+
+    [Description("Prevents clipping when hitsounds stack. " +
+                 "'Polynomial' mode is recommended; disable for raw audio. " +
+                 "Note: 'Master' mode increases CPU usage.")]
+    public LimiterType LimiterType { get; set; } = LimiterType.Master;
 
     [Description("Stereo balance processing mode.")]
     public BalanceMode BalanceMode { get; set; } = BalanceMode.MidSide;

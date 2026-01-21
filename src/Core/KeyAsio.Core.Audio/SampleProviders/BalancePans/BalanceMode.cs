@@ -35,5 +35,12 @@ public enum BalanceMode
     /// 极端值 = [L+R, 0] 或 [0, L+R]。
     /// </summary>
     [Description("BalanceMode_BinauralMix")]
-    BinauralMix
+    BinauralMix,
+
+    /// <summary>
+    /// 关闭:
+    /// 不进行任何平衡处理。
+    /// </summary>
+    [Description("BalanceMode_Off")]
+    Off
 }

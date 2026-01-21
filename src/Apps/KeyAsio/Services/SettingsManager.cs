@@ -96,17 +96,17 @@ public class SettingsManager : IDisposable
                 _audioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
                 DebounceSave();
             }
-            else if (e.PropertyName == nameof(AppSettingsAudio.LimiterType))
-            {
-                _audioEngine.LimiterType = _appSettings.Audio.LimiterType;
-                DebounceSave();
-            }
         }
         else if (sender is AppSettingsSyncPlayback)
         {
             if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceFactor) ||
                 e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceMode))
             {
+                DebounceSave();
+            }
+            else if (e.PropertyName == nameof(AppSettingsSyncPlayback.LimiterType))
+            {
+                _audioEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
                 DebounceSave();
             }
         }

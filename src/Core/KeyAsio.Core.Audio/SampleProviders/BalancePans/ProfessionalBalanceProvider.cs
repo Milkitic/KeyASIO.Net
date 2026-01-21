@@ -197,6 +197,10 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
             case BalanceMode.BinauralMix:
                 UpdateBinauralGains();
                 break;
+
+            case BalanceMode.Off:
+                UpdateOffGains();
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -292,6 +296,15 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void UpdateOffGains()
+    {
+        _leftDirectGain = 1.0f;
+        _rightDirectGain = 1.0f;
+        _leftCrossGain = 0f;
+        _rightCrossGain = 0f;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Read(float[] buffer, int offset, int sampleCount)
     {
         if (Source == null)
@@ -303,7 +316,8 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
         if (sampleCount == 0) return 0;
         int samplesRead = Source.Read(buffer, offset, sampleCount);
 
-        if (_balanceValue == 0 && _mode != BalanceMode.MidSide && _antiClip == AntiClipStrategy.None)
+        if ((_balanceValue == 0 && _mode != BalanceMode.MidSide || _mode == BalanceMode.Off) &&
+            _antiClip == AntiClipStrategy.None)
         {
             return samplesRead;
         }

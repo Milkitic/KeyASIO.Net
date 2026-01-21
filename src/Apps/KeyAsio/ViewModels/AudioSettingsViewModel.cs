@@ -428,7 +428,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         DeviceFullErrorMessage = null;
         try
         {
-            AudioEngine.LimiterType = _appSettings.Audio.LimiterType;
+            AudioEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
             AudioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
             AudioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
             AudioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;

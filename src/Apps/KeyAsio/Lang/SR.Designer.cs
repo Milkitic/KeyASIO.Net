@@ -502,6 +502,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Off 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_Off {
+            get {
+                return ResourceManager.GetString("BalanceMode_Off", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Cancel 的本地化字符串。
         /// </summary>
         internal static string Common_Cancel {

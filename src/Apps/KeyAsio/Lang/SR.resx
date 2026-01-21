@@ -264,6 +264,9 @@
   <data name="BalanceMode_MidSide" xml:space="preserve">
     <value>Mid-Side (Professional)</value>
   </data>
+  <data name="BalanceMode_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
