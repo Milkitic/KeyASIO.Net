@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Core.Audio.SampleProviders.Limiters;
 using KeyAsio.Core.Audio.Wave;
@@ -12,28 +11,26 @@ namespace KeyAsio.Core.Audio;
 public class AudioEngine : IDisposable, INotifyPropertyChanged
 {
     private readonly AudioDeviceManager _audioDeviceManager;
-    private readonly AudioCacheManager _audioCacheManager;
     private SynchronizationContext? _context;
 
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null) { ExcludeFromPool = true };
     private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null) { ExcludeFromPool = true };
     private readonly EnhancedVolumeSampleProvider _mainVolumeSampleProvider = new(null) { ExcludeFromPool = true };
-    private ILimiterSampleProvider? _limiterProvider;
-    private bool _enableLimiter = true;
+    private DynamicLimiterProvider? _limiterProvider;
+    private LimiterType _limiterType = LimiterType.Master;
 
-    public AudioEngine(AudioDeviceManager audioDeviceManager, AudioCacheManager audioCacheManager)
+    public AudioEngine(AudioDeviceManager audioDeviceManager)
     {
         _audioDeviceManager = audioDeviceManager;
-        _audioCacheManager = audioCacheManager;
     }
 
-    public bool EnableLimiter
+    public LimiterType LimiterType
     {
-        get => _limiterProvider?.IsEnabled ?? _enableLimiter;
+        get => _limiterType;
         set
         {
-            _limiterProvider?.IsEnabled = value;
-            _enableLimiter = value;
+            _limiterType = value;
+            _limiterProvider?.UpdateLimiter(value);
         }
     }
 
@@ -108,8 +105,7 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
         RootMixer.AddMixerInput(_musicVolumeSampleProvider);
 
         _mainVolumeSampleProvider.Source = RootMixer;
-        _limiterProvider = MasterLimiterProvider.UltraLowLatencyPreset(_mainVolumeSampleProvider);
-        _limiterProvider.IsEnabled = _enableLimiter;
+        _limiterProvider = new DynamicLimiterProvider(_mainVolumeSampleProvider, _limiterType);
         ISampleProvider root = _limiterProvider;
 
         Exception? ex = null;
@@ -143,34 +139,6 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
         _mainVolumeSampleProvider.Source = null;
         CurrentDevice = null;
         CurrentDeviceDescription = null;
-    }
-
-    [Obsolete]
-    public ISampleProvider? PlayAudio(CachedAudio cachedAudio, SampleControl? sampleControl = null)
-    {
-        var rootSample = RootMixer.PlayAudio(cachedAudio, sampleControl);
-        return rootSample;
-    }
-
-    [Obsolete]
-    public ISampleProvider? PlayAudio(CachedAudio cachedAudio, float volume, float balance = 0)
-    {
-        var rootSample = RootMixer.PlayAudio(cachedAudio, balance, volume);
-        return rootSample;
-    }
-
-    [Obsolete]
-    public async Task<ISampleProvider?> PlayAudio(string path, SampleControl? sampleControl = null)
-    {
-        var rootSample = await RootMixer.PlayAudio(_audioCacheManager, path, sampleControl).ConfigureAwait(false);
-        return rootSample;
-    }
-
-    [Obsolete]
-    public async Task<ISampleProvider?> PlayAudio(string path, float volume, float balance = 0)
-    {
-        var rootSample = await RootMixer.PlayAudio(_audioCacheManager, path, balance, volume).ConfigureAwait(false);
-        return rootSample;
     }
 
     public void Dispose()

@@ -3,11 +3,15 @@ using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync.AudioProviders;
 using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MouseKeyHook;
+using NAudio.Wave;
 
 namespace KeyAsio.Services;
 
@@ -31,13 +35,16 @@ public class KeyboardBindingInitializer
     private readonly AudioEngine _audioEngine;
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
+    private readonly SkinManager _skinManager;
 
     private IKeyboardHook _keyboardHook = null!;
     public IKeyboardHook KeyboardHook => _keyboardHook;
     private readonly List<Guid> _registerList = new();
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
+    private readonly OsuAudioFileCache _osuAudioFileCache = new();
 
     private CachedAudio? _cachedKeyOnlyAudio;
+    private string? _cachedKeyOnlyAudioKey;
 
     public KeyboardBindingInitializer(
         ILogger<KeyboardBindingInitializer> logger,
@@ -45,7 +52,8 @@ public class KeyboardBindingInitializer
         AudioCacheManager audioCacheManager,
         AudioEngine audioEngine,
         GameplaySessionManager gameplaySessionManager,
-        SfxPlaybackService sfxPlaybackService)
+        SfxPlaybackService sfxPlaybackService,
+        SkinManager skinManager)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -53,6 +61,7 @@ public class KeyboardBindingInitializer
         _audioEngine = audioEngine;
         _gameplaySessionManager = gameplaySessionManager;
         _sfxPlaybackService = sfxPlaybackService;
+        _skinManager = skinManager;
     }
 
     public void Setup()
@@ -183,14 +192,8 @@ public class KeyboardBindingInitializer
                     return;
                 }
 
-                if (_cachedKeyOnlyAudio == null)
-                {
-                    var cachedAudio = _audioCacheManager.CreateDynamic($"internal://dynamic/soft-hitnormal",
-                        _audioEngine.EngineWaveFormat);
-                    _cachedKeyOnlyAudio = cachedAudio;
-                }
-
-                _sfxPlaybackService.PlayEffectsAudio(_cachedKeyOnlyAudio, 1, 0);
+                var cachedAudio = ResolveKeyOnlyAudio();
+                _sfxPlaybackService.PlayEffectsAudio(cachedAudio, 1, 0);
             }
         };
 
@@ -200,5 +203,85 @@ public class KeyboardBindingInitializer
                 ? _keyboardHook.RegisterKey(key, callback)
                 : _keyboardHook.RegisterHotkey(modifier, key, callback));
         }
+    }
+
+    private CachedAudio ResolveKeyOnlyAudio()
+    {
+        var waveFormat = _audioEngine.EngineWaveFormat;
+        const string sampleName = "soft-hitnormal";
+
+        string? cacheKey = null;
+        CachedAudio? cachedAudio = null;
+
+        var selectedSkinName = _appSettings.Paths.SelectedSkinName;
+        var osuFolder = _appSettings.Paths.OsuFolderPath;
+
+        if (!string.IsNullOrWhiteSpace(selectedSkinName) &&
+            !string.Equals(selectedSkinName, SkinDescription.Internal.FolderName, StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.Equals(selectedSkinName, SkinDescription.Classic.FolderName, StringComparison.OrdinalIgnoreCase))
+            {
+                cachedAudio = TryLoadClassicAudio(waveFormat, out cacheKey);
+            }
+            else if (!string.IsNullOrWhiteSpace(osuFolder))
+            {
+                var skinFolder = Path.Combine(osuFolder, "Skins", selectedSkinName);
+                if (Directory.Exists(skinFolder))
+                {
+                    cachedAudio = TryLoadSkinAudio(skinFolder, sampleName, waveFormat, out cacheKey)
+                                  ?? TryLoadSkinAudio(skinFolder, "normal-hitnormal", waveFormat, out cacheKey);
+                }
+            }
+        }
+
+        if (cachedAudio == null)
+        {
+            cacheKey = $"internal://dynamic/{sampleName}";
+            cachedAudio = _audioCacheManager.CreateDynamic(cacheKey, waveFormat);
+        }
+
+        if (_cachedKeyOnlyAudio == null || _cachedKeyOnlyAudioKey != cacheKey)
+        {
+            _cachedKeyOnlyAudio = cachedAudio;
+            _cachedKeyOnlyAudioKey = cacheKey;
+        }
+
+        return _cachedKeyOnlyAudio;
+    }
+
+    private CachedAudio? TryLoadClassicAudio(WaveFormat waveFormat, out string? cacheKey)
+    {
+        cacheKey = null;
+        string resourceName = "soft-hitnormal";
+
+        if (!_skinManager.TryGetResource(resourceName, out var data))
+        {
+            resourceName = "normal-hitnormal";
+            if (!_skinManager.TryGetResource(resourceName, out data))
+            {
+                return null;
+            }
+        }
+
+        cacheKey = $"classic://{resourceName}";
+        using var stream = new MemoryStream(data);
+        var result = _audioCacheManager.GetOrCreateOrEmptyAsync(cacheKey, stream, waveFormat).GetAwaiter().GetResult();
+        return result.CachedAudio;
+    }
+
+    private CachedAudio? TryLoadSkinAudio(string skinFolder, string filenameWithoutExt, WaveFormat waveFormat,
+        out string? cacheKey)
+    {
+        cacheKey = null;
+        var filename = _osuAudioFileCache.GetFileUntilFind(skinFolder, filenameWithoutExt, out var resourceOwner);
+        if (resourceOwner != ResourceOwner.Beatmap)
+        {
+            return null;
+        }
+
+        var path = Path.Combine(skinFolder, filename);
+        var result = _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(path, waveFormat).GetAwaiter().GetResult();
+        cacheKey = path;
+        return result.CachedAudio;
     }
 }

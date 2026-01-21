@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using KeyAsio.Core.Audio;
 using Milki.Extensions.Configuration.Converters;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -106,7 +107,6 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             {
                 SampleRate = s.SampleRate,
                 PlaybackDevice = s.Device,
-                EnableLimiter = s.EnableLimiter,
                 MasterVolume = (int)s.Volume,
                 MusicVolume = s.RealtimeOptions.MusicTrackVolume,
                 EffectVolume = s.RealtimeOptions.EffectTrackVolume
@@ -133,6 +133,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 {
                     TailPlaybackBehavior = s.RealtimeOptions.SliderTailPlaybackBehavior,
                     NightcoreBeats = s.RealtimeOptions.ForceNightcoreBeats,
+                    LimiterType = s.EnableLimiter ? LimiterType.Master : LimiterType.Off,
                     BalanceFactor = s.RealtimeOptions.BalanceFactor,
                 },
                 Filters = new AppSettingsSyncFilters
@@ -165,7 +166,6 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         {
             s.SampleRate = y.Audio.SampleRate;
             s.Device = y.Audio.PlaybackDevice;
-            s.EnableLimiter = y.Audio.EnableLimiter;
             s.Volume = y.Audio.MasterVolume;
             s.RealtimeOptions.MusicTrackVolume = y.Audio.MusicVolume;
             s.RealtimeOptions.EffectTrackVolume = y.Audio.EffectVolume;
@@ -192,6 +192,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             {
                 s.RealtimeOptions.SliderTailPlaybackBehavior = y.Sync.Playback.TailPlaybackBehavior;
                 s.RealtimeOptions.ForceNightcoreBeats = y.Sync.Playback.NightcoreBeats;
+                s.EnableLimiter = y.Sync.Playback.LimiterType != LimiterType.Off;
                 s.RealtimeOptions.BalanceFactor = y.Sync.Playback.BalanceFactor;
                 s.RealtimeOptions.EnableMusicFunctions = y.Sync.EnableMixSync;
             }

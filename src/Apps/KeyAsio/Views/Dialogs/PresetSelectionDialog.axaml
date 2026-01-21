@@ -16,22 +16,35 @@
   mc:Ignorable="d">
   <UserControl.Resources>
     <converters:StringColorToBrushConverter x:Key="StringColorToBrushConverter" />
+    <converters:EnumEqualityConverter x:Key="EnumEqualityConverter" />
   </UserControl.Resources>
 
   <UserControl.Styles>
     <Style Selector="suki|GlassCard.PresetCard">
       <Setter Property="RenderTransform" Value="scale(1)" />
+      <Setter Property="IsInteractive" Value="True" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="Cursor" Value="Hand" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition
             Easing="CubicEaseOut"
             Property="RenderTransform"
-            Duration="0:0:0.2" />
+            Duration="0:0:0.15" />
         </Transitions>
       </Setter>
     </Style>
     <Style Selector="suki|GlassCard.PresetCard:pointerover">
       <Setter Property="RenderTransform" Value="scale(1.05)" />
+    </Style>
+    <Style Selector="suki|GlassCard.PresetCard.Active">
+      <Setter Property="IsOpaque" Value="True" />
+      <Setter Property="IsInteractive" Value="False" />
+      <Setter Property="Cursor" Value="Arrow" />
+      <Setter Property="BorderBrush" Value="#0FFF" />
+      <Style Selector="^:pointerover">
+        <Setter Property="RenderTransform" Value="scale(1)" />
+      </Style>
     </Style>
   </UserControl.Styles>
 
@@ -58,12 +71,21 @@
             Width="220"
             Margin="15"
             Padding="15"
-            BorderThickness="2"
             Classes="Surface PresetCard"
             Command="{Binding $parent[UserControl].((vm:PresetSelectionDialogViewModel)DataContext).SelectPresetCommand}"
-            CommandParameter="{Binding}"
-            Cursor="Hand"
-            IsInteractive="True">
+            CommandParameter="{Binding}">
+            <Classes.Accent>
+              <MultiBinding Converter="{StaticResource EnumEqualityConverter}">
+                <Binding Path="Mode" />
+                <Binding Path="$parent[UserControl].((vm:PresetSelectionDialogViewModel)DataContext).CurrentPresetMode" TargetNullValue="{x:Null}" />
+              </MultiBinding>
+            </Classes.Accent>
+            <Classes.Active>
+              <MultiBinding Converter="{StaticResource EnumEqualityConverter}">
+                <Binding Path="Mode" />
+                <Binding Path="$parent[UserControl].((vm:PresetSelectionDialogViewModel)DataContext).CurrentPresetMode" TargetNullValue="{x:Null}" />
+              </MultiBinding>
+            </Classes.Active>
             <StackPanel Spacing="15">
               <!--  Icon and Title  -->
               <StackPanel
@@ -104,6 +126,7 @@
     <Button
       HorizontalAlignment="Right"
       Command="{Binding CloseCommand}"
-      Content="{I18N {x:Static lang:SRKeys.Common_Cancel}}" />
+      Content="{I18N {x:Static lang:SRKeys.Common_Cancel}}"
+      IsVisible="{Binding ShowCloseButton}" />
   </StackPanel>
 </UserControl>

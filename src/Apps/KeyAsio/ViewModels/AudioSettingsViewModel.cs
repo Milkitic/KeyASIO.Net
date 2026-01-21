@@ -1,9 +1,12 @@
 ﻿using System.Collections.ObjectModel;
+using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
+using KeyAsio.Lang;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
@@ -15,6 +18,12 @@ namespace KeyAsio.ViewModels;
 
 public partial class AudioSettingsViewModel : ObservableObject
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
     public event Action<DeviceDescription?>? OnDeviceChanged;
 
     private readonly ILogger<AudioSettingsViewModel> _logger;
@@ -23,7 +32,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     private readonly GameplayAudioService _gameplayAudioService;
 
     private bool _isInitializing;
-    private (DeviceDescription? PlaybackDevice, int SampleRate, bool EnableLimiter) _originalAudioSettings;
+    private (DeviceDescription? PlaybackDevice, int SampleRate) _originalAudioSettings;
 
     public AudioSettingsViewModel()
     {
@@ -58,6 +67,8 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     public int[] SupportedSampleRates { get; } = [44100, 48000, 96000, 192000];
     public WavePlayerType[] AvailableDriverTypes { get; } = Enum.GetValues<WavePlayerType>();
+    public LimiterType[] AvailableLimiterTypes { get; } = Enum.GetValues<LimiterType>();
+    public BalanceMode[] AvailableBalanceModes { get; } = Enum.GetValues<BalanceMode>();
 
     public AudioEngine AudioEngine { get; }
     public ISukiToastManager? ToastManager { get; set; }
@@ -79,6 +90,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsWasapi))]
     [NotifyPropertyChangedFor(nameof(IsDirectSound))]
     public partial WavePlayerType SelectedDriverType { get; set; }
+
     public bool IsAsio => SelectedDriverType == WavePlayerType.ASIO && SelectedAudioDevice != null;
     public bool IsWasapi => SelectedDriverType == WavePlayerType.WASAPI && SelectedAudioDevice != null;
     public bool IsDirectSound => SelectedDriverType == WavePlayerType.DirectSound && SelectedAudioDevice != null;
@@ -96,9 +108,6 @@ public partial class AudioSettingsViewModel : ObservableObject
     public partial int SelectedSampleRate { get; set; }
 
     [ObservableProperty]
-    public partial bool IsLimiterEnabled { get; set; }
-
-    [ObservableProperty]
     public partial string FramesPerBuffer { get; set; }
 
     [ObservableProperty]
@@ -109,6 +118,68 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string? DeviceFullErrorMessage { get; set; }
+
+    [ObservableProperty]
+    public partial string InfoBarTitle { get; set; } = SRKeys.Audio_InfoBar_Title_Ready;
+
+    [ObservableProperty]
+    public partial string InfoBarMessage { get; set; } = SRKeys.Audio_InfoBar_Message_AsioReady;
+
+    [ObservableProperty]
+    public partial NotificationType InfoBarSeverity { get; set; } = NotificationType.Success;
+
+    private bool _hasAsio;
+
+    private void UpdateInfoBarState()
+    {
+        if (SelectedDriverType == WavePlayerType.ASIO)
+        {
+            if (!_hasAsio)
+            {
+                InfoBarSeverity = NotificationType.Error;
+                InfoBarTitle = SRKeys.Audio_InfoBar_Title_Error;
+                InfoBarMessage = SRKeys.Audio_InfoBar_Message_AsioMissing;
+            }
+            else
+            {
+                InfoBarSeverity = NotificationType.Success;
+                InfoBarTitle = SRKeys.Audio_InfoBar_Title_Ready;
+                InfoBarMessage = SRKeys.Audio_InfoBar_Message_AsioReady;
+            }
+        }
+        else if (SelectedDriverType == WavePlayerType.DirectSound)
+        {
+            InfoBarSeverity = NotificationType.Warning;
+            InfoBarTitle = SRKeys.Audio_InfoBar_Title_Attention;
+            InfoBarMessage = _hasAsio
+                ? SRKeys.Audio_InfoBar_Message_DirectSound_AsioAvailable
+                : SRKeys.Audio_InfoBar_Message_DirectSound_WasapiAvailable;
+        }
+        else if (SelectedDriverType == WavePlayerType.WASAPI)
+        {
+            if (_hasAsio)
+            {
+                InfoBarSeverity = NotificationType.Warning;
+                InfoBarTitle = SRKeys.Audio_InfoBar_Title_Suggestion;
+                InfoBarMessage = SRKeys.Audio_InfoBar_Message_AsioDetected;
+            }
+            else
+            {
+                if (!IsExclusiveMode)
+                {
+                    InfoBarSeverity = NotificationType.Warning;
+                    InfoBarTitle = SRKeys.Audio_InfoBar_Title_Attention;
+                    InfoBarMessage = SRKeys.Audio_InfoBar_Message_WasapiNonExclusive;
+                }
+                else
+                {
+                    InfoBarSeverity = NotificationType.Success;
+                    InfoBarTitle = SRKeys.Audio_InfoBar_Title_Ready;
+                    InfoBarMessage = SRKeys.Audio_InfoBar_Message_WasapiExclusiveReady;
+                }
+            }
+        }
+    }
 
     public async Task InitializeDevice()
     {
@@ -123,29 +194,25 @@ public partial class AudioSettingsViewModel : ObservableObject
         DeviceFullErrorMessage = null;
         try
         {
+            DeviceDescription? newDeviceSettings = null;
             if (SelectedAudioDevice != null)
             {
-                _appSettings.Audio.PlaybackDevice = SelectedAudioDevice with
+                newDeviceSettings = SelectedAudioDevice with
                 {
                     Latency = (int)TargetBufferSize,
                     IsExclusive = IsExclusiveMode,
                     ForceASIOBufferSize = (ushort)ForceAsioBufferSize
                 };
             }
-            else
-            {
-                _appSettings.Audio.PlaybackDevice = null;
-            }
 
+            _appSettings.Audio.PlaybackDevice = newDeviceSettings;
             _appSettings.Audio.SampleRate = SelectedSampleRate;
-            _appSettings.Audio.EnableLimiter = IsLimiterEnabled;
 
-            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate,
-                _appSettings.Audio.EnableLimiter);
+            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate);
             _appSettings.Save();
             CheckAudioChanges();
 
-            if (SelectedAudioDevice != null)
+            if (newDeviceSettings != null)
             {
                 await DisposeDeviceAsync();
                 await InitializeDevice();
@@ -164,7 +231,8 @@ public partial class AudioSettingsViewModel : ObservableObject
                 {
                     ToastManager?.CreateSimpleInfoToast()
                         .WithTitle("Audio Settings Applied")
-                        .WithContent($"Successfully applied new device: {AudioEngine.CurrentDeviceDescription?.FriendlyName}")
+                        .WithContent(
+                            $"Successfully applied new device: {AudioEngine.CurrentDeviceDescription?.FriendlyName}")
                         .Queue();
                 }
             }
@@ -233,7 +301,7 @@ public partial class AudioSettingsViewModel : ObservableObject
 
         // Also update UI selection if we are on settings page
         SelectedAudioDevice = null;
-        _originalAudioSettings = (null, _appSettings.Audio.SampleRate, _appSettings.Audio.EnableLimiter);
+        _originalAudioSettings = (null, _appSettings.Audio.SampleRate);
         CheckAudioChanges();
     }
 
@@ -242,6 +310,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         try
         {
             var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
+            _hasAsio = devices.Any(d => d.WavePlayerType == WavePlayerType.ASIO);
             var filtered = devices.Where(d => d.WavePlayerType == value).ToList();
             AvailableAudioDevices = new ObservableCollection<DeviceDescription>(filtered);
 
@@ -253,6 +322,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             }
 
             CheckAudioChanges();
+            UpdateInfoBarState();
         }
         catch (Exception e)
         {
@@ -274,13 +344,15 @@ public partial class AudioSettingsViewModel : ObservableObject
 
     partial void OnSelectedSampleRateChanged(int value) => CheckAudioChanges();
 
-    partial void OnIsLimiterEnabledChanged(bool value) => CheckAudioChanges();
-
     partial void OnTargetBufferSizeChanged(double value) => CheckAudioChanges();
 
     partial void OnForceAsioBufferSizeChanged(int value) => CheckAudioChanges();
 
-    partial void OnIsExclusiveModeChanged(bool value) => CheckAudioChanges();
+    partial void OnIsExclusiveModeChanged(bool value)
+    {
+        CheckAudioChanges();
+        UpdateInfoBarState();
+    }
 
     private async Task InitializeAudioSettingsAsync()
     {
@@ -288,10 +360,10 @@ public partial class AudioSettingsViewModel : ObservableObject
         try
         {
             // Save original settings for dirty checking
-            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate,
-                _appSettings.Audio.EnableLimiter);
+            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate);
 
             var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
+            _hasAsio = devices.Any(d => d.WavePlayerType == WavePlayerType.ASIO);
 
             if (_appSettings.Audio.PlaybackDevice != null)
             {
@@ -319,13 +391,13 @@ public partial class AudioSettingsViewModel : ObservableObject
             }
 
             SelectedSampleRate = _appSettings.Audio.SampleRate;
-            IsLimiterEnabled = _appSettings.Audio.EnableLimiter;
         }
         finally
         {
             _isInitializing = false;
             // Force check initial state (should be false)
             CheckAudioChanges();
+            UpdateInfoBarState();
         }
     }
 
@@ -347,8 +419,7 @@ public partial class AudioSettingsViewModel : ObservableObject
 
         HasUnsavedAudioChanges =
             !AreDevicesEqual(potentialDevice, _originalAudioSettings.PlaybackDevice) ||
-            SelectedSampleRate != _originalAudioSettings.SampleRate ||
-            IsLimiterEnabled != _originalAudioSettings.EnableLimiter;
+            SelectedSampleRate != _originalAudioSettings.SampleRate;
     }
 
     private async Task LoadDevice(DeviceDescription deviceDescription)
@@ -357,7 +428,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         DeviceFullErrorMessage = null;
         try
         {
-            AudioEngine.EnableLimiter = _appSettings.Audio.EnableLimiter;
+            AudioEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
             AudioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
             AudioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
             AudioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
@@ -377,8 +448,37 @@ public partial class AudioSettingsViewModel : ObservableObject
         {
             DeviceErrorMessage = ex.Message;
             DeviceFullErrorMessage = ex.ToString();
-            _logger.LogError(ex, "Error occurs while creating device.");
+            _logger.LogError(ex, "Error occurs while creating device: {Information}",
+                GetConfigInformation(deviceDescription));
             await DisposeDeviceAsync();
+        }
+    }
+
+    private string GetConfigInformation(DeviceDescription deviceDescription)
+    {
+        try
+        {
+            var info = new
+            {
+                Device = new
+                {
+                    deviceDescription.FriendlyName,
+                    deviceDescription.DeviceId,
+                    Type = deviceDescription.WavePlayerType.ToString(),
+                    deviceDescription.Latency,
+                    deviceDescription.IsExclusive,
+                    deviceDescription.ForceASIOBufferSize
+                },
+                Settings = new
+                {
+                    SampleRate = SelectedSampleRate,
+                }
+            };
+            return JsonSerializer.Serialize(info, JsonSerializerOptions);
+        }
+        catch (Exception ex)
+        {
+            return $"Error generating config info: {ex.Message}";
         }
     }
 

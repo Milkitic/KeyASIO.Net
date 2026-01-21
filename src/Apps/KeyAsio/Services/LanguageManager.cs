@@ -31,6 +31,9 @@ public partial class LanguageManager : ObservableObject
     [ObservableProperty]
     public partial LanguageItem? SelectedLanguageItem { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsChinese { get; set; }
+
     public ObservableCollection<LanguageItem> AvailableLanguages { get; } = new();
 
     partial void OnSelectedLanguageItemChanged(LanguageItem? value)
@@ -52,6 +55,7 @@ public partial class LanguageManager : ObservableObject
             
             CultureInfo.CurrentUICulture = culture;
             I18NExtension.Culture = culture;
+            IsChinese = culture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {

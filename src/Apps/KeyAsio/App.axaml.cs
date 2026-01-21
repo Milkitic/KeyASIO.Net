@@ -10,6 +10,7 @@ using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Plugins;
 using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync;
+using KeyAsio.ViewModels;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -51,7 +52,8 @@ public partial class App : Application
             var audioEngine = Program.Host.Services.GetRequiredService<AudioEngine>();
 
             // InternalPlugins
-            pluginManager.LoadPlugins(AppDomain.CurrentDomain.BaseDirectory, "KeyAsio.Plugins.*.dll", SearchOption.TopDirectoryOnly);
+            pluginManager.LoadPlugins(AppDomain.CurrentDomain.BaseDirectory, "KeyAsio.Plugins.*.dll",
+                SearchOption.TopDirectoryOnly);
 
             // // Load external plugins
             // var pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");

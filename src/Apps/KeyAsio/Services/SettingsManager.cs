@@ -99,8 +99,14 @@ public class SettingsManager : IDisposable
         }
         else if (sender is AppSettingsSyncPlayback)
         {
-            if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceFactor))
+            if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceFactor) ||
+                e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceMode))
             {
+                DebounceSave();
+            }
+            else if (e.PropertyName == nameof(AppSettingsSyncPlayback.LimiterType))
+            {
+                _audioEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
                 DebounceSave();
             }
         }

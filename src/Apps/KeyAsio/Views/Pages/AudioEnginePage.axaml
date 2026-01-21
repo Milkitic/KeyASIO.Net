@@ -1,8 +1,9 @@
-<UserControl
+﻿<UserControl
   x:Class="KeyAsio.Views.Pages.AudioEnginePage"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:converters="using:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
@@ -20,6 +21,12 @@
   <Grid>
     <ScrollViewer>
       <StackPanel Margin="{StaticResource PagePadding}" Spacing="{StaticResource SpacingLarge}">
+        <suki:InfoBar
+          x:Name="AudioInfoBar"
+          Title="{Binding AudioSettings.InfoBarTitle, Converter={x:Static converters:I18NConverter.Instance}}"
+          IsClosable="False"
+          Message="{Binding AudioSettings.InfoBarMessage, Converter={x:Static converters:I18NConverter.Instance}}"
+          TitleOrientation="Vertical" />
         <suki:GlassCard>
           <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Audio_BackendSelection}}">
             <StackPanel Spacing="{StaticResource SpacingMedium}">
@@ -90,17 +97,6 @@
                 <CheckBox IsChecked="{Binding AudioSettings.IsExclusiveMode}" />
               </controls:SettingItem>
             </StackPanel>
-          </suki:GroupBox>
-        </suki:GlassCard>
-
-        <suki:GlassCard>
-          <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Audio_Processing}}">
-            <controls:SettingItem
-              Description="{I18N {x:Static lang:SRKeys.Audio_LimiterDescription}}"
-              Header="{I18N {x:Static lang:SRKeys.Audio_Limiter}}"
-              Icon="Equalizer">
-              <CheckBox IsChecked="{Binding AudioSettings.IsLimiterEnabled}" />
-            </controls:SettingItem>
           </suki:GroupBox>
         </suki:GlassCard>
 

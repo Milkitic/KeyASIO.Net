@@ -1,4 +1,4 @@
-﻿﻿using System.ComponentModel;
+﻿using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
@@ -17,6 +17,7 @@ using KeyAsio.Shared.Services;
 using KeyAsio.Utils;
 using KeyAsio.ViewModels;
 using KeyAsio.Views.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using SukiUI;
@@ -105,86 +106,19 @@ public partial class MainWindow : SukiWindow
 
             _viewModel.SettingsPageItem = SettingsMenuItem;
             _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
+            _viewModel.RequestShowWizard += async () => await ShowWizardAsync();
 
             await Dispatcher.UIThread.InvokeAsync(() => UpdateThemeByDevice(null));
 
-            if (_viewModel.AppSettings.Paths.AllowAutoLoadSkins == null)
-            {
-                _viewModel.MainToastManager.CreateToast()
-                    .WithTitle(SR.MainWindow_LoadSkins_Title)
-                    .WithContent(SR.MainWindow_LoadSkins_Content)
-                    .WithActionButton(SR.Common_No, _ =>
-                    {
-                        _viewModel.AppSettings.Paths.AllowAutoLoadSkins = false;
-                        _viewModel.AppSettings.Save();
-                    }, true, SukiButtonStyles.Basic)
-                    .WithActionButton(SR.Common_Yes, _ =>
-                    {
-                        _viewModel.AppSettings.Paths.AllowAutoLoadSkins = true;
-                        _viewModel.AppSettings.Save();
-                        _skinManager.ReloadSkinsAsync();
-                    }, true)
-                    .Queue();
-            }
-
-            if (_viewModel.AppSettings.Logging.EnableErrorReporting == null)
-            {
-                _viewModel.MainToastManager.CreateToast()
-                    .WithTitle(SR.MainWindow_ErrorReporting_Title)
-                    .WithContent(SR.MainWindow_ErrorReporting_Content)
-                    .WithActionButton(SR.Common_No, _ =>
-                    {
-                        _viewModel.AppSettings.Logging.EnableErrorReporting = false;
-                        _viewModel.AppSettings.Save();
-                    }, true, SukiButtonStyles.Basic)
-                    .WithActionButton(SR.Common_Yes, _ =>
-                    {
-                        _viewModel.AppSettings.Logging.EnableErrorReporting = true;
-                        _viewModel.AppSettings.Save();
-                    }, true)
-                    .Queue();
-            }
-
-            var updateService = _viewModel.UpdateService;
-            updateService.UpdateAction = () => StartUpdate(updateService);
-            updateService.CheckUpdateCallback = (res) =>
-            {
-                if (res == true)
-                {
-                    ShowUpdateToast(updateService);
-                }
-                else
-                {
-                    _viewModel.MainToastManager.CreateSimpleInfoToast()
-                        .WithTitle(SR.Settings_CheckForUpdates)
-                        .WithContent(SR.MainWindow_UpdateLatest_Content)
-                        .Queue();
-                }
-            };
-            _ = Task.Run(async () =>
-            {
-                var result = await updateService.CheckUpdateAsync();
-                if (result == true)
-                {
-                    Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
-                }
-            });
-
-            _viewModel.AudioSettings.OnDeviceChanged += AudioSettings_OnDeviceChanged;
-            _ = Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                await _viewModel.AudioSettings.InitializeDevice();
-                if (_viewModel.AudioSettings.DeviceErrorMessage != null)
-                {
-                    _viewModel.MainToastManager.CreateToast()
-                        .WithTitle("Device Initialization Failed")
-                        .WithContent(_viewModel.AudioSettings.DeviceErrorMessage)
-                        .OfType(NotificationType.Error)
-                        .Dismiss().After(TimeSpan.FromSeconds(8))
-                        .Dismiss().ByClicking()
-                        .Queue();
-                }
-            });
+            //if (_viewModel.AppSettings.General.IsFirstRun)
+            //{
+            //await ShowWizardAsync();
+            //InitializeStartupLogic();
+            //}
+            //else
+            //{
+            InitializeStartupLogic();
+            //}
         }
         catch (Exception ex)
         {
@@ -314,5 +248,112 @@ public partial class MainWindow : SukiWindow
             slider.Value += e.Delta.Y;
             e.Handled = true;
         }
+    }
+
+    private Task ShowWizardAsync()
+    {
+        var tcs = new TaskCompletionSource();
+        var vm = Program.Host.Services.GetRequiredService<WizardViewModel>();
+        vm.StepIndex = 0;
+
+        void CloseHandler()
+        {
+            vm.OnRequestClose -= CloseHandler;
+            Dispatcher.UIThread.Post(() =>
+            {
+                _viewModel.DialogManager.DismissDialog();
+                tcs.TrySetResult();
+            });
+        }
+
+        vm.OnRequestClose += CloseHandler;
+
+        _viewModel.DialogManager.CreateDialog()
+            .WithContent(new WizardDialogView { DataContext = vm })
+            .TryShow();
+
+        return tcs.Task;
+    }
+
+    private void InitializeStartupLogic()
+    {
+        if (_viewModel.AppSettings.Paths.AllowAutoLoadSkins == null)
+        {
+            _viewModel.MainToastManager.CreateToast()
+                .WithTitle(SR.MainWindow_LoadSkins_Title)
+                .WithContent(SR.MainWindow_LoadSkins_Content)
+                .WithActionButton(SR.Common_No, _ =>
+                {
+                    _viewModel.AppSettings.Paths.AllowAutoLoadSkins = false;
+                    _viewModel.AppSettings.Save();
+                }, true, SukiButtonStyles.Basic)
+                .WithActionButton(SR.Common_Yes, _ =>
+                {
+                    _viewModel.AppSettings.Paths.AllowAutoLoadSkins = true;
+                    _viewModel.AppSettings.Save();
+                    _skinManager.ReloadSkinsAsync();
+                }, true)
+                .Queue();
+        }
+
+        if (_viewModel.AppSettings.Logging.EnableErrorReporting == null)
+        {
+            _viewModel.MainToastManager.CreateToast()
+                .WithTitle(SR.MainWindow_ErrorReporting_Title)
+                .WithContent(SR.MainWindow_ErrorReporting_Content)
+                .WithActionButton(SR.Common_No, _ =>
+                {
+                    _viewModel.AppSettings.Logging.EnableErrorReporting = false;
+                    _viewModel.AppSettings.Save();
+                }, true, SukiButtonStyles.Basic)
+                .WithActionButton(SR.Common_Yes, _ =>
+                {
+                    _viewModel.AppSettings.Logging.EnableErrorReporting = true;
+                    _viewModel.AppSettings.Save();
+                }, true)
+                .Queue();
+        }
+
+        var updateService = _viewModel.UpdateService;
+        updateService.UpdateAction = () => StartUpdate(updateService);
+        updateService.CheckUpdateCallback = (res) =>
+        {
+            if (res == true)
+            {
+                ShowUpdateToast(updateService);
+            }
+            else
+            {
+                _viewModel.MainToastManager.CreateSimpleInfoToast()
+                    .WithTitle(SR.Settings_CheckForUpdates)
+                    .WithContent(SR.MainWindow_UpdateLatest_Content)
+                    .Queue();
+            }
+        };
+        _ = Task.Run(async () =>
+        {
+            var result = await updateService.CheckUpdateAsync();
+            if (result == true)
+            {
+                Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
+            }
+        });
+
+        _viewModel.AudioSettings.OnDeviceChanged += AudioSettings_OnDeviceChanged;
+        _ = Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            await Task.Delay(200);
+            await _viewModel.AudioSettings.InitializeDevice();
+            if (_viewModel.AudioSettings.DeviceErrorMessage != null)
+            {
+                _viewModel.MainToastManager.CreateToast()
+                    .WithTitle("Device Initialization Failed")
+                    .WithContent(_viewModel.AudioSettings.DeviceErrorMessage)
+                    .OfType(NotificationType.Error)
+                    .Dismiss().After(TimeSpan.FromSeconds(8))
+                    .Dismiss().ByClicking()
+                    .Queue();
+            }
+        });
     }
 }

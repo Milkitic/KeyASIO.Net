@@ -65,6 +65,13 @@
               </ComboBox>
             </controls:SettingItem>
 
+            <!--<controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Title}}" Icon="AutoFix">
+              <Button
+                Classes="Flat"
+                Command="{Binding OpenWizardCommand}"
+                Content="{I18N {x:Static lang:SRKeys.Wizard_Start}}" />
+            </controls:SettingItem>-->
+
             <controls:SettingItem
               Classes="Switch"
               Header="{I18N {x:Static lang:SRKeys.Settings_AllowMultipleInstances}}"

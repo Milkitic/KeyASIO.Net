@@ -1,4 +1,5 @@
-﻿using KeyAsio.Core.Audio;
+﻿using System.ComponentModel;
+using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
@@ -21,6 +22,8 @@ public class SfxPlaybackService
         _logger = logger;
         _audioEngine = audioEngine;
         _appSettings = appSettings;
+
+        _appSettings.Sync.Playback.PropertyChanged += OnPlaybackSettingsChanged;
     }
 
     public void DispatchPlayback(PlaybackInfo playbackInfo, float? overrideVolume = null)
@@ -107,15 +110,17 @@ public class SfxPlaybackService
 
                 var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(provider, volume);
                 var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
-                    BalanceMode.MidSide, AntiClipStrategy.None);
+                    _appSettings.Sync.Playback.BalanceMode, AntiClipStrategy.None);
 
                 _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
-                _logger.LogTrace("Play Dynamic: {Key} (Freq: {Freq:F1})", cachedAudio.SourceHash, provider.FundamentalFrequency);
+                _logger.LogTrace("Play Dynamic: {Key} (Freq: {Freq:F1})", cachedAudio.SourceHash,
+                    provider.FundamentalFrequency);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error playing dynamic audio");
             }
+
             return;
         }
 
@@ -131,7 +136,7 @@ public class SfxPlaybackService
             var cachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
             var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(cachedAudioProvider, volume);
             var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
-                BalanceMode.MidSide, AntiClipStrategy.None); // 削波处理交给MasterLimiterProvider
+                _appSettings.Sync.Playback.BalanceMode, AntiClipStrategy.None); // 削波处理交给MasterLimiterProvider
 
             _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
@@ -157,7 +162,8 @@ public class SfxPlaybackService
 
             try
             {
-                _loopProviderManager.Create((int)controlEvent.LoopChannel, cachedAudio, effectMixer, volume, 0, balanceFactor: 0);
+                _loopProviderManager.Create((int)controlEvent.LoopChannel, cachedAudio, effectMixer, volume, 0,
+                    _appSettings.Sync.Playback.BalanceMode, balanceFactor: 0);
             }
             catch (Exception ex)
             {
@@ -178,5 +184,13 @@ public class SfxPlaybackService
     {
         mixingSampleProvider ??= _audioEngine.EffectMixer;
         _loopProviderManager.RemoveAll(mixingSampleProvider);
+    }
+
+    private void OnPlaybackSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceMode))
+        {
+            _loopProviderManager.ChangeAllBalanceModes(_appSettings.Sync.Playback.BalanceMode);
+        }
     }
 }

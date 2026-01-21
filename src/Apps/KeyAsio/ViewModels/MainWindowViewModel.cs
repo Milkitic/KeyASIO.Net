@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
@@ -24,6 +24,8 @@ namespace KeyAsio.ViewModels;
 [ObservableObject]
 public partial class MainWindowViewModel : IDisposable
 {
+    public event Action? RequestShowWizard;
+
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly SettingsManager _settingsManager;
     private readonly PresetManager _presetManager;
@@ -241,6 +243,12 @@ public partial class MainWindowViewModel : IDisposable
         {
             _logger?.LogError(ex, "Failed to open URL: {Url}", url);
         }
+    }
+
+    [RelayCommand]
+    public void OpenWizard()
+    {
+        RequestShowWizard?.Invoke();
     }
 
     partial void OnSelectedMenuItemChanging(object? oldValue, object? newValue)

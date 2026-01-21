@@ -1,4 +1,6 @@
-﻿using KeyAsio.Lang;
+﻿using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
+using KeyAsio.Lang;
 using KeyAsio.Shared;
 using KeyAsio.ViewModels;
 using Material.Icons;
@@ -68,6 +70,38 @@ public class PresetManager
         ];
     }
 
+    public PresetMode? GetCurrentPresetMode()
+    {
+        // Extreme
+        if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
+            _appSettings.Sync.Scanning.TimingScanInterval == 1 &&
+            _appSettings.Sync.Playback.LimiterType == LimiterType.Off &&
+            _appSettings.Sync.Playback.BalanceMode == BalanceMode.Off)
+        {
+            return PresetMode.Extreme;
+        }
+
+        // Fast
+        if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
+            _appSettings.Sync.Scanning.TimingScanInterval == 2 &&
+            _appSettings.Sync.Playback.LimiterType == LimiterType.Polynomial &&
+            _appSettings.Sync.Playback.BalanceMode == BalanceMode.ConstantPower)
+        {
+            return PresetMode.Fast;
+        }
+
+        // Standard
+        if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
+            _appSettings.Sync.Scanning.TimingScanInterval == 2 &&
+            _appSettings.Sync.Playback.LimiterType == LimiterType.Master &&
+            _appSettings.Sync.Playback.BalanceMode == BalanceMode.MidSide)
+        {
+            return PresetMode.Standard;
+        }
+
+        return null;
+    }
+
     public async Task ApplyPreset(PresetMode mode, AudioSettingsViewModel audioSettingsViewModel)
     {
         switch (mode)
@@ -83,14 +117,15 @@ public class PresetManager
                 break;
         }
 
-        await audioSettingsViewModel.ReloadAudioDevice();
+        //await audioSettingsViewModel.ReloadAudioDevice();
     }
 
     private void ApplyStandard()
     {
         //_appSettings.Input.UseRawInput = true;
 
-        _appSettings.Audio.EnableLimiter = true;
+        _appSettings.Sync.Playback.LimiterType = LimiterType.Master;
+        _appSettings.Sync.Playback.BalanceMode = BalanceMode.MidSide;
 
         //_appSettings.Performance.EnableAvx512 = true; 
 
@@ -102,7 +137,8 @@ public class PresetManager
 
     private void ApplyLightweight()
     {
-        _appSettings.Audio.EnableLimiter = true;
+        _appSettings.Sync.Playback.LimiterType = LimiterType.Polynomial;
+        _appSettings.Sync.Playback.BalanceMode = BalanceMode.ConstantPower;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 2;
@@ -110,7 +146,8 @@ public class PresetManager
 
     private void ApplyExtreme()
     {
-        _appSettings.Audio.EnableLimiter = false;
+        _appSettings.Sync.Playback.LimiterType = LimiterType.Off;
+        _appSettings.Sync.Playback.BalanceMode = BalanceMode.Off;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 1;

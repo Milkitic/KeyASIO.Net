@@ -223,6 +223,105 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 ASIO driver detected. Recommended to select &apos;ASIO&apos; driver type. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_AsioDetected {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_AsioDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 ASIO driver not detected. Recommended to use WASAPI Exclusive mode. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_AsioMissing {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_AsioMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Low latency system is ready. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_AsioReady {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_AsioReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DirectSound is a high-latency compatibility mode. Recommended to select &apos;ASIO&apos; instead. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_DirectSound_AsioAvailable {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_DirectSound_AsioAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DirectSound is a high-latency compatibility mode. Recommended to select &apos;WASAPI&apos; instead. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_DirectSound_WasapiAvailable {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_DirectSound_WasapiAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Low latency system is ready. If playback fails or crackles, try increasing &apos;Target Latency&apos;. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_WasapiExclusiveReady {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_WasapiExclusiveReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Exclusive mode is disabled, which may result in higher latency. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Message_WasapiNonExclusive {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Message_WasapiNonExclusive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Attention 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Title_Attention {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Title_Attention", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Error 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Title_Error {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Title_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Ready 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Title_Ready {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Title_Ready", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Suggestion 的本地化字符串。
+        /// </summary>
+        internal static string Audio_InfoBar_Title_Suggestion {
+            get {
+                return ResourceManager.GetString("Audio_InfoBar_Title_Suggestion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Latency 的本地化字符串。
         /// </summary>
         internal static string Audio_Latency {
@@ -250,11 +349,65 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Prevents distortion when multiple hitsounds stack. Recommended to disable for faithful, raw audio. Requires more CPU resources. Disable if audio stutters. 的本地化字符串。
+        ///   查找类似 Prevents clipping when hitsounds stack. &apos;Polynomial&apos; mode is recommended; disable for raw audio. Note: &apos;Master&apos; mode increases CPU usage. 的本地化字符串。
         /// </summary>
         internal static string Audio_LimiterDescription {
             get {
                 return ResourceManager.GetString("Audio_LimiterDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Hard (Clipping) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Hard {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Hard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Master (Lookahead) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Master {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Master", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Off 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Off {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Off", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Polynomial (Zero‑latency) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Polynomial {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Polynomial", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Quadratic (Lightweight) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Quadratic {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Quadratic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Soft (Saturation) 的本地化字符串。
+        /// </summary>
+        internal static string Audio_LimiterType_Soft {
+            get {
+                return ResourceManager.GetString("Audio_LimiterType_Soft", resourceCulture);
             }
         }
         
@@ -309,6 +462,51 @@ namespace KeyAsio.Lang {
         internal static string Audio_TargetLatency {
             get {
                 return ResourceManager.GetString("Audio_TargetLatency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Binaural Mix (Mono) 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_BinauralMix {
+            get {
+                return ResourceManager.GetString("BalanceMode_BinauralMix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Constant Power (Game) 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_ConstantPower {
+            get {
+                return ResourceManager.GetString("BalanceMode_ConstantPower", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Cross Mix (Spatial) 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_CrossMix {
+            get {
+                return ResourceManager.GetString("BalanceMode_CrossMix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Mid-Side (Professional) 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_MidSide {
+            get {
+                return ResourceManager.GetString("BalanceMode_MidSide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Off 的本地化字符串。
+        /// </summary>
+        internal static string BalanceMode_Off {
+            get {
+                return ResourceManager.GetString("BalanceMode_Off", resourceCulture);
             }
         }
         
@@ -688,6 +886,24 @@ namespace KeyAsio.Lang {
         internal static string Plugin_Corrupted {
             get {
                 return ResourceManager.GetString("Plugin_Corrupted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Successfully switched to: {0} 的本地化字符串。
+        /// </summary>
+        internal static string Preset_AppliedContent {
+            get {
+                return ResourceManager.GetString("Preset_AppliedContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Preset Applied 的本地化字符串。
+        /// </summary>
+        internal static string Preset_AppliedTitle {
+            get {
+                return ResourceManager.GetString("Preset_AppliedTitle", resourceCulture);
             }
         }
         
@@ -1079,6 +1295,24 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Balance Mode 的本地化字符串。
+        /// </summary>
+        internal static string Sync_BalanceMode {
+            get {
+                return ResourceManager.GetString("Sync_BalanceMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Controls stereo balance processing. &apos;ConstantPower&apos; is standard; &apos;CrossMix&apos; preserves ambience. Note: &apos;Mid-Side&apos; mode increases CPU usage. 的本地化字符串。
+        /// </summary>
+        internal static string Sync_BalanceModeDescription {
+            get {
+                return ResourceManager.GetString("Sync_BalanceModeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Disable Combo Break 的本地化字符串。
         /// </summary>
         internal static string Sync_DisableComboBreak {
@@ -1309,6 +1543,252 @@ namespace KeyAsio.Lang {
         internal static string Volume_Title {
             get {
                 return ResourceManager.GetString("Volume_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Output Device 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Config_Device {
+            get {
+                return ResourceManager.GetString("Wizard_Config_Device", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Driver Type 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Config_Driver {
+            get {
+                return ResourceManager.GetString("Wizard_Config_Driver", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Audio Configuration 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Config_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Config_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Finish 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Finish {
+            get {
+                return ResourceManager.GetString("Wizard_Finish", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Hardware Mix (Multi-Output) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Hardware {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Hardware", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 I have a dedicated sound card or mixer. I can route osu! and KeyASIO to different outputs. 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Hardware_Desc {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Hardware_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Software Mix (ProMix) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Software {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Software", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 I use standard headphones/speakers. Let KeyASIO handle the mixing. 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Software_Desc {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Software_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Select Audio Mode 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Mode_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Mode_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Next 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Next {
+            get {
+                return ResourceManager.GetString("Wizard_Next", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Previous 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Previous {
+            get {
+                return ResourceManager.GetString("Wizard_Previous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Check for updates automatically 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Privacy_CheckUpdates {
+            get {
+                return ResourceManager.GetString("Wizard_Privacy_CheckUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Send anonymous crash reports 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Privacy_CrashReport {
+            get {
+                return ResourceManager.GetString("Wizard_Privacy_CrashReport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Privacy &amp; Updates 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Privacy_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Privacy_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Skip 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Skip {
+            get {
+                return ResourceManager.GetString("Wizard_Skip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Start Setup 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Start {
+            get {
+                return ResourceManager.GetString("Wizard_Start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Test Key Sound 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Test_KeySound {
+            get {
+                return ResourceManager.GetString("Wizard_Test_KeySound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Test Music 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Test_Music {
+            get {
+                return ResourceManager.GetString("Wizard_Test_Music", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Audio Test 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Test_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Test_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Setup Wizard 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Virtual Driver Detected 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_VirtualDriver_Detected {
+            get {
+                return ResourceManager.GetString("Wizard_VirtualDriver_Detected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Install Virtual Driver 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_VirtualDriver_Install {
+            get {
+                return ResourceManager.GetString("Wizard_VirtualDriver_Install", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Extreme Low Latency
+        ///(ASIO / WASAPI Exclusive) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Feature1 {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Feature1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Automatic Sync
+        ///(osu! Data Sync) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Feature2 {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Feature2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Advanced Mixing
+        ///(Personalized DSP Processing) 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Feature3 {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Feature3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio. 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Subtitle {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Welcome to KeyASIO 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Welcome_Title {
+            get {
+                return ResourceManager.GetString("Wizard_Welcome_Title", resourceCulture);
             }
         }
     }

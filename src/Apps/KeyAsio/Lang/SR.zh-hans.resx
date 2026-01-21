@@ -171,6 +171,39 @@
   <data name="Audio_ForceBufferSize" xml:space="preserve">
     <value>强制缓冲区大小</value>
   </data>
+  <data name="Audio_InfoBar_Message_AsioDetected" xml:space="preserve">
+    <value>检测到 ASIO 驱动，建议在驱动类型中选择“ASIO”。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_AsioMissing" xml:space="preserve">
+    <value>未检测到 ASIO 驱动，建议使用 WASAPI 独占模式。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_AsioReady" xml:space="preserve">
+    <value>低延迟系统已就绪。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_DirectSound_AsioAvailable" xml:space="preserve">
+    <value>DirectSound 仅作为兼容模式，延迟较高。建议优先选择“ASIO”驱动。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_DirectSound_WasapiAvailable" xml:space="preserve">
+    <value>DirectSound 仅作为兼容模式，延迟较高。建议优先选择“WASAPI”驱动。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_WasapiExclusiveReady" xml:space="preserve">
+    <value>低延迟系统已就绪。若设备启动失败或出现爆音，请尝试调高“目标延迟”。</value>
+  </data>
+  <data name="Audio_InfoBar_Message_WasapiNonExclusive" xml:space="preserve">
+    <value>未启用独占模式，可能会导致较高的延迟。</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Attention" xml:space="preserve">
+    <value>注意</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Error" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Ready" xml:space="preserve">
+    <value>就绪</value>
+  </data>
+  <data name="Audio_InfoBar_Title_Suggestion" xml:space="preserve">
+    <value>建议</value>
+  </data>
   <data name="Audio_Latency" xml:space="preserve">
     <value>延迟</value>
   </data>
@@ -178,10 +211,29 @@
     <value>延迟与缓冲</value>
   </data>
   <data name="Audio_Limiter" xml:space="preserve">
-    <value>音频限制器</value>
+    <value>限制器</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>防止音量过大时，多个打击音效叠加时爆音。建议专业用户禁用以使用原始音频。需要更多CPU资源，如果音频卡顿，请禁用。</value>
+    <value>防止音效叠加导致削波失真。推荐使用“多项式”模式；追求原始动态可禁用。
+注意：“母带级”模式会增加 CPU 占用。</value>
+  </data>
+  <data name="Audio_LimiterType_Hard" xml:space="preserve">
+    <value>硬限制 (原始)</value>
+  </data>
+  <data name="Audio_LimiterType_Master" xml:space="preserve">
+    <value>母带级 (品质)</value>
+  </data>
+  <data name="Audio_LimiterType_Off" xml:space="preserve">
+    <value>禁用</value>
+  </data>
+  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
+    <value>多项式 (游戏)</value>
+  </data>
+  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
+    <value>二次方</value>
+  </data>
+  <data name="Audio_LimiterType_Soft" xml:space="preserve">
+    <value>软限制 (模拟)</value>
   </data>
   <data name="Audio_NoDeviceSelected" xml:space="preserve">
     <value>未选择设备。</value>
@@ -200,6 +252,21 @@
   </data>
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>目标延迟</value>
+  </data>
+  <data name="BalanceMode_BinauralMix" xml:space="preserve">
+    <value>双耳混合 (听障)</value>
+  </data>
+  <data name="BalanceMode_ConstantPower" xml:space="preserve">
+    <value>等幂声像 (游戏)</value>
+  </data>
+  <data name="BalanceMode_CrossMix" xml:space="preserve">
+    <value>交叉混合 (平衡)</value>
+  </data>
+  <data name="BalanceMode_MidSide" xml:space="preserve">
+    <value>Mid-Side (专业)</value>
+  </data>
+  <data name="BalanceMode_Off" xml:space="preserve">
+    <value>禁用</value>
   </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>取消</value>
@@ -328,17 +395,23 @@
   <data name="Plugin_Corrupted" xml:space="preserve">
     <value>不可用</value>
   </data>
+  <data name="Preset_AppliedContent" xml:space="preserve">
+    <value>已成功切换到：{0}</value>
+  </data>
+  <data name="Preset_AppliedTitle" xml:space="preserve">
+    <value>已应用预设</value>
+  </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>极限</value>
   </data>
   <data name="Preset_ExtremeDescription" xml:space="preserve">
-    <value>最大化性能输出，适合专业需求或高性能场景</value>
+    <value>最大化性能输出，适合专业需求或高性能场景。</value>
   </data>
   <data name="Preset_Fast" xml:space="preserve">
     <value>快速</value>
   </data>
   <data name="Preset_FastDescription" xml:space="preserve">
-    <value>优化资源占用，适合低配设备或基础使用需求</value>
+    <value>优化资源占用，适合低配设备或基础使用需求。</value>
   </data>
   <data name="Preset_SelectionDescription" xml:space="preserve">
     <value>请根据您的设备性能和使用需求选择合适的模式。</value>
@@ -350,7 +423,7 @@
     <value>标准</value>
   </data>
   <data name="Preset_StandardDescription" xml:space="preserve">
-    <value>提供均衡的性能与资源占用，适合大多数常规使用场景</value>
+    <value>提供均衡的性能与资源占用，适合大多数常规使用场景。</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>关于</value>
@@ -452,10 +525,17 @@
     <value>音频声场</value>
   </data>
   <data name="Sync_AudioFilters" xml:space="preserve">
-    <value>音频过滤</value>
+    <value>音频过滤器</value>
   </data>
   <data name="Sync_AutoLoadSkins" xml:space="preserve">
     <value>自动从 osu! 加载皮肤</value>
+  </data>
+  <data name="Sync_BalanceMode" xml:space="preserve">
+    <value>平衡模式</value>
+  </data>
+  <data name="Sync_BalanceModeDescription" xml:space="preserve">
+    <value>控制立体声平衡的处理算法。“等幂”为标准模式，“交叉混合”保留空间感。
+注意：“Mid-Side”模式会增加 CPU 占用。</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>禁用断连音效</value>
@@ -464,7 +544,7 @@
     <value>禁用谱面打击音</value>
   </data>
   <data name="Sync_DisableSliderTicks" xml:space="preserve">
-    <value>禁用滑条刻度音</value>
+    <value>禁用滑条点音</value>
   </data>
   <data name="Sync_DisableStoryboard" xml:space="preserve">
     <value>禁用故事板</value>
@@ -534,5 +614,89 @@
   </data>
   <data name="Volume_Title" xml:space="preserve">
     <value>音量控制</value>
+  </data>
+  <data name="Wizard_Config_Device" xml:space="preserve">
+    <value>输出设备</value>
+  </data>
+  <data name="Wizard_Config_Driver" xml:space="preserve">
+    <value>驱动类型</value>
+  </data>
+  <data name="Wizard_Config_Title" xml:space="preserve">
+    <value>音频配置</value>
+  </data>
+  <data name="Wizard_Finish" xml:space="preserve">
+    <value>完成配置</value>
+  </data>
+  <data name="Wizard_Mode_Hardware" xml:space="preserve">
+    <value>硬件混音 (多路输出)</value>
+  </data>
+  <data name="Wizard_Mode_Hardware_Desc" xml:space="preserve">
+    <value>我有独立声卡或调音台，可以让 osu! 和 KeyASIO 分别输出。</value>
+  </data>
+  <data name="Wizard_Mode_Software" xml:space="preserve">
+    <value>软件混音 (ProMix)</value>
+  </data>
+  <data name="Wizard_Mode_Software_Desc" xml:space="preserve">
+    <value>我使用普通耳机/音响。让 KeyASIO 处理混音。</value>
+  </data>
+  <data name="Wizard_Mode_Title" xml:space="preserve">
+    <value>选择运行模式</value>
+  </data>
+  <data name="Wizard_Next" xml:space="preserve">
+    <value>下一步</value>
+  </data>
+  <data name="Wizard_Previous" xml:space="preserve">
+    <value>上一步</value>
+  </data>
+  <data name="Wizard_Privacy_CheckUpdates" xml:space="preserve">
+    <value>自动检查更新</value>
+  </data>
+  <data name="Wizard_Privacy_CrashReport" xml:space="preserve">
+    <value>发送匿名崩溃报告</value>
+  </data>
+  <data name="Wizard_Privacy_Title" xml:space="preserve">
+    <value>隐私与更新</value>
+  </data>
+  <data name="Wizard_Skip" xml:space="preserve">
+    <value>跳过</value>
+  </data>
+  <data name="Wizard_Start" xml:space="preserve">
+    <value>开始配置</value>
+  </data>
+  <data name="Wizard_Test_KeySound" xml:space="preserve">
+    <value>测试按键音</value>
+  </data>
+  <data name="Wizard_Test_Music" xml:space="preserve">
+    <value>测试音乐</value>
+  </data>
+  <data name="Wizard_Test_Title" xml:space="preserve">
+    <value>音频测试</value>
+  </data>
+  <data name="Wizard_Title" xml:space="preserve">
+    <value>初次配置向导</value>
+  </data>
+  <data name="Wizard_VirtualDriver_Detected" xml:space="preserve">
+    <value>已检测到虚拟驱动</value>
+  </data>
+  <data name="Wizard_VirtualDriver_Install" xml:space="preserve">
+    <value>安装虚拟驱动</value>
+  </data>
+  <data name="Wizard_Welcome_Feature1" xml:space="preserve">
+    <value>极致低延迟
+(ASIO / WASAPI 独占支持)</value>
+  </data>
+  <data name="Wizard_Welcome_Feature2" xml:space="preserve">
+    <value>自动同步
+(osu! 数据同步运行)</value>
+  </data>
+  <data name="Wizard_Welcome_Feature3" xml:space="preserve">
+    <value>高级混音
+(个性化 DSP 处理)</value>
+  </data>
+  <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
+    <value>专为 osu! 玩家打造的 ASIO/WASAPI 独占音频中间件，探寻低延迟极限。</value>
+  </data>
+  <data name="Wizard_Welcome_Title" xml:space="preserve">
+    <value>欢迎使用 KeyASIO</value>
   </data>
 </root>

@@ -12,9 +12,8 @@ namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 /// harsh digital distortion. The <see cref="Drive"/> parameter controls the
 /// intensity of the saturation effect.
 /// </remarks>
-public sealed class SoftLimiterProvider : ILimiterSampleProvider
+public sealed class SoftLimiterProvider : LimiterBase
 {
-    private readonly ISampleProvider _source;
     private float _drive = 0.9f;  // 驱动强度
 
     /// <summary>
@@ -25,18 +24,10 @@ public sealed class SoftLimiterProvider : ILimiterSampleProvider
     /// The drive amount, typically between 0.5 and 1.0. Higher values increase
     /// the saturation. Default is 0.9.
     /// </param>
-    public SoftLimiterProvider(ISampleProvider source, float drive = 0.9f)
+    public SoftLimiterProvider(ISampleProvider source, float drive = 0.9f) : base(source)
     {
-        _source = source;
         _drive = drive;
     }
-
-    public bool IsEnabled { get; set; }
-
-    /// <summary>
-    /// Gets the WaveFormat of this sample provider.
-    /// </summary>
-    public WaveFormat WaveFormat => _source.WaveFormat;
 
     /// <summary>
     /// Gets or sets the drive amount, controlling the intensity of the saturation.
@@ -54,19 +45,13 @@ public sealed class SoftLimiterProvider : ILimiterSampleProvider
     /// <param name="buffer">The buffer to fill with samples.</param>
     /// <param name="offset">The offset into the buffer to start writing.</param>
     /// <param name="count">The number of samples requested.</param>
-    /// <returns>The number of samples read.</returns>
-    public int Read(float[] buffer, int offset, int count)
+    protected override void Process(float[] buffer, int offset, int count)
     {
-        int samplesRead = _source.Read(buffer, offset, count);
-        if (!IsEnabled) return samplesRead;
-
-        for (int i = 0; i < samplesRead; i++)
+        for (int i = 0; i < count; i++)
         {
             int index = offset + i;
-            // tanh 软饱和 - 模拟模拟设备的自然限制
+            // tanh 软饱和： 模拟磁带等模拟设备的自然限制
             buffer[index] = MathF.Tanh(buffer[index] * _drive) / MathF.Tanh(_drive);
         }
-
-        return samplesRead;
     }
 }

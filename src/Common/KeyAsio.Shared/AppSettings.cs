@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Shared.Models;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;
@@ -27,6 +28,8 @@ public partial class AppSettingsGeneral : INotifyPropertyChanged
 
     [Description("Application theme.")]
     public AppTheme Theme { get; set; } = AppTheme.System;
+
+    public bool IsFirstRun { get; set; } = true;
 }
 
 public partial class AppSettingsInput : INotifyPropertyChanged
@@ -79,11 +82,6 @@ public partial class AppSettingsAudio : INotifyPropertyChanged
 
     [Description("Playback device configuration (configure in GUI).")]
     public DeviceDescription? PlaybackDevice { get; set; }
-
-    [Description("Prevents distortion when multiple hitsounds stack (e.g. during streams). " +
-                 "Disable to preserve raw dynamic range.")]
-    // 对于想要所听即所得的用户，建议关闭。
-    public bool EnableLimiter { get; set; } = true;
 
     [Description("Master volume. Range: 0–150. " +
                  "For values above 100, consider disabling the Limiter to avoid aggressive compression.")]
@@ -150,6 +148,14 @@ public partial class AppSettingsSyncPlayback : INotifyPropertyChanged
 
     [Description("Force use of nightcore beats.")]
     public bool NightcoreBeats { get; set; }
+
+    [Description("Prevents clipping when hitsounds stack. " +
+                 "'Polynomial' mode is recommended; disable for raw audio. " +
+                 "Note: 'Master' mode increases CPU usage.")]
+    public LimiterType LimiterType { get; set; } = LimiterType.Master;
+
+    [Description("Stereo balance processing mode.")]
+    public BalanceMode BalanceMode { get; set; } = BalanceMode.MidSide;
 
     [Description("Balance factor.")]
     public float BalanceFactor { get; set; } = 0.6666667f;
