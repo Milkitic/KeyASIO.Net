@@ -120,10 +120,10 @@ public partial class AudioSettingsViewModel : ObservableObject
     public partial string? DeviceFullErrorMessage { get; set; }
 
     [ObservableProperty]
-    public partial string InfoBarTitle { get; set; } = SR.Audio_InfoBar_Title_Ready;
+    public partial string InfoBarTitle { get; set; } = SRKeys.Audio_InfoBar_Title_Ready;
 
     [ObservableProperty]
-    public partial string InfoBarMessage { get; set; } = SR.Audio_InfoBar_Message_AsioReady;
+    public partial string InfoBarMessage { get; set; } = SRKeys.Audio_InfoBar_Message_AsioReady;
 
     [ObservableProperty]
     public partial NotificationType InfoBarSeverity { get; set; } = NotificationType.Success;
@@ -137,45 +137,45 @@ public partial class AudioSettingsViewModel : ObservableObject
             if (!_hasAsio)
             {
                 InfoBarSeverity = NotificationType.Error;
-                InfoBarTitle = SR.Audio_InfoBar_Title_Error;
-                InfoBarMessage = SR.Audio_InfoBar_Message_AsioMissing;
+                InfoBarTitle = SRKeys.Audio_InfoBar_Title_Error;
+                InfoBarMessage = SRKeys.Audio_InfoBar_Message_AsioMissing;
             }
             else
             {
                 InfoBarSeverity = NotificationType.Success;
-                InfoBarTitle = SR.Audio_InfoBar_Title_Ready;
-                InfoBarMessage = SR.Audio_InfoBar_Message_AsioReady;
+                InfoBarTitle = SRKeys.Audio_InfoBar_Title_Ready;
+                InfoBarMessage = SRKeys.Audio_InfoBar_Message_AsioReady;
             }
         }
         else if (SelectedDriverType == WavePlayerType.DirectSound)
         {
             InfoBarSeverity = NotificationType.Warning;
-            InfoBarTitle = SR.Audio_InfoBar_Title_Attention;
+            InfoBarTitle = SRKeys.Audio_InfoBar_Title_Attention;
             InfoBarMessage = _hasAsio
-                ? SR.Audio_InfoBar_Message_DirectSound_AsioAvailable
-                : SR.Audio_InfoBar_Message_DirectSound_WasapiAvailable;
+                ? SRKeys.Audio_InfoBar_Message_DirectSound_AsioAvailable
+                : SRKeys.Audio_InfoBar_Message_DirectSound_WasapiAvailable;
         }
         else if (SelectedDriverType == WavePlayerType.WASAPI)
         {
             if (_hasAsio)
             {
                 InfoBarSeverity = NotificationType.Warning;
-                InfoBarTitle = SR.Audio_InfoBar_Title_Suggestion;
-                InfoBarMessage = SR.Audio_InfoBar_Message_AsioDetected;
+                InfoBarTitle = SRKeys.Audio_InfoBar_Title_Suggestion;
+                InfoBarMessage = SRKeys.Audio_InfoBar_Message_AsioDetected;
             }
             else
             {
                 if (!IsExclusiveMode)
                 {
                     InfoBarSeverity = NotificationType.Warning;
-                    InfoBarTitle = SR.Audio_InfoBar_Title_Attention;
-                    InfoBarMessage = SR.Audio_InfoBar_Message_WasapiNonExclusive;
+                    InfoBarTitle = SRKeys.Audio_InfoBar_Title_Attention;
+                    InfoBarMessage = SRKeys.Audio_InfoBar_Message_WasapiNonExclusive;
                 }
                 else
                 {
                     InfoBarSeverity = NotificationType.Success;
-                    InfoBarTitle = SR.Audio_InfoBar_Title_Ready;
-                    InfoBarMessage = SR.Audio_InfoBar_Message_WasapiExclusiveReady;
+                    InfoBarTitle = SRKeys.Audio_InfoBar_Title_Ready;
+                    InfoBarMessage = SRKeys.Audio_InfoBar_Message_WasapiExclusiveReady;
                 }
             }
         }

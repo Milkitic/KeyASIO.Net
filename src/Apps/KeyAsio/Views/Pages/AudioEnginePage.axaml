@@ -23,9 +23,9 @@
       <StackPanel Margin="{StaticResource PagePadding}" Spacing="{StaticResource SpacingLarge}">
         <suki:InfoBar
           x:Name="AudioInfoBar"
-          Title="{Binding AudioSettings.InfoBarTitle}"
+          Title="{Binding AudioSettings.InfoBarTitle, Converter={x:Static converters:I18NConverter.Instance}}"
           IsClosable="False"
-          Message="{Binding AudioSettings.InfoBarMessage}"
+          Message="{Binding AudioSettings.InfoBarMessage, Converter={x:Static converters:I18NConverter.Instance}}"
           TitleOrientation="Vertical" />
         <suki:GlassCard>
           <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Audio_BackendSelection}}">
