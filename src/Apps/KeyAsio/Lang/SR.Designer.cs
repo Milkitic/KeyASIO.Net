@@ -475,7 +475,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Constant Power (Standard) 的本地化字符串。
+        ///   查找类似 Constant Power (Game) 的本地化字符串。
         /// </summary>
         internal static string BalanceMode_ConstantPower {
             get {

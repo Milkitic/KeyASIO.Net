@@ -256,7 +256,7 @@
     <value>Binaural Mix (Mono)</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
-    <value>Constant Power (Standard)</value>
+    <value>Constant Power (Game)</value>
   </data>
   <data name="BalanceMode_CrossMix" xml:space="preserve">
     <value>Cross Mix (Spatial)</value>

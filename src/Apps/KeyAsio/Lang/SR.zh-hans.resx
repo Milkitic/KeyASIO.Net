@@ -254,13 +254,13 @@
     <value>目标延迟</value>
   </data>
   <data name="BalanceMode_BinauralMix" xml:space="preserve">
-    <value>双耳混合 (单声道)</value>
+    <value>双耳混合 (听障)</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
-    <value>等幂声像 (标准)</value>
+    <value>等幂声像 (游戏)</value>
   </data>
   <data name="BalanceMode_CrossMix" xml:space="preserve">
-    <value>交叉混合 (空间感)</value>
+    <value>交叉混合 (平衡)</value>
   </data>
   <data name="BalanceMode_MidSide" xml:space="preserve">
     <value>Mid-Side (专业)</value>

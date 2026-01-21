@@ -114,48 +114,49 @@
       Margin="0,20,0,0"
       Spacing="15">
       <!--  Sync Info  -->
-      <suki:GlassCard Classes="Surface" IsVisible="{Binding AppSettings.Sync.EnableSync}">
-        <Grid RowDefinitions="Auto,*">
-          <DockPanel LastChildFill="False">
-            <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.Dashboard_SyncStatus}}" />
-          </DockPanel>
+      <Panel IsVisible="{Binding SyncDisplay.OsuStatus, Converter={StaticResource OsuStatusToActiveBoolConverter}}">
+        <suki:GlassCard Classes="Surface" IsVisible="{Binding AppSettings.Sync.EnableSync}">
+          <Grid RowDefinitions="Auto,*">
+            <DockPanel LastChildFill="False">
+              <TextBlock FontWeight="Bold" Text="{I18N {x:Static lang:SRKeys.Dashboard_SyncStatus}}" />
+            </DockPanel>
 
-          <Grid
-            Grid.Row="1"
-            Margin="0,15,0,0"
-            ColumnDefinitions="2*,*,*">
-            <StackPanel Margin="0,0,10,0">
-              <TextBlock
-                Margin="0,0,0,5"
-                Classes="Label"
-                Text="{I18N {x:Static lang:SRKeys.Dashboard_Beatmap}}" />
-              <TextBlock
-                FontWeight="DemiBold"
-                Text="{Binding SyncDisplay.Beatmap.Filename}"
-                TextTrimming="CharacterEllipsis"
-                ToolTip.Tip="{Binding SyncDisplay.Beatmap.Filename}" />
-            </StackPanel>
-            <StackPanel Grid.Column="1" Margin="0,0,10,0">
-              <TextBlock
-                Margin="0,0,0,5"
-                Classes="Label"
-                Text="{I18N {x:Static lang:SRKeys.Dashboard_PlayTime}}" />
-              <TextBlock
-                FontFamily="Consolas"
-                FontWeight="DemiBold"
-                Text="{Binding SyncDisplay.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
-            </StackPanel>
-            <StackPanel Grid.Column="2">
-              <TextBlock
-                Margin="0,0,0,5"
-                Classes="Label"
-                Text="{I18N {x:Static lang:SRKeys.Dashboard_Status}}" />
-              <TextBlock FontWeight="DemiBold" Text="{Binding SyncDisplay.OsuStatus}" />
-            </StackPanel>
+            <Grid
+              Grid.Row="1"
+              Margin="0,15,0,0"
+              ColumnDefinitions="2*,*,*">
+              <StackPanel Margin="0,0,10,0">
+                <TextBlock
+                  Margin="0,0,0,5"
+                  Classes="Label"
+                  Text="{I18N {x:Static lang:SRKeys.Dashboard_Beatmap}}" />
+                <TextBlock
+                  FontWeight="DemiBold"
+                  Text="{Binding SyncDisplay.Beatmap.Filename}"
+                  TextTrimming="CharacterEllipsis"
+                  ToolTip.Tip="{Binding SyncDisplay.Beatmap.Filename}" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                <TextBlock
+                  Margin="0,0,0,5"
+                  Classes="Label"
+                  Text="{I18N {x:Static lang:SRKeys.Dashboard_PlayTime}}" />
+                <TextBlock
+                  FontFamily="Consolas"
+                  FontWeight="DemiBold"
+                  Text="{Binding SyncDisplay.PlayTime, Converter={StaticResource IntMillisecond2TimeSpanConverter}}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock
+                  Margin="0,0,0,5"
+                  Classes="Label"
+                  Text="{I18N {x:Static lang:SRKeys.Dashboard_Status}}" />
+                <TextBlock FontWeight="DemiBold" Text="{Binding SyncDisplay.OsuStatus}" />
+              </StackPanel>
+            </Grid>
           </Grid>
-        </Grid>
-      </suki:GlassCard>
-
+        </suki:GlassCard>
+      </Panel>
       <Grid ColumnSpacing="15">
         <!--  Stats  -->
         <Grid.ColumnDefinitions>
