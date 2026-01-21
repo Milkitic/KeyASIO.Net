@@ -57,6 +57,17 @@
                       Kind="Github" />
                   </Button.Content>
                 </Button>
+                <!--  Discord Button  -->
+                <Button
+                  Command="{Binding About.OpenUrlCommand}"
+                  CommandParameter="https://discord.gg/rwwEbCECem"
+                  Content="Join Discord"
+                  IsVisible="{Binding !LanguageManager.IsChinese}" />
+                <Button
+                  Command="{Binding About.OpenUrlCommand}"
+                  CommandParameter="https://qm.qq.com/q/yLvDSAjY6O"
+                  Content="加入 QQ 群组"
+                  IsVisible="{Binding LanguageManager.IsChinese}" />
               </StackPanel>
 
               <!--  Version Info  -->
@@ -124,15 +135,13 @@
                       FontSize="16"
                       FontWeight="Bold"
                       Text="{Binding Name}" />
-              <StackPanel         Grid.Column="1" Orientation="Horizontal">
-                <materialIcons:MaterialIcon
-         
-                  Width="16"
-                  Height="16"
-                  Kind="OpenInNew"
-                  Opacity="0.5" />
-                <!--<TextBlock Text="点击访问"></TextBlock>-->
-              </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                      <materialIcons:MaterialIcon
+                        Width="16"
+                        Height="16"
+                        Kind="OpenInNew"
+                        Opacity="0.5" />
+                    </StackPanel>
                   </Grid>
                   <TextBlock
                     MinHeight="40"
@@ -140,14 +149,6 @@
                     Text="{Binding Description}"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="Wrap" />
-                  
-                  <!--         <Button
-                    HorizontalAlignment="Right"
-                    Classes="Flat" Padding="10,5"
-                    Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).About.OpenUrlCommand}"
-                    CommandParameter="{Binding Url}"
-                    Content="访问"
-                    Cursor="Arrow" />-->
                 </StackPanel>
               </suki:GlassCard>
             </DataTemplate>
@@ -271,7 +272,7 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-      </StackPanel>      -->
+      </StackPanel>-->
     </StackPanel>
   </ScrollViewer>
 </UserControl>
