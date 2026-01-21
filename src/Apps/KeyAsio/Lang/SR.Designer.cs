@@ -890,6 +890,24 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Successfully switched to: {0} 的本地化字符串。
+        /// </summary>
+        internal static string Preset_AppliedContent {
+            get {
+                return ResourceManager.GetString("Preset_AppliedContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Preset Applied 的本地化字符串。
+        /// </summary>
+        internal static string Preset_AppliedTitle {
+            get {
+                return ResourceManager.GetString("Preset_AppliedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Extreme 的本地化字符串。
         /// </summary>
         internal static string Preset_Extreme {

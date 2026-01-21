@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Lang;
 using KeyAsio.Services;
 using SukiUI.Dialogs;
 using SukiUI.Toasts;
@@ -42,8 +43,8 @@ public partial class PresetSelectionDialogViewModel : ObservableObject
 
         _toastManager.CreateSimpleInfoToast()
             .OfType(NotificationType.Success)
-            .WithTitle("已应用预设")
-            .WithContent($"已成功切换到{preset.Title}")
+            .WithTitle(SR.Preset_AppliedTitle)
+            .WithContent(string.Format(SR.Preset_AppliedContent, SR.ResourceManager.GetString(preset.Title)))
             .Dismiss().ByClicking()
             .Queue();
         if (DismissOnSelect)

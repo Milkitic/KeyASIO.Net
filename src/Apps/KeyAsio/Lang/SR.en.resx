@@ -394,6 +394,12 @@ You can change option later.</value>
   <data name="Plugin_Corrupted" xml:space="preserve">
     <value>Unavailable</value>
   </data>
+  <data name="Preset_AppliedContent" xml:space="preserve">
+    <value>Successfully switched to: {0}</value>
+  </data>
+  <data name="Preset_AppliedTitle" xml:space="preserve">
+    <value>Preset Applied</value>
+  </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>Extreme</value>
   </data>

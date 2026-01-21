@@ -395,6 +395,12 @@
   <data name="Plugin_Corrupted" xml:space="preserve">
     <value>不可用</value>
   </data>
+  <data name="Preset_AppliedContent" xml:space="preserve">
+    <value>已成功切换到：{0}</value>
+  </data>
+  <data name="Preset_AppliedTitle" xml:space="preserve">
+    <value>已应用预设</value>
+  </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>极限</value>
   </data>

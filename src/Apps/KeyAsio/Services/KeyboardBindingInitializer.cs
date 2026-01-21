@@ -5,6 +5,7 @@ using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync.AudioProviders;
 using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Utils;
@@ -34,6 +35,7 @@ public class KeyboardBindingInitializer
     private readonly AudioEngine _audioEngine;
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
+    private readonly SkinManager _skinManager;
 
     private IKeyboardHook _keyboardHook = null!;
     public IKeyboardHook KeyboardHook => _keyboardHook;
@@ -50,7 +52,8 @@ public class KeyboardBindingInitializer
         AudioCacheManager audioCacheManager,
         AudioEngine audioEngine,
         GameplaySessionManager gameplaySessionManager,
-        SfxPlaybackService sfxPlaybackService)
+        SfxPlaybackService sfxPlaybackService,
+        SkinManager skinManager)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -58,6 +61,7 @@ public class KeyboardBindingInitializer
         _audioEngine = audioEngine;
         _gameplaySessionManager = gameplaySessionManager;
         _sfxPlaybackService = sfxPlaybackService;
+        _skinManager = skinManager;
     }
 
     public void Setup()
@@ -213,14 +217,20 @@ public class KeyboardBindingInitializer
         var osuFolder = _appSettings.Paths.OsuFolderPath;
 
         if (!string.IsNullOrWhiteSpace(selectedSkinName) &&
-            !string.Equals(selectedSkinName, SkinDescription.Internal.FolderName, StringComparison.OrdinalIgnoreCase) &&
-            !string.IsNullOrWhiteSpace(osuFolder))
+            !string.Equals(selectedSkinName, SkinDescription.Internal.FolderName, StringComparison.OrdinalIgnoreCase))
         {
-            var skinFolder = Path.Combine(osuFolder, "Skins", selectedSkinName);
-            if (Directory.Exists(skinFolder))
+            if (string.Equals(selectedSkinName, SkinDescription.Classic.FolderName, StringComparison.OrdinalIgnoreCase))
             {
-                cachedAudio = TryLoadSkinAudio(skinFolder, sampleName, waveFormat, out cacheKey)
-                              ?? TryLoadSkinAudio(skinFolder, "normal-hitnormal", waveFormat, out cacheKey);
+                cachedAudio = TryLoadClassicAudio(waveFormat, out cacheKey);
+            }
+            else if (!string.IsNullOrWhiteSpace(osuFolder))
+            {
+                var skinFolder = Path.Combine(osuFolder, "Skins", selectedSkinName);
+                if (Directory.Exists(skinFolder))
+                {
+                    cachedAudio = TryLoadSkinAudio(skinFolder, sampleName, waveFormat, out cacheKey)
+                                  ?? TryLoadSkinAudio(skinFolder, "normal-hitnormal", waveFormat, out cacheKey);
+                }
             }
         }
 
@@ -237,6 +247,26 @@ public class KeyboardBindingInitializer
         }
 
         return _cachedKeyOnlyAudio;
+    }
+
+    private CachedAudio? TryLoadClassicAudio(WaveFormat waveFormat, out string? cacheKey)
+    {
+        cacheKey = null;
+        string resourceName = "soft-hitnormal";
+
+        if (!_skinManager.TryGetResource(resourceName, out var data))
+        {
+            resourceName = "normal-hitnormal";
+            if (!_skinManager.TryGetResource(resourceName, out data))
+            {
+                return null;
+            }
+        }
+
+        cacheKey = $"classic://{resourceName}";
+        using var stream = new MemoryStream(data);
+        var result = _audioCacheManager.GetOrCreateOrEmptyAsync(cacheKey, stream, waveFormat).GetAwaiter().GetResult();
+        return result.CachedAudio;
     }
 
     private CachedAudio? TryLoadSkinAudio(string skinFolder, string filenameWithoutExt, WaveFormat waveFormat,
