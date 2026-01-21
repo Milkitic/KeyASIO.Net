@@ -106,17 +106,18 @@ public partial class MainWindow : SukiWindow
 
             _viewModel.SettingsPageItem = SettingsMenuItem;
             _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
-            _viewModel.RequestShowWizard += () => ShowWizard(null);
+            _viewModel.RequestShowWizard += async () => await ShowWizardAsync();
 
             await Dispatcher.UIThread.InvokeAsync(() => UpdateThemeByDevice(null));
 
             //if (_viewModel.AppSettings.General.IsFirstRun)
-            {
-                ShowWizard(InitializeStartupLogic);
-            }
+            //{
+            //await ShowWizardAsync();
+            //InitializeStartupLogic();
+            //}
             //else
             //{
-            //    InitializeStartupLogic();
+            InitializeStartupLogic();
             //}
         }
         catch (Exception ex)
@@ -249,23 +250,29 @@ public partial class MainWindow : SukiWindow
         }
     }
 
-    private void ShowWizard(Action? onCompleted)
+    private Task ShowWizardAsync()
     {
+        var tcs = new TaskCompletionSource();
         var vm = Program.Host.Services.GetRequiredService<WizardViewModel>();
         vm.StepIndex = 0;
 
-        vm.OnRequestClose += () =>
+        void CloseHandler()
         {
+            vm.OnRequestClose -= CloseHandler;
             Dispatcher.UIThread.Post(() =>
             {
                 _viewModel.DialogManager.DismissDialog();
-                onCompleted?.Invoke();
+                tcs.TrySetResult();
             });
-        };
+        }
+
+        vm.OnRequestClose += CloseHandler;
 
         _viewModel.DialogManager.CreateDialog()
             .WithContent(new WizardDialogView { DataContext = vm })
             .TryShow();
+
+        return tcs.Task;
     }
 
     private void InitializeStartupLogic()
@@ -335,6 +342,7 @@ public partial class MainWindow : SukiWindow
         _viewModel.AudioSettings.OnDeviceChanged += AudioSettings_OnDeviceChanged;
         _ = Dispatcher.UIThread.InvokeAsync(async () =>
         {
+            await Task.Delay(200);
             await _viewModel.AudioSettings.InitializeDevice();
             if (_viewModel.AudioSettings.DeviceErrorMessage != null)
             {
