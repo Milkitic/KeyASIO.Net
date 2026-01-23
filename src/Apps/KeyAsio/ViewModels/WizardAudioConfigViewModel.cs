@@ -46,24 +46,24 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsSoftwareConfig))]
-    private WizardMode _selectedMode = WizardMode.NotSelected;
+    public partial WizardMode SelectedMode { get; set; } = WizardMode.NotSelected;
 
     // Config Page
     [ObservableProperty]
-    private ObservableCollection<WavePlayerType> _availableDriverTypes = new();
+    public partial ObservableCollection<WavePlayerType> AvailableDriverTypes { get; set; }
 
     [ObservableProperty]
-    private WavePlayerType _selectedDriverType;
+    public partial WavePlayerType SelectedDriverType { get; set; }
 
     [ObservableProperty]
-    private ObservableCollection<DeviceDescription> _availableAudioDevices = new();
+    public partial ObservableCollection<DeviceDescription> AvailableAudioDevices { get; set; } = new();
 
     [ObservableProperty]
-    private DeviceDescription? _selectedAudioDevice;
+    public partial DeviceDescription? SelectedAudioDevice { get; set; }
 
     // ProMix specific
     [ObservableProperty]
-    private bool _isVirtualDriverDetected;
+    public partial bool IsVirtualDriverDetected { get; set; }
 
     // Audio Config Sub-stepper
     [ObservableProperty]
@@ -71,7 +71,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsSoftwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsValidationStep))]
-    private AudioSubStep _currentAudioSubStep = AudioSubStep.Selection;
+    public partial AudioSubStep CurrentAudioSubStep { get; set; } = AudioSubStep.Selection;
 
     public bool IsSelectionMode => CurrentAudioSubStep == AudioSubStep.Selection;
 
@@ -84,22 +84,22 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     public bool IsValidationStep => CurrentAudioSubStep == AudioSubStep.Validation;
 
     [ObservableProperty]
-    private bool _isAudioConfigFinished;
+    public partial bool IsAudioConfigFinished { get; set; }
 
     [ObservableProperty]
-    private string _hardwareDriverWarning = "";
+    public partial string HardwareDriverWarning { get; set; } = "";
 
     [ObservableProperty]
-    private bool _showHardwareDriverWarning;
+    public partial bool ShowHardwareDriverWarning { get; set; }
 
     [ObservableProperty]
-    private bool _isValidationRunning;
+    public partial bool IsValidationRunning { get; set; }
 
     [ObservableProperty]
-    private bool _validationSuccess;
+    public partial bool ValidationSuccess { get; set; }
 
     [ObservableProperty]
-    private string _validationMessage = "";
+    public partial string ValidationMessage { get; set; } = "";
 
     [RelayCommand]
     private void SelectMode(WizardMode mode)
@@ -107,7 +107,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         SelectedMode = mode;
         if (mode == WizardMode.Hardware)
         {
-            Dispatcher.UIThread.Post(async () =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
                 var asioCount = devices.Count(d => d.WavePlayerType == WavePlayerType.ASIO);
@@ -145,7 +145,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ApplyAndTestConfig()
+    private void ApplyAndTestConfig()
     {
         CurrentAudioSubStep = AudioSubStep.Validation;
         IsValidationRunning = true;
@@ -237,7 +237,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         LoadDevices();
     }
 
-    private async void UpdateDeviceList(IReadOnlyList<DeviceDescription> allDevices)
+    private void UpdateDeviceList(IReadOnlyList<DeviceDescription> allDevices)
     {
         var filtered = allDevices.Where(d => d.WavePlayerType == SelectedDriverType).ToList();
         AvailableAudioDevices = new ObservableCollection<DeviceDescription>(filtered);
@@ -251,7 +251,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     {
         // Simple check for VB-Cable or Voicemeeter
         // This is a simplified check.
-        Dispatcher.UIThread.Post(async () =>
+        Dispatcher.UIThread.InvokeAsync(async () =>
         {
             var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
             var wasapiDevices = devices.Where(d => d.WavePlayerType == WavePlayerType.WASAPI).ToList();
