@@ -1,0 +1,263 @@
+using System.Collections.ObjectModel;
+using Avalonia.Controls.Notifications;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Core.Audio;
+using SukiUI.Toasts;
+
+namespace KeyAsio.ViewModels;
+
+public enum WizardMode
+{
+    NotSelected,
+    Hardware,
+    Software
+}
+
+public enum AudioSubStep
+{
+    Selection,
+    Configuration,
+    Validation
+}
+
+public partial class WizardAudioConfigViewModel : ViewModelBase
+{
+    private readonly AudioDeviceManager _audioDeviceManager;
+    private readonly AudioEngine _audioEngine;
+    private readonly ISukiToastManager _toastManager;
+
+    public WizardAudioConfigViewModel(
+        AudioDeviceManager audioDeviceManager,
+        AudioEngine audioEngine,
+        ISukiToastManager toastManager)
+    {
+        _audioDeviceManager = audioDeviceManager;
+        _audioEngine = audioEngine;
+        _toastManager = toastManager;
+
+        AvailableDriverTypes = new ObservableCollection<WavePlayerType>(Enum.GetValues<WavePlayerType>());
+        SelectedDriverType = WavePlayerType.ASIO;
+
+        LoadDevices();
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
+    [NotifyPropertyChangedFor(nameof(IsSoftwareConfig))]
+    private WizardMode _selectedMode = WizardMode.NotSelected;
+
+    // Config Page
+    [ObservableProperty]
+    private ObservableCollection<WavePlayerType> _availableDriverTypes = new();
+
+    [ObservableProperty]
+    private WavePlayerType _selectedDriverType;
+
+    [ObservableProperty]
+    private ObservableCollection<DeviceDescription> _availableAudioDevices = new();
+
+    [ObservableProperty]
+    private DeviceDescription? _selectedAudioDevice;
+
+    // ProMix specific
+    [ObservableProperty]
+    private bool _isVirtualDriverDetected;
+
+    // Audio Config Sub-stepper
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSelectionMode))]
+    [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
+    [NotifyPropertyChangedFor(nameof(IsSoftwareConfig))]
+    [NotifyPropertyChangedFor(nameof(IsValidationStep))]
+    private AudioSubStep _currentAudioSubStep = AudioSubStep.Selection;
+
+    public bool IsSelectionMode => CurrentAudioSubStep == AudioSubStep.Selection;
+
+    public bool IsHardwareConfig =>
+        CurrentAudioSubStep == AudioSubStep.Configuration && SelectedMode == WizardMode.Hardware;
+
+    public bool IsSoftwareConfig =>
+        CurrentAudioSubStep == AudioSubStep.Configuration && SelectedMode == WizardMode.Software;
+
+    public bool IsValidationStep => CurrentAudioSubStep == AudioSubStep.Validation;
+
+    [ObservableProperty]
+    private bool _isAudioConfigFinished;
+
+    [ObservableProperty]
+    private string _hardwareDriverWarning = "";
+
+    [ObservableProperty]
+    private bool _showHardwareDriverWarning;
+
+    [ObservableProperty]
+    private bool _isValidationRunning;
+
+    [ObservableProperty]
+    private bool _validationSuccess;
+
+    [ObservableProperty]
+    private string _validationMessage = "";
+
+    [RelayCommand]
+    private void SelectMode(WizardMode mode)
+    {
+        SelectedMode = mode;
+        if (mode == WizardMode.Hardware)
+        {
+            Dispatcher.UIThread.Post(async () =>
+            {
+                var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
+                var asioCount = devices.Count(d => d.WavePlayerType == WavePlayerType.ASIO);
+                if (asioCount < 1)
+                {
+                    ShowHardwareDriverWarning = true;
+                    HardwareDriverWarning = "未检测到支持的驱动，建议切换到软件模式";
+                }
+                else
+                {
+                    ShowHardwareDriverWarning = false;
+                }
+            });
+            SelectedDriverType = WavePlayerType.ASIO;
+        }
+        else if (mode == WizardMode.Software)
+        {
+            CheckVirtualDriver();
+            // Software mode (ProMix) typically outputs to a physical device via WASAPI or ASIO
+            // For now default to WASAPI as it is more common for physical outputs
+            SelectedDriverType = WavePlayerType.WASAPI;
+        }
+
+        CurrentAudioSubStep = AudioSubStep.Configuration;
+    }
+
+    [RelayCommand]
+    private void BackToSelection()
+    {
+        SelectedMode = WizardMode.NotSelected;
+        CurrentAudioSubStep = AudioSubStep.Selection;
+        IsAudioConfigFinished = false;
+        // Stop any playing audio
+        _audioEngine.StopDevice();
+    }
+
+    [RelayCommand]
+    private async Task ApplyAndTestConfig()
+    {
+        CurrentAudioSubStep = AudioSubStep.Validation;
+        IsValidationRunning = true;
+        ValidationMessage = "正在初始化音频引擎...";
+        ValidationSuccess = false;
+
+        try
+        {
+            if (SelectedAudioDevice != null)
+            {
+                _audioEngine.StopDevice();
+                _audioEngine.StartDevice(SelectedAudioDevice);
+
+                // If success
+                ValidationSuccess = true;
+                IsAudioConfigFinished = true;
+                ValidationMessage = "配置成功";
+            }
+        }
+        catch (Exception ex)
+        {
+            ValidationSuccess = false;
+            ValidationMessage = $"初始化失败: {ex.Message}";
+            IsAudioConfigFinished = false;
+        }
+        finally
+        {
+            IsValidationRunning = false;
+        }
+    }
+
+    [RelayCommand]
+    private void DownloadVirtualDriver()
+    {
+        try
+        {
+            var url = "https://vb-audio.com/Cable/";
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _toastManager.CreateToast()
+                .WithTitle("无法打开链接")
+                .WithContent(ex.Message)
+                .OfType(NotificationType.Error)
+                .Queue();
+        }
+    }
+
+    [RelayCommand]
+    private void RetryVirtualDriverCheck()
+    {
+        CheckVirtualDriver();
+    }
+
+    public bool TryGoBack()
+    {
+        if (CurrentAudioSubStep == AudioSubStep.Validation)
+        {
+            CurrentAudioSubStep = AudioSubStep.Configuration;
+            IsValidationRunning = false;
+            ValidationSuccess = false;
+            IsAudioConfigFinished = false;
+            _audioEngine.StopDevice();
+            return true;
+        }
+
+        if (CurrentAudioSubStep == AudioSubStep.Configuration)
+        {
+            BackToSelection();
+            return true;
+        }
+
+        return false;
+    }
+
+    private async void LoadDevices()
+    {
+        var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
+        UpdateDeviceList(devices);
+    }
+
+    partial void OnSelectedDriverTypeChanged(WavePlayerType value)
+    {
+        LoadDevices();
+    }
+
+    private async void UpdateDeviceList(IReadOnlyList<DeviceDescription> allDevices)
+    {
+        var filtered = allDevices.Where(d => d.WavePlayerType == SelectedDriverType).ToList();
+        AvailableAudioDevices = new ObservableCollection<DeviceDescription>(filtered);
+        if (AvailableAudioDevices.Any())
+        {
+            SelectedAudioDevice = AvailableAudioDevices.First();
+        }
+    }
+
+    private void CheckVirtualDriver()
+    {
+        // Simple check for VB-Cable or Voicemeeter
+        // This is a simplified check.
+        Dispatcher.UIThread.Post(async () =>
+        {
+            var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
+            var wasapiDevices = devices.Where(d => d.WavePlayerType == WavePlayerType.WASAPI).ToList();
+            IsVirtualDriverDetected = wasapiDevices.Any(d =>
+                d.FriendlyName?.Contains("CABLE", StringComparison.OrdinalIgnoreCase) == true ||
+                d.FriendlyName?.Contains("VoiceMeeter", StringComparison.OrdinalIgnoreCase) == true);
+        });
+    }
+}

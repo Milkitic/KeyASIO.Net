@@ -3,10 +3,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using KeyAsio.Core.Audio;
 using KeyAsio.Lang;
 using KeyAsio.Services;
 using KeyAsio.Shared;
@@ -16,77 +14,39 @@ using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
 
-public enum WizardMode
-{
-    NotSelected,
-    Hardware,
-    Software
-}
-
 public partial class WizardViewModel : ViewModelBase
 {
-    private readonly SettingsManager _settingsManager;
     private readonly ISukiDialogManager _dialogManager;
-    private readonly AudioDeviceManager _audioDeviceManager;
-    private readonly AudioEngine _audioEngine;
     private readonly AppSettings _appSettings;
     private readonly PresetManager _presetManager;
     private readonly ISukiToastManager _toastManager;
 
-    [ObservableProperty]
-    private int _stepIndex;
+    public WizardAudioConfigViewModel WizardAudioConfigViewModel { get; }
 
     [ObservableProperty]
-    private ObservableCollection<string> _steps;
+    public partial int StepIndex { get; set; }
 
     [ObservableProperty]
-    private WizardMode _selectedMode = WizardMode.NotSelected;
-
-    // Config Page
-    [ObservableProperty]
-    private ObservableCollection<WavePlayerType> _availableDriverTypes = new();
-
-    [ObservableProperty]
-    private WavePlayerType _selectedDriverType;
-
-    [ObservableProperty]
-    private ObservableCollection<DeviceDescription> _availableAudioDevices = new();
-
-    [ObservableProperty]
-    private DeviceDescription? _selectedAudioDevice;
-
-    // ProMix specific
-    [ObservableProperty]
-    private bool _isVirtualDriverDetected;
-
-    // Audio Config Sub-stepper
-    [ObservableProperty]
-    private bool _isAudioConfigStarted;
-
-    [ObservableProperty]
-    private ObservableCollection<string> _audioConfigSteps = new();
-
-    [ObservableProperty]
-    private int _audioConfigStepIndex;
+    public partial ObservableCollection<string> Steps { get; set; }
 
     // Privacy
     [ObservableProperty]
-    private bool _enableCrashReport = true;
+    public partial bool EnableCrashReport { get; set; } = true;
 
     [ObservableProperty]
-    private bool _enableUpdates = true;
+    public partial bool EnableUpdates { get; set; } = true;
 
     [ObservableProperty]
-    private PresetSelectionDialogViewModel? _presetSelectionViewModel;
+    public partial PresetSelectionDialogViewModel? PresetSelectionViewModel { get; set; }
 
     [ObservableProperty]
-    private string _presetAppliedMessage = "";
+    public partial string PresetAppliedMessage { get; set; } = "";
 
     [ObservableProperty]
-    private string _osuScanStatus = "正在扫描 osu! 进程...";
+    public partial string OsuScanStatus { get; set; } = "正在扫描 osu! 进程...";
 
     [ObservableProperty]
-    private bool _enableSyncOnLaunch = true;
+    public partial bool EnableSyncOnLaunch { get; set; } = true;
 
     [RelayCommand]
     private async Task BrowseOsuExecutable()
@@ -133,33 +93,22 @@ public partial class WizardViewModel : ViewModelBase
             SR.Wizard_Config_Title, // Configuration
             SR.Wizard_Privacy_Title
         ];
-
-        AudioConfigSteps =
-        [
-            SR.Wizard_Mode_Title,
-            SR.Wizard_Config_Driver,
-            SR.Wizard_Config_Device,
-            SR.Wizard_Test_Title
-        ];
+        WizardAudioConfigViewModel = null!;
     }
 
     public WizardViewModel(
         AudioSettingsViewModel audioSettingsViewModel,
-        SettingsManager settingsManager,
         ISukiDialogManager dialogManager,
-        AudioDeviceManager audioDeviceManager,
-        AudioEngine audioEngine,
         AppSettings appSettings,
         PresetManager presetManager,
-        ISukiToastManager toastManager)
+        ISukiToastManager toastManager,
+        WizardAudioConfigViewModel wizardAudioConfigViewModel)
     {
-        _settingsManager = settingsManager;
         _dialogManager = dialogManager;
-        _audioDeviceManager = audioDeviceManager;
-        _audioEngine = audioEngine;
         _appSettings = appSettings;
         _presetManager = presetManager;
         _toastManager = toastManager;
+        WizardAudioConfigViewModel = wizardAudioConfigViewModel;
 
         Steps =
         [
@@ -169,19 +118,6 @@ public partial class WizardViewModel : ViewModelBase
             SR.Wizard_Config_Title, // Audio Configuration
             SR.Wizard_Privacy_Title
         ];
-
-        AudioConfigSteps =
-        [
-            SR.Wizard_Mode_Title,
-            SR.Wizard_Config_Driver,
-            SR.Wizard_Config_Device,
-            SR.Wizard_Test_Title
-        ];
-
-        AvailableDriverTypes = new ObservableCollection<WavePlayerType>(Enum.GetValues<WavePlayerType>());
-        SelectedDriverType = WavePlayerType.ASIO;
-
-        LoadDevices();
 
         PresetSelectionViewModel =
             new PresetSelectionDialogViewModel(_presetManager, _dialogManager, _toastManager, audioSettingsViewModel)
@@ -195,82 +131,33 @@ public partial class WizardViewModel : ViewModelBase
         {
             OsuScanStatus = $"已检测到路径：{_appSettings.Paths.OsuFolderPath}";
         }
-    }
 
-    [RelayCommand]
-    private void StartAudioConfig()
-    {
-        IsAudioConfigStarted = true;
-        AudioConfigStepIndex = 0;
-    }
-
-    [RelayCommand]
-    private async Task Next()
-    {
-        if (StepIndex == 3)
+        // Listen to child VM changes if needed, e.g. to re-evaluate NextCommand
+        WizardAudioConfigViewModel.PropertyChanged += (s, e) =>
         {
-            if (!IsAudioConfigStarted)
+            if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.IsAudioConfigFinished))
             {
-                return;
+                NextCommand.NotifyCanExecuteChanged();
             }
+        };
+    }
 
-            if (AudioConfigStepIndex == 0 && SelectedMode == WizardMode.NotSelected)
-            {
-                return;
-            }
-
-            if (AudioConfigStepIndex < AudioConfigSteps.Count - 1)
-            {
-                var nextIndex = AudioConfigStepIndex + 1;
-                if (nextIndex == AudioConfigSteps.Count - 1)
-                {
-                    try
-                    {
-                        if (SelectedAudioDevice != null)
-                        {
-                            _audioEngine.StopDevice();
-                            _audioEngine.StartDevice(SelectedAudioDevice);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        return;
-                    }
-                }
-
-                AudioConfigStepIndex++;
-                return;
-            }
+    public bool CanGoNext()
+    {
+        if (StepIndex == 3 && !WizardAudioConfigViewModel.IsAudioConfigFinished)
+        {
+            return false;
         }
 
+        return true;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanGoNext))]
+    private async Task Next()
+    {
         if (StepIndex < Steps.Count - 1)
         {
-            if (StepIndex == 3) // Moving from Audio Config to Privacy
-            {
-                try
-                {
-                    if (SelectedAudioDevice != null)
-                    {
-                        _audioEngine.StopDevice();
-                        _audioEngine.StartDevice(SelectedAudioDevice);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // TODO: Show error dialog
-                    return;
-                }
-            }
-
             StepIndex++;
-
-            if (StepIndex == 3) // Audio config page
-            {
-                if (SelectedMode == WizardMode.Software)
-                {
-                    CheckVirtualDriver();
-                }
-            }
         }
         else
         {
@@ -281,36 +168,17 @@ public partial class WizardViewModel : ViewModelBase
     [RelayCommand]
     private void Previous()
     {
-        if (StepIndex == 3 && IsAudioConfigStarted)
+        if (StepIndex == 3)
         {
-            if (AudioConfigStepIndex > 0)
+            if (WizardAudioConfigViewModel.TryGoBack())
             {
-                AudioConfigStepIndex--;
                 return;
             }
-
-            IsAudioConfigStarted = false;
-            return;
         }
 
         if (StepIndex > 0)
         {
             StepIndex--;
-        }
-    }
-
-    [RelayCommand]
-    private void SelectMode(WizardMode mode)
-    {
-        SelectedMode = mode;
-        if (SelectedMode == WizardMode.Software)
-        {
-            CheckVirtualDriver();
-        }
-
-        if (StepIndex == 3 && IsAudioConfigStarted && AudioConfigStepIndex == 0)
-        {
-            AudioConfigStepIndex++;
         }
     }
 
@@ -333,55 +201,4 @@ public partial class WizardViewModel : ViewModelBase
     }
 
     public event Action? OnRequestClose;
-
-    private async void LoadDevices()
-    {
-        var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
-        UpdateDeviceList(devices);
-    }
-
-    partial void OnSelectedDriverTypeChanged(WavePlayerType value)
-    {
-        LoadDevices();
-    }
-
-    private async void UpdateDeviceList(IReadOnlyList<DeviceDescription> allDevices)
-    {
-        var filtered = allDevices.Where(d => d.WavePlayerType == SelectedDriverType).ToList();
-        AvailableAudioDevices = new ObservableCollection<DeviceDescription>(filtered);
-        if (AvailableAudioDevices.Any())
-        {
-            SelectedAudioDevice = AvailableAudioDevices.First();
-        }
-    }
-
-    private void CheckVirtualDriver()
-    {
-        // Simple check for VB-Cable or Voicemeeter
-        // This is a simplified check.
-        Dispatcher.UIThread.Post(async () =>
-        {
-            var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
-            var wasapiDevices = devices.Where(d => d.WavePlayerType == WavePlayerType.WASAPI).ToList();
-            IsVirtualDriverDetected = wasapiDevices.Any(d =>
-                d.FriendlyName?.Contains("CABLE", StringComparison.OrdinalIgnoreCase) == true ||
-                d.FriendlyName?.Contains("VoiceMeeter", StringComparison.OrdinalIgnoreCase) == true);
-        });
-    }
-
-    [RelayCommand]
-    private async Task TestKeySound()
-    {
-        var path = _appSettings.Paths.HitsoundPath ?? "./resources/default/normal-hitnormal.ogg";
-        try
-        {
-            if (File.Exists(path))
-            {
-            }
-        }
-        catch
-        {
-            // ignored
-        }
-    }
 }
