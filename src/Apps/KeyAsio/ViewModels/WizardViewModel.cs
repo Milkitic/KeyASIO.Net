@@ -6,20 +6,14 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Lang;
-using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.ViewModels.Dialogs;
-using SukiUI.Dialogs;
-using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
 
 public partial class WizardViewModel : ViewModelBase
 {
-    private readonly ISukiDialogManager _dialogManager;
     private readonly AppSettings _appSettings;
-    private readonly PresetManager _presetManager;
-    private readonly ISukiToastManager _toastManager;
 
     public WizardAudioConfigViewModel WizardAudioConfigViewModel { get; }
 
@@ -94,20 +88,15 @@ public partial class WizardViewModel : ViewModelBase
             SR.Wizard_Privacy_Title
         ];
         WizardAudioConfigViewModel = null!;
+        PresetSelectionViewModel = null!;
+        _appSettings = null!;
     }
 
-    public WizardViewModel(
-        AudioSettingsViewModel audioSettingsViewModel,
-        ISukiDialogManager dialogManager,
-        AppSettings appSettings,
-        PresetManager presetManager,
-        ISukiToastManager toastManager,
-        WizardAudioConfigViewModel wizardAudioConfigViewModel)
+    public WizardViewModel(AppSettings appSettings,
+        WizardAudioConfigViewModel wizardAudioConfigViewModel,
+        PresetSelectionDialogViewModel presetSelectionDialogViewModel)
     {
-        _dialogManager = dialogManager;
         _appSettings = appSettings;
-        _presetManager = presetManager;
-        _toastManager = toastManager;
         WizardAudioConfigViewModel = wizardAudioConfigViewModel;
 
         Steps =
@@ -119,12 +108,9 @@ public partial class WizardViewModel : ViewModelBase
             SR.Wizard_Privacy_Title
         ];
 
-        PresetSelectionViewModel =
-            new PresetSelectionDialogViewModel(_presetManager, _dialogManager, _toastManager, audioSettingsViewModel)
-            {
-                DismissOnSelect = false,
-                ShowCloseButton = false
-            };
+        PresetSelectionViewModel = presetSelectionDialogViewModel;
+        PresetSelectionViewModel.DismissOnSelect = false;
+        PresetSelectionViewModel.ShowCloseButton = false;
         PresetSelectionViewModel.OnPresetApplied += () => { PresetAppliedMessage = "预设已应用"; };
 
         if (!string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
@@ -133,7 +119,7 @@ public partial class WizardViewModel : ViewModelBase
         }
 
         // Listen to child VM changes if needed, e.g. to re-evaluate NextCommand
-        WizardAudioConfigViewModel.PropertyChanged += (s, e) =>
+        WizardAudioConfigViewModel.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.IsAudioConfigFinished))
             {
@@ -153,7 +139,7 @@ public partial class WizardViewModel : ViewModelBase
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private async Task Next()
+    private void Next()
     {
         if (StepIndex < Steps.Count - 1)
         {
@@ -193,7 +179,7 @@ public partial class WizardViewModel : ViewModelBase
         // Save settings
         _appSettings.Logging.EnableErrorReporting = EnableCrashReport;
         _appSettings.Sync.EnableSync = EnableSyncOnLaunch;
-        // _appSettings.Update.EnableAutoUpdate = EnableUpdates; // Assuming this exists or will be added
+        // _appSettings.Update.EnableAutoUpdate = EnableUpdates; // TODO: will be added
 
         _appSettings.General.IsFirstRun = false;
         // Trigger close window
