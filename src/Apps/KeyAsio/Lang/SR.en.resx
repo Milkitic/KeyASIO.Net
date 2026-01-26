@@ -646,6 +646,12 @@ You can change option later.</value>
   <data name="Wizard_Previous" xml:space="preserve">
     <value>Previous</value>
   </data>
+  <data name="Wizard_BackToSelection" xml:space="preserve">
+    <value>Back to Selection</value>
+  </data>
+  <data name="Wizard_BackToConfig" xml:space="preserve">
+    <value>Back to Config</value>
+  </data>
   <data name="Wizard_Privacy_CheckUpdates" xml:space="preserve">
     <value>Check for updates automatically</value>
   </data>

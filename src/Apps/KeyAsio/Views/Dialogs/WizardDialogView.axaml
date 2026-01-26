@@ -3,6 +3,7 @@
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:converters="using:KeyAsio.Converters"
   xmlns:dialogs="using:KeyAsio.Views.Dialogs"
   xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
@@ -11,6 +12,9 @@
   Width="760"
   Height="500"
   x:DataType="vm:WizardViewModel">
+  <UserControl.Resources>
+    <converters:I18NConverter x:Key="I18NConverter" />
+  </UserControl.Resources>
   <Design.DataContext>
     <vm:WizardViewModel />
   </Design.DataContext>
@@ -183,7 +187,7 @@
         Content="{I18N {x:Static lang:SRKeys.Wizard_Skip}}" />
       <Button
         Command="{Binding PreviousCommand}"
-        Content="{I18N {x:Static lang:SRKeys.Wizard_Previous}}"
+        Content="{Binding PreviousButtonText, Converter={StaticResource I18NConverter}}"
         IsVisible="{Binding StepIndex, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=0}" />
       <Button
         Classes="Flat Primary"

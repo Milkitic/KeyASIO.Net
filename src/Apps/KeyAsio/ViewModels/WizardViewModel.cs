@@ -40,6 +40,9 @@ public partial class WizardViewModel : ViewModelBase
     public partial string OsuScanStatus { get; set; } = "正在扫描 osu! 进程...";
 
     [ObservableProperty]
+    public partial string PreviousButtonText { get; set; } = SRKeys.Wizard_Previous;
+
+    [ObservableProperty]
     public partial bool EnableSyncOnLaunch { get; set; } = true;
 
     [RelayCommand]
@@ -125,7 +128,33 @@ public partial class WizardViewModel : ViewModelBase
             {
                 NextCommand.NotifyCanExecuteChanged();
             }
+            else if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.CurrentAudioSubStep))
+            {
+                UpdateNavigationState();
+            }
         };
+    }
+
+    partial void OnStepIndexChanged(int value)
+    {
+        UpdateNavigationState();
+    }
+
+    private void UpdateNavigationState()
+    {
+        var text = SRKeys.Wizard_Previous;
+        if (StepIndex == 3)
+        {
+            if (WizardAudioConfigViewModel.CurrentAudioSubStep == AudioSubStep.Configuration)
+            {
+                text = SRKeys.Wizard_BackToSelection;
+            }
+            else if (WizardAudioConfigViewModel.CurrentAudioSubStep == AudioSubStep.Validation)
+            {
+                text = SRKeys.Wizard_BackToConfig;
+            }
+        }
+        PreviousButtonText = text;
     }
 
     public bool CanGoNext()

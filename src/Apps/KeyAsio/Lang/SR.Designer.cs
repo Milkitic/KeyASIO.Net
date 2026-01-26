@@ -1547,6 +1547,24 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 返回配置 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_BackToConfig {
+            get {
+                return ResourceManager.GetString("Wizard_BackToConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 返回选择 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_BackToSelection {
+            get {
+                return ResourceManager.GetString("Wizard_BackToSelection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Output Device 的本地化字符串。
         /// </summary>
         internal static string Wizard_Config_Device {

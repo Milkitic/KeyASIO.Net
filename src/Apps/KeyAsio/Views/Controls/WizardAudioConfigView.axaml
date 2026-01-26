@@ -149,10 +149,6 @@
             Orientation="Horizontal"
             Spacing="20">
             <Button
-              Classes="Flat"
-              Command="{Binding BackToSelectionCommand}"
-              Content="返回选择" />
-            <Button
               Classes="Flat Primary"
               Command="{Binding ApplyAndTestConfigCommand}"
               Content="应用配置并测试" />
@@ -239,10 +235,6 @@
             Orientation="Horizontal"
             Spacing="20">
             <Button
-              Classes="Flat"
-              Command="{Binding BackToSelectionCommand}"
-              Content="返回选择" />
-            <Button
               Classes="Flat Primary"
               Command="{Binding ApplyAndTestConfigCommand}"
               Content="应用配置并测试"
@@ -283,11 +275,6 @@
               HorizontalAlignment="Center"
               Command="{Binding ApplyAndTestConfigCommand}"
               Content="重试" />
-            <Button
-              HorizontalAlignment="Center"
-              Classes="Flat"
-              Command="{Binding BackToSelectionCommand}"
-              Content="返回配置" />
           </StackPanel>
 
           <StackPanel IsVisible="{Binding ValidationSuccess}" Spacing="10">
