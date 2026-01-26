@@ -10,7 +10,6 @@ using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Plugins;
 using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync;
-using KeyAsio.ViewModels;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -49,7 +48,7 @@ public partial class App : Application
             keyboardBindingInitializer.RegisterAllKeys();
 
             var pluginManager = Program.Host.Services.GetRequiredService<IPluginManager>();
-            var audioEngine = Program.Host.Services.GetRequiredService<AudioEngine>();
+            var playbackEngine = Program.Host.Services.GetRequiredService<IPlaybackEngine>();
 
             // InternalPlugins
             pluginManager.LoadPlugins(AppDomain.CurrentDomain.BaseDirectory, "KeyAsio.Plugins.*.dll",
@@ -59,7 +58,7 @@ public partial class App : Application
             // var pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
             // pluginManager.LoadPlugins(pluginDir, "*.dll", SearchOption.AllDirectories);
 
-            pluginManager.InitializePlugins(new AudioEngineWrapper(audioEngine));
+            pluginManager.InitializePlugins(new AudioEngineWrapper(playbackEngine));
             pluginManager.StartupPlugins();
 
             var syncController = Program.Host.Services.GetRequiredService<SyncController>();

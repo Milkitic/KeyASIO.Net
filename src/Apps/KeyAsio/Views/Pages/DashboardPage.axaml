@@ -183,7 +183,7 @@
                   VerticalAlignment="Center"
                   FontWeight="Bold"
                   Text="{I18N {x:Static lang:SRKeys.Audio_Device}}" />
-                <Panel VerticalAlignment="Center" IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Panel VerticalAlignment="Center" IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}">
                   <Border
                     Background="{DynamicResource SukiPrimaryColor}"
                     CornerRadius="4"
@@ -193,7 +193,7 @@
                     FontSize="10"
                     FontWeight="Bold"
                     Foreground="{DynamicResource SukiPrimaryColor}"
-                    Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType}" />
+                    Text="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.WavePlayerType}" />
                 </Panel>
               </StackPanel>
 
@@ -288,14 +288,14 @@
               <!--  Device Info  -->
               <Grid
                 VerticalAlignment="Center"
-                IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}"
+                IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription, Converter={x:Static ObjectConverters.IsNotNull}}"
                 RowDefinitions="Auto,*">
 
                 <TextBlock
                   Margin="0,10"
                   FontSize="15"
                   FontWeight="DemiBold"
-                  Text="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.FriendlyName}"
+                  Text="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.FriendlyName}"
                   TextWrapping="Wrap" />
 
                 <WrapPanel
@@ -306,51 +306,51 @@
                   <controls:StatBadge
                     Margin="0,0,10,0"
                     Label="{I18N {x:Static lang:SRKeys.Audio_SampleRate}}"
-                    Value="{Binding AudioSettings.AudioEngine.EngineWaveFormat.SampleRate, StringFormat='{}{0} Hz', FallbackValue='-'}" />
+                    Value="{Binding AudioSettings.PlaybackEngine.EngineWaveFormat.SampleRate, StringFormat='{}{0} Hz', FallbackValue='-'}" />
 
                   <!--  Latency (WASAPI)  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
-                    IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}"
+                    IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}"
                     Label="{I18N {x:Static lang:SRKeys.Audio_Latency}}"
-                    Value="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.Latency, StringFormat='{}{0} ms'}" />
+                    Value="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.Latency, StringFormat='{}{0} ms'}" />
 
                   <!--  Latency (DirectSound)  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
-                    IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.DirectSound}}"
+                    IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.DirectSound}}"
                     Label="{I18N {x:Static lang:SRKeys.Audio_Latency}}"
-                    Value="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.Latency, StringFormat='{}{0} ms'}" />
+                    Value="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.Latency, StringFormat='{}{0} ms'}" />
 
                   <!--  ASIO Buffer  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
-                    IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}"
+                    IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}"
                     Label="{I18N {x:Static lang:SRKeys.Audio_Buffer}}"
                     Value="{Binding AudioSettings.FramesPerBuffer}" />
 
                   <!--  ASIO Latency  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
-                    IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}"
+                    IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.ASIO}}"
                     Label="{I18N {x:Static lang:SRKeys.Audio_Latency}}"
                     Value="{Binding AudioSettings.AsioLatencyMs, StringFormat='{}{0:F2} ms'}" />
 
                   <!--  Exclusive Mode  -->
                   <controls:StatBadge
                     Margin="0,0,10,0"
-                    IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}"
+                    IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.WavePlayerType, Converter={StaticResource EnumEqualityConverter}, ConverterParameter={x:Static audio:WavePlayerType.WASAPI}}"
                     Label="{I18N {x:Static lang:SRKeys.Audio_Exclusive}}">
                     <controls:StatBadge.Value>
                       <Panel>
                         <TextBlock
                           FontWeight="DemiBold"
                           Foreground="{DynamicResource SukiPrimaryColor}"
-                          IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.IsExclusive}"
+                          IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.IsExclusive}"
                           Text="{I18N {x:Static lang:SRKeys.Common_On}}" />
                         <TextBlock
                           FontWeight="DemiBold"
-                          IsVisible="{Binding AudioSettings.AudioEngine.CurrentDeviceDescription.IsExclusive, Converter={x:Static BoolConverters.Not}}"
+                          IsVisible="{Binding AudioSettings.PlaybackEngine.CurrentDeviceDescription.IsExclusive, Converter={x:Static BoolConverters.Not}}"
                           Opacity="0.5"
                           Text="{I18N {x:Static lang:SRKeys.Common_Off}}" />
                       </Panel>

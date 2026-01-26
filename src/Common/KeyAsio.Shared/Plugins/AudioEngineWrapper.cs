@@ -6,9 +6,9 @@ namespace KeyAsio.Shared.Plugins;
 
 public class AudioEngineWrapper : IAudioEngine
 {
-    private readonly AudioEngine _engine;
+    private readonly IPlaybackEngine _engine;
 
-    public AudioEngineWrapper(AudioEngine engine)
+    public AudioEngineWrapper(IPlaybackEngine engine)
     {
         _engine = engine;
     }

@@ -25,16 +25,16 @@ public enum AudioSubStep
 public partial class WizardAudioConfigViewModel : ViewModelBase
 {
     private readonly IAudioDeviceManager _audioDeviceManager;
-    private readonly IPlaybackEngine _audioEngine;
+    private readonly IPlaybackEngine _playbackEngine;
     private readonly ISukiToastManager _toastManager;
 
     public WizardAudioConfigViewModel(
         IAudioDeviceManager audioDeviceManager,
-        IPlaybackEngine audioEngine,
+        IPlaybackEngine playbackEngine,
         ISukiToastManager toastManager)
     {
         _audioDeviceManager = audioDeviceManager;
-        _audioEngine = audioEngine;
+        _playbackEngine = playbackEngine;
         _toastManager = toastManager;
 
         AvailableDriverTypes = new ObservableCollection<WavePlayerType>(Enum.GetValues<WavePlayerType>());
@@ -120,7 +120,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             IsValidationRunning = false;
             ValidationSuccess = false;
             IsAudioConfigFinished = false;
-            _audioEngine.StopDevice();
+            _playbackEngine.StopDevice();
             return true;
         }
 
@@ -205,7 +205,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         CurrentAudioSubStep = AudioSubStep.Selection;
         IsAudioConfigFinished = false;
         // Stop any playing audio
-        _audioEngine.StopDevice();
+        _playbackEngine.StopDevice();
     }
 
     [RelayCommand]
@@ -220,8 +220,8 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         {
             if (SelectedAudioDevice != null)
             {
-                _audioEngine.StopDevice();
-                _audioEngine.StartDevice(SelectedAudioDevice);
+                _playbackEngine.StopDevice();
+                _playbackEngine.StartDevice(SelectedAudioDevice);
 
                 // If success
                 ValidationSuccess = true;

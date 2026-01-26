@@ -24,16 +24,6 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         _audioDeviceManager = audioDeviceManager;
     }
 
-    public LimiterType LimiterType
-    {
-        get => _limiterType;
-        set
-        {
-            _limiterType = value;
-            _limiterProvider?.UpdateLimiter(value);
-        }
-    }
-
     public IWavePlayer? CurrentDevice { get; private set; }
 
     public DeviceDescription? CurrentDeviceDescription
@@ -54,6 +44,16 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
     public IMixingSampleProvider MusicMixer { get; private set; } = null!;
     public IMixingSampleProvider RootMixer { get; private set; } = null!;
     public ISampleProvider RootSampleProvider { get; private set; } = null!;
+
+    public LimiterType LimiterType
+    {
+        get => _limiterType;
+        set
+        {
+            _limiterType = value;
+            _limiterProvider?.UpdateLimiter(value);
+        }
+    }
 
     public float MainVolume
     {

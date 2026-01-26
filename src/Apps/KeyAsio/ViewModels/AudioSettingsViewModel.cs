@@ -27,7 +27,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     public event Action<DeviceDescription?>? OnDeviceChanged;
 
     private readonly ILogger<AudioSettingsViewModel> _logger;
-    private readonly AudioDeviceManager _audioDeviceManager;
+    private readonly IAudioDeviceManager _audioDeviceManager;
     private readonly AppSettings _appSettings;
     private readonly GameplayAudioService _gameplayAudioService;
 
@@ -45,22 +45,22 @@ public partial class AudioSettingsViewModel : ObservableObject
             _appSettings = new AppSettings();
             _audioDeviceManager = null!;
             _logger = null!;
-            AudioEngine = null!;
+            PlaybackEngine = null!;
             _gameplayAudioService = null!;
         }
     }
 
     public AudioSettingsViewModel(ILogger<AudioSettingsViewModel> logger,
         AppSettings appSettings,
-        AudioDeviceManager audioDeviceManager,
-        AudioEngine audioEngine,
+        IAudioDeviceManager audioDeviceManager,
+        IPlaybackEngine playbackEngine,
         GameplayAudioService gameplayAudioService)
     {
         _logger = logger;
         _appSettings = appSettings;
         _audioDeviceManager = audioDeviceManager;
         _gameplayAudioService = gameplayAudioService;
-        AudioEngine = audioEngine;
+        PlaybackEngine = playbackEngine;
 
         _ = InitializeAudioSettingsAsync();
     }
@@ -70,7 +70,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     public LimiterType[] AvailableLimiterTypes { get; } = Enum.GetValues<LimiterType>();
     public BalanceMode[] AvailableBalanceModes { get; } = Enum.GetValues<BalanceMode>();
 
-    public AudioEngine AudioEngine { get; }
+    public IPlaybackEngine PlaybackEngine { get; }
     public ISukiToastManager? ToastManager { get; set; }
 
     [ObservableProperty]
@@ -232,7 +232,7 @@ public partial class AudioSettingsViewModel : ObservableObject
                     ToastManager?.CreateSimpleInfoToast()
                         .WithTitle("Audio Settings Applied")
                         .WithContent(
-                            $"Successfully applied new device: {AudioEngine.CurrentDeviceDescription?.FriendlyName}")
+                            $"Successfully applied new device: {PlaybackEngine.CurrentDeviceDescription?.FriendlyName}")
                         .Queue();
                 }
             }
@@ -256,7 +256,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     [RelayCommand]
     public void OpenAsioPanel()
     {
-        if (AudioEngine.CurrentDevice is AsioOut asioOut)
+        if (PlaybackEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.ShowControlPanel();
         }
@@ -270,11 +270,11 @@ public partial class AudioSettingsViewModel : ObservableObject
             await DisposeDeviceAsync();
             await InitializeDevice();
 
-            if (AudioEngine.CurrentDeviceDescription != null)
+            if (PlaybackEngine.CurrentDeviceDescription != null)
             {
                 ToastManager?.CreateSimpleInfoToast()
                     .WithTitle("Device Reloaded")
-                    .WithContent($"Successfully reloaded device: {AudioEngine.CurrentDeviceDescription.FriendlyName}")
+                    .WithContent($"Successfully reloaded device: {PlaybackEngine.CurrentDeviceDescription.FriendlyName}")
                     .Queue();
             }
             else if (DeviceErrorMessage != null)
@@ -428,21 +428,21 @@ public partial class AudioSettingsViewModel : ObservableObject
         DeviceFullErrorMessage = null;
         try
         {
-            AudioEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
-            AudioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
-            AudioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
-            AudioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
-            AudioEngine.StartDevice(deviceDescription, new WaveFormat(SelectedSampleRate, 2));
+            PlaybackEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
+            PlaybackEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
+            PlaybackEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
+            PlaybackEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
+            PlaybackEngine.StartDevice(deviceDescription, new WaveFormat(SelectedSampleRate, 2));
 
-            if (AudioEngine.CurrentDevice is AsioOut asioOut)
+            if (PlaybackEngine.CurrentDevice is AsioOut asioOut)
             {
-                var actualDd = AudioEngine.CurrentDeviceDescription;
+                var actualDd = PlaybackEngine.CurrentDeviceDescription;
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 FramesPerBuffer = $"{asioOut.FramesPerBuffer}→{actualDd.AsioActualSamples} samples";
                 AsioLatencyMs = actualDd.AsioLatencyMs;
             }
 
-            OnDeviceChanged?.Invoke(AudioEngine.CurrentDeviceDescription);
+            OnDeviceChanged?.Invoke(PlaybackEngine.CurrentDeviceDescription);
         }
         catch (Exception ex)
         {
@@ -515,7 +515,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     private async ValueTask DisposeDeviceAsync()
     {
         OnDeviceChanged?.Invoke(null);
-        if (AudioEngine.CurrentDevice is AsioOut asioOut)
+        if (PlaybackEngine.CurrentDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
         }
@@ -524,7 +524,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         {
             try
             {
-                AudioEngine.CurrentDevice?.Dispose();
+                PlaybackEngine.CurrentDevice?.Dispose();
                 break;
             }
             catch (Exception ex)
@@ -534,7 +534,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             }
         }
 
-        AudioEngine.StopDevice();
+        PlaybackEngine.StopDevice();
         _gameplayAudioService.ClearCaches();
     }
 

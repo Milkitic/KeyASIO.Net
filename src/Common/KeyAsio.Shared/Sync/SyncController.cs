@@ -25,7 +25,7 @@ public class SyncController : IDisposable
         ILogger<SyncController> logger,
         IServiceProvider serviceProvider,
         AppSettings appSettings,
-        AudioEngine audioEngine,
+        IPlaybackEngine playbackEngine,
         SharedViewModel sharedViewModel,
         GameplayAudioService gameplayAudioService,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
@@ -47,22 +47,22 @@ public class SyncController : IDisposable
 
         var standardAudioProvider = new StandardHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<StandardHitsoundSequencer>>(),
-            appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
+            appSettings, syncSessionContext, playbackEngine, gameplayAudioService, gameplaySessionManager);
         var taikoAudioProvider = new TaikoHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<TaikoHitsoundSequencer>>(),
-            appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
+            appSettings, syncSessionContext, playbackEngine, gameplayAudioService, gameplaySessionManager);
         var maniaAudioProvider = new ManiaHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<ManiaHitsoundSequencer>>(),
-            appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
+            appSettings, syncSessionContext, playbackEngine, gameplayAudioService, gameplaySessionManager);
         var catchAudioProvider = new CatchHitsoundSequencer(
             serviceProvider.GetRequiredService<ILogger<CatchHitsoundSequencer>>(),
-            appSettings, syncSessionContext, audioEngine, gameplayAudioService, gameplaySessionManager);
+            appSettings, syncSessionContext, playbackEngine, gameplayAudioService, gameplaySessionManager);
         gameplaySessionManager.InitializeProviders(standardAudioProvider, taikoAudioProvider, catchAudioProvider, maniaAudioProvider);
 
         // Initialize realtime state machine with scene mappings
         _stateMachine = new GameStateMachine(new Dictionary<OsuMemoryStatus, IGameState>
         {
-            [OsuMemoryStatus.Playing] = new PlayingState(playingStateLogger, appSettings, audioEngine,
+            [OsuMemoryStatus.Playing] = new PlayingState(playingStateLogger, appSettings, playbackEngine,
                 beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel, gameplaySessionManager,
                 gameplayAudioService),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(),

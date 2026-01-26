@@ -15,7 +15,7 @@ public class PlayingState : IGameState
     private static readonly long HitsoundSyncIntervalTicks = Stopwatch.Frequency / 1000; // 1000hz
 
     private readonly ILogger<PlayingState> _logger;
-    private readonly AudioEngine _audioEngine;
+    private readonly IPlaybackEngine _playbackEngine;
     private readonly BeatmapHitsoundLoader _beatmapHitsoundLoader;
     private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SharedViewModel _sharedViewModel;
@@ -30,7 +30,7 @@ public class PlayingState : IGameState
     public PlayingState(
         ILogger<PlayingState> logger,
         AppSettings appSettings,
-        AudioEngine audioEngine,
+        IPlaybackEngine playbackEngine,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
         SfxPlaybackService sfxPlaybackService,
         SharedViewModel sharedViewModel,
@@ -38,7 +38,7 @@ public class PlayingState : IGameState
         GameplayAudioService gameplayAudioService)
     {
         _logger = logger;
-        _audioEngine = audioEngine;
+        _playbackEngine = playbackEngine;
         _beatmapHitsoundLoader = beatmapHitsoundLoader;
         _sfxPlaybackService = sfxPlaybackService;
         _sharedViewModel = sharedViewModel;
@@ -130,7 +130,7 @@ public class PlayingState : IGameState
 
     private void OnRetry(SyncSessionContext ctx)
     {
-        var mixer = _audioEngine.EffectMixer;
+        var mixer = _playbackEngine.EffectMixer;
         _sfxPlaybackService.ClearAllLoops(mixer);
         mixer?.RemoveAllMixerInputs();
         _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);

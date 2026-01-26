@@ -16,7 +16,7 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
     private readonly ILogger<TaikoHitsoundSequencer> _logger;
     private readonly AppSettings _appSettings;
     private readonly SyncSessionContext _syncSessionContext;
-    private readonly AudioEngine _audioEngine;
+    private readonly IPlaybackEngine _playbackEngine;
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
@@ -30,14 +30,14 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
     public TaikoHitsoundSequencer(ILogger<TaikoHitsoundSequencer> logger,
         AppSettings appSettings,
         SyncSessionContext syncSessionContext,
-        AudioEngine audioEngine,
+        IPlaybackEngine playbackEngine,
         GameplayAudioService gameplayAudioService,
         GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
         _appSettings = appSettings;
         _syncSessionContext = syncSessionContext;
-        _audioEngine = audioEngine;
+        _playbackEngine = playbackEngine;
         _gameplayAudioService = gameplayAudioService;
         _gameplaySessionManager = gameplaySessionManager;
     }
@@ -279,7 +279,7 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsEngineReady()
     {
-        if (_audioEngine.CurrentDevice == null)
+        if (_playbackEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready.");
             return false;
