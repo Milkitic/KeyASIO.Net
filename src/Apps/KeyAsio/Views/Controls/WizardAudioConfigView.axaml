@@ -80,172 +80,176 @@
 
     <!--  Hardware Config  -->
     <Grid IsVisible="{Binding IsHardwareConfig}">
-      <StackPanel
-        Width="500"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-        Spacing="20">
-        <TextBlock
-          HorizontalAlignment="Center"
-          Classes="h3"
-          Text="硬件模式配置" />
-
-        <!--  Warning  -->
-        <suki:GlassCard Classes="Error" IsVisible="{Binding ShowHardwareDriverWarning}">
-          <StackPanel Spacing="10">
-            <StackPanel
-              VerticalAlignment="Center"
-              Orientation="Horizontal"
-              Spacing="10">
-              <materialIcons:MaterialIcon Foreground="Red" Kind="AlertCircle" />
-              <TextBlock
-                VerticalAlignment="Center"
-                Text="{Binding HardwareDriverWarning}"
-                TextWrapping="Wrap" />
-            </StackPanel>
-            <Button
-              HorizontalAlignment="Right"
-              Classes="Flat"
-              Command="{Binding SelectModeCommand}"
-              Content="切换到软件模式">
-              <Button.CommandParameter>
-                <vm:WizardMode>Software</vm:WizardMode>
-              </Button.CommandParameter>
-            </Button>
-          </StackPanel>
-        </suki:GlassCard>
-
-        <!--  Config  -->
-        <suki:GlassCard>
-          <StackPanel Spacing="15">
-            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Config_Device}}" Icon="Speaker">
-              <ComboBox
-                MinWidth="250"
-                ItemsSource="{Binding AvailableAudioDevices}"
-                SelectedItem="{Binding SelectedAudioDevice}">
-                <ComboBox.ItemTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding FriendlyName}" />
-                  </DataTemplate>
-                </ComboBox.ItemTemplate>
-              </ComboBox>
-            </controls:SettingItem>
-
-            <Border
-              Padding="10"
-              Background="#20000000"
-              CornerRadius="8">
-              <StackPanel Spacing="5">
-                <TextBlock FontWeight="Bold" Text="注意：" />
-                <TextBlock Text="请在 osu! 中将输出设备改为 [非当前设备] ，并将音效(Effect)音量调至 0" TextWrapping="Wrap" />
-              </StackPanel>
-            </Border>
-          </StackPanel>
-        </suki:GlassCard>
-
+      <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel
+          Width="500"
           HorizontalAlignment="Center"
-          Orientation="Horizontal"
+          VerticalAlignment="Center"
           Spacing="20">
-          <Button
-            Classes="Flat"
-            Command="{Binding BackToSelectionCommand}"
-            Content="返回选择" />
-          <Button
-            Classes="Flat Primary"
-            Command="{Binding ApplyAndTestConfigCommand}"
-            Content="应用配置并测试" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="h3"
+            Text="硬件模式配置" />
+
+          <!--  Warning  -->
+          <suki:GlassCard Classes="Error" IsVisible="{Binding ShowHardwareDriverWarning}">
+            <StackPanel Spacing="10">
+              <StackPanel
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="10">
+                <materialIcons:MaterialIcon Foreground="Red" Kind="AlertCircle" />
+                <TextBlock
+                  VerticalAlignment="Center"
+                  Text="{Binding HardwareDriverWarning}"
+                  TextWrapping="Wrap" />
+              </StackPanel>
+              <Button
+                HorizontalAlignment="Right"
+                Classes="Flat"
+                Command="{Binding SelectModeCommand}"
+                Content="切换到软件模式">
+                <Button.CommandParameter>
+                  <vm:WizardMode>Software</vm:WizardMode>
+                </Button.CommandParameter>
+              </Button>
+            </StackPanel>
+          </suki:GlassCard>
+
+          <!--  Config  -->
+          <suki:GlassCard>
+            <StackPanel Spacing="15">
+              <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Config_Device}}" Icon="Speaker">
+                <ComboBox
+                  MinWidth="250"
+                  ItemsSource="{Binding AvailableAudioDevices}"
+                  SelectedItem="{Binding SelectedAudioDevice}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding FriendlyName}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </controls:SettingItem>
+
+              <Border
+                Padding="10"
+                Background="#20000000"
+                CornerRadius="8">
+                <StackPanel Spacing="5">
+                  <TextBlock FontWeight="Bold" Text="注意：" />
+                  <TextBlock Text="请在 osu! 中将输出设备改为 [非当前设备] ，并将音效(Effect)音量调至 0" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </suki:GlassCard>
+
+          <StackPanel
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="20">
+            <Button
+              Classes="Flat"
+              Command="{Binding BackToSelectionCommand}"
+              Content="返回选择" />
+            <Button
+              Classes="Flat Primary"
+              Command="{Binding ApplyAndTestConfigCommand}"
+              Content="应用配置并测试" />
+          </StackPanel>
         </StackPanel>
-      </StackPanel>
+      </ScrollViewer>
     </Grid>
 
     <!--  Software Config  -->
     <Grid IsVisible="{Binding IsSoftwareConfig}">
-      <StackPanel
-        Width="500"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-        Spacing="20">
-        <TextBlock
-          HorizontalAlignment="Center"
-          Classes="h3"
-          Text="软件 / ProMix 模式配置" />
-
-        <!--  Intro/Check  -->
-        <suki:GlassCard>
-          <StackPanel Spacing="10">
-            <TextBlock FontWeight="Bold" Text="ProMix 权益：低延迟混音、无视独占" />
-
-            <StackPanel
-              IsVisible="{Binding IsVirtualDriverDetected}"
-              Orientation="Horizontal"
-              Spacing="10">
-              <materialIcons:MaterialIcon Foreground="Green" Kind="CheckCircle" />
-              <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Detected}}" />
-            </StackPanel>
-
-            <StackPanel IsVisible="{Binding !IsVirtualDriverDetected}" Spacing="10">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <materialIcons:MaterialIcon Foreground="Orange" Kind="AlertCircle" />
-                <TextBlock VerticalAlignment="Center" Text="需要安装虚拟声卡驱动" />
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button
-                  Classes="Flat"
-                  Command="{Binding DownloadVirtualDriverCommand}"
-                  Content="下载驱动 (VB-Audio Cable)" />
-                <Button
-                  Classes="Flat"
-                  Command="{Binding RetryVirtualDriverCheckCommand}"
-                  Content="已安装，刷新检测" />
-              </StackPanel>
-            </StackPanel>
-          </StackPanel>
-        </suki:GlassCard>
-
-        <!--  Config  -->
-        <suki:GlassCard>
-          <StackPanel Spacing="15">
-            <controls:SettingItem Header="物理输出设备 (耳机/音响)" Icon="Headphones">
-              <ComboBox
-                MinWidth="250"
-                ItemsSource="{Binding AvailableAudioDevices}"
-                SelectedItem="{Binding SelectedAudioDevice}">
-                <ComboBox.ItemTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding FriendlyName}" />
-                  </DataTemplate>
-                </ComboBox.ItemTemplate>
-              </ComboBox>
-            </controls:SettingItem>
-
-            <Border
-              Padding="10"
-              Background="#20000000"
-              CornerRadius="8">
-              <StackPanel Spacing="5">
-                <TextBlock FontWeight="Bold" Text="注意：" />
-                <TextBlock Text="请在 osu! 设置中，将输出设备修改为 [VB-Audio Cable] " TextWrapping="Wrap" />
-              </StackPanel>
-            </Border>
-          </StackPanel>
-        </suki:GlassCard>
-
+      <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel
+          Width="500"
           HorizontalAlignment="Center"
-          Orientation="Horizontal"
+          VerticalAlignment="Center"
           Spacing="20">
-          <Button
-            Classes="Flat"
-            Command="{Binding BackToSelectionCommand}"
-            Content="返回选择" />
-          <Button
-            Classes="Flat Primary"
-            Command="{Binding ApplyAndTestConfigCommand}"
-            Content="应用配置并测试"
-            IsEnabled="{Binding IsVirtualDriverDetected}" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="h3"
+            Text="软件 / ProMix 模式配置" />
+
+          <!--  Intro/Check  -->
+          <suki:GlassCard>
+            <StackPanel Spacing="10">
+              <TextBlock FontWeight="Bold" Text="ProMix 权益：低延迟混音、无视独占" />
+
+              <StackPanel
+                IsVisible="{Binding IsVirtualDriverDetected}"
+                Orientation="Horizontal"
+                Spacing="10">
+                <materialIcons:MaterialIcon Foreground="Green" Kind="CheckCircle" />
+                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Detected}}" />
+              </StackPanel>
+
+              <StackPanel IsVisible="{Binding !IsVirtualDriverDetected}" Spacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <materialIcons:MaterialIcon Foreground="Orange" Kind="AlertCircle" />
+                  <TextBlock VerticalAlignment="Center" Text="需要安装虚拟声卡驱动" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button
+                    Classes="Flat"
+                    Command="{Binding DownloadVirtualDriverCommand}"
+                    Content="下载驱动 (VB-Audio Cable)" />
+                  <Button
+                    Classes="Flat"
+                    Command="{Binding RetryVirtualDriverCheckCommand}"
+                    Content="已安装，刷新检测" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </suki:GlassCard>
+
+          <!--  Config  -->
+          <suki:GlassCard>
+            <StackPanel Spacing="15">
+              <controls:SettingItem Header="物理输出设备 (耳机/音响)" Icon="Headphones">
+                <ComboBox
+                  MinWidth="250"
+                  ItemsSource="{Binding AvailableAudioDevices}"
+                  SelectedItem="{Binding SelectedAudioDevice}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding FriendlyName}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </controls:SettingItem>
+
+              <Border
+                Padding="10"
+                Background="#20000000"
+                CornerRadius="8">
+                <StackPanel Spacing="5">
+                  <TextBlock FontWeight="Bold" Text="注意：" />
+                  <TextBlock Text="请在 osu! 设置中，将输出设备修改为 [VB-Audio Cable] " TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </suki:GlassCard>
+
+          <StackPanel
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="20">
+            <Button
+              Classes="Flat"
+              Command="{Binding BackToSelectionCommand}"
+              Content="返回选择" />
+            <Button
+              Classes="Flat Primary"
+              Command="{Binding ApplyAndTestConfigCommand}"
+              Content="应用配置并测试"
+              IsEnabled="{Binding IsVirtualDriverDetected}" />
+          </StackPanel>
         </StackPanel>
-      </StackPanel>
+      </ScrollViewer>
     </Grid>
 
     <!--  Validation  -->
