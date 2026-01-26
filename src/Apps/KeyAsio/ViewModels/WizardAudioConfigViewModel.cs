@@ -24,13 +24,13 @@ public enum AudioSubStep
 
 public partial class WizardAudioConfigViewModel : ViewModelBase
 {
-    private readonly AudioDeviceManager _audioDeviceManager;
-    private readonly AudioEngine _audioEngine;
+    private readonly IAudioDeviceManager _audioDeviceManager;
+    private readonly IPlaybackEngine _audioEngine;
     private readonly ISukiToastManager _toastManager;
 
     public WizardAudioConfigViewModel(
-        AudioDeviceManager audioDeviceManager,
-        AudioEngine audioEngine,
+        IAudioDeviceManager audioDeviceManager,
+        IPlaybackEngine audioEngine,
         ISukiToastManager toastManager)
     {
         _audioDeviceManager = audioDeviceManager;

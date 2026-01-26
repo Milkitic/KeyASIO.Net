@@ -8,9 +8,9 @@ using NAudio.Wave;
 
 namespace KeyAsio.Core.Audio;
 
-public class AudioEngine : IDisposable, INotifyPropertyChanged
+public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 {
-    private readonly AudioDeviceManager _audioDeviceManager;
+    private readonly IAudioDeviceManager _audioDeviceManager;
     private SynchronizationContext? _context;
 
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null) { ExcludeFromPool = true };
@@ -19,7 +19,7 @@ public class AudioEngine : IDisposable, INotifyPropertyChanged
     private DynamicLimiterProvider? _limiterProvider;
     private LimiterType _limiterType = LimiterType.Master;
 
-    public AudioEngine(AudioDeviceManager audioDeviceManager)
+    public AudioEngine(IAudioDeviceManager audioDeviceManager)
     {
         _audioDeviceManager = audioDeviceManager;
     }
