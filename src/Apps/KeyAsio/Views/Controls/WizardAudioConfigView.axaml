@@ -143,16 +143,6 @@
               </Border>
             </StackPanel>
           </suki:GlassCard>
-
-          <StackPanel
-            HorizontalAlignment="Center"
-            Orientation="Horizontal"
-            Spacing="20">
-            <Button
-              Classes="Flat Primary"
-              Command="{Binding ApplyAndTestConfigCommand}"
-              Content="应用配置并测试" />
-          </StackPanel>
         </StackPanel>
       </ScrollViewer>
     </Grid>
@@ -229,17 +219,6 @@
               </Border>
             </StackPanel>
           </suki:GlassCard>
-
-          <StackPanel
-            HorizontalAlignment="Center"
-            Orientation="Horizontal"
-            Spacing="20">
-            <Button
-              Classes="Flat Primary"
-              Command="{Binding ApplyAndTestConfigCommand}"
-              Content="应用配置并测试"
-              IsEnabled="{Binding IsVirtualDriverDetected}" />
-          </StackPanel>
         </StackPanel>
       </ScrollViewer>
     </Grid>

@@ -59,10 +59,12 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     public partial ObservableCollection<DeviceDescription> AvailableAudioDevices { get; set; } = new();
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanGoForward))]
     public partial DeviceDescription? SelectedAudioDevice { get; set; }
 
     // ProMix specific
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanGoForward))]
     public partial bool IsVirtualDriverDetected { get; set; }
 
     // Audio Config Sub-stepper
@@ -71,6 +73,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsSoftwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsValidationStep))]
+    [NotifyPropertyChangedFor(nameof(CanGoForward))]
     public partial AudioSubStep CurrentAudioSubStep { get; set; } = AudioSubStep.Selection;
 
     public bool IsSelectionMode => CurrentAudioSubStep == AudioSubStep.Selection;
@@ -96,10 +99,71 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     public partial bool IsValidationRunning { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanGoForward))]
     public partial bool ValidationSuccess { get; set; }
 
     [ObservableProperty]
     public partial string ValidationMessage { get; set; } = "";
+
+
+    public bool TryGoBack()
+    {
+        if (CurrentAudioSubStep == AudioSubStep.Configuration)
+        {
+            BackToSelection();
+            return true;
+        }
+
+        if (CurrentAudioSubStep == AudioSubStep.Validation)
+        {
+            CurrentAudioSubStep = AudioSubStep.Configuration;
+            IsValidationRunning = false;
+            ValidationSuccess = false;
+            IsAudioConfigFinished = false;
+            _audioEngine.StopDevice();
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool TryGoForward()
+    {
+        if (CurrentAudioSubStep == AudioSubStep.Configuration)
+        {
+            ApplyAndTestConfig();
+            return true;
+        }
+
+        if (CurrentAudioSubStep == AudioSubStep.Validation)
+        {
+            if (ValidationSuccess)
+            {
+                // Allow proceeding to next main step
+                return false;
+            }
+            else
+            {
+                // Retry
+                ApplyAndTestConfig();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool CanGoForward
+    {
+        get
+        {
+            if (IsSelectionMode) return false;
+            if (IsHardwareConfig) return SelectedAudioDevice != null;
+            if (IsSoftwareConfig) return SelectedAudioDevice != null && IsVirtualDriverDetected;
+            if (IsValidationStep) return true; // Can always retry or proceed if success
+            return false;
+        }
+    }
 
     [RelayCommand]
     private void SelectMode(WizardMode mode)
@@ -205,26 +269,6 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         CheckVirtualDriver();
     }
 
-    public bool TryGoBack()
-    {
-        if (CurrentAudioSubStep == AudioSubStep.Validation)
-        {
-            CurrentAudioSubStep = AudioSubStep.Configuration;
-            IsValidationRunning = false;
-            ValidationSuccess = false;
-            IsAudioConfigFinished = false;
-            _audioEngine.StopDevice();
-            return true;
-        }
-
-        if (CurrentAudioSubStep == AudioSubStep.Configuration)
-        {
-            BackToSelection();
-            return true;
-        }
-
-        return false;
-    }
 
     private async void LoadDevices()
     {

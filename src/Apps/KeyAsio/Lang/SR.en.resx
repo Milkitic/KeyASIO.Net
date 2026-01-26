@@ -613,6 +613,15 @@ You can change option later.</value>
   <data name="Volume_Title" xml:space="preserve">
     <value>Volume Control</value>
   </data>
+  <data name="Wizard_ApplyAndTest" xml:space="preserve">
+    <value>Apply &amp; Test</value>
+  </data>
+  <data name="Wizard_BackToConfig" xml:space="preserve">
+    <value>Back to Config</value>
+  </data>
+  <data name="Wizard_BackToSelection" xml:space="preserve">
+    <value>Back to Selection</value>
+  </data>
   <data name="Wizard_Config_Device" xml:space="preserve">
     <value>Output Device</value>
   </data>
@@ -646,12 +655,6 @@ You can change option later.</value>
   <data name="Wizard_Previous" xml:space="preserve">
     <value>Previous</value>
   </data>
-  <data name="Wizard_BackToSelection" xml:space="preserve">
-    <value>Back to Selection</value>
-  </data>
-  <data name="Wizard_BackToConfig" xml:space="preserve">
-    <value>Back to Config</value>
-  </data>
   <data name="Wizard_Privacy_CheckUpdates" xml:space="preserve">
     <value>Check for updates automatically</value>
   </data>
@@ -660,6 +663,9 @@ You can change option later.</value>
   </data>
   <data name="Wizard_Privacy_Title" xml:space="preserve">
     <value>Privacy &amp; Updates</value>
+  </data>
+  <data name="Wizard_Retry" xml:space="preserve">
+    <value>Retry</value>
   </data>
   <data name="Wizard_Skip" xml:space="preserve">
     <value>Skip</value>

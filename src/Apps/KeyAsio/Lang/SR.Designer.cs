@@ -1547,7 +1547,16 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 返回配置 的本地化字符串。
+        ///   查找类似 Apply &amp; Test 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_ApplyAndTest {
+            get {
+                return ResourceManager.GetString("Wizard_ApplyAndTest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Back to Config 的本地化字符串。
         /// </summary>
         internal static string Wizard_BackToConfig {
             get {
@@ -1556,7 +1565,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 返回选择 的本地化字符串。
+        ///   查找类似 Back to Selection 的本地化字符串。
         /// </summary>
         internal static string Wizard_BackToSelection {
             get {
@@ -1687,6 +1696,15 @@ namespace KeyAsio.Lang {
         internal static string Wizard_Privacy_Title {
             get {
                 return ResourceManager.GetString("Wizard_Privacy_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Retry 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Retry {
+            get {
+                return ResourceManager.GetString("Wizard_Retry", resourceCulture);
             }
         }
         

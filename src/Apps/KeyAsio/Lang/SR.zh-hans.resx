@@ -615,6 +615,15 @@
   <data name="Volume_Title" xml:space="preserve">
     <value>音量控制</value>
   </data>
+  <data name="Wizard_ApplyAndTest" xml:space="preserve">
+    <value>应用并测试</value>
+  </data>
+  <data name="Wizard_BackToConfig" xml:space="preserve">
+    <value>返回配置</value>
+  </data>
+  <data name="Wizard_BackToSelection" xml:space="preserve">
+    <value>返回选择</value>
+  </data>
   <data name="Wizard_Config_Device" xml:space="preserve">
     <value>输出设备</value>
   </data>
@@ -656,6 +665,9 @@
   </data>
   <data name="Wizard_Privacy_Title" xml:space="preserve">
     <value>隐私与更新</value>
+  </data>
+  <data name="Wizard_Retry" xml:space="preserve">
+    <value>重试</value>
   </data>
   <data name="Wizard_Skip" xml:space="preserve">
     <value>跳过</value>

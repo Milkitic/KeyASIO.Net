@@ -43,6 +43,9 @@ public partial class WizardViewModel : ViewModelBase
     public partial string PreviousButtonText { get; set; } = SRKeys.Wizard_Previous;
 
     [ObservableProperty]
+    public partial string NextButtonText { get; set; } = SRKeys.Wizard_Next;
+
+    [ObservableProperty]
     public partial bool EnableSyncOnLaunch { get; set; } = true;
 
     [RelayCommand]
@@ -124,13 +127,20 @@ public partial class WizardViewModel : ViewModelBase
         // Listen to child VM changes if needed, e.g. to re-evaluate NextCommand
         WizardAudioConfigViewModel.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.IsAudioConfigFinished))
+            if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.IsAudioConfigFinished) ||
+                e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.CanGoForward))
             {
                 NextCommand.NotifyCanExecuteChanged();
             }
             else if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.CurrentAudioSubStep))
             {
                 UpdateNavigationState();
+                NextCommand.NotifyCanExecuteChanged();
+            }
+            else if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.ValidationSuccess))
+            {
+                UpdateNavigationState();
+                NextCommand.NotifyCanExecuteChanged();
             }
         };
     }
@@ -142,26 +152,35 @@ public partial class WizardViewModel : ViewModelBase
 
     private void UpdateNavigationState()
     {
-        var text = SRKeys.Wizard_Previous;
+        var prevText = SRKeys.Wizard_Previous;
+        var nextText = SRKeys.Wizard_Next;
+
         if (StepIndex == 3)
         {
             if (WizardAudioConfigViewModel.CurrentAudioSubStep == AudioSubStep.Configuration)
             {
-                text = SRKeys.Wizard_BackToSelection;
+                prevText = SRKeys.Wizard_BackToSelection;
+                nextText = SRKeys.Wizard_ApplyAndTest;
             }
             else if (WizardAudioConfigViewModel.CurrentAudioSubStep == AudioSubStep.Validation)
             {
-                text = SRKeys.Wizard_BackToConfig;
+                prevText = SRKeys.Wizard_BackToConfig;
+                if (!WizardAudioConfigViewModel.ValidationSuccess)
+                {
+                    nextText = SRKeys.Wizard_Retry;
+                }
             }
         }
-        PreviousButtonText = text;
+
+        PreviousButtonText = prevText;
+        NextButtonText = nextText;
     }
 
     public bool CanGoNext()
     {
-        if (StepIndex == 3 && !WizardAudioConfigViewModel.IsAudioConfigFinished)
+        if (StepIndex == 3)
         {
-            return false;
+            return WizardAudioConfigViewModel.CanGoForward;
         }
 
         return true;
@@ -170,6 +189,11 @@ public partial class WizardViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanGoNext))]
     private void Next()
     {
+        if (StepIndex == 3)
+        {
+            if (WizardAudioConfigViewModel.TryGoForward()) return;
+        }
+
         if (StepIndex < Steps.Count - 1)
         {
             StepIndex++;

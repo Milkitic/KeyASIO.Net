@@ -192,7 +192,7 @@
       <Button
         Classes="Flat Primary"
         Command="{Binding NextCommand}"
-        Content="{I18N {x:Static lang:SRKeys.Wizard_Next}}" />
+        Content="{Binding NextButtonText, Converter={StaticResource I18NConverter}}" />
     </StackPanel>
   </Grid>
 </UserControl>
