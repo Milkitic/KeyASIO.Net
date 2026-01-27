@@ -3,10 +3,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Lang;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Services;
+using KeyAsio.Shared.Utils;
 using KeyAsio.ViewModels.Dialogs;
 
 namespace KeyAsio.ViewModels;
@@ -14,6 +17,9 @@ namespace KeyAsio.ViewModels;
 public partial class WizardViewModel : ViewModelBase
 {
     private readonly AppSettings _appSettings;
+    private readonly SkinManager _skinManager;
+    private CancellationTokenSource? _scanCts;
+    private readonly bool _isSkinManagerStarted;
 
     public WizardAudioConfigViewModel WizardAudioConfigViewModel { get; }
 
@@ -46,7 +52,7 @@ public partial class WizardViewModel : ViewModelBase
     public partial string NextButtonText { get; set; } = SRKeys.Wizard_Next;
 
     [ObservableProperty]
-    public partial bool AllowAutoLoadSkins { get; set; } = true;
+    public partial bool AllowAutoLoadSkins { get; set; }
 
     [RelayCommand]
     private async Task BrowseOsuExecutable()
@@ -79,6 +85,7 @@ public partial class WizardViewModel : ViewModelBase
             {
                 _appSettings.Paths.OsuFolderPath = folder;
                 OsuScanStatus = $"已选择路径：{folder}";
+                NextCommand.NotifyCanExecuteChanged();
             }
         }
     }
@@ -100,9 +107,11 @@ public partial class WizardViewModel : ViewModelBase
 
     public WizardViewModel(AppSettings appSettings,
         WizardAudioConfigViewModel wizardAudioConfigViewModel,
-        PresetSelectionDialogViewModel presetSelectionDialogViewModel)
+        PresetSelectionDialogViewModel presetSelectionDialogViewModel,
+        SkinManager skinManager)
     {
         _appSettings = appSettings;
+        _skinManager = skinManager;
         WizardAudioConfigViewModel = wizardAudioConfigViewModel;
 
         Steps =
@@ -129,8 +138,8 @@ public partial class WizardViewModel : ViewModelBase
         // Listen to child VM changes if needed, e.g. to re-evaluate NextCommand
         WizardAudioConfigViewModel.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.IsAudioConfigFinished) ||
-                e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.CanGoForward))
+            if (e.PropertyName is nameof(ViewModels.WizardAudioConfigViewModel.IsAudioConfigFinished)
+                or nameof(ViewModels.WizardAudioConfigViewModel.CanGoForward))
             {
                 NextCommand.NotifyCanExecuteChanged();
             }
@@ -145,11 +154,76 @@ public partial class WizardViewModel : ViewModelBase
                 NextCommand.NotifyCanExecuteChanged();
             }
         };
+        _isSkinManagerStarted = _skinManager.IsStarted;
+        if (_isSkinManagerStarted) _skinManager.Stop();
     }
 
     partial void OnStepIndexChanged(int value)
     {
         UpdateNavigationState();
+        NextCommand.NotifyCanExecuteChanged();
+
+        if (value == 2)
+        {
+            StartOsuScanning();
+        }
+        else
+        {
+            StopOsuScanning();
+        }
+    }
+
+    private void StopOsuScanning()
+    {
+        _scanCts?.Cancel();
+        _scanCts = null;
+    }
+
+    private void StartOsuScanning()
+    {
+        _scanCts?.Cancel();
+        _scanCts = new CancellationTokenSource();
+        _ = ScanLoop(_scanCts.Token);
+    }
+
+    private async Task ScanLoop(CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            try
+            {
+                var runningPath = OsuLocator.FindFromRunningProcess();
+                if (runningPath != null)
+                {
+                    if (_appSettings.Paths.OsuFolderPath != runningPath)
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            _appSettings.Paths.OsuFolderPath = runningPath;
+                            OsuScanStatus = $"已检测到路径：{runningPath}";
+                        });
+                    }
+                }
+                else if (string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
+                {
+                    var regPath = OsuLocator.FindFromRegistry();
+                    if (regPath != null)
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            _appSettings.Paths.OsuFolderPath = regPath;
+                            OsuScanStatus = $"已检测到路径：{regPath}";
+                        });
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors during scan
+            }
+
+            await Task.Delay(3000, token);
+        }
     }
 
     private void UpdateNavigationState()
@@ -180,6 +254,11 @@ public partial class WizardViewModel : ViewModelBase
 
     public bool CanGoNext()
     {
+        if (StepIndex == 2)
+        {
+            return !string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath);
+        }
+
         if (StepIndex == 3)
         {
             return WizardAudioConfigViewModel.CanGoForward;
@@ -237,6 +316,7 @@ public partial class WizardViewModel : ViewModelBase
         // _appSettings.Update.EnableAutoUpdate = EnableUpdates; // TODO: will be added
 
         _appSettings.General.IsFirstRun = false;
+        if (_isSkinManagerStarted) _skinManager.Start();
         // Trigger close window
         OnRequestClose?.Invoke();
     }

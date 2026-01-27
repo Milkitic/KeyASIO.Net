@@ -6,7 +6,6 @@ using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
 using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Shared.Services;
@@ -57,6 +56,8 @@ public class SkinManager
 
         _skinLoadingWorker = new AsyncSequentialWorker(_logger, "SkinManagerWorker");
     }
+
+    public bool IsStarted => _processPollingCts != null;
 
     public bool TryGetResource(string key, [NotNullWhen(true)] out byte[]? data)
     {
@@ -184,43 +185,18 @@ public class SkinManager
 
     private void CheckAndSetOsuPath(Process[] processes)
     {
-        foreach (var proc in processes)
+        try
         {
-            try
+            var detectedPath = OsuLocator.FindFromRunningProcess(processes);
+            if (detectedPath != null && _appSettings.Paths.OsuFolderPath != detectedPath)
             {
-                if (proc.HasExited) continue;
-                if (proc.MainModule is not { } module) continue;
-
-                var fileName = module.FileName;
-                if (string.IsNullOrEmpty(fileName)) continue;
-
-                var fileVersionInfo = FileVersionInfo.GetVersionInfo(fileName);
-                if (fileVersionInfo.CompanyName == "ppy")
-                {
-                    var detectedPath = Path.GetDirectoryName(Path.GetFullPath(fileName));
-
-                    if (_appSettings.Paths.OsuFolderPath != detectedPath)
-                    {
-                        _logger.LogInformation("Auto-detected osu! path: {Path}", detectedPath);
-                        _appSettings.Paths.OsuFolderPath = detectedPath;
-                    }
-
-                    break;
-                }
-
-                if (fileVersionInfo.CompanyName == "ppy Pty Ltd")
-                {
-                    // lazer wip
-                }
+                _logger.LogInformation("Auto-detected osu! path: {Path}", detectedPath);
+                _appSettings.Paths.OsuFolderPath = detectedPath;
             }
-            catch (System.ComponentModel.Win32Exception)
-            {
-                // 忽略无权访问的进程
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error inspecting osu! process module.");
-            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error inspecting osu! process module.");
         }
     }
 
@@ -255,13 +231,11 @@ public class SkinManager
     {
         try
         {
-            using var reg = Registry.ClassesRoot.OpenSubKey(@"osu!\shell\open\command");
-            var parameters = reg?.GetValue(null)?.ToString();
-            if (parameters == null) return;
-
-            var path = parameters.Replace(" \"%1\"", "").Trim(' ', '"');
-            _appSettings.Paths.OsuFolderPath = Path.GetDirectoryName(Path.GetFullPath(path));
-            _appSettings.Save();
+            if (OsuLocator.FindFromRegistry() is { } path)
+            {
+                _appSettings.Paths.OsuFolderPath = path;
+                _appSettings.Save();
+            }
         }
         catch (Exception ex)
         {

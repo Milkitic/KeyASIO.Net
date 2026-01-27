@@ -33,9 +33,6 @@ public partial class App : Application
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
 
-            var skinManager = Program.Host.Services.GetRequiredService<SkinManager>();
-            skinManager.Start();
-
             // Ensure SettingsManager is initialized to subscribe to settings changes
             Program.Host.Services.GetRequiredService<SettingsManager>();
 

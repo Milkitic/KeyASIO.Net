@@ -274,6 +274,7 @@ public partial class MainWindow : SukiWindow
 
     private void InitializeStartupLogic()
     {
+        _skinManager.Start();
         if (_viewModel.AppSettings.Paths.AllowAutoLoadSkins == null)
         {
             _viewModel.MainToastManager.CreateToast()
