@@ -110,7 +110,7 @@ public partial class MainWindow : SukiWindow
 
             await Dispatcher.UIThread.InvokeAsync(() => UpdateThemeByDevice(null));
 
-            //if (_viewModel.AppSettings.General.IsFirstRun)
+            if (_viewModel.AppSettings.General.IsFirstRun)
             {
                 await ShowWizardAsync();
             }

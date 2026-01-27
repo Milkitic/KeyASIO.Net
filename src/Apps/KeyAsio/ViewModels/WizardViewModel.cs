@@ -46,7 +46,7 @@ public partial class WizardViewModel : ViewModelBase
     public partial string NextButtonText { get; set; } = SRKeys.Wizard_Next;
 
     [ObservableProperty]
-    public partial bool EnableSyncOnLaunch { get; set; } = true;
+    public partial bool AllowAutoLoadSkins { get; set; } = true;
 
     [RelayCommand]
     private async Task BrowseOsuExecutable()
@@ -123,6 +123,8 @@ public partial class WizardViewModel : ViewModelBase
         {
             OsuScanStatus = $"已检测到路径：{_appSettings.Paths.OsuFolderPath}";
         }
+
+        AllowAutoLoadSkins = _appSettings.Paths.AllowAutoLoadSkins ?? true;
 
         // Listen to child VM changes if needed, e.g. to re-evaluate NextCommand
         WizardAudioConfigViewModel.PropertyChanged += (_, e) =>
@@ -231,7 +233,7 @@ public partial class WizardViewModel : ViewModelBase
     {
         // Save settings
         _appSettings.Logging.EnableErrorReporting = EnableCrashReport;
-        _appSettings.Sync.EnableSync = EnableSyncOnLaunch;
+        _appSettings.Paths.AllowAutoLoadSkins = AllowAutoLoadSkins;
         // _appSettings.Update.EnableAutoUpdate = EnableUpdates; // TODO: will be added
 
         _appSettings.General.IsFirstRun = false;

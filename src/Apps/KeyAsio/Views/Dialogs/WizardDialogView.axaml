@@ -141,7 +141,7 @@
                   Classes="Flat"
                   Command="{Binding BrowseOsuExecutableCommand}"
                   Content="选择 osu!.exe 路径" />
-                <CheckBox Content="启动时自动跟随游戏状态" IsChecked="{Binding EnableSyncOnLaunch}" />
+                <CheckBox Content="{I18N {x:Static lang:SRKeys.Sync_AutoLoadSkins}}" IsChecked="{Binding AllowAutoLoadSkins}" />
               </StackPanel>
             </StackPanel>
           </suki:GlassCard>
