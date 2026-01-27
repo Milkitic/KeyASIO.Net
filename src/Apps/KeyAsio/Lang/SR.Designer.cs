@@ -899,7 +899,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Preset Applied 的本地化字符串。
+        ///   查找类似 Preset Activated 的本地化字符串。
         /// </summary>
         internal static string Preset_AppliedTitle {
             get {
@@ -917,7 +917,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Maximizes performance output, suitable for professional needs or high-performance scenarios. 的本地化字符串。
+        ///   查找类似 Maximizes performance output for ultra-low latency, suitable for high-performance scenarios. 的本地化字符串。
         /// </summary>
         internal static string Preset_ExtremeDescription {
             get {
@@ -926,7 +926,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Fast 的本地化字符串。
+        ///   查找类似 Efficient 的本地化字符串。
         /// </summary>
         internal static string Preset_Fast {
             get {
@@ -935,7 +935,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Optimizes resource usage, suitable for low-end devices or basic needs. 的本地化字符串。
+        ///   查找类似 Reduces system overhead, suitable for low-end devices or basic gameplay needs. 的本地化字符串。
         /// </summary>
         internal static string Preset_FastDescription {
             get {
@@ -944,7 +944,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Please select a suitable mode based on your device performance and usage requirements. 的本地化字符串。
+        ///   查找类似 Please choose an appropriate mode based on your device performance and usage needs. 的本地化字符串。
         /// </summary>
         internal static string Preset_SelectionDescription {
             get {
@@ -962,7 +962,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Standard 的本地化字符串。
+        ///   查找类似 Balanced 的本地化字符串。
         /// </summary>
         internal static string Preset_Standard {
             get {
@@ -971,7 +971,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Provides balanced performance and resource usage, suitable for most general use cases. 的本地化字符串。
+        ///   查找类似 Balances resource usage to deliver the best listening experience, suitable for most gameplay scenarios. 的本地化字符串。
         /// </summary>
         internal static string Preset_StandardDescription {
             get {

@@ -399,31 +399,31 @@
     <value>次のプリセットに切り替えました: {0}</value>
   </data>
   <data name="Preset_AppliedTitle" xml:space="preserve">
-    <value>プリセットを適用しました</value>
+    <value>プリセットが有効になりました</value>
   </data>
   <data name="Preset_Extreme" xml:space="preserve">
-    <value>エクストリーム</value>
+    <value>超高速レスポンス</value>
   </data>
   <data name="Preset_ExtremeDescription" xml:space="preserve">
-    <value>最大の性能を引き出し、プロ用途や高性能環境に適しています。</value>
+    <value>性能を最大化して極低遅延を実現し、高性能を求める場面に適しています。</value>
   </data>
   <data name="Preset_Fast" xml:space="preserve">
-    <value>高速</value>
+    <value>高効率・軽量</value>
   </data>
   <data name="Preset_FastDescription" xml:space="preserve">
-    <value>リソース使用を最適化し、低スペック機や基本用途に適しています。</value>
+    <value>システム負荷を抑え、低スペック機や基本的なプレイ用途に適しています。</value>
   </data>
   <data name="Preset_SelectionDescription" xml:space="preserve">
-    <value>デバイス性能と用途に合わせて適切なモードを選択してください。</value>
+    <value>デバイス性能と使用目的に応じて適切なモードを選択してください。</value>
   </data>
   <data name="Preset_SelectionTitle" xml:space="preserve">
     <value>プリセットモードを選択</value>
   </data>
   <data name="Preset_Standard" xml:space="preserve">
-    <value>標準</value>
+    <value>標準バランス</value>
   </data>
   <data name="Preset_StandardDescription" xml:space="preserve">
-    <value>性能とリソース使用のバランスを提供し、一般的な用途に適しています。</value>
+    <value>リソース使用をバランスさせ、最適な聴覚体験を提供し、ほとんどのプレイ場面に適しています。</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>概要</value>
