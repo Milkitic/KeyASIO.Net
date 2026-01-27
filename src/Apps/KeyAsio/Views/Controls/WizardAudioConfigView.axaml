@@ -287,13 +287,13 @@
                   <Border
                     Width="48"
                     Height="48"
-                    Background="Green"
+                    Background="{DynamicResource SukiSuccessColor}"
                     CornerRadius="12"
                     Opacity="0.1" />
                   <materialIcons:MaterialIcon
                     Width="24"
                     Height="24"
-                    Foreground="Green"
+                    Foreground="{DynamicResource SukiSuccessColor}"
                     Kind="CheckCircle" />
                 </Panel>
               </Panel>
@@ -433,7 +433,7 @@
         <materialIcons:MaterialIcon
           Width="60"
           Height="60"
-          Foreground="Green"
+          Foreground="{DynamicResource SukiSuccessColor}"
           IsVisible="{Binding ValidationSuccess}"
           Kind="CheckCircle" />
 
@@ -442,7 +442,7 @@
             <materialIcons:MaterialIcon
               Width="60"
               Height="60"
-              Foreground="Red"
+              Foreground="{DynamicResource SukiDangerColor}"
               Kind="CloseCircle" />
             <Button
               HorizontalAlignment="Center"
