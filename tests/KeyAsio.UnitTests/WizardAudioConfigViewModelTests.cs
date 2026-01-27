@@ -74,7 +74,7 @@ public class WizardAudioConfigViewModelTests
         _mockDeviceManager.Setup(m => m.GetCachedAvailableDevicesAsync())
             .ReturnsAsync(new List<DeviceDescription>
             {
-                new DeviceDescription { WavePlayerType = WavePlayerType.ASIO, FriendlyName = "Asio Device" }
+                new() { WavePlayerType = WavePlayerType.ASIO, FriendlyName = "Asio Device" }
             });
 
         var vm = CreateViewModel();
