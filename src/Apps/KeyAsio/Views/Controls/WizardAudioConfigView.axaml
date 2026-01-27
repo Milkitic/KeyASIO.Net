@@ -10,73 +10,96 @@
   x:DataType="vm:WizardAudioConfigViewModel">
 
   <Grid>
-    <Grid ColumnDefinitions="*,*" IsVisible="{Binding IsSelectionMode}">
-      <Grid Grid.Column="0" Margin="10">
-        <suki:GlassCard Command="{Binding SelectModeCommand}" IsInteractive="True">
-          <suki:GlassCard.CommandParameter>
-            <vm:WizardMode>Hardware</vm:WizardMode>
-          </suki:GlassCard.CommandParameter>
-          <StackPanel
-            Margin="20"
-            VerticalAlignment="Center"
-            Spacing="20">
-            <materialIcons:MaterialIcon
-              Width="60"
-              Height="60"
-              Foreground="{DynamicResource SukiPrimaryColor}"
-              Kind="DeveloperBoard" />
-            <TextBlock
-              FontSize="18"
-              FontWeight="Bold"
-              Text="专业设备 / 支持独占并发"
-              TextAlignment="Center"
-              TextWrapping="Wrap" />
-            <TextBlock
-              Opacity="0.7"
-              Text="我有独立声卡，或者我的设备支持 ASIO/WASAPI 独占且不影响系统声音。"
-              TextAlignment="Center"
-              TextWrapping="Wrap" />
-          </StackPanel>
-        </suki:GlassCard>
-      </Grid>
+    <Grid
+      VerticalAlignment="Center"
+      IsVisible="{Binding IsSelectionMode}"
+      RowDefinitions="Auto,Auto"
+      RowSpacing="20">
+      <TextBlock
+        Grid.Row="0"
+        HorizontalAlignment="Center"
+        Classes="h3"
+        Text="选择音频工作模式" />
+      <Grid
+        Grid.Row="1"
+        ColumnDefinitions="*,*"
+        ColumnSpacing="20">
+        <Grid Grid.Column="0">
+          <suki:GlassCard Command="{Binding SelectModeCommand}" IsInteractive="True">
+            <suki:GlassCard.CommandParameter>
+              <vm:WizardMode>Hardware</vm:WizardMode>
+            </suki:GlassCard.CommandParameter>
+            <StackPanel VerticalAlignment="Center" Spacing="15">
+              <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Vertical"
+                Spacing="10">
+                <materialIcons:MaterialIcon
+                  Width="64"
+                  Height="64"
+                  Foreground="{DynamicResource SukiPrimaryColor}"
+                  Kind="DeveloperBoard" />
+                <TextBlock
+                  FontSize="18"
+                  FontWeight="Bold"
+                  Text="专业设备 / 支持独占并发"
+                  TextAlignment="Center"
+                  TextWrapping="Wrap" />
+              </StackPanel>
 
-      <Grid Grid.Column="1" Margin="10">
-        <suki:GlassCard Command="{Binding SelectModeCommand}" IsInteractive="True">
-          <suki:GlassCard.CommandParameter>
-            <vm:WizardMode>Software</vm:WizardMode>
-          </suki:GlassCard.CommandParameter>
-          <StackPanel
-            Margin="20"
-            VerticalAlignment="Center"
-            Spacing="20">
-            <materialIcons:MaterialIcon
-              Width="60"
-              Height="60"
-              Foreground="{DynamicResource SukiPrimaryColor}"
-              Kind="SurroundSound51" />
-            <TextBlock
-              FontSize="18"
-              FontWeight="Bold"
-              Text="普通用户 / 使用板载声卡"
-              TextAlignment="Center"
-              TextWrapping="Wrap" />
-            <TextBlock
-              Opacity="0.7"
-              Text="我只有一个声卡（如笔记本内置），或者我不确定。 (推荐)"
-              TextAlignment="Center"
-              TextWrapping="Wrap" />
-            <Border
-              Padding="10,5"
-              HorizontalAlignment="Center"
-              Background="{DynamicResource SukiPrimaryColor}"
-              CornerRadius="5">
               <TextBlock
-                FontSize="12"
-                Foreground="White"
-                Text="包含 ProMix 试用权益" />
-            </Border>
-          </StackPanel>
-        </suki:GlassCard>
+                Height="100"
+                Opacity="0.7"
+                Text="我有独立声卡，或者我的设备支持 ASIO/WASAPI 独占且不影响系统声音。"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+            </StackPanel>
+          </suki:GlassCard>
+        </Grid>
+
+        <Grid Grid.Column="1">
+          <suki:GlassCard Command="{Binding SelectModeCommand}" IsInteractive="True">
+            <suki:GlassCard.CommandParameter>
+              <vm:WizardMode>Software</vm:WizardMode>
+            </suki:GlassCard.CommandParameter>
+            <StackPanel Spacing="15">
+              <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Vertical"
+                Spacing="10">
+                <materialIcons:MaterialIcon
+                  Width="64"
+                  Height="64"
+                  Foreground="{DynamicResource SukiPrimaryColor}"
+                  Kind="SurroundSound51" />
+                <TextBlock
+                  FontSize="18"
+                  FontWeight="Bold"
+                  Text="普通用户 / 使用板载声卡"
+                  TextAlignment="Center"
+                  TextWrapping="Wrap" />
+              </StackPanel>
+
+              <StackPanel Height="100" Spacing="15">
+                <TextBlock
+                  Opacity="0.7"
+                  Text="我只有一个声卡（如笔记本内置），或者我不确定。 (推荐)"
+                  TextAlignment="Center"
+                  TextWrapping="Wrap" />
+                <Border
+                  Padding="10,5"
+                  HorizontalAlignment="Center"
+                  Background="{DynamicResource SukiPrimaryColor}"
+                  CornerRadius="5">
+                  <TextBlock
+                    FontSize="12"
+                    Foreground="White"
+                    Text="包含 ProMix 试用权益" />
+                </Border>
+              </StackPanel>
+            </StackPanel>
+          </suki:GlassCard>
+        </Grid>
       </Grid>
     </Grid>
 
