@@ -16,11 +16,78 @@ namespace KeyAsio.ViewModels;
 
 public partial class WizardViewModel : ViewModelBase
 {
-    private readonly AppSettings _appSettings;
     private readonly SkinManager _skinManager;
-    private CancellationTokenSource? _scanCts;
     private readonly bool _isSkinManagerStarted;
 
+    private CancellationTokenSource? _scanCts;
+
+    public WizardViewModel()
+    {
+        if (!Design.IsDesignMode)
+            throw new InvalidOperationException("This constructor is only for design-time purposes.");
+        Steps =
+        [
+            SR.Wizard_Title, // Welcome
+            SR.Wizard_Config_Title, // Configuration
+            SR.Wizard_Privacy_Title
+        ];
+        WizardAudioConfigViewModel = null!;
+        PresetSelectionViewModel = null!;
+        AppSettings = null!;
+    }
+
+    public WizardViewModel(AppSettings appSettings,
+        WizardAudioConfigViewModel wizardAudioConfigViewModel,
+        PresetSelectionDialogViewModel presetSelectionDialogViewModel,
+        SkinManager skinManager)
+    {
+        AppSettings = appSettings;
+        _skinManager = skinManager;
+        WizardAudioConfigViewModel = wizardAudioConfigViewModel;
+
+        Steps =
+        [
+            SR.Wizard_Title, // Welcome
+            SR.Preset_SelectionTitle, // Preset
+            "连接 osu!", // Game Integration
+            SR.Wizard_Config_Title, // Audio Configuration
+            SR.Wizard_Privacy_Title
+        ];
+
+        PresetSelectionViewModel = presetSelectionDialogViewModel;
+        PresetSelectionViewModel.DismissOnSelect = false;
+        PresetSelectionViewModel.ShowCloseButton = false;
+        PresetSelectionViewModel.OnPresetApplied += () => { PresetAppliedMessage = "预设已应用"; };
+
+        if (!string.IsNullOrWhiteSpace(AppSettings.Paths.OsuFolderPath))
+        {
+            OsuScanStatus = $"已检测到路径：{AppSettings.Paths.OsuFolderPath}";
+        }
+
+        // Listen to child VM changes if needed, e.g. to re-evaluate NextCommand
+        WizardAudioConfigViewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(ViewModels.WizardAudioConfigViewModel.IsAudioConfigFinished)
+                or nameof(ViewModels.WizardAudioConfigViewModel.CanGoForward))
+            {
+                NextCommand.NotifyCanExecuteChanged();
+            }
+            else if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.CurrentAudioSubStep))
+            {
+                UpdateNavigationState();
+                NextCommand.NotifyCanExecuteChanged();
+            }
+            else if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.ValidationSuccess))
+            {
+                UpdateNavigationState();
+                NextCommand.NotifyCanExecuteChanged();
+            }
+        };
+        _isSkinManagerStarted = _skinManager.IsStarted;
+        if (_isSkinManagerStarted) _skinManager.Stop();
+    }
+
+    public AppSettings AppSettings { get; }
     public WizardAudioConfigViewModel WizardAudioConfigViewModel { get; }
 
     [ObservableProperty]
@@ -51,9 +118,6 @@ public partial class WizardViewModel : ViewModelBase
     [ObservableProperty]
     public partial string NextButtonText { get; set; } = SRKeys.Wizard_Next;
 
-    [ObservableProperty]
-    public partial bool AllowAutoLoadSkins { get; set; }
-
     [RelayCommand]
     private async Task BrowseOsuExecutable()
     {
@@ -83,79 +147,11 @@ public partial class WizardViewModel : ViewModelBase
             var folder = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(folder))
             {
-                _appSettings.Paths.OsuFolderPath = folder;
+                AppSettings.Paths.OsuFolderPath = folder;
                 OsuScanStatus = $"已选择路径：{folder}";
                 NextCommand.NotifyCanExecuteChanged();
             }
         }
-    }
-
-    public WizardViewModel()
-    {
-        if (!Design.IsDesignMode)
-            throw new InvalidOperationException("This constructor is only for design-time purposes.");
-        Steps =
-        [
-            SR.Wizard_Title, // Welcome
-            SR.Wizard_Config_Title, // Configuration
-            SR.Wizard_Privacy_Title
-        ];
-        WizardAudioConfigViewModel = null!;
-        PresetSelectionViewModel = null!;
-        _appSettings = null!;
-    }
-
-    public WizardViewModel(AppSettings appSettings,
-        WizardAudioConfigViewModel wizardAudioConfigViewModel,
-        PresetSelectionDialogViewModel presetSelectionDialogViewModel,
-        SkinManager skinManager)
-    {
-        _appSettings = appSettings;
-        _skinManager = skinManager;
-        WizardAudioConfigViewModel = wizardAudioConfigViewModel;
-
-        Steps =
-        [
-            SR.Wizard_Title, // Welcome
-            SR.Preset_SelectionTitle, // Preset
-            "连接 osu!", // Game Integration
-            SR.Wizard_Config_Title, // Audio Configuration
-            SR.Wizard_Privacy_Title
-        ];
-
-        PresetSelectionViewModel = presetSelectionDialogViewModel;
-        PresetSelectionViewModel.DismissOnSelect = false;
-        PresetSelectionViewModel.ShowCloseButton = false;
-        PresetSelectionViewModel.OnPresetApplied += () => { PresetAppliedMessage = "预设已应用"; };
-
-        if (!string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
-        {
-            OsuScanStatus = $"已检测到路径：{_appSettings.Paths.OsuFolderPath}";
-        }
-
-        AllowAutoLoadSkins = _appSettings.Paths.AllowAutoLoadSkins ?? true;
-
-        // Listen to child VM changes if needed, e.g. to re-evaluate NextCommand
-        WizardAudioConfigViewModel.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName is nameof(ViewModels.WizardAudioConfigViewModel.IsAudioConfigFinished)
-                or nameof(ViewModels.WizardAudioConfigViewModel.CanGoForward))
-            {
-                NextCommand.NotifyCanExecuteChanged();
-            }
-            else if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.CurrentAudioSubStep))
-            {
-                UpdateNavigationState();
-                NextCommand.NotifyCanExecuteChanged();
-            }
-            else if (e.PropertyName == nameof(ViewModels.WizardAudioConfigViewModel.ValidationSuccess))
-            {
-                UpdateNavigationState();
-                NextCommand.NotifyCanExecuteChanged();
-            }
-        };
-        _isSkinManagerStarted = _skinManager.IsStarted;
-        if (_isSkinManagerStarted) _skinManager.Stop();
     }
 
     partial void OnStepIndexChanged(int value)
@@ -195,24 +191,26 @@ public partial class WizardViewModel : ViewModelBase
                 var runningPath = OsuLocator.FindFromRunningProcess();
                 if (runningPath != null)
                 {
-                    if (_appSettings.Paths.OsuFolderPath != runningPath)
+                    if (AppSettings.Paths.OsuFolderPath != runningPath)
                     {
                         await Dispatcher.UIThread.InvokeAsync(() =>
                         {
-                            _appSettings.Paths.OsuFolderPath = runningPath;
+                            AppSettings.Paths.OsuFolderPath = runningPath;
                             OsuScanStatus = $"已检测到路径：{runningPath}";
+                            NextCommand.NotifyCanExecuteChanged();
                         });
                     }
                 }
-                else if (string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath))
+                else if (string.IsNullOrWhiteSpace(AppSettings.Paths.OsuFolderPath))
                 {
                     var regPath = OsuLocator.FindFromRegistry();
                     if (regPath != null)
                     {
                         await Dispatcher.UIThread.InvokeAsync(() =>
                         {
-                            _appSettings.Paths.OsuFolderPath = regPath;
+                            AppSettings.Paths.OsuFolderPath = regPath;
                             OsuScanStatus = $"已检测到路径：{regPath}";
+                            NextCommand.NotifyCanExecuteChanged();
                         });
                     }
                 }
@@ -256,7 +254,7 @@ public partial class WizardViewModel : ViewModelBase
     {
         if (StepIndex == 2)
         {
-            return !string.IsNullOrWhiteSpace(_appSettings.Paths.OsuFolderPath);
+            return !string.IsNullOrWhiteSpace(AppSettings.Paths.OsuFolderPath);
         }
 
         if (StepIndex == 3)
@@ -311,11 +309,10 @@ public partial class WizardViewModel : ViewModelBase
     private void Finish()
     {
         // Save settings
-        _appSettings.Logging.EnableErrorReporting = EnableCrashReport;
-        _appSettings.Paths.AllowAutoLoadSkins = AllowAutoLoadSkins;
+        AppSettings.Logging.EnableErrorReporting = EnableCrashReport;
         // _appSettings.Update.EnableAutoUpdate = EnableUpdates; // TODO: will be added
 
-        _appSettings.General.IsFirstRun = false;
+        AppSettings.General.IsFirstRun = false;
         if (_isSkinManagerStarted) _skinManager.Start();
         // Trigger close window
         OnRequestClose?.Invoke();

@@ -100,7 +100,6 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             Paths = new AppSettingsPaths
             {
                 OsuFolderPath = s.OsuFolder,
-                HitsoundPath = s.HitsoundPath,
                 SelectedSkinName = s.SelectedSkin
             },
             Audio = new AppSettingsAudio
@@ -159,7 +158,6 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
         if (y.Paths != null)
         {
             s.OsuFolder = y.Paths.OsuFolderPath;
-            s.HitsoundPath = y.Paths.HitsoundPath ?? s.HitsoundPath;
             s.SelectedSkin = y.Paths.SelectedSkinName ?? s.SelectedSkin;
         }
         if (y.Audio != null)

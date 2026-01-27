@@ -26,8 +26,9 @@
               Foreground="{DynamicResource SukiPrimaryColor}"
               Kind="DeveloperBoard" />
             <TextBlock
-              Classes="h3"
-              Text="我有专业音频设备 / 硬件支持并发"
+              FontSize="18"
+              FontWeight="Bold"
+              Text="专业设备 / 支持独占并发"
               TextAlignment="Center"
               TextWrapping="Wrap" />
             <TextBlock
@@ -54,7 +55,8 @@
               Foreground="{DynamicResource SukiPrimaryColor}"
               Kind="SurroundSound51" />
             <TextBlock
-              Classes="h3"
+              FontSize="18"
+              FontWeight="Bold"
               Text="普通用户 / 使用板载声卡"
               TextAlignment="Center"
               TextWrapping="Wrap" />
@@ -173,10 +175,10 @@
                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:SRKeys.Wizard_VirtualDriver_Detected}}" />
               </StackPanel>
 
-              <StackPanel IsVisible="{Binding !IsVirtualDriverDetected}" Spacing="10">
+              <StackPanel IsVisible="{Binding ShowVirtualDriverWarning}" Spacing="10">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                   <materialIcons:MaterialIcon Foreground="Orange" Kind="AlertCircle" />
-                  <TextBlock VerticalAlignment="Center" Text="需要安装虚拟声卡驱动" />
+                  <TextBlock VerticalAlignment="Center" Text="{Binding VirtualDriverWarning}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="10">
                   <Button

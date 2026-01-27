@@ -122,7 +122,7 @@
           Spacing="20">
           <TextBlock
             HorizontalAlignment="Center"
-            Classes="h2"
+            Classes="h3"
             Text="连接 osu!" />
           <suki:GlassCard>
             <StackPanel Margin="15" Spacing="10">
@@ -136,13 +136,18 @@
                   Kind="GamepadVariant" />
                 <TextBlock Text="{Binding OsuScanStatus}" />
               </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="10">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
                 <Button
                   Classes="Flat"
                   Command="{Binding BrowseOsuExecutableCommand}"
                   Content="选择 osu!.exe 路径" />
-                <CheckBox Content="{I18N {x:Static lang:SRKeys.Sync_AutoLoadSkins}}" IsChecked="{Binding AllowAutoLoadSkins}" />
-              </StackPanel>
+                <ToggleSwitch
+                  Grid.Column="1"
+                  Margin="0,0,10,0"
+                  HorizontalAlignment="Right"
+                  IsChecked="{Binding AppSettings.Paths.AllowAutoLoadSkins}"
+                  OnContent="{I18N {x:Static lang:SRKeys.Sync_AutoLoadSkins}}" />
+              </Grid>
             </StackPanel>
           </suki:GlassCard>
         </StackPanel>
@@ -152,7 +157,6 @@
       <Grid>
         <controls:WizardAudioConfigView DataContext="{Binding WizardAudioConfigViewModel}" />
       </Grid>
-
 
       <!--  Step 4: Privacy  -->
       <Grid>

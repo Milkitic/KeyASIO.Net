@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -159,11 +159,17 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         {
             if (IsSelectionMode) return false;
             if (IsHardwareConfig) return SelectedAudioDevice != null;
-            if (IsSoftwareConfig) return SelectedAudioDevice != null && IsVirtualDriverDetected;
+            if (IsSoftwareConfig) return SelectedAudioDevice != null;
             if (IsValidationStep) return true; // Can always retry or proceed if success
             return false;
         }
     }
+
+    [ObservableProperty]
+    public partial bool ShowVirtualDriverWarning { get; set; }
+
+    [ObservableProperty]
+    public partial string VirtualDriverWarning { get; set; } = "";
 
     [RelayCommand]
     private void SelectMode(WizardMode mode)
@@ -302,6 +308,16 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             IsVirtualDriverDetected = wasapiDevices.Any(d =>
                 d.FriendlyName?.Contains("CABLE", StringComparison.OrdinalIgnoreCase) == true ||
                 d.FriendlyName?.Contains("VoiceMeeter", StringComparison.OrdinalIgnoreCase) == true);
+
+            if (!IsVirtualDriverDetected)
+            {
+                ShowVirtualDriverWarning = true;
+                VirtualDriverWarning = "未检测到虚拟声卡驱动，建议安装以获得最佳体验";
+            }
+            else
+            {
+                ShowVirtualDriverWarning = false;
+            }
         });
     }
 }

@@ -65,14 +65,11 @@ public partial class AppSettingsPaths : INotifyPropertyChanged
     [Description("osu! folder. Usually auto-detected.")]
     public string? OsuFolderPath { get; set; } = "";
 
-    [Description("Default hitsound file path (relative or absolute).")]
-    public string? HitsoundPath { get; set; } = "./resources/default/normal-hitnormal.ogg";
-
     [Description("Skin used when sync mode is enabled.")]
     public string? SelectedSkinName { get; set; }
 
     [Description("Allow automatic loading of skins from osu! folder.")]
-    public bool? AllowAutoLoadSkins { get; set; }
+    public bool AllowAutoLoadSkins { get; set; }
 }
 
 public partial class AppSettingsAudio : INotifyPropertyChanged
