@@ -27,15 +27,18 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     private readonly IAudioDeviceManager _audioDeviceManager;
     private readonly IPlaybackEngine _playbackEngine;
     private readonly ISukiToastManager _toastManager;
+    private readonly AppSettings _appSettings;
 
     public WizardAudioConfigViewModel(
         IAudioDeviceManager audioDeviceManager,
         IPlaybackEngine playbackEngine,
-        ISukiToastManager toastManager)
+        ISukiToastManager toastManager,
+        AppSettings appSettings)
     {
         _audioDeviceManager = audioDeviceManager;
         _playbackEngine = playbackEngine;
         _toastManager = toastManager;
+        _appSettings = appSettings;
 
         AvailableDriverTypes = new ObservableCollection<WavePlayerType>(Enum.GetValues<WavePlayerType>());
         SelectedDriverType = WavePlayerType.ASIO;
@@ -177,6 +180,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         SelectedMode = mode;
         if (mode == WizardMode.Hardware)
         {
+            _appSettings.Sync.EnableMixSync = false;
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
@@ -195,6 +199,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         }
         else if (mode == WizardMode.Software)
         {
+            _appSettings.Sync.EnableMixSync = true;
             CheckVirtualDriver();
             // Software mode (ProMix) typically outputs to a physical device via WASAPI or ASIO
             // For now default to WASAPI as it is more common for physical outputs

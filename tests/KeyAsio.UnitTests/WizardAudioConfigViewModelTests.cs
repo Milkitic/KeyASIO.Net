@@ -1,6 +1,7 @@
 ﻿using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using KeyAsio.Core.Audio;
+using KeyAsio.Shared;
 using KeyAsio.ViewModels;
 using Moq;
 using NAudio.Wave;
@@ -13,12 +14,14 @@ public class WizardAudioConfigViewModelTests
     private readonly Mock<IAudioDeviceManager> _mockDeviceManager;
     private readonly Mock<IPlaybackEngine> _mockPlaybackEngine;
     private readonly Mock<ISukiToastManager> _mockToastManager;
+    private readonly AppSettings _appSettings;
 
     public WizardAudioConfigViewModelTests()
     {
         _mockDeviceManager = new Mock<IAudioDeviceManager>();
         _mockPlaybackEngine = new Mock<IPlaybackEngine>();
         _mockToastManager = new Mock<ISukiToastManager>();
+        _appSettings = new AppSettings();
 
         // Default setup for device manager
         _mockDeviceManager.Setup(m => m.GetCachedAvailableDevicesAsync())
@@ -30,7 +33,8 @@ public class WizardAudioConfigViewModelTests
         return new WizardAudioConfigViewModel(
             _mockDeviceManager.Object,
             _mockPlaybackEngine.Object,
-            _mockToastManager.Object);
+            _mockToastManager.Object,
+            _appSettings);
     }
 
     [AvaloniaFact]
@@ -87,6 +91,25 @@ public class WizardAudioConfigViewModelTests
 
         // Assert
         Assert.False(vm.ShowHardwareDriverWarning);
+    }
+
+    [AvaloniaFact]
+    public void SelectMode_UpdatesEnableMixSync()
+    {
+        var vm = CreateViewModel();
+
+        // Default should be whatever AppSettings default is (likely false or true depending on initialization, but we can set it explicitly to test toggling)
+        _appSettings.Sync.EnableMixSync = true;
+
+        // Select Hardware (Manual) -> should become false
+        vm.SelectModeCommand.Execute(WizardMode.Hardware);
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(_appSettings.Sync.EnableMixSync);
+
+        // Select Software (ProMix) -> should become true
+        vm.SelectModeCommand.Execute(WizardMode.Software);
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(_appSettings.Sync.EnableMixSync);
     }
 
     [AvaloniaFact]
