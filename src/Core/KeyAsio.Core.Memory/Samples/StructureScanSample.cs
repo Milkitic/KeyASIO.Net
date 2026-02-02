@@ -9,7 +9,7 @@ internal static class StructureScanSample
 {
     private static MemoryContext<SampleOsuData>? _ctx;
     private static SigScan? _sigScan;
-    private static readonly object _lock = new();
+    private static readonly Lock s_lock = new();
 
     private const string ConfigPath = @"";
 
@@ -56,7 +56,7 @@ internal static class StructureScanSample
 
             while (!cts.IsCancellationRequested)
             {
-                lock (_lock)
+                lock (s_lock)
                 {
                     if (_ctx != null)
                     {
@@ -78,7 +78,7 @@ internal static class StructureScanSample
                 if (key.Key == ConsoleKey.Q) break;
             }
 
-            lock (_lock)
+            lock (s_lock)
             {
                 if (_ctx != null)
                 {
@@ -129,7 +129,7 @@ internal static class StructureScanSample
     {
         try
         {
-            lock (_lock)
+            lock (s_lock)
             {
                 Console.WriteLine("Loading Configuration...");
                 var profile = MemoryProfile.Load(ConfigPath);

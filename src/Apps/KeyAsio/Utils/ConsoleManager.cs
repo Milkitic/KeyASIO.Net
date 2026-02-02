@@ -16,13 +16,13 @@ public static class ConsoleManager
 {
     private static PHANDLER_ROUTINE? _handler;
 
-    private static readonly IntPtr OriginalConsoleWindow;
-    private static readonly bool IsOriginalConsoleApp;
+    private static readonly IntPtr s_originalConsoleWindow;
+    private static readonly bool s_isOriginalConsoleApp;
 
     static ConsoleManager()
     {
-        OriginalConsoleWindow = PInvoke.GetConsoleWindow();
-        IsOriginalConsoleApp = OriginalConsoleWindow != IntPtr.Zero;
+        s_originalConsoleWindow = PInvoke.GetConsoleWindow();
+        s_isOriginalConsoleApp = s_originalConsoleWindow != IntPtr.Zero;
     }
 
     public static string? Title { get; set; } = Assembly.GetExecutingAssembly().GetName().Name + " Debugging Console";
@@ -35,9 +35,9 @@ public static class ConsoleManager
     {
         get
         {
-            if (IsOriginalConsoleApp)
+            if (s_isOriginalConsoleApp)
             {
-                return PInvoke.IsWindowVisible((HWND)OriginalConsoleWindow);
+                return PInvoke.IsWindowVisible((HWND)s_originalConsoleWindow);
             }
 
             var consoleWindow = PInvoke.GetConsoleWindow();
@@ -48,9 +48,9 @@ public static class ConsoleManager
     public static void Show()
     {
         if (HasConsole) return;
-        if (IsOriginalConsoleApp)
+        if (s_isOriginalConsoleApp)
         {
-            PInvoke.ShowWindow((HWND)OriginalConsoleWindow, SHOW_WINDOW_CMD.SW_SHOW);
+            PInvoke.ShowWindow((HWND)s_originalConsoleWindow, SHOW_WINDOW_CMD.SW_SHOW);
         }
         else
         {
@@ -78,9 +78,9 @@ public static class ConsoleManager
 
         SetOutAndErrorNull();
 
-        if (IsOriginalConsoleApp)
+        if (s_isOriginalConsoleApp)
         {
-            PInvoke.ShowWindow((HWND)OriginalConsoleWindow, SHOW_WINDOW_CMD.SW_HIDE);
+            PInvoke.ShowWindow((HWND)s_originalConsoleWindow, SHOW_WINDOW_CMD.SW_HIDE);
         }
         else
         {

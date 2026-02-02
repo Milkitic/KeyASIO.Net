@@ -17,7 +17,7 @@ public class GameplayAudioService : IDisposable
     private const string BeatmapCacheIdentifier = "default";
     private const string UserCacheIdentifier = "internal";
 
-    private static readonly string[] SkinAudioFiles = ["combobreak"];
+    private static readonly string[] s_skinAudioFiles = ["combobreak"];
 
     private OsuAudioFileCache _osuAudioFileCache = new();
     private readonly ConcurrentDictionary<PlaybackEvent, CachedAudio> _playNodeToCachedAudioMapping = new();
@@ -132,7 +132,7 @@ public class GameplayAudioService : IDisposable
 
             try
             {
-                foreach (var skinAudioFile in SkinAudioFiles)
+                foreach (var skinAudioFile in s_skinAudioFiles)
                 {
                     if (token.IsCancellationRequested) break;
                     await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);

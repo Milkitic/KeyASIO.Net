@@ -4,14 +4,14 @@ namespace KeyAsio.Core.Audio.Utils;
 
 public static class SharedPool<T> where T : class, IPoolable, new()
 {
-    private static readonly ConcurrentBag<T> Items = new();
+    private static readonly ConcurrentBag<T> s_items = new();
     private const int MaxCapacity = 64;
 
-    public static int Count => Items.Count;
+    public static int Count => s_items.Count;
 
     public static T Rent()
     {
-        if (Items.TryTake(out var item))
+        if (s_items.TryTake(out var item))
         {
             return item;
         }
@@ -23,14 +23,14 @@ public static class SharedPool<T> where T : class, IPoolable, new()
     {
         if (item.ExcludeFromPool) return;
 
-        if (Items.Count >= MaxCapacity)
+        if (s_items.Count >= MaxCapacity)
         {
             return;
         }
 
         item.Reset();
-        Items.Add(item);
+        s_items.Add(item);
     }
 
-    public static void Clear() => Items.Clear();
+    public static void Clear() => s_items.Clear();
 }

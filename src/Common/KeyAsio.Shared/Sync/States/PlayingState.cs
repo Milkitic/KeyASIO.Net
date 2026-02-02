@@ -12,7 +12,7 @@ namespace KeyAsio.Shared.Sync.States;
 
 public class PlayingState : IGameState
 {
-    private static readonly long HitsoundSyncIntervalTicks = Stopwatch.Frequency / 1000; // 1000hz
+    private static readonly long s_hitsoundSyncIntervalTicks = Stopwatch.Frequency / 1000; // 1000hz
 
     private readonly ILogger<PlayingState> _logger;
     private readonly IPlaybackEngine _playbackEngine;
@@ -92,7 +92,7 @@ public class PlayingState : IGameState
         var timestamp = ctx.LastUpdateTimestamp;
 
         // Logic for Hitsounds
-        if (timestamp - _lastHitsoundSyncTimestamp >= HitsoundSyncIntervalTicks)
+        if (timestamp - _lastHitsoundSyncTimestamp >= s_hitsoundSyncIntervalTicks)
         {
             try
             {

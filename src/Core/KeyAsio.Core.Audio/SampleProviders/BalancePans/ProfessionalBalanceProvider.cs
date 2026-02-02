@@ -55,38 +55,38 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     private const float ClipThreshold = 0.95f; // 提前触发阈值
     public static bool EnableAvx512 { get; set; } = true;
 
-    private static readonly bool CanUseVectorization =
+    private static readonly bool s_canUseVectorization =
         Vector128.IsHardwareAccelerated &&
         (Sse.IsSupported || AdvSimd.Arm64.IsSupported);
 
-    private static readonly Vector128<int> StereoSwapMask;
-    private static readonly Vector256<int> SwapMask256;
-    private static readonly Vector512<int> SwapMask512;
+    private static readonly Vector128<int> s_stereoSwapMask;
+    private static readonly Vector256<int> s_swapMask256;
+    private static readonly Vector512<int> s_swapMask512;
 
-    private static readonly Vector128<float> VOne;
-    private static readonly Vector128<float> VNegOne;
-    private static readonly Vector128<float> VHalf;
+    private static readonly Vector128<float> s_vOne;
+    private static readonly Vector128<float> s_vNegOne;
+    private static readonly Vector128<float> s_vHalf;
 
     static ProfessionalBalanceProvider()
     {
-        if (CanUseVectorization)
+        if (s_canUseVectorization)
         {
             // 用于立体声交换的 Shuffle 掩码 [1, 0, 3, 2] -> 将 [L1, R1, L2, R2] 变为 [R1, L1, R2, L2]
-            StereoSwapMask = Vector128.Create(1, 0, 3, 2);
-            VOne = Vector128.Create(1.0f);
-            VNegOne = Vector128.Create(-1.0f);
-            VHalf = Vector128.Create(0.5f);
+            s_stereoSwapMask = Vector128.Create(1, 0, 3, 2);
+            s_vOne = Vector128.Create(1.0f);
+            s_vNegOne = Vector128.Create(-1.0f);
+            s_vHalf = Vector128.Create(0.5f);
         }
 
         if (Vector256.IsHardwareAccelerated)
         {
             // [1, 0, 3, 2, 5, 4, 7, 6] -> 交换相邻的 L/R
-            SwapMask256 = Vector256.Create(1, 0, 3, 2, 5, 4, 7, 6);
+            s_swapMask256 = Vector256.Create(1, 0, 3, 2, 5, 4, 7, 6);
         }
 
         if (Vector512.IsHardwareAccelerated && EnableAvx512)
         {
-            SwapMask512 = Vector512.Create(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14);
+            s_swapMask512 = Vector512.Create(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14);
         }
     }
 
@@ -205,7 +205,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
                 throw new ArgumentOutOfRangeException();
         }
 
-        if (!CanUseVectorization) return;
+        if (!s_canUseVectorization) return;
         _vDirectGain = Vector128.Create(_leftDirectGain, _rightDirectGain, _leftDirectGain, _rightDirectGain);
         _vCrossGain = Vector128.Create(_leftCrossGain, _rightCrossGain, _leftCrossGain, _rightCrossGain);
     }
@@ -322,7 +322,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
             return samplesRead;
         }
 
-        if (CanUseVectorization)
+        if (s_canUseVectorization)
         {
             Span<float> data = buffer.AsSpan(offset, samplesRead);
             if (_mode == BalanceMode.MidSide)
@@ -373,7 +373,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
 
                 if (_antiClip == AntiClipStrategy.HardLimit)
                 {
-                    vOut = Vector128.Min(Vector128.Max(vOut, VNegOne), VOne);
+                    vOut = Vector128.Min(Vector128.Max(vOut, s_vNegOne), s_vOne);
                 }
 
                 vecSpan[i] = vOut;
@@ -487,7 +487,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
                 Vector512<float> vIn = Vector512.LoadUnsafe(ref dataRef, (nuint)i);
 
                 // Swap L/R: [L, R...] -> [R, L...]
-                Vector512<float> vSwapped = Vector512.Shuffle(vIn, SwapMask512);
+                Vector512<float> vSwapped = Vector512.Shuffle(vIn, s_swapMask512);
 
                 // Math
                 Vector512<float> vMid = (vIn + vSwapped) * vHalf;
@@ -521,7 +521,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
                 Vector256<float> vIn = Vector256.LoadUnsafe(ref dataRef, (nuint)i);
 
                 // .NET 8+ Shuffle 能够生成高效的 vpermps / vpermilps 指令
-                Vector256<float> vSwapped = Vector256.Shuffle(vIn, SwapMask256);
+                Vector256<float> vSwapped = Vector256.Shuffle(vIn, s_swapMask256);
 
                 Vector256<float> vMid = (vIn + vSwapped) * vHalf;
                 Vector256<float> vRawSide = (vIn - vSwapped) * vHalf;
@@ -739,7 +739,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
         {
             // x86: Shuffle (1 指令)
             // 交换左右声道 [L, R] -> [R, L]
-            return Vector128.Shuffle(v, StereoSwapMask);
+            return Vector128.Shuffle(v, s_stereoSwapMask);
         }
 
         if (AdvSimd.Arm64.IsSupported)

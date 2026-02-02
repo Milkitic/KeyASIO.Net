@@ -7,10 +7,10 @@ namespace KeyAsio.Core.Audio.Utils;
 
 public static class AudioRecycling
 {
-    private static readonly SingleSynchronizationContext RecyclerContext =
+    private static readonly SingleSynchronizationContext s_recyclerContext =
         new(name: "Audio Recycler Thread", staThread: false, threadPriority: ThreadPriority.BelowNormal);
 
-    private static readonly SendOrPostCallback RecycleChainCallback =
+    private static readonly SendOrPostCallback s_recycleChainCallback =
         state =>
         {
             if (state is ISampleProvider provider)
@@ -21,7 +21,7 @@ public static class AudioRecycling
 
     public static void QueueForRecycle(ISampleProvider provider)
     {
-        RecyclerContext.Post(RecycleChainCallback, provider);
+        s_recyclerContext.Post(s_recycleChainCallback, provider);
     }
 
     private static void RecycleSourceChain(ISampleProvider provider)
@@ -53,6 +53,6 @@ public static class AudioRecycling
 
     public static void Shutdown()
     {
-        RecyclerContext.Dispose();
+        s_recyclerContext.Dispose();
     }
 }

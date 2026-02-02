@@ -12,7 +12,7 @@ public class AudioCacheManager
 {
     public const string DefaultCategory = "default";
 
-    private static readonly byte[] EmptyWaveFile =
+    private static readonly byte[] s_emptyWaveFile =
     [
         0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
         0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x44, 0xAC, 0x00, 0x00, 0x10, 0xB1, 0x02, 0x00,
@@ -96,7 +96,7 @@ public class AudioCacheManager
         var exist = await TryGetAsync(cacheKey, category);
         if (exist != null) return new CacheResult(exist, CacheGetStatus.Hit);
 
-        using var fs = new MemoryStream(EmptyWaveFile);
+        using var fs = new MemoryStream(s_emptyWaveFile);
         var cacheResult = await TryGetOrCreateAsync(cacheKey, fs, waveFormat, category);
         return cacheResult.Status != CacheGetStatus.Failed
             ? cacheResult

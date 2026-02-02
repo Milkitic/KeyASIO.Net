@@ -26,7 +26,7 @@ public static class NightcoreBeatGenerator
     private const string NC_KICK = "nightcore-kick";
     private const string NC_CLAP = "nightcore-clap";
 
-    private static readonly Dictionary<int, RhythmGroup> RhythmDeclarations =
+    private static readonly Dictionary<int, RhythmGroup> s_rhythmDeclarations =
         new()
         {
             [3] = new RhythmGroup(6, 4, new[]
@@ -79,12 +79,12 @@ public static class NightcoreBeatGenerator
             double loopCount; // 周期总数
             double currentTime = startTime;
 
-            if (!RhythmDeclarations.ContainsKey(rhythm))
+            if (!s_rhythmDeclarations.ContainsKey(rhythm))
             {
                 rhythm = 4;
             }
 
-            var ncRhythm = RhythmDeclarations[rhythm];
+            var ncRhythm = s_rhythmDeclarations[rhythm];
             period = ncRhythm.PeriodCount * interval;
             loopCount = ncRhythm.LoopCount;
             var exit = false;

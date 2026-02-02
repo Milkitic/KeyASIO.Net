@@ -17,7 +17,7 @@ namespace KeyAsio.Services;
 
 public class KeyboardBindingInitializer
 {
-    private static readonly HookModifierKeys[] Modifiers =
+    private static readonly HookModifierKeys[] s_modifiers =
     [
         HookModifierKeys.None,
         HookModifierKeys.Control,
@@ -197,7 +197,7 @@ public class KeyboardBindingInitializer
             }
         };
 
-        foreach (var modifier in Modifiers)
+        foreach (var modifier in s_modifiers)
         {
             _registerList.Add(modifier == HookModifierKeys.None
                 ? _keyboardHook.RegisterKey(key, callback)

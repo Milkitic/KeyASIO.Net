@@ -7,10 +7,10 @@ namespace KeyAsio.Shared.Configuration;
 
 public class BindKeysConverter : IYamlTypeConverter
 {
-    private static readonly Type Type = typeof(BindKeys);
+    private static readonly Type s_type = typeof(BindKeys);
     public bool Accepts(Type type)
     {
-        if (type == Type) return true;
+        if (type == s_type) return true;
         return false;
     }
 

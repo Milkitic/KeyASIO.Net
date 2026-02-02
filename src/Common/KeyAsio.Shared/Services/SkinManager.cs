@@ -12,7 +12,7 @@ namespace KeyAsio.Shared.Services;
 
 public class SkinManager
 {
-    private static readonly HashSet<string> ResourcesKeys =
+    private static readonly HashSet<string> s_resourcesKeys =
     [
         "taiko-normal-hitclap", "taiko-normal-hitfinish", "taiko-normal-hitnormal", "taiko-normal-hitwhistle",
         "taiko-soft-hitclap", "taiko-soft-hitfinish", "taiko-soft-hitnormal", "taiko-soft-hitwhistle",
@@ -322,7 +322,7 @@ public class SkinManager
             using var stream = resource.CreateReader().AsStream();
             using var reader = new System.Resources.ResourceReader(stream);
 
-            foreach (var resourcesKey in ResourcesKeys)
+            foreach (var resourcesKey in s_resourcesKeys)
             {
                 try
                 {
