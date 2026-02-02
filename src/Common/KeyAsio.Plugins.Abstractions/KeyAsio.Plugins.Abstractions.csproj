@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
     <PackageReference Include="Coosu.Beatmap" Version="2.5.1" />
+    <PackageReference Include="Octokit" Version="14.0.0" />
   </ItemGroup>
 
   <ItemGroup>
