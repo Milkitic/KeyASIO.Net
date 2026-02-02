@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Core.Audio;
+using KeyAsio.Shared;
 using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;

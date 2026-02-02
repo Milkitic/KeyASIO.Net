@@ -135,12 +135,6 @@ public partial class MainWindow : SukiWindow
 
     private void StartUpdate(UpdateService updateService)
     {
-        _viewModel.DialogManager.CreateDialog()
-            .WithTitle(SR.MainWindow_Updating_Title)
-            .WithContent(new UpdateDialogView { DataContext = updateService })
-            .WithActionButton(SR.Common_Cancel, _ => updateService.CancelUpdate(), true)
-            .TryShow();
-
         _ = updateService.DownloadAndInstallAsync();
     }
 

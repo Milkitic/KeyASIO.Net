@@ -8,6 +8,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Lang;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Secrets;
 using KeyAsio.Services;
 using KeyAsio.Shared;
@@ -118,6 +119,27 @@ public partial class MainWindowViewModel : IDisposable
             }
         };
         LanguageManager.PropertyChanged += _languageManagerPropertyChangedHandler;
+
+        PluginManager.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(PluginManagerViewModel.ActivePlugin))
+            {
+                UpdateUpdateImplementation();
+            }
+        };
+        UpdateUpdateImplementation();
+    }
+
+    private void UpdateUpdateImplementation()
+    {
+        if (PluginManager.ActivePlugin is IUpdateSupportPlugin updatePlugin)
+        {
+            UpdateService.UpdateImplementation = updatePlugin.UpdateImplementation;
+        }
+        else
+        {
+            UpdateService.UpdateImplementation = new BasicUpdateImplementation();
+        }
     }
 
     public LanguageManager LanguageManager { get; }
