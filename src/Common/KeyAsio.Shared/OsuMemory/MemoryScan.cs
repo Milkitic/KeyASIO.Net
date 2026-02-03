@@ -65,6 +65,7 @@ public class MemoryScan
         }
 
         _cts = new CancellationTokenSource();
+        // WARN: Single threaded reading to avoid thread pool switching
         _readTask = Task.Factory.StartNew(ReadImpl,
             TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
     }
@@ -98,10 +99,10 @@ public class MemoryScan
             var assemblyPath = Path.GetDirectoryName(typeof(MemoryScan).Assembly.Location) ?? string.Empty;
             var rulesPath = Path.Combine(assemblyPath, "osu_memory_rules.json");
             _memoryProfile = MemoryProfile.Load(rulesPath);
-            
+
             // Force reconnection to rebuild MemoryContext with new profile
             CleanupProcess(MemoryReadObject);
-            
+
             _logger.LogInformation("Memory rules reloaded.");
         }
         catch (Exception ex)
@@ -171,6 +172,27 @@ public class MemoryScan
             if (processes.Length > 0)
             {
                 _process = processes[0];
+
+                try
+                {
+                    var uptime = DateTime.Now - _process.StartTime;
+                    if (uptime.TotalSeconds < 6)
+                    {
+                        _logger.LogInformation(
+                            "osu! process detected early (uptime {Uptime:F1}s). Delaying connection for 10s...",
+                            uptime.TotalSeconds);
+                        for (var i = 0; i < 60; i++)
+                        {
+                            if (_cts?.IsCancellationRequested == true) return false;
+                            Thread.Sleep(100);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to check process uptime");
+                }
+
                 _process.EnableRaisingEvents = true;
                 _process.Exited += OnProcessExited;
                 _processExited = false;
