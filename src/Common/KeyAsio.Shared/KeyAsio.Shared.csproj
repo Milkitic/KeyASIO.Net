@@ -40,7 +40,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="osu_memory_rules.json">
+    <None Include="..\..\..\osu_memory_rules.json">
+      <Link>osu_memory_rules.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
