@@ -119,10 +119,10 @@ jobs:
       if: ${{ !contains(github.ref_name, 'alpha') }}
       run: |
         mkdir -p ./ci-pack/
-        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.7z" "./ci-publish-win64/*" -x!"${{ env.ProjectName }}" -r
-        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-r2r.7z" "./ci-publish-win64-r2r/*" -x!"${{ env.ProjectName }}" -r
-        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent.7z" "./ci-publish-win64-fd/*" -x!"${{ env.ProjectName }}" -r
-        7z a -mx9 -mfb=273 -ms -md=31 -myx=9 -mtm=- -mmt -mmtf -md=1536m -mmf=bt3 -mmc=10000 -mpb=0 -mlc=0 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent-r2r.7z" "./ci-publish-win64-fd-r2r/*" -x!"${{ env.ProjectName }}" -r
+        7z a -tzip -mm=zstd -mx=22 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.zip" "./ci-publish-win64/*" -x!"${{ env.ProjectName }}" -r
+        7z a -tzip -mm=zstd -mx=22 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-r2r.zip" "./ci-publish-win64-r2r/*" -x!"${{ env.ProjectName }}" -r
+        7z a -tzip -mm=zstd -mx=22 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent.zip" "./ci-publish-win64-fd/*" -x!"${{ env.ProjectName }}" -r
+        7z a -tzip -mm=zstd -mx=22 "./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent-r2r.zip" "./ci-publish-win64-fd-r2r/*" -x!"${{ env.ProjectName }}" -r
 
     - name: Create a new GitHub release if a new tag is pushed
       if: ${{ !contains(github.ref_name, 'alpha') }}
@@ -139,7 +139,7 @@ jobs:
         prerelease: true
         draft: false
         files: |
-          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.7z
-          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-r2r.7z
-          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent.7z
-          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent-r2r.7z
+          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.zip
+          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-r2r.zip
+          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent.zip
+          ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64-framework-dependent-r2r.zip
