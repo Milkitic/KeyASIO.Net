@@ -14,7 +14,7 @@ public class GameplaySessionManager
 {
     private readonly ILogger<GameplaySessionManager> _logger;
     private readonly GameplayAudioService _gameplayAudioService;
-    private readonly AudioEngine _audioEngine;
+    private readonly IPlaybackEngine _audioEngine;
     private readonly SyncSessionContext _syncSessionContext;
     private readonly BeatmapHitsoundLoader _beatmapHitsoundLoader;
     private readonly SfxPlaybackService _sfxPlaybackService;
@@ -30,7 +30,7 @@ public class GameplaySessionManager
 
     public GameplaySessionManager(ILogger<GameplaySessionManager> logger,
         GameplayAudioService gameplayAudioService,
-        AudioEngine audioEngine,
+        IPlaybackEngine audioEngine,
         SyncSessionContext syncSessionContext,
         BeatmapHitsoundLoader beatmapHitsoundLoader,
         SfxPlaybackService sfxPlaybackService)

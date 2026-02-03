@@ -6,7 +6,7 @@ using NAudio.Wave.Asio;
 
 namespace KeyAsio.Core.Audio;
 
-public sealed class AudioDeviceManager : IDisposable
+public sealed class AudioDeviceManager : IAudioDeviceManager
 {
     private readonly ILogger<AudioDeviceManager> _logger;
     private readonly MMDeviceEnumerator _mmDeviceEnumerator;

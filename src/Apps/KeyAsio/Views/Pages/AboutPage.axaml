@@ -180,7 +180,9 @@
           <TextBlock
             HorizontalAlignment="Center"
             Opacity="0.6"
-            Text="{I18N {x:Static lang:SRKeys.About_SpecialThanksDescription}}" />
+            Text="{I18N {x:Static lang:SRKeys.About_SpecialThanksDescription}}"
+            TextAlignment="Center"
+            TextWrapping="Wrap" />
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,20">
@@ -219,60 +221,6 @@
             Text="{I18N {x:Static lang:SRKeys.About_DragToExplore}}" />
         </Grid>
       </Grid>
-
-      <!--<Separator Opacity="0.2" />-->
-
-      <!--  Projects Section  -->
-      <!--      <StackPanel Spacing="15">
-
-        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
-          <materialIcons:MaterialIcon  Kind="RocketLaunch" Width="24" Height="24" Foreground="{DynamicResource SukiPrimaryColor}"/>
-          <TextBlock
-            Classes="h3"
-            FontWeight="SemiBold"
-            VerticalAlignment="Center"
-            Text="探索更多" />
-        </StackPanel>
-        <ItemsControl ItemsSource="{Binding About.Projects}" Margin="0,0,-15,0">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel ItemSpacing="15" LineSpacing="15" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <suki:GlassCard Width="300" Classes="Surface">
-                <StackPanel Spacing="10">
-                  <Grid ColumnDefinitions="*, Auto">
-                    <TextBlock
-                      FontSize="16"
-                      FontWeight="Bold"
-                      Text="{Binding Name}" />
-                    <materialIcons:MaterialIcon
-                      Grid.Column="1"
-                      Width="16"
-                      Height="16"
-                      Kind="OpenInNew"
-                      Opacity="0.5" />
-                  </Grid>
-                  <TextBlock
-                    MinHeight="40"
-                    Opacity="0.7"
-                    Text="{Binding Description}"
-                    TextTrimming="CharacterEllipsis"
-                    TextWrapping="Wrap" />
-                  <Button
-                    HorizontalAlignment="Right"
-                    Classes="Flat"
-                    Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).About.OpenUrlCommand}"
-                    CommandParameter="{Binding Url}"
-                    Content="访问" />
-                </StackPanel>
-              </suki:GlassCard>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </StackPanel>-->
     </StackPanel>
   </ScrollViewer>
 </UserControl>

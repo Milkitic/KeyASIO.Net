@@ -361,6 +361,12 @@ You can change option later.</value>
   <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
     <value>Load Skins</value>
   </data>
+  <data name="MainWindow_RulesUpdated_Content" xml:space="preserve">
+    <value>The latest memory rules have been downloaded and applied.</value>
+  </data>
+  <data name="MainWindow_RulesUpdated_Title" xml:space="preserve">
+    <value>Rules Updated</value>
+  </data>
   <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
     <value>Update {0} is Now Available.</value>
   </data>
@@ -398,31 +404,31 @@ You can change option later.</value>
     <value>Successfully switched to: {0}</value>
   </data>
   <data name="Preset_AppliedTitle" xml:space="preserve">
-    <value>Preset Applied</value>
+    <value>Preset Activated</value>
   </data>
   <data name="Preset_Extreme" xml:space="preserve">
     <value>Extreme</value>
   </data>
   <data name="Preset_ExtremeDescription" xml:space="preserve">
-    <value>Maximizes performance output, suitable for professional needs or high-performance scenarios.</value>
+    <value>Maximizes performance output for ultra-low latency, suitable for high-performance scenarios.</value>
   </data>
   <data name="Preset_Fast" xml:space="preserve">
-    <value>Fast</value>
+    <value>Efficient</value>
   </data>
   <data name="Preset_FastDescription" xml:space="preserve">
-    <value>Optimizes resource usage, suitable for low-end devices or basic needs.</value>
+    <value>Reduces system overhead, suitable for low-end devices or basic gameplay needs.</value>
   </data>
   <data name="Preset_SelectionDescription" xml:space="preserve">
-    <value>Please select a suitable mode based on your device performance and usage requirements.</value>
+    <value>Please choose an appropriate mode based on your device performance and usage needs.</value>
   </data>
   <data name="Preset_SelectionTitle" xml:space="preserve">
     <value>Select Preset Mode</value>
   </data>
   <data name="Preset_Standard" xml:space="preserve">
-    <value>Standard</value>
+    <value>Balanced</value>
   </data>
   <data name="Preset_StandardDescription" xml:space="preserve">
-    <value>Provides balanced performance and resource usage, suitable for most general use cases.</value>
+    <value>Balances resource usage to deliver the best listening experience, suitable for most gameplay scenarios.</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>About</value>
@@ -613,6 +619,15 @@ You can change option later.</value>
   <data name="Volume_Title" xml:space="preserve">
     <value>Volume Control</value>
   </data>
+  <data name="Wizard_ApplyAndTest" xml:space="preserve">
+    <value>Apply &amp; Test</value>
+  </data>
+  <data name="Wizard_BackToConfig" xml:space="preserve">
+    <value>Back to Config</value>
+  </data>
+  <data name="Wizard_BackToSelection" xml:space="preserve">
+    <value>Back to Selection</value>
+  </data>
   <data name="Wizard_Config_Device" xml:space="preserve">
     <value>Output Device</value>
   </data>
@@ -654,6 +669,9 @@ You can change option later.</value>
   </data>
   <data name="Wizard_Privacy_Title" xml:space="preserve">
     <value>Privacy &amp; Updates</value>
+  </data>
+  <data name="Wizard_Retry" xml:space="preserve">
+    <value>Retry</value>
   </data>
   <data name="Wizard_Skip" xml:space="preserve">
     <value>Skip</value>

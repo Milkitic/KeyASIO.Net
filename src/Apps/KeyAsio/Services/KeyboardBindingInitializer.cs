@@ -17,7 +17,7 @@ namespace KeyAsio.Services;
 
 public class KeyboardBindingInitializer
 {
-    private static readonly HookModifierKeys[] Modifiers =
+    private static readonly HookModifierKeys[] s_modifiers =
     [
         HookModifierKeys.None,
         HookModifierKeys.Control,
@@ -32,7 +32,7 @@ public class KeyboardBindingInitializer
     private readonly ILogger<KeyboardBindingInitializer> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
-    private readonly AudioEngine _audioEngine;
+    private readonly IPlaybackEngine _playbackEngine;
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SkinManager _skinManager;
@@ -50,7 +50,7 @@ public class KeyboardBindingInitializer
         ILogger<KeyboardBindingInitializer> logger,
         AppSettings appSettings,
         AudioCacheManager audioCacheManager,
-        AudioEngine audioEngine,
+        IPlaybackEngine playbackEngine,
         GameplaySessionManager gameplaySessionManager,
         SfxPlaybackService sfxPlaybackService,
         SkinManager skinManager)
@@ -58,7 +58,7 @@ public class KeyboardBindingInitializer
         _logger = logger;
         _appSettings = appSettings;
         _audioCacheManager = audioCacheManager;
-        _audioEngine = audioEngine;
+        _playbackEngine = playbackEngine;
         _gameplaySessionManager = gameplaySessionManager;
         _sfxPlaybackService = sfxPlaybackService;
         _skinManager = skinManager;
@@ -186,7 +186,7 @@ public class KeyboardBindingInitializer
             }
             else
             {
-                if (_audioEngine.CurrentDevice is null)
+                if (_playbackEngine.CurrentDevice is null)
                 {
                     _logger.LogWarning("Engine not ready.");
                     return;
@@ -197,7 +197,7 @@ public class KeyboardBindingInitializer
             }
         };
 
-        foreach (var modifier in Modifiers)
+        foreach (var modifier in s_modifiers)
         {
             _registerList.Add(modifier == HookModifierKeys.None
                 ? _keyboardHook.RegisterKey(key, callback)
@@ -207,7 +207,7 @@ public class KeyboardBindingInitializer
 
     private CachedAudio ResolveKeyOnlyAudio()
     {
-        var waveFormat = _audioEngine.EngineWaveFormat;
+        var waveFormat = _playbackEngine.EngineWaveFormat;
         const string sampleName = "soft-hitnormal";
 
         string? cacheKey = null;

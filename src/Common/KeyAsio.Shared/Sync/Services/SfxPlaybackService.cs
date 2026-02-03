@@ -14,13 +14,13 @@ public class SfxPlaybackService
 {
     private readonly LoopProviderManager _loopProviderManager = new();
     private readonly ILogger<SfxPlaybackService> _logger;
-    private readonly AudioEngine _audioEngine;
+    private readonly IPlaybackEngine _playbackEngine;
     private readonly AppSettings _appSettings;
 
-    public SfxPlaybackService(ILogger<SfxPlaybackService> logger, AudioEngine audioEngine, AppSettings appSettings)
+    public SfxPlaybackService(ILogger<SfxPlaybackService> logger, IPlaybackEngine playbackEngine, AppSettings appSettings)
     {
         _logger = logger;
-        _audioEngine = audioEngine;
+        _playbackEngine = playbackEngine;
         _appSettings = appSettings;
 
         _appSettings.Sync.Playback.PropertyChanged += OnPlaybackSettingsChanged;
@@ -71,7 +71,7 @@ public class SfxPlaybackService
                 var filename = cachedAudio.SourceHash.Substring("internal://dynamic/".Length);
 
                 // 创建一次性军鼓生成器
-                var provider = new SnareDrumSampleProvider(_audioEngine.EffectMixer.WaveFormat);
+                var provider = new SnareDrumSampleProvider(_playbackEngine.EffectMixer.WaveFormat);
 
                 // 简单的参数随机化
                 var random = Random.Shared;
@@ -112,7 +112,7 @@ public class SfxPlaybackService
                 var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
                     _appSettings.Sync.Playback.BalanceMode, AntiClipStrategy.None);
 
-                _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
+                _playbackEngine.EffectMixer.AddMixerInput(balanceProvider);
                 _logger.LogTrace("Play Dynamic: {Key} (Freq: {Freq:F1})", cachedAudio.SourceHash,
                     provider.FundamentalFrequency);
             }
@@ -138,7 +138,7 @@ public class SfxPlaybackService
             var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
                 _appSettings.Sync.Playback.BalanceMode, AntiClipStrategy.None); // 削波处理交给MasterLimiterProvider
 
-            _audioEngine.EffectMixer.AddMixerInput(balanceProvider);
+            _playbackEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
         catch (Exception ex)
         {
@@ -150,7 +150,7 @@ public class SfxPlaybackService
 
     public void PlayLoopAudio(CachedAudio cachedAudio, ControlEvent controlEvent)
     {
-        var effectMixer = _audioEngine.EffectMixer;
+        var effectMixer = _playbackEngine.EffectMixer;
         var volume = _appSettings.Sync.Filters.IgnoreLineVolumes ? 1 : controlEvent.Volume;
 
         if (controlEvent.ControlEventType == ControlEventType.LoopStart)
@@ -182,7 +182,7 @@ public class SfxPlaybackService
 
     public void ClearAllLoops(IMixingSampleProvider? mixingSampleProvider = null)
     {
-        mixingSampleProvider ??= _audioEngine.EffectMixer;
+        mixingSampleProvider ??= _playbackEngine.EffectMixer;
         _loopProviderManager.RemoveAll(mixingSampleProvider);
     }
 

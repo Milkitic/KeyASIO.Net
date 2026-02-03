@@ -20,6 +20,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />
     <PackageReference Include="NLog.Extensions.Logging" Version="6.1.0" />
+    <PackageReference Include="Semver" Version="3.0.0" />
+    <PackageReference Include="SharpCompress" Version="0.44.5" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -38,7 +40,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="osu_memory_rules.json">
+    <None Include="..\..\..\osu_memory_rules.json">
+      <Link>osu_memory_rules.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

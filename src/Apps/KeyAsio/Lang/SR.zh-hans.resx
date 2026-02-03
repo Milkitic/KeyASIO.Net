@@ -362,6 +362,12 @@
   <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
     <value>加载皮肤</value>
   </data>
+  <data name="MainWindow_RulesUpdated_Content" xml:space="preserve">
+    <value>最新的内存规则已下载并应用。</value>
+  </data>
+  <data name="MainWindow_RulesUpdated_Title" xml:space="preserve">
+    <value>规则已更新</value>
+  </data>
   <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
     <value>更新 {0} 现已可用。</value>
   </data>
@@ -399,19 +405,19 @@
     <value>已成功切换到：{0}</value>
   </data>
   <data name="Preset_AppliedTitle" xml:space="preserve">
-    <value>已应用预设</value>
+    <value>预设已激活</value>
   </data>
   <data name="Preset_Extreme" xml:space="preserve">
-    <value>极限</value>
+    <value>极速响应</value>
   </data>
   <data name="Preset_ExtremeDescription" xml:space="preserve">
-    <value>最大化性能输出，适合专业需求或高性能场景。</value>
+    <value>最大化性能输出，实现极致低延迟，适合高性能需求场景。</value>
   </data>
   <data name="Preset_Fast" xml:space="preserve">
-    <value>快速</value>
+    <value>高效轻量</value>
   </data>
   <data name="Preset_FastDescription" xml:space="preserve">
-    <value>优化资源占用，适合低配设备或基础使用需求。</value>
+    <value>简化系统开销，适合低配设备或基本游玩需求。</value>
   </data>
   <data name="Preset_SelectionDescription" xml:space="preserve">
     <value>请根据您的设备性能和使用需求选择合适的模式。</value>
@@ -420,10 +426,10 @@
     <value>选择预设模式</value>
   </data>
   <data name="Preset_Standard" xml:space="preserve">
-    <value>标准</value>
+    <value>标准均衡</value>
   </data>
   <data name="Preset_StandardDescription" xml:space="preserve">
-    <value>提供均衡的性能与资源占用，适合大多数常规使用场景。</value>
+    <value>均衡资源占用，提供最佳听觉体验，适合大多数游玩场景。</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>关于</value>
@@ -615,6 +621,15 @@
   <data name="Volume_Title" xml:space="preserve">
     <value>音量控制</value>
   </data>
+  <data name="Wizard_ApplyAndTest" xml:space="preserve">
+    <value>应用并测试</value>
+  </data>
+  <data name="Wizard_BackToConfig" xml:space="preserve">
+    <value>返回配置</value>
+  </data>
+  <data name="Wizard_BackToSelection" xml:space="preserve">
+    <value>返回选择</value>
+  </data>
   <data name="Wizard_Config_Device" xml:space="preserve">
     <value>输出设备</value>
   </data>
@@ -656,6 +671,9 @@
   </data>
   <data name="Wizard_Privacy_Title" xml:space="preserve">
     <value>隐私与更新</value>
+  </data>
+  <data name="Wizard_Retry" xml:space="preserve">
+    <value>重试</value>
   </data>
   <data name="Wizard_Skip" xml:space="preserve">
     <value>跳过</value>

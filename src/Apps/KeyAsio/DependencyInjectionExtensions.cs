@@ -1,6 +1,7 @@
-﻿﻿﻿﻿using KeyAsio.Services;
+﻿using KeyAsio.Services;
 using KeyAsio.Shared.Models;
 using KeyAsio.ViewModels;
+using KeyAsio.ViewModels.Dialogs;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
 using SukiUI.Dialogs;
@@ -24,7 +25,9 @@ public static class DependencyInjectionExtensions
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<WizardViewModel>();
-        services.AddTransient<AudioSettingsViewModel>();
+        services.AddTransient<WizardAudioConfigViewModel>();
+        services.AddSingleton<AudioSettingsViewModel>();
+        services.AddTransient<PresetSelectionDialogViewModel>();
         services.AddTransient<KeyBindingViewModel>();
         services.AddTransient<PluginManagerViewModel>();
 

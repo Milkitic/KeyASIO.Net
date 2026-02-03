@@ -9,12 +9,12 @@ public class OsuAudioFileCache
     public const string OggExtension = ".ogg";
     public const string Mp3Extension = ".mp3";
 
-    private readonly ConcurrentDictionary<string, (string filename, ResourceOwner resourceOwner)> _pathCache = new();
-
-    private static readonly string[] SupportExtensionsInPriorityOrder = [WavExtension, Mp3Extension, OggExtension];
+    private static readonly string[] s_supportExtensionsInPriorityOrder = [WavExtension, Mp3Extension, OggExtension];
 
     public static IReadOnlySet<string> SupportExtensions { get; } =
-        new HashSet<string>(SupportExtensionsInPriorityOrder, StringComparer.OrdinalIgnoreCase);
+        new HashSet<string>(s_supportExtensionsInPriorityOrder, StringComparer.OrdinalIgnoreCase);
+
+    private readonly ConcurrentDictionary<string, (string filename, ResourceOwner resourceOwner)> _pathCache = new();
 
     public string GetFileUntilFind(string sourceFolder, string fileNameWithoutExtension, out ResourceOwner resourceOwner)
     {
@@ -26,7 +26,7 @@ public class OsuAudioFileCache
         }
 
         string name = "";
-        foreach (var extension in SupportExtensionsInPriorityOrder)
+        foreach (var extension in s_supportExtensionsInPriorityOrder)
         {
             name = fileNameWithoutExtension + extension;
             var path = Path.Combine(sourceFolder, name);

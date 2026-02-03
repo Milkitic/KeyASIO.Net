@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <DownloadFile
-        SourceUrl="https://github.com/hez2010/Satori/releases/download/20260112.1/windows_x64.zip"
+        SourceUrl="https://github.com/hez2010/Satori/releases/download/20260201.1/windows_x64.zip"
         DestinationFolder="$(IntermediateOutputPath)SatoriCache"
         DestinationFileName="satori-20260112.1.zip"
         Retries="3"

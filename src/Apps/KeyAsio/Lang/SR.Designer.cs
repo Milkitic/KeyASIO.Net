@@ -791,6 +791,24 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 The latest memory rules have been downloaded and applied. 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_RulesUpdated_Content {
+            get {
+                return ResourceManager.GetString("MainWindow_RulesUpdated_Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rules Updated 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_RulesUpdated_Title {
+            get {
+                return ResourceManager.GetString("MainWindow_RulesUpdated_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Update {0} is Now Available. 的本地化字符串。
         /// </summary>
         internal static string MainWindow_UpdateAvailable_Content {
@@ -899,7 +917,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Preset Applied 的本地化字符串。
+        ///   查找类似 Preset Activated 的本地化字符串。
         /// </summary>
         internal static string Preset_AppliedTitle {
             get {
@@ -917,7 +935,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Maximizes performance output, suitable for professional needs or high-performance scenarios. 的本地化字符串。
+        ///   查找类似 Maximizes performance output for ultra-low latency, suitable for high-performance scenarios. 的本地化字符串。
         /// </summary>
         internal static string Preset_ExtremeDescription {
             get {
@@ -926,7 +944,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Fast 的本地化字符串。
+        ///   查找类似 Efficient 的本地化字符串。
         /// </summary>
         internal static string Preset_Fast {
             get {
@@ -935,7 +953,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Optimizes resource usage, suitable for low-end devices or basic needs. 的本地化字符串。
+        ///   查找类似 Reduces system overhead, suitable for low-end devices or basic gameplay needs. 的本地化字符串。
         /// </summary>
         internal static string Preset_FastDescription {
             get {
@@ -944,7 +962,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Please select a suitable mode based on your device performance and usage requirements. 的本地化字符串。
+        ///   查找类似 Please choose an appropriate mode based on your device performance and usage needs. 的本地化字符串。
         /// </summary>
         internal static string Preset_SelectionDescription {
             get {
@@ -962,7 +980,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Standard 的本地化字符串。
+        ///   查找类似 Balanced 的本地化字符串。
         /// </summary>
         internal static string Preset_Standard {
             get {
@@ -971,7 +989,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Provides balanced performance and resource usage, suitable for most general use cases. 的本地化字符串。
+        ///   查找类似 Balances resource usage to deliver the best listening experience, suitable for most gameplay scenarios. 的本地化字符串。
         /// </summary>
         internal static string Preset_StandardDescription {
             get {
@@ -1547,6 +1565,33 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Apply &amp; Test 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_ApplyAndTest {
+            get {
+                return ResourceManager.GetString("Wizard_ApplyAndTest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Back to Config 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_BackToConfig {
+            get {
+                return ResourceManager.GetString("Wizard_BackToConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Back to Selection 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_BackToSelection {
+            get {
+                return ResourceManager.GetString("Wizard_BackToSelection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Output Device 的本地化字符串。
         /// </summary>
         internal static string Wizard_Config_Device {
@@ -1669,6 +1714,15 @@ namespace KeyAsio.Lang {
         internal static string Wizard_Privacy_Title {
             get {
                 return ResourceManager.GetString("Wizard_Privacy_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Retry 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_Retry {
+            get {
+                return ResourceManager.GetString("Wizard_Retry", resourceCulture);
             }
         }
         

@@ -9,8 +9,8 @@ public static class DependencyInjectionExtensions
     {
         services.AddSingleton<AudioCacheManager>();
 
-        services.AddSingleton<AudioEngine>();
-        services.AddSingleton<AudioDeviceManager>();
+        services.AddSingleton<IPlaybackEngine, AudioEngine>();
+        services.AddSingleton<IAudioDeviceManager, AudioDeviceManager>();
         return services;
     }
 }

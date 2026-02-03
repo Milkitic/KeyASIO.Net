@@ -26,7 +26,7 @@ public class SyncSessionContext
     private long _anchorTick; // 锚点 Tick
     private int _anchorTime; // 锚点时间 (ms)
     private double _playbackRate = 1.0;
-    private static readonly double TickToMs = 1000.0 / Stopwatch.Frequency;
+    private static readonly double s_tickToMs = 1000.0 / Stopwatch.Frequency;
 
     // 音频同步与防倒退
     private int _lastReturnedPlayTime = int.MinValue;
@@ -121,7 +121,7 @@ public class SyncSessionContext
         }
 
         long currentTick = Stopwatch.GetTimestamp();
-        double elapsedRealMs = (currentTick - _anchorTick) * TickToMs;
+        double elapsedRealMs = (currentTick - _anchorTick) * s_tickToMs;
 
         // 限制最大预测范围（例如防止暂停后恢复时的瞬间飞跃），这里取 500ms 作为安全上限
         // 如果是正常游玩，BaseMemoryTime 会频繁更新，不会超过这个值
@@ -164,7 +164,7 @@ public class SyncSessionContext
                     else
                     {
                         // 已经冻结，检查是否超时
-                        double frozenDuration = (currentTick - _frozenStartTick) * TickToMs;
+                        double frozenDuration = (currentTick - _frozenStartTick) * s_tickToMs;
                         if (frozenDuration > FrozenTimeoutMs)
                         {
                             // 超时：强制同步（可能是游戏真的卡顿后回退了）

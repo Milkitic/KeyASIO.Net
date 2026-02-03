@@ -1,28 +1,35 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
+using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.OsuMemory;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Semver;
-using SharpCompress.Archives;
-using SharpCompress.Common;
-using ProductHeaderValue = Octokit.ProductHeaderValue;
 
 namespace KeyAsio.Services;
 
-[ObservableObject]
-public partial class UpdateService
+public partial class UpdateService : ObservableObject
 {
     private const string RepoOwner = "Milkitic";
     private const string RepoName = "KeyAsio.Net";
 
-    private readonly ILogger<UpdateService> _logger;
-    private readonly GitHubClient _github;
+    private const string RulesUrl =
+        "https://raw.githubusercontent.com/Milkitic/KeyASIO.Net/refs/heads/master/osu_memory_rules.json";
 
-    public UpdateService(ILogger<UpdateService> logger)
+    private readonly ILogger<UpdateService> _logger;
+    private readonly MemoryScan _memoryScan;
+    private readonly GitHubClient _github;
+    private readonly HttpClient _httpClient = new();
+
+    public IUpdateImplementation UpdateImplementation { get; set; } = new BasicUpdateImplementation();
+
+    public UpdateService(ILogger<UpdateService> logger, MemoryScan memoryScan)
     {
         _logger = logger;
+        _memoryScan = memoryScan;
         _github = new GitHubClient(new ProductHeaderValue("KeyAsio.Net"));
         InitializeVersion();
     }
@@ -50,6 +57,11 @@ public partial class UpdateService
 
     [ObservableProperty]
     public partial string? StatusMessage { get; private set; }
+
+    [ObservableProperty]
+    public partial bool IsRulesUpdateAvailable { get; private set; }
+
+    private string? _newRulesContent;
 
     public Action? UpdateAction { get; set; }
     public Action<bool?>? CheckUpdateCallback { get; set; }
@@ -142,140 +154,60 @@ public partial class UpdateService
     {
         if (NewRelease == null) return;
 
-        _updateCts = new CancellationTokenSource();
-        var token = _updateCts.Token;
+        await UpdateImplementation.StartUpdateAsync(NewRelease);
+    }
 
-        // 1. Find Asset
-        // Prioritize win64/x64 if running on 64-bit
-        var is64Bit = Environment.Is64BitOperatingSystem;
-        var asset = NewRelease.Assets.FirstOrDefault(a => a.Name.Contains(is64Bit ? "win64" : "win32", StringComparison.OrdinalIgnoreCase) && (a.Name.EndsWith(".zip") || a.Name.EndsWith(".7z")));
-
-        if (asset == null)
-        {
-            // Fallback to first zip/7z
-            asset = NewRelease.Assets.FirstOrDefault(a => a.Name.EndsWith(".zip") || a.Name.EndsWith(".7z"));
-        }
-
-        if (asset == null)
-        {
-            _logger.LogError("No suitable asset found for release {Version}", NewRelease.TagName);
-            StatusMessage = "No suitable download found.";
-            return;
-        }
-
+    public async Task<bool> CheckRulesUpdateAsync()
+    {
         try
         {
-            StatusMessage = "Downloading...";
-            DownloadProgress = 0;
-            var tempFile = Path.GetTempFileName();
+            var rulesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "osu_memory_rules.json");
+            var remoteRules = await _httpClient.GetStringAsync(RulesUrl);
 
-            using (var client = new HttpClient())
+            if (!File.Exists(rulesPath))
             {
-                using (var response = await client.GetAsync(asset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead, token))
-                {
-                    response.EnsureSuccessStatusCode();
-                    var totalBytes = response.Content.Headers.ContentLength ?? 1L;
-                    await using (var stream = await response.Content.ReadAsStreamAsync(token))
-                    await using (var fileStream = File.Create(tempFile))
-                    {
-                        var buffer = new byte[8192];
-                        long totalRead = 0;
-                        int read;
-                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
-                        {
-                            await fileStream.WriteAsync(buffer, 0, read, token);
-                            totalRead += read;
-                            DownloadProgress = (double)totalRead / totalBytes * 100;
-                        }
-                    }
-                }
+                _newRulesContent = remoteRules;
+                IsRulesUpdateAvailable = true;
+                return true;
             }
 
-            token.ThrowIfCancellationRequested();
-            StatusMessage = "Extracting...";
-            var updateDir = Path.Combine(Path.GetTempPath(), "KeyAsioUpdate_" + Path.GetRandomFileName());
-            Directory.CreateDirectory(updateDir);
+            var localRules = await File.ReadAllTextAsync(rulesPath);
 
-            using (var archive = ArchiveFactory.Open(tempFile))
+            var localNode = JsonNode.Parse(localRules);
+            var remoteNode = JsonNode.Parse(remoteRules);
+
+            if (!JsonNode.DeepEquals(localNode, remoteNode))
             {
-                foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
-                {
-                    token.ThrowIfCancellationRequested();
-                    await entry.WriteToDirectoryAsync(updateDir, new ExtractionOptions()
-                    {
-                        ExtractFullPath = true,
-                        Overwrite = true
-                    }, token);
-                }
+                _newRulesContent = remoteRules;
+                IsRulesUpdateAvailable = true;
+                return true;
             }
 
-            token.ThrowIfCancellationRequested();
-            // Handle nested folder structure if present
-            var subDirs = Directory.GetDirectories(updateDir);
-            var files = Directory.GetFiles(updateDir);
-            string sourceDir = updateDir;
-
-            // If there's only one directory and no files, assume it's a wrapper folder
-            if (files.Length == 0 && subDirs.Length == 1)
-            {
-                sourceDir = subDirs[0];
-            }
-
-            StatusMessage = "Restarting...";
-
-            // Create Updater Script
-            var currentProcess = Process.GetCurrentProcess();
-            var appPath = AppContext.BaseDirectory;
-            var exeName = Path.GetFileName(currentProcess.MainModule?.FileName ?? "KeyAsio.exe");
-
-            var pid = currentProcess.Id;
-            var scriptPath = Path.Combine(Path.GetTempPath(), "update_script.ps1");
-
-            // PowerShell script to wait, copy, and restart
-            var script = $@"
-$procId = {pid}
-$source = '{sourceDir}'
-$dest = '{appPath}'
-$exe = '{Path.Combine(appPath, exeName)}'
-
-Write-Host 'Waiting for KeyAsio to exit...'
-try {{
-    Wait-Process -Id $procId -Timeout 10 -ErrorAction SilentlyContinue
-}} catch {{}}
-
-Write-Host 'Updating files...'
-Copy-Item -Path ""$source\*"" -Destination ""$dest"" -Recurse -Force
-
-Write-Host 'Starting KeyAsio...'
-Start-Process -FilePath ""$exe""
-";
-            await File.WriteAllTextAsync(scriptPath, script, token);
-
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"",
-                UseShellExecute = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
-
-            Process.Start(startInfo);
-            Environment.Exit(0);
-        }
-        catch (OperationCanceledException)
-        {
-            StatusMessage = "Canceled.";
-            _logger.LogInformation("Update canceled by user.");
+            IsRulesUpdateAvailable = false;
+            return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Update failed");
-            StatusMessage = "Update Failed: " + ex.Message;
+            _logger.LogError(ex, "Failed to check rules update");
+            return false;
         }
-        finally
+    }
+
+    public async Task UpdateRulesAsync()
+    {
+        if (_newRulesContent == null) return;
+        try
         {
-            _updateCts?.Dispose();
-            _updateCts = null;
+            var rulesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "osu_memory_rules.json");
+            await File.WriteAllTextAsync(rulesPath, _newRulesContent);
+            IsRulesUpdateAvailable = false;
+            _newRulesContent = null;
+
+            _memoryScan.ReloadRules();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update rules");
         }
     }
 

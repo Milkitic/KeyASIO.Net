@@ -17,7 +17,7 @@ public class GameplayAudioService : IDisposable
     private const string BeatmapCacheIdentifier = "default";
     private const string UserCacheIdentifier = "internal";
 
-    private static readonly string[] SkinAudioFiles = ["combobreak"];
+    private static readonly string[] s_skinAudioFiles = ["combobreak"];
 
     private OsuAudioFileCache _osuAudioFileCache = new();
     private readonly ConcurrentDictionary<PlaybackEvent, CachedAudio> _playNodeToCachedAudioMapping = new();
@@ -26,7 +26,7 @@ public class GameplayAudioService : IDisposable
     private readonly ILogger<GameplayAudioService> _logger;
     private readonly SyncSessionContext _syncSessionContext;
     private readonly AppSettings _appSettings;
-    private readonly AudioEngine _audioEngine;
+    private readonly IPlaybackEngine _playbackEngine;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
     private readonly SkinManager _skinManager;
@@ -38,7 +38,7 @@ public class GameplayAudioService : IDisposable
     public GameplayAudioService(ILogger<GameplayAudioService> logger,
         SyncSessionContext syncSessionContext,
         AppSettings appSettings,
-        AudioEngine audioEngine,
+        IPlaybackEngine playbackEngine,
         AudioCacheManager audioCacheManager,
         SharedViewModel sharedViewModel,
         SkinManager skinManager)
@@ -46,7 +46,7 @@ public class GameplayAudioService : IDisposable
         _logger = logger;
         _syncSessionContext = syncSessionContext;
         _appSettings = appSettings;
-        _audioEngine = audioEngine;
+        _playbackEngine = playbackEngine;
         _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
         _skinManager = skinManager;
@@ -97,14 +97,14 @@ public class GameplayAudioService : IDisposable
             return;
         }
 
-        if (_audioEngine.CurrentDevice == null)
+        if (_playbackEngine.CurrentDevice == null)
         {
             _logger.LogWarning("AudioEngine is null, stop adding cache.");
             return;
         }
 
         var folder = _beatmapFolder;
-        var waveFormat = _audioEngine.EngineWaveFormat;
+        var waveFormat = _playbackEngine.EngineWaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         _cachingWorker.Enqueue(async token =>
@@ -132,7 +132,7 @@ public class GameplayAudioService : IDisposable
 
             try
             {
-                foreach (var skinAudioFile in SkinAudioFiles)
+                foreach (var skinAudioFile in s_skinAudioFiles)
                 {
                     if (token.IsCancellationRequested) break;
                     await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);
@@ -158,7 +158,7 @@ public class GameplayAudioService : IDisposable
             return;
         }
 
-        if (_audioEngine.CurrentDevice == null)
+        if (_playbackEngine.CurrentDevice == null)
         {
             _logger.LogWarning("AudioEngine is null, stop adding cache.");
             return;
@@ -171,7 +171,7 @@ public class GameplayAudioService : IDisposable
         }
 
         var folder = _beatmapFolder;
-        var waveFormat = _audioEngine.SourceWaveFormat;
+        var waveFormat = _playbackEngine.SourceWaveFormat;
         var skinFolder = _sharedViewModel.SelectedSkin?.Folder ?? "";
 
         _cachingWorker.Enqueue(async token =>

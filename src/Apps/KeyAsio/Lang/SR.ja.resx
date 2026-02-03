@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -118,595 +118,597 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="About_Description" xml:space="preserve">
-    <value>An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio.</value>
+    <value>osu! プレイヤー向けの ASIO/WASAPI 排他ミドルウェア。超低遅延オーディオの限界を追求。</value>
   </data>
   <data name="About_DragToExplore" xml:space="preserve">
-    <value>Drag the sphere to explore the list</value>
+    <value>球体をドラッグして一覧を探索</value>
   </data>
   <data name="About_ExploreMore" xml:space="preserve">
-    <value>Explore More</value>
+    <value>さらに見る</value>
   </data>
   <data name="About_SpecialThanks" xml:space="preserve">
-    <value>Special Thanks</value>
+    <value>特別な感謝</value>
   </data>
   <data name="About_SpecialThanksDescription" xml:space="preserve">
-    <value>Thanks to all supporters of KeyASIO, you make this project better</value>
+    <value>KeyASIO を支援してくださる皆さまに感謝します。皆さんのおかげで本プロジェクトはより良くなります</value>
   </data>
   <data name="About_Title" xml:space="preserve">
     <value>KeyASIO Audio Backend</value>
   </data>
   <data name="About_Visit" xml:space="preserve">
-    <value>Visit</value>
+    <value>訪問</value>
   </data>
   <data name="App_Title" xml:space="preserve">
     <value>KeyASIO</value>
   </data>
   <data name="Audio_BackendSelection" xml:space="preserve">
-    <value>Backend Selection</value>
+    <value>バックエンドの選択</value>
   </data>
   <data name="Audio_Buffer" xml:space="preserve">
-    <value>Buffer</value>
+    <value>バッファ</value>
   </data>
   <data name="Audio_ClearDevice" xml:space="preserve">
-    <value>Clear Device</value>
+    <value>デバイスをクリア</value>
   </data>
   <data name="Audio_Device" xml:space="preserve">
-    <value>Audio Device</value>
+    <value>オーディオデバイス</value>
   </data>
   <data name="Audio_DriverPanel" xml:space="preserve">
-    <value>Driver Panel</value>
+    <value>ドライバーパネル</value>
   </data>
   <data name="Audio_DriverType" xml:space="preserve">
-    <value>Driver Type</value>
+    <value>ドライバータイプ</value>
   </data>
   <data name="Audio_EngineStatus" xml:space="preserve">
-    <value>Engine Status</value>
+    <value>エンジン状態</value>
   </data>
   <data name="Audio_Exclusive" xml:space="preserve">
-    <value>Exclusive</value>
+    <value>排他</value>
   </data>
   <data name="Audio_ExclusiveMode" xml:space="preserve">
-    <value>Exclusive Mode</value>
+    <value>排他モード</value>
   </data>
   <data name="Audio_ForceBufferSize" xml:space="preserve">
-    <value>Force Buffer Size</value>
+    <value>バッファサイズを強制</value>
   </data>
   <data name="Audio_InfoBar_Message_AsioDetected" xml:space="preserve">
-    <value>ASIO driver detected. Recommended to select 'ASIO' driver type.</value>
+    <value>ASIO ドライバーを検出しました。ドライバータイプで「ASIO」を選択することを推奨します。</value>
   </data>
   <data name="Audio_InfoBar_Message_AsioMissing" xml:space="preserve">
-    <value>ASIO driver not detected. Recommended to use WASAPI Exclusive mode.</value>
+    <value>ASIO ドライバーが検出されませんでした。WASAPI 排他モードの使用を推奨します。</value>
   </data>
   <data name="Audio_InfoBar_Message_AsioReady" xml:space="preserve">
-    <value>Low latency system is ready.</value>
+    <value>低遅延システムの準備ができました。</value>
   </data>
   <data name="Audio_InfoBar_Message_DirectSound_AsioAvailable" xml:space="preserve">
-    <value>DirectSound is a high-latency compatibility mode. Recommended to select 'ASIO' instead.</value>
+    <value>DirectSound は互換モードで遅延が高めです。「ASIO」ドライバーの選択を推奨します。</value>
   </data>
   <data name="Audio_InfoBar_Message_DirectSound_WasapiAvailable" xml:space="preserve">
-    <value>DirectSound is a high-latency compatibility mode. Recommended to select 'WASAPI' instead.</value>
+    <value>DirectSound は互換モードで遅延が高めです。「WASAPI」ドライバーの選択を推奨します。</value>
   </data>
   <data name="Audio_InfoBar_Message_WasapiExclusiveReady" xml:space="preserve">
-    <value>Low latency system is ready. If playback fails or crackles, try increasing 'Target Latency'.</value>
+    <value>低遅延システムの準備ができました。デバイスの起動失敗やノイズが出る場合は「目標遅延」を上げてください。</value>
   </data>
   <data name="Audio_InfoBar_Message_WasapiNonExclusive" xml:space="preserve">
-    <value>Exclusive mode is disabled, which may result in higher latency.</value>
+    <value>排他モードが無効のため、遅延が高くなる可能性があります。</value>
   </data>
   <data name="Audio_InfoBar_Title_Attention" xml:space="preserve">
-    <value>Attention</value>
+    <value>注意</value>
   </data>
   <data name="Audio_InfoBar_Title_Error" xml:space="preserve">
-    <value>Error</value>
+    <value>エラー</value>
   </data>
   <data name="Audio_InfoBar_Title_Ready" xml:space="preserve">
-    <value>Ready</value>
+    <value>準備完了</value>
   </data>
   <data name="Audio_InfoBar_Title_Suggestion" xml:space="preserve">
-    <value>Suggestion</value>
+    <value>提案</value>
   </data>
   <data name="Audio_Latency" xml:space="preserve">
-    <value>Latency</value>
+    <value>遅延</value>
   </data>
   <data name="Audio_LatencyAndBuffer" xml:space="preserve">
-    <value>Latency &amp; Buffer</value>
+    <value>遅延とバッファ</value>
   </data>
   <data name="Audio_Limiter" xml:space="preserve">
-    <value>Audio Limiter</value>
+    <value>リミッター</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>Prevents clipping when hitsounds stack. 'Polynomial' mode is recommended; disable for raw audio. Note: 'Master' mode increases CPU usage.</value>
+    <value>音の重なりによるクリッピング歪みを防ぎます。「多項式」モードを推奨します。原音のダイナミクスを重視する場合は無効にできます。
+注意：「マスタリング」モードは CPU 使用率が増加します。</value>
   </data>
   <data name="Audio_LimiterType_Hard" xml:space="preserve">
-    <value>Hard (Raw)</value>
+    <value>ハード（原音）</value>
   </data>
   <data name="Audio_LimiterType_Master" xml:space="preserve">
-    <value>Master (Quality)</value>
+    <value>マスタリング（高品質）</value>
   </data>
   <data name="Audio_LimiterType_Off" xml:space="preserve">
-    <value>Off</value>
+    <value>オフ</value>
   </data>
   <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
-    <value>Polynomial (Game)</value>
+    <value>多項式（ゲーム）</value>
   </data>
   <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
-    <value>Quadratic</value>
+    <value>二次</value>
   </data>
   <data name="Audio_LimiterType_Soft" xml:space="preserve">
-    <value>Soft (Analog)</value>
+    <value>ソフト（アナログ）</value>
   </data>
   <data name="Audio_NoDeviceSelected" xml:space="preserve">
-    <value>No device selected. </value>
+    <value>デバイスが選択されていません。</value>
   </data>
   <data name="Audio_OutputDevice" xml:space="preserve">
-    <value>Output Device</value>
+    <value>出力デバイス</value>
   </data>
   <data name="Audio_Processing" xml:space="preserve">
-    <value>Audio Processing</value>
+    <value>オーディオ処理</value>
   </data>
   <data name="Audio_ReloadDevice" xml:space="preserve">
-    <value>Reload Device</value>
+    <value>デバイスを再読み込み</value>
   </data>
   <data name="Audio_SampleRate" xml:space="preserve">
-    <value>Sample Rate</value>
+    <value>サンプルレート</value>
   </data>
   <data name="Audio_TargetLatency" xml:space="preserve">
-    <value>Target Latency</value>
+    <value>目標遅延</value>
   </data>
   <data name="BalanceMode_BinauralMix" xml:space="preserve">
-    <value>Binaural Mix (Mono)</value>
+    <value>バイノーラルミックス（聴覚補助）</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
-    <value>Constant Power (Game)</value>
+    <value>等電力パンニング（ゲーム）</value>
   </data>
   <data name="BalanceMode_CrossMix" xml:space="preserve">
-    <value>Cross Mix (Spatial)</value>
+    <value>クロスミックス（バランス）</value>
   </data>
   <data name="BalanceMode_MidSide" xml:space="preserve">
-    <value>Mid-Side (Professional)</value>
+    <value>ミッド・サイド（プロ）</value>
   </data>
   <data name="BalanceMode_Off" xml:space="preserve">
-    <value>Off</value>
+    <value>オフ</value>
   </data>
   <data name="Common_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+    <value>キャンセル</value>
   </data>
   <data name="Common_Discard" xml:space="preserve">
-    <value>Discard</value>
+    <value>破棄</value>
   </data>
   <data name="Common_Done" xml:space="preserve">
-    <value>Done</value>
+    <value>完了</value>
   </data>
   <data name="Common_GoToSettings" xml:space="preserve">
-    <value>Go to settings</value>
+    <value>設定へ</value>
   </data>
   <data name="Common_Later" xml:space="preserve">
-    <value>Later</value>
+    <value>後で</value>
   </data>
   <data name="Common_No" xml:space="preserve">
-    <value>No</value>
+    <value>いいえ</value>
   </data>
   <data name="Common_Off" xml:space="preserve">
-    <value>Off</value>
+    <value>オフ</value>
   </data>
   <data name="Common_OK" xml:space="preserve">
     <value>OK</value>
   </data>
   <data name="Common_On" xml:space="preserve">
-    <value>On</value>
+    <value>オン</value>
   </data>
   <data name="Common_Update" xml:space="preserve">
-    <value>Update</value>
+    <value>更新</value>
   </data>
   <data name="Common_Yes" xml:space="preserve">
-    <value>Yes</value>
+    <value>はい</value>
   </data>
   <data name="Dashboard_Beatmap" xml:space="preserve">
-    <value>Beatmap</value>
+    <value>ビートマップ</value>
   </data>
   <data name="Dashboard_EditBindings" xml:space="preserve">
-    <value>Edit Bindings</value>
+    <value>割り当てを編集</value>
   </data>
   <data name="Dashboard_Keys" xml:space="preserve">
-    <value>Keys</value>
+    <value>キー</value>
   </data>
   <data name="Dashboard_PlayTime" xml:space="preserve">
-    <value>Play Time</value>
+    <value>プレイ時間</value>
   </data>
   <data name="Dashboard_Status" xml:space="preserve">
-    <value>Status</value>
+    <value>状態</value>
   </data>
   <data name="Dashboard_SyncStatus" xml:space="preserve">
-    <value>Sync Status</value>
+    <value>同期状態</value>
   </data>
   <data name="Dashboard_Sync_All_Tooltip" xml:space="preserve">
-    <value>Sync both hitsounds and music</value>
+    <value>ヒットサウンドと音楽の両方を同期</value>
   </data>
   <data name="Dashboard_Sync_SFX" xml:space="preserve">
     <value>SFX</value>
   </data>
   <data name="Dashboard_Sync_SFX_Tooltip" xml:space="preserve">
-    <value>Sync hitsounds only</value>
+    <value>ヒットサウンドのみ同期</value>
   </data>
   <data name="Error_OSNotSupported" xml:space="preserve">
-    <value>Current OS version {0} is not supported. Requires Windows Vista or later.</value>
+    <value>現在の OS バージョン {0} はサポートされていません。Windows Vista 以降が必要です。</value>
   </data>
   <data name="KeyBinding_BindLeftMouse" xml:space="preserve">
-    <value>Bind Left Mouse Button</value>
+    <value>左クリックを割り当て</value>
   </data>
   <data name="KeyBinding_BindLeftMouseTooltip" xml:space="preserve">
-    <value>Click here to bind Left Mouse Button</value>
+    <value>ここをクリックして左クリックを割り当て</value>
   </data>
   <data name="KeyBinding_EditBindings" xml:space="preserve">
-    <value>Edit Bindings</value>
+    <value>キー割り当てを編集</value>
   </data>
   <data name="KeyBinding_Message" xml:space="preserve">
-    <value>Press any key to bind...</value>
+    <value>割り当てるキーを押してください...</value>
   </data>
   <data name="MainWindow_ClickToUpdate" xml:space="preserve">
-    <value>Click to Update</value>
+    <value>クリックして更新</value>
   </data>
   <data name="MainWindow_DeviceInitFailed_Title" xml:space="preserve">
-    <value>Device Initialization Failed</value>
+    <value>デバイスの初期化に失敗しました</value>
   </data>
   <data name="MainWindow_ErrorReporting_Content" xml:space="preserve">
-    <value>Send logs and errors to developer?
-You can change option later.</value>
+    <value>ログとエラーレポートを開発者に送信しますか？
+後で設定から変更できます。</value>
   </data>
   <data name="MainWindow_ErrorReporting_Title" xml:space="preserve">
-    <value>Enable Error Reporting</value>
+    <value>エラー報告を有効化</value>
   </data>
   <data name="MainWindow_LoadSkins_Content" xml:space="preserve">
-    <value>Do you want to load skins from osu! folder?</value>
+    <value>osu! フォルダーからスキンを読み込みますか？</value>
   </data>
   <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
-    <value>Load Skins</value>
+    <value>スキンを読み込む</value>
   </data>
   <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
-    <value>Update {0} is Now Available.</value>
+    <value>更新 {0} が利用可能です。</value>
   </data>
   <data name="MainWindow_UpdateAvailable_Title" xml:space="preserve">
-    <value>Update Available</value>
+    <value>更新あり</value>
   </data>
   <data name="MainWindow_UpdateLatest_Content" xml:space="preserve">
-    <value>You are using the latest version.</value>
+    <value>最新バージョンを使用しています。</value>
   </data>
   <data name="MainWindow_Updating_Title" xml:space="preserve">
-    <value>Updating</value>
+    <value>更新中</value>
   </data>
   <data name="Message_RestartRequired" xml:space="preserve">
-    <value>Changes require application to take effect</value>
+    <value>変更は適用後に有効になります</value>
   </data>
   <data name="Page_About" xml:space="preserve">
-    <value>About</value>
+    <value>概要</value>
   </data>
   <data name="Page_AudioEngine" xml:space="preserve">
-    <value>Audio Engine</value>
+    <value>オーディオエンジン</value>
   </data>
   <data name="Page_Dashboard" xml:space="preserve">
-    <value>Dashboard</value>
+    <value>ダッシュボード</value>
   </data>
   <data name="Page_Settings" xml:space="preserve">
-    <value>Settings</value>
+    <value>設定</value>
   </data>
   <data name="Page_SyncMode" xml:space="preserve">
-    <value>Sync Mode</value>
+    <value>同期モード</value>
   </data>
   <data name="Plugin_Corrupted" xml:space="preserve">
-    <value>Unavailable</value>
+    <value>利用不可</value>
   </data>
   <data name="Preset_AppliedContent" xml:space="preserve">
-    <value>Successfully switched to: {0}</value>
+    <value>次のプリセットに切り替えました: {0}</value>
   </data>
   <data name="Preset_AppliedTitle" xml:space="preserve">
-    <value>Preset Activated</value>
+    <value>プリセットが有効になりました</value>
   </data>
   <data name="Preset_Extreme" xml:space="preserve">
-    <value>Extreme</value>
+    <value>超高速レスポンス</value>
   </data>
   <data name="Preset_ExtremeDescription" xml:space="preserve">
-    <value>Maximizes performance output for ultra-low latency, suitable for high-performance scenarios.</value>
+    <value>性能を最大化して極低遅延を実現し、高性能を求める場面に適しています。</value>
   </data>
   <data name="Preset_Fast" xml:space="preserve">
-    <value>Efficient</value>
+    <value>高効率・軽量</value>
   </data>
   <data name="Preset_FastDescription" xml:space="preserve">
-    <value>Reduces system overhead, suitable for low-end devices or basic gameplay needs.</value>
+    <value>システム負荷を抑え、低スペック機や基本的なプレイ用途に適しています。</value>
   </data>
   <data name="Preset_SelectionDescription" xml:space="preserve">
-    <value>Please choose an appropriate mode based on your device performance and usage needs.</value>
+    <value>デバイス性能と使用目的に応じて適切なモードを選択してください。</value>
   </data>
   <data name="Preset_SelectionTitle" xml:space="preserve">
-    <value>Select Preset Mode</value>
+    <value>プリセットモードを選択</value>
   </data>
   <data name="Preset_Standard" xml:space="preserve">
-    <value>Balanced</value>
+    <value>標準バランス</value>
   </data>
   <data name="Preset_StandardDescription" xml:space="preserve">
-    <value>Balances resource usage to deliver the best listening experience, suitable for most gameplay scenarios.</value>
+    <value>リソース使用をバランスさせ、最適な聴覚体験を提供し、ほとんどのプレイ場面に適しています。</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
-    <value>About</value>
+    <value>概要</value>
   </data>
   <data name="Settings_AllowMultipleInstances" xml:space="preserve">
-    <value>Allow Multiple Instances</value>
+    <value>複数起動を許可</value>
   </data>
   <data name="Settings_Apply" xml:space="preserve">
-    <value>Apply Settings</value>
+    <value>設定を適用</value>
   </data>
   <data name="Settings_CheckForUpdates" xml:space="preserve">
-    <value>Check for Updates</value>
+    <value>更新を確認</value>
   </data>
   <data name="Settings_CopyrightLine" xml:space="preserve">
     <value>Copyright © 2022-2026 Milkitic (aka. yf_bmp).</value>
   </data>
   <data name="Settings_DebugConsole" xml:space="preserve">
-    <value>Debug Console</value>
+    <value>デバッグコンソール</value>
   </data>
   <data name="Settings_EnableAvx512" xml:space="preserve">
-    <value>Enable AVX-512</value>
+    <value>AVX-512 を有効化</value>
   </data>
   <data name="Settings_Environment" xml:space="preserve">
-    <value>Environment</value>
+    <value>環境</value>
   </data>
   <data name="Settings_ErrorReporting" xml:space="preserve">
-    <value>Error Reporting</value>
+    <value>エラー報告</value>
   </data>
   <data name="Settings_ExtendedVolume" xml:space="preserve">
-    <value>Extended Volume</value>
+    <value>拡張音量</value>
   </data>
   <data name="Settings_ExtendedVolumeDescription" xml:space="preserve">
-    <value>Allow volume up to 150%</value>
+    <value>音量を最大 150% まで許可</value>
   </data>
   <data name="Settings_FollowSystem" xml:space="preserve">
-    <value>Follow System</value>
+    <value>システムに従う</value>
   </data>
   <data name="Settings_General" xml:space="preserve">
-    <value>General</value>
+    <value>一般</value>
   </data>
   <data name="Settings_InputAndPerformance" xml:space="preserve">
-    <value>Input &amp; Performance</value>
+    <value>入力とパフォーマンス</value>
   </data>
   <data name="Settings_Language" xml:space="preserve">
-    <value>Language</value>
+    <value>言語</value>
   </data>
   <data name="Settings_LegacyModeDescription" xml:space="preserve">
-    <value>Disables syncing; responds only to raw key presses. Intended for testing purposes.</value>
+    <value>同期を無効にし、素のキー入力のみに反応します。テスト目的です。</value>
   </data>
   <data name="Settings_LegacyModeKeyOnly" xml:space="preserve">
-    <value>Legacy Mode (Key Only)</value>
+    <value>レガシーモード（キーのみ）</value>
   </data>
   <data name="Settings_LicensedUnderMpl" xml:space="preserve">
-    <value>Licensed under MPL-2.0</value>
+    <value>MPL-2.0 でライセンス</value>
   </data>
   <data name="Settings_NoUpdatesAvailable" xml:space="preserve">
-    <value>No updates available.</value>
+    <value>利用可能な更新はありません。</value>
   </data>
   <data name="Settings_OsuFolderPath" xml:space="preserve">
-    <value>osu! Folder Path</value>
+    <value>osu! フォルダーのパス</value>
   </data>
   <data name="Settings_PerformanceBoost" xml:space="preserve">
-    <value>Performance Boost</value>
+    <value>パフォーマンスブースト</value>
   </data>
   <data name="Settings_PresetMode" xml:space="preserve">
-    <value>Preset Mode</value>
+    <value>プリセットモード</value>
   </data>
   <data name="Settings_PresetModeDescription" xml:space="preserve">
-    <value>Quickly apply preset configurations to suit different usage scenarios.</value>
+    <value>用途に合わせてプリセット設定をすばやく適用します。</value>
   </data>
   <data name="Settings_RawInput" xml:space="preserve">
-    <value>Raw Input</value>
+    <value>生入力</value>
   </data>
   <data name="Settings_RawInputDescription" xml:space="preserve">
-    <value>Uses low-latency key hooks when disabled</value>
+    <value>無効時は低遅延のキーフックを使用します。</value>
   </data>
   <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
-    <value>Select osu! Folder</value>
+    <value>osu! フォルダーを選択</value>
   </data>
   <data name="Settings_Theme" xml:space="preserve">
-    <value>Theme</value>
+    <value>テーマ</value>
   </data>
   <data name="Settings_Theme_Dark" xml:space="preserve">
-    <value>Dark</value>
+    <value>ダーク</value>
   </data>
   <data name="Settings_Theme_Light" xml:space="preserve">
-    <value>Light</value>
+    <value>ライト</value>
   </data>
   <data name="Settings_UpdateAvailablePrefix" xml:space="preserve">
-    <value>Update available: v</value>
+    <value>更新があります: v</value>
   </data>
   <data name="Settings_Updates" xml:space="preserve">
-    <value>Updates</value>
+    <value>更新</value>
   </data>
   <data name="Sync_AdvancedSettings" xml:space="preserve">
-    <value>Advanced Settings</value>
+    <value>詳細設定</value>
   </data>
   <data name="Sync_AudioField" xml:space="preserve">
-    <value>Audio Field</value>
+    <value>音場</value>
   </data>
   <data name="Sync_AudioFilters" xml:space="preserve">
-    <value>Audio Filters</value>
+    <value>オーディオフィルター</value>
   </data>
   <data name="Sync_AutoLoadSkins" xml:space="preserve">
-    <value>Auto Load Skins from osu!</value>
+    <value>osu! からスキンを自動読み込み</value>
   </data>
   <data name="Sync_BalanceMode" xml:space="preserve">
-    <value>Balance Mode</value>
+    <value>バランスモード</value>
   </data>
   <data name="Sync_BalanceModeDescription" xml:space="preserve">
-    <value>Controls stereo balance processing. 'ConstantPower' is standard; 'CrossMix' preserves ambience. Note: 'Mid-Side' mode increases CPU usage.</value>
+    <value>ステレオバランスの処理アルゴリズムを制御します。「等電力」は標準モードで、「クロスミックス」は空間感を保ちます。
+注意：「ミッド・サイド」モードは CPU 使用率が増加します。</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
-    <value>Disable Combo Break</value>
+    <value>コンボブレイク音を無効化</value>
   </data>
   <data name="Sync_DisableMapHitsounds" xml:space="preserve">
-    <value>Disable Map Hitsounds</value>
+    <value>譜面のヒットサウンドを無効化</value>
   </data>
   <data name="Sync_DisableSliderTicks" xml:space="preserve">
-    <value>Disable Slider Ticks</value>
+    <value>スライダーのティック音を無効化</value>
   </data>
   <data name="Sync_DisableStoryboard" xml:space="preserve">
-    <value>Disable Storyboard</value>
+    <value>ストーリーボードを無効化</value>
   </data>
   <data name="Sync_ForceNightcore" xml:space="preserve">
-    <value>Force Nightcore Beats</value>
+    <value>Nightcore ビートを強制</value>
   </data>
   <data name="Sync_GeneralScanInterval" xml:space="preserve">
-    <value>General Scan Interval (ms)</value>
+    <value>一般スキャン間隔 (ms)</value>
   </data>
   <data name="Sync_GeneralScanIntervalDescription" xml:space="preserve">
-    <value>Lower values update generic fields more promptly. Increase to reduce CPU usage.</value>
+    <value>値を下げるほど一般フィールドの更新が速くなります。値を上げると CPU 使用率を下げられます。</value>
   </data>
   <data name="Sync_IgnoreVolumeChanges" xml:space="preserve">
-    <value>Ignore Volume Changes</value>
+    <value>音量変更を無視</value>
   </data>
   <data name="Sync_MusicControl" xml:space="preserve">
-    <value>Music Control</value>
+    <value>音楽コントロール</value>
   </data>
   <data name="Sync_SelectedSkin" xml:space="preserve">
-    <value>Selected Skin</value>
+    <value>現在のスキン</value>
   </data>
   <data name="Sync_SkinDescription" xml:space="preserve">
-    <value>Assets loaded from your local installation. </value>
+    <value>リソースはローカルのインストールディレクトリから読み込みます。</value>
   </data>
   <data name="Sync_SkinResources" xml:space="preserve">
-    <value>Skin Resources</value>
+    <value>スキンリソース</value>
   </data>
   <data name="Sync_SliderTailBehavior" xml:space="preserve">
-    <value>Slider Tail Behavior</value>
+    <value>スライダー終端の挙動</value>
   </data>
   <data name="Sync_StereoWidth" xml:space="preserve">
-    <value>Stereo Width</value>
+    <value>ステレオ幅</value>
   </data>
   <data name="Sync_TimingScanInterval" xml:space="preserve">
-    <value>Timing Scan Interval (ms)</value>
+    <value>タイミングスキャン間隔 (ms)</value>
   </data>
   <data name="Sync_TimingScanIntervalDescription" xml:space="preserve">
-    <value>Lower values update timing fields more promptly. Increase if audio cutting occurs.</value>
+    <value>値を下げるほどタイミングの更新が速くなります。音が途切れる場合は値を上げてください。</value>
   </data>
   <data name="Sync_WidthNarrow" xml:space="preserve">
-    <value>Narrow</value>
+    <value>狭い</value>
   </data>
   <data name="Sync_WidthNormal" xml:space="preserve">
-    <value>Normal</value>
+    <value>標準</value>
   </data>
   <data name="Sync_WidthWide" xml:space="preserve">
-    <value>Wide</value>
+    <value>広い</value>
   </data>
   <data name="TrayIcon_Exit" xml:space="preserve">
-    <value>Exit</value>
+    <value>終了</value>
   </data>
   <data name="TrayIcon_OpenAsioPanel" xml:space="preserve">
-    <value>Open ASIO Options</value>
+    <value>ASIO 設定を開く</value>
   </data>
   <data name="TrayIcon_OpenDashboard" xml:space="preserve">
-    <value>Open Dashboard</value>
+    <value>ダッシュボードを開く</value>
   </data>
   <data name="Volume_Effect" xml:space="preserve">
-    <value>Effect</value>
+    <value>効果音</value>
   </data>
   <data name="Volume_Master" xml:space="preserve">
-    <value>Master</value>
+    <value>マスター</value>
   </data>
   <data name="Volume_Music" xml:space="preserve">
-    <value>Music</value>
+    <value>音楽</value>
   </data>
   <data name="Volume_Title" xml:space="preserve">
-    <value>Volume Control</value>
+    <value>音量調整</value>
   </data>
   <data name="Wizard_ApplyAndTest" xml:space="preserve">
-    <value>Apply &amp; Test</value>
+    <value>適用してテスト</value>
   </data>
   <data name="Wizard_BackToConfig" xml:space="preserve">
-    <value>Back to Config</value>
+    <value>設定に戻る</value>
   </data>
   <data name="Wizard_BackToSelection" xml:space="preserve">
-    <value>Back to Selection</value>
+    <value>選択に戻る</value>
   </data>
   <data name="Wizard_Config_Device" xml:space="preserve">
-    <value>Output Device</value>
+    <value>出力デバイス</value>
   </data>
   <data name="Wizard_Config_Driver" xml:space="preserve">
-    <value>Driver Type</value>
+    <value>ドライバータイプ</value>
   </data>
   <data name="Wizard_Config_Title" xml:space="preserve">
-    <value>Audio Configuration</value>
+    <value>オーディオ設定</value>
   </data>
   <data name="Wizard_Finish" xml:space="preserve">
-    <value>Finish</value>
+    <value>完了</value>
   </data>
   <data name="Wizard_Mode_Hardware" xml:space="preserve">
-    <value>Hardware Mix (Multi-Output)</value>
+    <value>ハードウェアミックス（マルチ出力）</value>
   </data>
   <data name="Wizard_Mode_Hardware_Desc" xml:space="preserve">
-    <value>I have a dedicated sound card or mixer. I can route osu! and KeyASIO to different outputs.</value>
+    <value>専用のサウンドカードまたはミキサーがあります。osu! と KeyASIO を別々の出力にルーティングできます。</value>
   </data>
   <data name="Wizard_Mode_Software" xml:space="preserve">
-    <value>Software Mix (ProMix)</value>
+    <value>ソフトウェアミックス（ProMix）</value>
   </data>
   <data name="Wizard_Mode_Software_Desc" xml:space="preserve">
-    <value>I use standard headphones/speakers. Let KeyASIO handle the mixing.</value>
+    <value>一般的なヘッドホン/スピーカーを使用しています。ミキシングは KeyASIO に任せます。</value>
   </data>
   <data name="Wizard_Mode_Title" xml:space="preserve">
-    <value>Select Audio Mode</value>
+    <value>オーディオモードを選択</value>
   </data>
   <data name="Wizard_Next" xml:space="preserve">
-    <value>Next</value>
+    <value>次へ</value>
   </data>
   <data name="Wizard_Previous" xml:space="preserve">
-    <value>Previous</value>
+    <value>前へ</value>
   </data>
   <data name="Wizard_Privacy_CheckUpdates" xml:space="preserve">
-    <value>Check for updates automatically</value>
+    <value>更新を自動的に確認する</value>
   </data>
   <data name="Wizard_Privacy_CrashReport" xml:space="preserve">
-    <value>Send anonymous crash reports</value>
+    <value>匿名のクラッシュレポートを送信する</value>
   </data>
   <data name="Wizard_Privacy_Title" xml:space="preserve">
-    <value>Privacy &amp; Updates</value>
+    <value>プライバシーと更新</value>
   </data>
   <data name="Wizard_Retry" xml:space="preserve">
-    <value>Retry</value>
+    <value>再試行</value>
   </data>
   <data name="Wizard_Skip" xml:space="preserve">
-    <value>Skip</value>
+    <value>スキップ</value>
   </data>
   <data name="Wizard_Start" xml:space="preserve">
-    <value>Start Setup</value>
+    <value>セットアップを開始</value>
   </data>
   <data name="Wizard_Test_KeySound" xml:space="preserve">
-    <value>Test Key Sound</value>
+    <value>キー音をテスト</value>
   </data>
   <data name="Wizard_Test_Music" xml:space="preserve">
-    <value>Test Music</value>
+    <value>音楽をテスト</value>
   </data>
   <data name="Wizard_Test_Title" xml:space="preserve">
-    <value>Audio Test</value>
+    <value>オーディオテスト</value>
   </data>
   <data name="Wizard_Title" xml:space="preserve">
-    <value>Setup Wizard</value>
+    <value>セットアップウィザード</value>
   </data>
   <data name="Wizard_VirtualDriver_Detected" xml:space="preserve">
-    <value>Virtual Driver Detected</value>
+    <value>仮想ドライバーを検出</value>
   </data>
   <data name="Wizard_VirtualDriver_Install" xml:space="preserve">
-    <value>Install Virtual Driver</value>
+    <value>仮想ドライバーをインストール</value>
   </data>
   <data name="Wizard_Welcome_Feature1" xml:space="preserve">
-    <value>Extreme Low Latency
-(ASIO / WASAPI Exclusive)</value>
+    <value>超低遅延
+(ASIO / WASAPI 排他)</value>
   </data>
   <data name="Wizard_Welcome_Feature2" xml:space="preserve">
-    <value>Automatic Sync
-(osu! Data Sync)</value>
+    <value>自動同期
+(osu! データ同期)</value>
   </data>
   <data name="Wizard_Welcome_Feature3" xml:space="preserve">
-    <value>Advanced Mixing
-(Personalized DSP Processing)</value>
+    <value>高度なミキシング
+(カスタム DSP 処理)</value>
   </data>
   <data name="Wizard_Welcome_Subtitle" xml:space="preserve">
-    <value>An ASIO/WASAPI Exclusive middleware for osu! players. Exploring the limits of low-latency audio.</value>
+    <value>osu! プレイヤー向けの ASIO/WASAPI 排他ミドルウェア。超低遅延オーディオの限界を追求。</value>
   </data>
   <data name="Wizard_Welcome_Title" xml:space="preserve">
-    <value>Welcome to KeyASIO</value>
+    <value>KeyASIO へようこそ</value>
   </data>
 </root>

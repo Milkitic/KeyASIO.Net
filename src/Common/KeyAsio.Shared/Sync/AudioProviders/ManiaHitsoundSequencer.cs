@@ -12,7 +12,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
     private readonly ILogger<ManiaHitsoundSequencer> _logger;
     private readonly AppSettings _appSettings;
     private readonly SyncSessionContext _syncSessionContext;
-    private readonly AudioEngine _audioEngine;
+    private readonly IPlaybackEngine _playbackEngine;
     private readonly GameplayAudioService _gameplayAudioService;
     private readonly GameplaySessionManager _gameplaySessionManager;
 
@@ -28,14 +28,14 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
     public ManiaHitsoundSequencer(ILogger<ManiaHitsoundSequencer> logger,
         AppSettings appSettings,
         SyncSessionContext syncSessionContext,
-        AudioEngine audioEngine,
+        IPlaybackEngine playbackEngine,
         GameplayAudioService gameplayAudioService,
         GameplaySessionManager gameplaySessionManager)
     {
         _logger = logger;
         _appSettings = appSettings;
         _syncSessionContext = syncSessionContext;
-        _audioEngine = audioEngine;
+        _playbackEngine = playbackEngine;
         _gameplayAudioService = gameplayAudioService;
         _gameplaySessionManager = gameplaySessionManager;
     }
@@ -45,7 +45,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
         var playTime = _syncSessionContext.PlayTime;
         var isStarted = _syncSessionContext.IsStarted;
 
-        if (_audioEngine.CurrentDevice == null)
+        if (_playbackEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready, return empty.");
             return;
@@ -79,7 +79,7 @@ public class ManiaHitsoundSequencer : IHitsoundSequencer
         var playTime = _syncSessionContext.PlayTime;
         var isStarted = _syncSessionContext.IsStarted;
 
-        if (_audioEngine.CurrentDevice == null)
+        if (_playbackEngine.CurrentDevice == null)
         {
             _logger.LogWarning("Engine not ready, return empty.");
             return;

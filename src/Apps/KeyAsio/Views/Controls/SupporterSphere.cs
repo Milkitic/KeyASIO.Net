@@ -15,13 +15,13 @@ namespace KeyAsio.Views.Controls;
 
 public class SupporterSphere : UserControl
 {
-    private static readonly Comparison<SphereTag> ZOrderComparer = (a, b) => a.Z.CompareTo(b.Z);
+    private static readonly Comparison<SphereTag> s_zOrderComparer = (a, b) => a.Z.CompareTo(b.Z);
 
     // SKResources (Cached for measurement)
-    private static readonly SKTypeface DefaultTypeface = SKTypeface.FromFamilyName(null, SKFontStyle.Bold);
-    private static readonly SKFont MeasureFont = new() { Typeface = DefaultTypeface, };
+    private static readonly SKTypeface s_defaultTypeface = SKTypeface.FromFamilyName(null, SKFontStyle.Bold);
+    private static readonly SKFont s_measureFont = new() { Typeface = s_defaultTypeface, };
 
-    private static readonly SKPaint TagBgPaint = new()
+    private static readonly SKPaint s_tagBgPaint = new()
     {
         Color = new SKColor(16, 16, 16, 48), // 半透明黑色背景
         Style = SKPaintStyle.Fill,
@@ -241,7 +241,7 @@ public class SupporterSphere : UserControl
     private void UpdateTags()
     {
         var isDarkMode = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
-        TagBgPaint.Color = isDarkMode
+        s_tagBgPaint.Color = isDarkMode
             ? new SKColor(16, 16, 16, 48)
             : new SKColor(242, 242, 242, 210);
         _tags.Clear();
@@ -275,7 +275,7 @@ public class SupporterSphere : UserControl
             _tags.Add(tag);
         }
 
-        _tags.Sort(ZOrderComparer);
+        _tags.Sort(s_zOrderComparer);
         InvalidateVisual();
     }
 
@@ -302,13 +302,13 @@ public class SupporterSphere : UserControl
             }
         }
 
-        MeasureFont.Size = fontSize;
+        s_measureFont.Size = fontSize;
 
         // 测量宽度
-        float textWidth = MeasureFont.MeasureText(text);
+        float textWidth = s_measureFont.MeasureText(text);
 
         // 测量高度 (Ascent + Descent)
-        MeasureFont.GetFontMetrics(out var metrics);
+        s_measureFont.GetFontMetrics(out var metrics);
         // 通常高度取 descent - ascent (ascent 是负值)
         float textHeight = metrics.Descent - metrics.Ascent;
 
@@ -327,13 +327,13 @@ public class SupporterSphere : UserControl
 
         using var font = new SKFont();
         font.Size = fontSize;
-        font.Typeface = DefaultTypeface;
+        font.Typeface = s_defaultTypeface;
 
         // Clear transparent
         surface.Canvas.Clear(SKColors.Transparent);
 
         var rect = new SKRect(0, 0, imgWidth, imgHeight);
-        surface.Canvas.DrawRoundRect(rect, 6, 6, TagBgPaint); // 6是圆角半径
+        surface.Canvas.DrawRoundRect(rect, 6, 6, s_tagBgPaint); // 6是圆角半径
 
         float textX = paddingH;
         float textY = paddingV - metrics.Ascent;
@@ -389,7 +389,7 @@ public class SupporterSphere : UserControl
             }
         }
 
-        _tags.Sort(ZOrderComparer);
+        _tags.Sort(s_zOrderComparer);
     }
 
     public override void Render(DrawingContext context)
@@ -473,7 +473,7 @@ public class SupporterSphere : UserControl
 
     private class SphereDrawOperation : ICustomDrawOperation
     {
-        private static readonly ThreadLocal<SKPaint> PaintCache = new(() => new SKPaint
+        private static readonly ThreadLocal<SKPaint> s_paintCache = new(() => new SKPaint
         {
             IsAntialias = true
         });
@@ -508,7 +508,7 @@ public class SupporterSphere : UserControl
             var canvas = lease.SkCanvas;
 
             // Retrieve cached instances
-            var paint = PaintCache.Value!;
+            var paint = s_paintCache.Value!;
 
             for (var i = 0; i < _count; i++)
             {

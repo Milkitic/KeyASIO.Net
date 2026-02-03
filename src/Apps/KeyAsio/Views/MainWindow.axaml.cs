@@ -44,7 +44,7 @@ public partial class MainWindow : SukiWindow
         DataContext = _viewModel = mainWindowViewModel;
         Application.Current!.ActualThemeVariantChanged += (_, _) =>
         {
-            UpdateThemeByDevice(_viewModel.AudioSettings.AudioEngine.CurrentDeviceDescription);
+            UpdateThemeByDevice(_viewModel.AudioSettings.PlaybackEngine.CurrentDeviceDescription);
         };
         UpdateThemeByDevice(null);
 
@@ -110,15 +110,12 @@ public partial class MainWindow : SukiWindow
 
             await Dispatcher.UIThread.InvokeAsync(() => UpdateThemeByDevice(null));
 
-            //if (_viewModel.AppSettings.General.IsFirstRun)
-            //{
-            //await ShowWizardAsync();
-            //InitializeStartupLogic();
-            //}
-            //else
-            //{
+            if (_viewModel.AppSettings.General.IsFirstRun)
+            {
+                await ShowWizardAsync();
+            }
+
             InitializeStartupLogic();
-            //}
         }
         catch (Exception ex)
         {
@@ -138,12 +135,6 @@ public partial class MainWindow : SukiWindow
 
     private void StartUpdate(UpdateService updateService)
     {
-        _viewModel.DialogManager.CreateDialog()
-            .WithTitle(SR.MainWindow_Updating_Title)
-            .WithContent(new UpdateDialogView { DataContext = updateService })
-            .WithActionButton(SR.Common_Cancel, _ => updateService.CancelUpdate(), true)
-            .TryShow();
-
         _ = updateService.DownloadAndInstallAsync();
     }
 
@@ -277,6 +268,7 @@ public partial class MainWindow : SukiWindow
 
     private void InitializeStartupLogic()
     {
+        _skinManager.Start();
         if (_viewModel.AppSettings.Paths.AllowAutoLoadSkins == null)
         {
             _viewModel.MainToastManager.CreateToast()
@@ -335,7 +327,23 @@ public partial class MainWindow : SukiWindow
             var result = await updateService.CheckUpdateAsync();
             if (result == true)
             {
-                Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
+                if (_viewModel.AppSettings.Update.SkipVersion != updateService.NewRelease?.TagName)
+                {
+                    Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
+                }
+            }
+
+            result = await updateService.CheckRulesUpdateAsync();
+            if (result == true)
+            {
+                await updateService.UpdateRulesAsync();
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    _viewModel.MainToastManager.CreateSimpleInfoToast()
+                        .WithTitle(SR.MainWindow_RulesUpdated_Title)
+                        .WithContent(SR.MainWindow_RulesUpdated_Content)
+                        .Queue();
+                });
             }
         });
 

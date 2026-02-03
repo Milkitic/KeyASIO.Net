@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
@@ -8,6 +8,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Lang;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Secrets;
 using KeyAsio.Services;
 using KeyAsio.Shared;
@@ -15,6 +16,7 @@ using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync;
 using KeyAsio.ViewModels.Dialogs;
 using KeyAsio.Views.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SukiUI.Dialogs;
 using SukiUI.Toasts;
@@ -27,6 +29,7 @@ public partial class MainWindowViewModel : IDisposable
     public event Action? RequestShowWizard;
 
     private readonly ILogger<MainWindowViewModel> _logger;
+    private readonly IServiceProvider _serviceProvider;
     private readonly SettingsManager _settingsManager;
     private readonly PresetManager _presetManager;
     private readonly PropertyChangedEventHandler _languageManagerPropertyChangedHandler;
@@ -72,6 +75,7 @@ public partial class MainWindowViewModel : IDisposable
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
+        IServiceProvider serviceProvider,
         AppSettings appSettings,
         UpdateService updateService,
         AudioSettingsViewModel audioSettingsViewModel,
@@ -87,6 +91,7 @@ public partial class MainWindowViewModel : IDisposable
         AppSettings = appSettings;
         UpdateService = updateService;
         _logger = logger;
+        _serviceProvider = serviceProvider;
         AudioSettings = audioSettingsViewModel;
         Shared = sharedViewModel;
         SyncSession = syncSession;
@@ -114,6 +119,27 @@ public partial class MainWindowViewModel : IDisposable
             }
         };
         LanguageManager.PropertyChanged += _languageManagerPropertyChangedHandler;
+
+        PluginManager.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(PluginManagerViewModel.ActivePlugin))
+            {
+                UpdateUpdateImplementation();
+            }
+        };
+        UpdateUpdateImplementation();
+    }
+
+    private void UpdateUpdateImplementation()
+    {
+        if (PluginManager.ActivePlugin is IUpdateSupportPlugin updatePlugin)
+        {
+            UpdateService.UpdateImplementation = updatePlugin.UpdateImplementation;
+        }
+        else
+        {
+            UpdateService.UpdateImplementation = new BasicUpdateImplementation();
+        }
     }
 
     public LanguageManager LanguageManager { get; }
@@ -161,7 +187,7 @@ public partial class MainWindowViewModel : IDisposable
     [RelayCommand]
     public void OpenPresetSelection()
     {
-        var vm = new PresetSelectionDialogViewModel(_presetManager, DialogManager, MainToastManager, AudioSettings);
+        var vm = _serviceProvider.GetRequiredService<PresetSelectionDialogViewModel>();
         DialogManager.CreateDialog()
             .WithTitle(SR.Preset_SelectionTitle)
             .WithContent(new PresetSelectionDialog { DataContext = vm })

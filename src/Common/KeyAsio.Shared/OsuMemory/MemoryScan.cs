@@ -91,6 +91,25 @@ public class MemoryScan
         _intervalUpdatedEvent.Set();
     }
 
+    public void ReloadRules()
+    {
+        try
+        {
+            var assemblyPath = Path.GetDirectoryName(typeof(MemoryScan).Assembly.Location) ?? string.Empty;
+            var rulesPath = Path.Combine(assemblyPath, "osu_memory_rules.json");
+            _memoryProfile = MemoryProfile.Load(rulesPath);
+            
+            // Force reconnection to rebuild MemoryContext with new profile
+            CleanupProcess(MemoryReadObject);
+            
+            _logger.LogInformation("Memory rules reloaded.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reload memory rules");
+        }
+    }
+
     private void ReadImpl()
     {
         var memoryReadObject = MemoryReadObject;

@@ -12,8 +12,8 @@ namespace KeyAsio.Shared.Hitsounds;
 
 public sealed class BeatmapSetContext
 {
-    private static readonly Type ObjectSamplesetType = typeof(ObjectSamplesetType);
-    private static readonly AsyncSequentialWorker Worker = new(name: nameof(BeatmapSetContext));
+    private static readonly Type s_objectSamplesetType = typeof(ObjectSamplesetType);
+    private static readonly AsyncSequentialWorker s_worker = new(name: nameof(BeatmapSetContext));
 
     private readonly OsuAudioFileCache _cache = new();
     private readonly string _directory;
@@ -32,7 +32,7 @@ public sealed class BeatmapSetContext
         var directoryInfo = new DirectoryInfo(_directory);
         var waveFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var osuFiles = new List<OsuFile>();
-        await Worker.EnqueueAsync(() =>
+        await s_worker.EnqueueAsync(() =>
         {
             foreach (var fileInfo in directoryInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
             {
@@ -78,7 +78,7 @@ public sealed class BeatmapSetContext
 
         var hitObjects = osuFile.HitObjects.HitObjectList;
         var elements = new List<PlaybackEvent>(hitObjects.Count);
-        await Worker.EnqueueAsync(() =>
+        await s_worker.EnqueueAsync(() =>
         {
             osuFile.HitObjects.ComputeSlidersByCurrentSettings();
 
@@ -390,13 +390,13 @@ public sealed class BeatmapSetContext
         }
 
         // hitnormal, sliderslide
-        string sampleStr = Enum.IsDefined(ObjectSamplesetType, itemSample) &&
+        string sampleStr = Enum.IsDefined(s_objectSamplesetType, itemSample) &&
                            itemSample != Coosu.Beatmap.Sections.HitObject.ObjectSamplesetType.Auto
             ? itemSample.ToHitsoundString(null)!
             : timingPoint.TimingSampleset.ToHitsoundString();
 
         // hitclap, hitfinish, hitwhistle, slidertick, sliderwhistle
-        string additionStr = Enum.IsDefined(ObjectSamplesetType, itemAddition)
+        string additionStr = Enum.IsDefined(s_objectSamplesetType, itemAddition)
             ? itemAddition.ToHitsoundString(sampleStr)!
             : timingPoint.TimingSampleset.ToHitsoundString();
 

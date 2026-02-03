@@ -16,7 +16,7 @@ public class SettingsManager : IDisposable
 {
     private readonly ILogger<SettingsManager> _logger;
     private readonly AppSettings _appSettings;
-    private readonly AudioEngine _audioEngine;
+    private readonly IPlaybackEngine _playbackEngine;
     private readonly ISukiToastManager _toastManager;
 
     private readonly List<INotifyPropertyChanged> _observedSettings = new();
@@ -26,12 +26,12 @@ public class SettingsManager : IDisposable
     public SettingsManager(
         ILogger<SettingsManager> logger,
         AppSettings appSettings,
-        AudioEngine audioEngine,
+        IPlaybackEngine playbackEngine,
         ISukiToastManager toastManager)
     {
         _logger = logger;
         _appSettings = appSettings;
-        _audioEngine = audioEngine;
+        _playbackEngine = playbackEngine;
         _toastManager = toastManager;
 
         ApplyTheme();
@@ -83,17 +83,17 @@ public class SettingsManager : IDisposable
         {
             if (e.PropertyName == nameof(AppSettingsAudio.MasterVolume))
             {
-                _audioEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
+                _playbackEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
                 DebounceSave();
             }
             else if (e.PropertyName == nameof(AppSettingsAudio.MusicVolume))
             {
-                _audioEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
+                _playbackEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
                 DebounceSave();
             }
             else if (e.PropertyName == nameof(AppSettingsAudio.EffectVolume))
             {
-                _audioEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
+                _playbackEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
                 DebounceSave();
             }
         }
@@ -106,7 +106,7 @@ public class SettingsManager : IDisposable
             }
             else if (e.PropertyName == nameof(AppSettingsSyncPlayback.LimiterType))
             {
-                _audioEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
+                _playbackEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
                 DebounceSave();
             }
         }
