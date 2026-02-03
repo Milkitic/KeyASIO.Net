@@ -50,6 +50,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsSoftwareConfig))]
+    [NotifyPropertyChangedFor(nameof(IsHardwareMode))]
     public partial WizardMode SelectedMode { get; set; } = WizardMode.NotSelected;
 
     // Config Page
@@ -87,6 +88,8 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
 
     public bool IsSoftwareConfig =>
         CurrentAudioSubStep == AudioSubStep.Configuration && SelectedMode == WizardMode.Software;
+
+    public bool IsHardwareMode => SelectedMode == WizardMode.Hardware;
 
     public bool IsValidationStep => CurrentAudioSubStep == AudioSubStep.Validation;
 

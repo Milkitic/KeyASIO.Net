@@ -94,6 +94,25 @@ public class WizardAudioConfigViewModelTests
     }
 
     [AvaloniaFact]
+    public void SelectMode_UpdatesIsHardwareMode()
+    {
+        var vm = CreateViewModel();
+
+        // Initial
+        Assert.False(vm.IsHardwareMode);
+
+        // Select Hardware
+        vm.SelectModeCommand.Execute(WizardMode.Hardware);
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(vm.IsHardwareMode);
+
+        // Select Software
+        vm.SelectModeCommand.Execute(WizardMode.Software);
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(vm.IsHardwareMode);
+    }
+
+    [AvaloniaFact]
     public void SelectMode_UpdatesEnableMixSync()
     {
         var vm = CreateViewModel();

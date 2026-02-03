@@ -454,7 +454,24 @@
             <TextBlock
               HorizontalAlignment="Center"
               Opacity="0.7"
-              Text="配置已完成，请按键盘试听，确认无误后点击下一步" />
+              Text="配置已完成。请打开一首歌曲进行游玩测试，确认行为正常无误后点击下一步"
+              TextAlignment="Center"
+              TextWrapping="Wrap" />
+            <StackPanel
+              HorizontalAlignment="Center"
+              IsVisible="{Binding IsHardwareMode}"
+              Orientation="Horizontal"
+              Spacing="5">
+              <materialIcons:MaterialIcon
+                Width="16"
+                Height="16"
+                Foreground="{DynamicResource SukiDangerColor}"
+                Kind="AlertCircle" />
+              <TextBlock
+                FontSize="12"
+                Foreground="{DynamicResource SukiDangerColor}"
+                Text="注意：手动模式请务必确认游戏内【音效音量】已调至 0" />
+            </StackPanel>
           </StackPanel>
         </StackPanel>
       </StackPanel>
