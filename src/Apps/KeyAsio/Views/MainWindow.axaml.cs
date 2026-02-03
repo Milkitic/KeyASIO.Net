@@ -106,14 +106,14 @@ public partial class MainWindow : SukiWindow
 
             _viewModel.SettingsPageItem = SettingsMenuItem;
             _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
-            _viewModel.RequestShowWizard += async () => await ShowWizardAsync();
+            //_viewModel.RequestShowWizard += async () => await ShowWizardAsync();
 
             await Dispatcher.UIThread.InvokeAsync(() => UpdateThemeByDevice(null));
 
-            if (_viewModel.AppSettings.General.IsFirstRun)
-            {
-                await ShowWizardAsync();
-            }
+            //if (_viewModel.AppSettings.General.IsFirstRun)
+            //{
+            //    await ShowWizardAsync();
+            //}
 
             InitializeStartupLogic();
         }
