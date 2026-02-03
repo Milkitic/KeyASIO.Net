@@ -16,6 +16,7 @@ public class AppSettings : IConfigurationBase
     public AppSettingsLogging Logging { get => field ??= new(); init; }
     public AppSettingsPerformance Performance { get => field ??= new(); init; }
     public AppSettingsSync Sync { get => field ??= new(); init; }
+    public AppSettingsUpdate Update { get => field ??= new(); init; }
 }
 
 public partial class AppSettingsGeneral : INotifyPropertyChanged
@@ -174,4 +175,9 @@ public partial class AppSettingsSyncFilters : INotifyPropertyChanged
 
     [Description("Ignore beatmap line volume changes.")]
     public bool IgnoreLineVolumes { get; set; }
+}
+
+public partial class AppSettingsUpdate : INotifyPropertyChanged
+{
+    public string? SkipVersion { get; set; }
 }

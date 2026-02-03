@@ -327,7 +327,10 @@ public partial class MainWindow : SukiWindow
             var result = await updateService.CheckUpdateAsync();
             if (result == true)
             {
-                Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
+                if (_viewModel.AppSettings.Update.SkipVersion != updateService.NewRelease?.TagName)
+                {
+                    Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
+                }
             }
 
             result = await updateService.CheckRulesUpdateAsync();
