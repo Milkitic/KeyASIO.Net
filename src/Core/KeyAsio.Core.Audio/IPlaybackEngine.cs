@@ -17,9 +17,9 @@ public interface IPlaybackEngine : IDisposable
     ISampleProvider RootSampleProvider { get; }
 
     LimiterType LimiterType { get; set; }
-    public float MainVolume { get; set; }
-    public float EffectVolume { get; set; }
-    public float MusicVolume { get; set; }
+    float MainVolume { get; set; }
+    float EffectVolume { get; set; }
+    float MusicVolume { get; set; }
 
     void StartDevice(DeviceDescription? deviceDescription, WaveFormat? waveFormat = null);
     void StopDevice();
