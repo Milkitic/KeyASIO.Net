@@ -361,6 +361,12 @@ You can change option later.</value>
   <data name="MainWindow_LoadSkins_Title" xml:space="preserve">
     <value>Load Skins</value>
   </data>
+  <data name="MainWindow_RulesUpdated_Content" xml:space="preserve">
+    <value>The latest memory rules have been downloaded and applied.</value>
+  </data>
+  <data name="MainWindow_RulesUpdated_Title" xml:space="preserve">
+    <value>Rules Updated</value>
+  </data>
   <data name="MainWindow_UpdateAvailable_Content" xml:space="preserve">
     <value>Update {0} is Now Available.</value>
   </data>

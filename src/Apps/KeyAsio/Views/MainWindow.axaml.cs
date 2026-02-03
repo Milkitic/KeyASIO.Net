@@ -329,6 +329,19 @@ public partial class MainWindow : SukiWindow
             {
                 Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
             }
+
+            result = await updateService.CheckRulesUpdateAsync();
+            if (result == true)
+            {
+                await updateService.UpdateRulesAsync();
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    _viewModel.MainToastManager.CreateSimpleInfoToast()
+                        .WithTitle(SR.MainWindow_RulesUpdated_Title)
+                        .WithContent(SR.MainWindow_RulesUpdated_Content)
+                        .Queue();
+                });
+            }
         });
 
         _viewModel.AudioSettings.OnDeviceChanged += AudioSettings_OnDeviceChanged;

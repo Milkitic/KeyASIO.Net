@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.OsuMemory;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Semver;
-using ProductHeaderValue = Octokit.ProductHeaderValue;
 
 namespace KeyAsio.Services;
 
@@ -15,14 +16,20 @@ public partial class UpdateService : ObservableObject
     private const string RepoOwner = "Milkitic";
     private const string RepoName = "KeyAsio.Net";
 
+    private const string RulesUrl =
+        "https://raw.githubusercontent.com/Milkitic/KeyASIO.Net/refs/heads/master/osu_memory_rules.json";
+
     private readonly ILogger<UpdateService> _logger;
+    private readonly MemoryScan _memoryScan;
     private readonly GitHubClient _github;
+    private readonly HttpClient _httpClient = new();
 
     public IUpdateImplementation UpdateImplementation { get; set; } = new BasicUpdateImplementation();
 
-    public UpdateService(ILogger<UpdateService> logger)
+    public UpdateService(ILogger<UpdateService> logger, MemoryScan memoryScan)
     {
         _logger = logger;
+        _memoryScan = memoryScan;
         _github = new GitHubClient(new ProductHeaderValue("KeyAsio.Net"));
         InitializeVersion();
     }
@@ -50,6 +57,11 @@ public partial class UpdateService : ObservableObject
 
     [ObservableProperty]
     public partial string? StatusMessage { get; private set; }
+
+    [ObservableProperty]
+    public partial bool IsRulesUpdateAvailable { get; private set; }
+
+    private string? _newRulesContent;
 
     public Action? UpdateAction { get; set; }
     public Action<bool?>? CheckUpdateCallback { get; set; }
@@ -143,6 +155,60 @@ public partial class UpdateService : ObservableObject
         if (NewRelease == null) return;
 
         await UpdateImplementation.StartUpdateAsync(NewRelease);
+    }
+
+    public async Task<bool> CheckRulesUpdateAsync()
+    {
+        try
+        {
+            var rulesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "osu_memory_rules.json");
+            var remoteRules = await _httpClient.GetStringAsync(RulesUrl);
+
+            if (!File.Exists(rulesPath))
+            {
+                _newRulesContent = remoteRules;
+                IsRulesUpdateAvailable = true;
+                return true;
+            }
+
+            var localRules = await File.ReadAllTextAsync(rulesPath);
+
+            var localNode = JsonNode.Parse(localRules);
+            var remoteNode = JsonNode.Parse(remoteRules);
+
+            if (!JsonNode.DeepEquals(localNode, remoteNode))
+            {
+                _newRulesContent = remoteRules;
+                IsRulesUpdateAvailable = true;
+                return true;
+            }
+
+            IsRulesUpdateAvailable = false;
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to check rules update");
+            return false;
+        }
+    }
+
+    public async Task UpdateRulesAsync()
+    {
+        if (_newRulesContent == null) return;
+        try
+        {
+            var rulesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "osu_memory_rules.json");
+            await File.WriteAllTextAsync(rulesPath, _newRulesContent);
+            IsRulesUpdateAvailable = false;
+            _newRulesContent = null;
+
+            _memoryScan.ReloadRules();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update rules");
+        }
     }
 
     public void OpenLastReleasePage()

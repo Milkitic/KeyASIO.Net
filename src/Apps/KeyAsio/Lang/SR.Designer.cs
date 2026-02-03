@@ -791,6 +791,24 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 The latest memory rules have been downloaded and applied. 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_RulesUpdated_Content {
+            get {
+                return ResourceManager.GetString("MainWindow_RulesUpdated_Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rules Updated 的本地化字符串。
+        /// </summary>
+        internal static string MainWindow_RulesUpdated_Title {
+            get {
+                return ResourceManager.GetString("MainWindow_RulesUpdated_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Update {0} is Now Available. 的本地化字符串。
         /// </summary>
         internal static string MainWindow_UpdateAvailable_Content {
