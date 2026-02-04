@@ -1,4 +1,4 @@
-name: publish
+﻿name: publish
 env:
   ProjectName: KeyAsio.Net
 on:
@@ -136,7 +136,7 @@ jobs:
           ## Release notes
           1. Place holder
         name: ${{ env.ProjectName }}-${{ github.ref_name }}
-        prerelease: true
+        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         draft: false
         files: |
           ./ci-pack/${{ env.ProjectName }}-${{ github.ref_name }}-win64.zip

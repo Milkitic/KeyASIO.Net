@@ -715,4 +715,16 @@ You can change option later.</value>
   <data name="Wizard_Welcome_Title" xml:space="preserve">
     <value>Welcome to KeyASIO</value>
   </data>
+  <data name="Settings_UpdateChannel" xml:space="preserve">
+    <value>Update Channel</value>
+  </data>
+  <data name="UpdateChannel_Stable" xml:space="preserve">
+    <value>Stable</value>
+  </data>
+  <data name="UpdateChannel_Beta" xml:space="preserve">
+    <value>Beta</value>
+  </data>
+  <data name="UpdateChannel_Alpha" xml:space="preserve">
+    <value>Alpha</value>
+  </data>
 </root>

@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared;
 using KeyAsio.Shared.OsuMemory;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -21,15 +22,17 @@ public partial class UpdateService : ObservableObject
 
     private readonly ILogger<UpdateService> _logger;
     private readonly MemoryScan _memoryScan;
+    private readonly AppSettings _appSettings;
     private readonly GitHubClient _github;
     private readonly HttpClient _httpClient = new();
 
     public IUpdateImplementation UpdateImplementation { get; set; } = new BasicUpdateImplementation();
 
-    public UpdateService(ILogger<UpdateService> logger, MemoryScan memoryScan)
+    public UpdateService(ILogger<UpdateService> logger, MemoryScan memoryScan, AppSettings appSettings)
     {
         _logger = logger;
         _memoryScan = memoryScan;
+        _appSettings = appSettings;
         _github = new GitHubClient(new ProductHeaderValue("KeyAsio.Net"));
         InitializeVersion();
     }
@@ -98,13 +101,20 @@ public partial class UpdateService : ObservableObject
 
             // Replicate original logic: Pick the latest non-draft release.
             // Note: GetAll() returns paginated results (default 30). This is usually sufficient to find the latest non-draft.
+            var channel = _appSettings.Update.Channel;
             var latest = releases
                 .OrderByDescending(k => k.PublishedAt)
-                .FirstOrDefault(k => !k.Draft /*&& !k.Prerelease*/);
+                .FirstOrDefault(k =>
+                {
+                    if (k.Draft) return false;
+                    if (channel == UpdateChannel.Stable && k.Prerelease) return false;
+                    return true;
+                });
 
             if (latest == null)
             {
                 NewRelease = null;
+                StatusMessage = "No updates available (latest release not found).";
                 return false;
             }
 
@@ -114,6 +124,7 @@ public partial class UpdateService : ObservableObject
             if (!SemVersion.TryParse(remoteVersion, SemVersionStyles.Any, out var remoteSemVersion))
             {
                 _logger.LogError("Failed to parse remote version: {Remote}", remoteVersion);
+                StatusMessage = $"Error parsing remote version: {remoteVersion}";
                 return null;
             }
 
@@ -125,6 +136,7 @@ public partial class UpdateService : ObservableObject
                 NewRelease = null;
                 NewVersion = null;
                 NewSemVersion = null;
+                StatusMessage = "You are using the latest version.";
                 return false;
             }
 
@@ -132,16 +144,19 @@ public partial class UpdateService : ObservableObject
             NewRelease = latest;
             NewVersion = FixCommit(remoteVersion);
             NewSemVersion = remoteSemVersion;
+            StatusMessage = null; // Clear status message when update is available
             return true;
         }
         catch (RateLimitExceededException)
         {
             _logger.LogError("Error while checking for updates: Github API rate limit exceeded. Please retry later.");
+            StatusMessage = "Github API rate limit exceeded.";
             return null;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while checking for updates");
+            StatusMessage = "Error checking for updates.";
             return null;
         }
         finally

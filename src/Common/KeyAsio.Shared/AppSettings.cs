@@ -180,4 +180,17 @@ public partial class AppSettingsSyncFilters : INotifyPropertyChanged
 public partial class AppSettingsUpdate : INotifyPropertyChanged
 {
     public string? SkipVersion { get; set; }
+    
+    [Description("Update channel.")]
+    public UpdateChannel Channel { get; set; } = UpdateChannel.Stable;
+}
+
+public enum UpdateChannel
+{
+    [Description("UpdateChannel_Stable")]
+    Stable = 0,
+    [Description("UpdateChannel_Beta")]
+    Beta = 1,
+    // [Description("UpdateChannel_Alpha")]
+    // Alpha = 2
 }

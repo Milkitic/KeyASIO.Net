@@ -3,6 +3,7 @@
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:converters="clr-namespace:KeyAsio.Converters"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
@@ -75,10 +76,9 @@
                 <TextBlock FontSize="12" IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                   <Run Text="{I18N {x:Static lang:SRKeys.Settings_UpdateAvailablePrefix}}" /><Run Text="{Binding UpdateService.NewVersion}" />
                 </TextBlock>
-                <TextBlock
-                  FontSize="12"
-                  IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                  Text="{I18N {x:Static lang:SRKeys.Settings_NoUpdatesAvailable}}" />
+                <TextBlock FontSize="12" IsVisible="{Binding UpdateService.NewVersion, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                  <Run Text="{I18N {x:Static lang:SRKeys.Settings_NoUpdatesAvailable}}" />
+                </TextBlock>
                 <!--  Copyright  -->
                 <StackPanel
                   Margin="0,5,0,0"
@@ -195,7 +195,7 @@
             CornerRadius="200"
             Opacity="0.05">
             <Border.Background>
-              <RadialGradientBrush Center="50%,50%" GradientOrigin="50%,50%" Radius="0.5">
+              <RadialGradientBrush Center="50%,50%" GradientOrigin="50%,50%" RadiusX="50%" RadiusY="50%">
                 <GradientStop Offset="0" Color="{DynamicResource SukiPrimaryColor}" />
                 <GradientStop Offset="1" Color="Transparent" />
               </RadialGradientBrush>

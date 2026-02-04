@@ -1845,5 +1845,41 @@ namespace KeyAsio.Lang {
                 return ResourceManager.GetString("Wizard_Welcome_Title", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   查找类似 Update Channel 的本地化字符串。
+        /// </summary>
+        internal static string Settings_UpdateChannel {
+            get {
+                return ResourceManager.GetString("Settings_UpdateChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Stable 的本地化字符串。
+        /// </summary>
+        internal static string UpdateChannel_Stable {
+            get {
+                return ResourceManager.GetString("UpdateChannel_Stable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Beta 的本地化字符串。
+        /// </summary>
+        internal static string UpdateChannel_Beta {
+            get {
+                return ResourceManager.GetString("UpdateChannel_Beta", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Alpha 的本地化字符串。
+        /// </summary>
+        internal static string UpdateChannel_Alpha {
+            get {
+                return ResourceManager.GetString("UpdateChannel_Alpha", resourceCulture);
+            }
+        }
     }
 }

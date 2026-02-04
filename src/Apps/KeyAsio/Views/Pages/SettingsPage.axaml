@@ -108,6 +108,47 @@
       </suki:GlassCard>
 
       <suki:GlassCard>
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_Updates}}">
+          <StackPanel Margin="0,0,8,0" Spacing="10">
+            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Settings_UpdateChannel}}" Icon="CloudDownload">
+              <ComboBox
+                MinWidth="150"
+                HorizontalAlignment="Right"
+                ItemsSource="{Binding UpdateChannels}"
+                SelectedItem="{Binding AppSettings.Update.Channel}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock>
+                      <TextBlock.Text>
+                        <MultiBinding Converter="{x:Static converters:EnumDescriptionConverter.Instance}">
+                          <Binding />
+                          <Binding ElementName="Self" Path="DataContext.LanguageManager.SelectedLanguageItem" />
+                        </MultiBinding>
+                      </TextBlock.Text>
+                    </TextBlock>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </controls:SettingItem>
+
+            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Settings_CheckForUpdates}}" Icon="Refresh">
+              <controls:SettingItem.Description>
+                <MultiBinding Converter="{x:Static converters:UpdateStatusConverter.Instance}">
+                  <Binding Path="UpdateService.NewVersion" />
+                  <Binding Path="UpdateService.StatusMessage" />
+                  <Binding ElementName="Self" Path="DataContext.LanguageManager.SelectedLanguageItem" />
+                </MultiBinding>
+              </controls:SettingItem.Description>
+              <Button
+                Classes="Flat"
+                Command="{Binding UpdateService.CheckForUpdatesCommand}"
+                Content="{I18N {x:Static lang:SRKeys.Settings_CheckForUpdates}}" />
+            </controls:SettingItem>
+          </StackPanel>
+        </suki:GroupBox>
+      </suki:GlassCard>
+
+      <suki:GlassCard>
         <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_InputAndPerformance}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
