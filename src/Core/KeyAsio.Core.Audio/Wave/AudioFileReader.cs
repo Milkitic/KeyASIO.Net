@@ -1,5 +1,7 @@
-﻿using KeyAsio.Core.Audio.Utils;
+﻿using System.Runtime.InteropServices;
+using KeyAsio.Core.Audio.Utils;
 using NAudio;
+using NAudio.MediaFoundation;
 using NAudio.Vorbis;
 using NAudio.Wave;
 
@@ -219,7 +221,14 @@ public class AudioFileReader : WaveStream, ISampleProvider
         if (os is not { Platform: PlatformID.Win32NT, Version.Major: >= 6 }) // Vista
             throw new NotSupportedException("No available generic media reader for OS: " + os.VersionString + ".");
 
-        return new StreamMediaFoundationReader(sourceStream);
+        try
+        {
+            return new StreamMediaFoundationReader(sourceStream);
+        }
+        catch (COMException ex) when (ex.HResult == MediaFoundationErrors.MF_E_UNSUPPORTED_BYTESTREAM_TYPE)
+        {
+            throw new NotSupportedException("Unsupported file format or invalid file content.", ex);
+        }
     }
 
     protected override void Dispose(bool disposing)
