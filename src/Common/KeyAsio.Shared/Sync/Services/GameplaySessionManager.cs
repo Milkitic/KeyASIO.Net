@@ -92,7 +92,7 @@ public class GameplaySessionManager
         }
     }
 
-    public async Task StartAsync(string beatmapFilenameFull, string beatmapFilename)
+    public async Task StartAsync(string? beatmapFilenameFull, string? beatmapFilename)
     {
         try
         {
@@ -102,7 +102,12 @@ public class GameplaySessionManager
             var folder = Path.GetDirectoryName(beatmapFilenameFull);
             if (folder == null)
             {
-                throw new Exception("The beatmap folder is null!");
+                throw new DirectoryNotFoundException("Failed to determine the beatmap directory.");
+            }
+
+            if (beatmapFilename == null)
+            {
+                throw new ArgumentNullException(nameof(beatmapFilename), "Beatmap filename cannot be null.");
             }
 
             var osuFile = await _beatmapHitsoundLoader.InitializeNodeListsAsync(folder, beatmapFilename,

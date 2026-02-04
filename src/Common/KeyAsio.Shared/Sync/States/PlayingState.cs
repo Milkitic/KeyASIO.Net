@@ -64,7 +64,7 @@ public class PlayingState : IGameState
             return;
         }
 
-        await _gameplaySessionManager.StartAsync(ctx.Beatmap.FilenameFull, ctx.Beatmap.Filename);
+        await _gameplaySessionManager.StartAsync(ctx.Beatmap.FilenameFull?.Trim(), ctx.Beatmap.Filename?.Trim());
     }
 
     public void Exit(SyncSessionContext ctx, OsuMemoryStatus to)
