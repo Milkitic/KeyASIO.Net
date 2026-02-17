@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Lang;
 using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.Plugins;
 using KeyAsio.Secrets;
 using KeyAsio.Services;
 using KeyAsio.Shared;
@@ -35,6 +36,8 @@ public partial class MainWindowViewModel : IDisposable
     private readonly PropertyChangedEventHandler _languageManagerPropertyChangedHandler;
     private bool _isNavigating;
     private bool _disposed;
+    [ObservableProperty]
+    private Control? _pluginUI;
 
     public MainWindowViewModel()
     {
@@ -128,6 +131,13 @@ public partial class MainWindowViewModel : IDisposable
             }
         };
         UpdateUpdateImplementation();
+
+        var pluginManager = serviceProvider.GetService<IPluginManager>();
+        var uiPlugin = pluginManager?.GetAllPlugins().OfType<IUserInterfacePlugin>().FirstOrDefault();
+        if (uiPlugin != null)
+        {
+            PluginUI = uiPlugin.GetPluginControl();
+        }
     }
 
     private void UpdateUpdateImplementation()

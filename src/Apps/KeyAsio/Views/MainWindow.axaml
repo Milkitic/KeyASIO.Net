@@ -64,20 +64,23 @@
   </suki:SukiWindow.LogoContent>
 
   <suki:SukiWindow.RightWindowTitleBarControls>
-    <Button
-      Padding="0"
-      Classes="Basic"
-      Command="{Binding UpdateService.TriggerUpdateCommand}"
-      IsVisible="{Binding UpdateService.NewRelease, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-      ToolTip.Tip="{I18N {x:Static lang:SRKeys.MainWindow_ClickToUpdate}}">
-      <StackPanel Orientation="Horizontal" Spacing="5">
-        <materialIcons:MaterialIcon Kind="Update" />
-        <TextBlock
-          VerticalAlignment="Center"
-          FontSize="12"
-          Text="{I18N {x:Static lang:SRKeys.MainWindow_ClickToUpdate}}" />
-      </StackPanel>
-    </Button>
+    <StackPanel Orientation="Horizontal" Spacing="10">
+      <ContentControl Content="{Binding PluginUI}" />
+      <Button
+        Padding="0"
+        Classes="Basic"
+        Command="{Binding UpdateService.TriggerUpdateCommand}"
+        IsVisible="{Binding UpdateService.NewRelease, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+        ToolTip.Tip="{I18N {x:Static lang:SRKeys.MainWindow_ClickToUpdate}}">
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <materialIcons:MaterialIcon Kind="Update" />
+          <TextBlock
+            VerticalAlignment="Center"
+            FontSize="12"
+            Text="{I18N {x:Static lang:SRKeys.MainWindow_ClickToUpdate}}" />
+        </StackPanel>
+      </Button>
+    </StackPanel>
   </suki:SukiWindow.RightWindowTitleBarControls>
 
   <suki:SukiWindow.Hosts>
