@@ -589,6 +589,12 @@ You can change option later.</value>
   <data name="Sync_TimingScanIntervalDescription" xml:space="preserve">
     <value>Lower values update timing fields more promptly. Increase if audio cutting occurs.</value>
   </data>
+  <data name="Sync_RtssMonitoring" xml:space="preserve">
+    <value>RTSS Monitoring</value>
+  </data>
+  <data name="Sync_RtssMonitoringDescription" xml:space="preserve">
+    <value>Display SyncSessionContext data via RTSS on-screen display at 100 FPS.</value>
+  </data>
   <data name="Sync_WidthNarrow" xml:space="preserve">
     <value>Narrow</value>
   </data>

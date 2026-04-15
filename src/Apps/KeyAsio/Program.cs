@@ -8,6 +8,7 @@ using KeyAsio.Services;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Configuration;
 using KeyAsio.Shared.OsuMemory;
+using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
 using KeyAsio.Utils;
@@ -134,6 +135,7 @@ internal sealed class Program
                 .AddSingleton<UpdateService>()
                 .AddSingleton<MemoryScan>()
                 .AddSingleton<MemorySyncBridge>()
+                .AddSingleton<RtssMonitorService>()
                 .AddSingleton<ISentryEventProcessor, KeyAsioSentryEventProcessor>()
                 .AddAudioModule()
                 .AddSyncModule()
