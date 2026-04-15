@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using KeyAsio.Core.Audio.Utils;
 using NAudio;
+using NAudio.FileFormats.Mp3;
 using NAudio.MediaFoundation;
 using NAudio.Vorbis;
 using NAudio.Wave;
@@ -162,14 +163,9 @@ public class AudioFileReader : WaveStream, ISampleProvider
                 }
             }
         }
-        else if (fileFormat == FileFormat.Mp3Id3)
+        else if (fileFormat is FileFormat.Mp3Id3 or FileFormat.Mp3)
         {
-            ReaderStream = GetMediaFoundationReader(sourceStream);
-        }
-        else if (fileFormat == FileFormat.Mp3)
-        {
-            ReaderStream = GetMediaFoundationReader(sourceStream);
-            //ReaderStream = new NLayerMp3FileReader(sourceStream);
+            ReaderStream = CreateMp3ReaderStream(sourceStream);
         }
         else if (fileFormat == FileFormat.Ogg)
         {
@@ -182,6 +178,41 @@ public class AudioFileReader : WaveStream, ISampleProvider
         else
         {
             ReaderStream = GetMediaFoundationReader(sourceStream);
+        }
+    }
+
+    private static WaveStream CreateMp3ReaderStream(Stream sourceStream)
+    {
+        // IMPORTANT: Do NOT use MediaFoundationReader for MP3 files.
+        // MF automatically strips the MP3 encoder delay (LAME/Xing gapless info),
+        // but osu! uses BASS with BASS_CONFIG_MP3_OLDGAPS=1 which retains all samples.
+        // This mismatch causes a per-file fixed timing offset that varies between files.
+        // Any MP3 fallback must therefore remain frame-based rather than switching to MF.
+        List<Exception> decodeExceptions = [];
+
+        try
+        {
+            return new Mp3FileReaderBase(sourceStream,
+                mp3Format => new AcmMp3FrameDecompressor(mp3Format));
+        }
+        catch (Exception ex)
+        {
+            decodeExceptions.Add(ex);
+        }
+
+        sourceStream.Seek(0, SeekOrigin.Begin);
+
+        try
+        {
+            return new Mp3FileReaderBase(sourceStream,
+                mp3Format => new DmoMp3FrameDecompressor(mp3Format));
+        }
+        catch (Exception ex)
+        {
+            decodeExceptions.Add(ex);
+            throw new NotSupportedException(
+                "Unable to decode MP3 while preserving the encoder-delay semantics required for osu! sync.",
+                new AggregateException(decodeExceptions));
         }
     }
 
