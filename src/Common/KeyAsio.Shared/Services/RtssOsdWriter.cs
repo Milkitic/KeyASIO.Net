@@ -6,8 +6,30 @@ namespace KeyAsio.Shared.Services;
 
 public sealed class RtssOsdWriter : IDisposable
 {
+    private const string SharedMemoryName = "RTSSSharedMemoryV2";
+    private const int OwnerFieldLength = 256;
+    private const int LegacyTextLength = 256;
+    private const int ExtendedTextLength = 4096;
+    private const uint SupportedVersionMin = 0x00020000;
+    private const uint ExtendedTextVersionMin = 0x00020007;
+    private const uint RtssSignature = 0x52545353; // 'RTSS'
+
     private readonly string _entryName;
+    private readonly byte[] _entryNameBytes = new byte[OwnerFieldLength];
+    private readonly byte[] _ownerBuffer = new byte[OwnerFieldLength];
+    private readonly byte[] _legacyTextBuffer = new byte[LegacyTextLength];
+    private readonly byte[] _extendedTextBuffer = new byte[ExtendedTextLength];
+    private readonly object _syncRoot = new();
+
+    private MemoryMappedFile? _mmf;
+    private MemoryMappedViewAccessor? _accessor;
+    private uint _osdEntrySize;
+    private uint _osdArrOffset;
+    private uint _osdArrSize;
+    private bool _useExtendedText;
+
     private uint _osdSlot;
+    private long _entryOffset;
     private bool _disposed;
 
     public RtssOsdWriter(string entryName)
@@ -15,15 +37,20 @@ public sealed class RtssOsdWriter : IDisposable
         if (string.IsNullOrWhiteSpace(entryName))
             throw new ArgumentException("Entry name cannot be null, empty, or whitespace.", nameof(entryName));
 
-        var bytes = Encoding.ASCII.GetBytes(entryName);
-        if (bytes.Length > 255)
+        var bytes = Encoding.ASCII.GetByteCount(entryName);
+        if (bytes > OwnerFieldLength - 1)
             throw new ArgumentException("Entry name exceeds max length of 255 when converted to ANSI.", nameof(entryName));
 
         _entryName = entryName;
         _osdSlot = 0;
+        _entryOffset = 0;
 
-        // Verify RTSS is accessible
-        using var mmf = OpenSharedMemory();
+        Encoding.ASCII.GetBytes(entryName.AsSpan(), _entryNameBytes);
+
+        lock (_syncRoot)
+        {
+            EnsureConnected();
+        }
     }
 
     public void Update(string text)
@@ -31,74 +58,27 @@ public sealed class RtssOsdWriter : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(text);
 
-        var textBytes = Encoding.ASCII.GetBytes(text);
-        if (textBytes.Length > 4095)
-            throw new ArgumentException("Text exceeds max length of 4095 when converted to ANSI.", nameof(text));
-
-        using var mmf = OpenSharedMemory();
-        using var accessor = mmf.CreateViewAccessor();
-
-        var signature = accessor.ReadUInt32(0);
-        if (signature != 0x52545353) // 'RTSS' in little-endian: 'R'(0x52) 'T'(0x54) 'S'(0x53) 'S'(0x53)
-            throw new InvalidOperationException("Invalid RTSS shared memory signature.");
-
-        var version = accessor.ReadUInt32(4);
-        if (version < 0x00020000)
-            throw new InvalidOperationException("Unsupported RTSS shared memory version.");
-
-        var osdEntrySize = accessor.ReadUInt32(20);
-        var osdArrOffset = accessor.ReadUInt32(24);
-        var osdArrSize = accessor.ReadUInt32(28);
-
-        // Start at either our previously used slot, or the top (skip slot 0 which is primary/global)
-        for (uint i = (_osdSlot == 0 ? 1 : _osdSlot); i < osdArrSize; i++)
+        lock (_syncRoot)
         {
-            var entryOffset = osdArrOffset + (i * osdEntrySize);
-
-            // Read current owner
-            var ownerBytes = new byte[256];
-            accessor.ReadArray(entryOffset + 256, ownerBytes, 0, 256);
-            var owner = Encoding.ASCII.GetString(ownerBytes).TrimEnd('\0');
-
-            // If we need a new slot and this one is unused, claim it
-            if (_osdSlot == 0 && string.IsNullOrEmpty(owner))
+            EnsureConnected();
+            if (!TryEnsureSlot())
             {
-                _osdSlot = i;
-                var ownerNameBytes = new byte[256];
-                Encoding.ASCII.GetBytes(_entryName).CopyTo(ownerNameBytes, 0);
-                accessor.WriteArray(entryOffset + 256, ownerNameBytes, 0, 256);
-                owner = _entryName;
+                return;
             }
 
-            // If this is our slot
-            if (owner == _entryName)
-            {
-                // Use extended text slot for v2.7 and higher shared memory (4096 symbols)
-                if (version >= 0x00020007)
-                {
-                    var osdExBytes = new byte[4096];
-                    textBytes.CopyTo(osdExBytes, 0);
-                    accessor.WriteArray(entryOffset + 512, osdExBytes, 0, 4096);
-                }
-                else
-                {
-                    var osdBytes = new byte[256];
-                    textBytes.CopyTo(osdBytes, 0);
-                    accessor.WriteArray(entryOffset, osdBytes, 0, 256);
-                }
+            var maxTextLength = _useExtendedText ? ExtendedTextLength - 1 : LegacyTextLength - 1;
+            var textBytes = Encoding.ASCII.GetByteCount(text);
+            if (textBytes > maxTextLength)
+                throw new ArgumentException($"Text exceeds max length of {maxTextLength} when converted to ANSI.", nameof(text));
 
-                // Force OSD update
-                var currentFrame = accessor.ReadUInt32(32);
-                accessor.Write(32, currentFrame + 1);
-                break;
-            }
+            var targetBuffer = _useExtendedText ? _extendedTextBuffer : _legacyTextBuffer;
+            var written = Encoding.ASCII.GetBytes(text.AsSpan(), targetBuffer);
 
-            // In case we lost our previously used slot, start over
-            if (_osdSlot != 0)
-            {
-                _osdSlot = 0;
-                i = 0; // will be incremented to 1 by the for loop
-            }
+            var textOffset = _entryOffset + (_useExtendedText ? 512 : 0);
+            _accessor!.WriteArray(textOffset, targetBuffer, 0, written);
+            _accessor.Write(textOffset + written, (byte)0);
+
+            IncrementFrameCounter();
         }
     }
 
@@ -109,30 +89,13 @@ public sealed class RtssOsdWriter : IDisposable
 
         try
         {
-            using var mmf = OpenSharedMemory();
-            using var accessor = mmf.CreateViewAccessor();
-
-            var osdEntrySize = accessor.ReadUInt32(20);
-            var osdArrOffset = accessor.ReadUInt32(24);
-            var osdArrSize = accessor.ReadUInt32(28);
-
-            for (uint i = 1; i < osdArrSize; i++)
+            lock (_syncRoot)
             {
-                var entryOffset = osdArrOffset + (i * osdEntrySize);
-
-                var ownerBytes = new byte[256];
-                accessor.ReadArray(entryOffset + 256, ownerBytes, 0, 256);
-                var owner = Encoding.ASCII.GetString(ownerBytes).TrimEnd('\0');
-
-                if (owner == _entryName)
+                if (_accessor != null && _osdSlot != 0 && IsSlotOwnedByEntry(_osdSlot))
                 {
-                    // Zero out the entire entry
-                    var zeroBytes = new byte[osdEntrySize];
-                    accessor.WriteArray(entryOffset, zeroBytes, 0, (int)osdEntrySize);
-
-                    // Force OSD update
-                    var currentFrame = accessor.ReadUInt32(32);
-                    accessor.Write(32, currentFrame + 1);
+                    var zeroBytes = new byte[_osdEntrySize];
+                    _accessor.WriteArray(_entryOffset, zeroBytes, 0, (int)_osdEntrySize);
+                    IncrementFrameCounter();
                 }
             }
         }
@@ -140,13 +103,138 @@ public sealed class RtssOsdWriter : IDisposable
         {
             // Ignored during disposal
         }
+        finally
+        {
+            _accessor?.Dispose();
+            _accessor = null;
+            _mmf?.Dispose();
+            _mmf = null;
+        }
+    }
+
+    private void EnsureConnected()
+    {
+        if (_accessor != null)
+        {
+            return;
+        }
+
+        _mmf = OpenSharedMemory();
+        _accessor = _mmf.CreateViewAccessor();
+
+        var signature = _accessor.ReadUInt32(0);
+        if (signature != RtssSignature)
+            throw new InvalidOperationException("Invalid RTSS shared memory signature.");
+
+        var version = _accessor.ReadUInt32(4);
+        if (version < SupportedVersionMin)
+            throw new InvalidOperationException("Unsupported RTSS shared memory version.");
+
+        _osdEntrySize = _accessor.ReadUInt32(20);
+        _osdArrOffset = _accessor.ReadUInt32(24);
+        _osdArrSize = _accessor.ReadUInt32(28);
+        _useExtendedText = version >= ExtendedTextVersionMin;
+
+        _osdSlot = 0;
+        _entryOffset = 0;
+    }
+
+    private bool TryEnsureSlot()
+    {
+        if (_osdSlot != 0 && IsSlotOwnedByEntry(_osdSlot))
+        {
+            return true;
+        }
+
+        _osdSlot = 0;
+        _entryOffset = 0;
+
+        for (uint i = 1; i < _osdArrSize; i++)
+        {
+            var entryOffset = GetEntryOffset(i);
+            var ownerOffset = entryOffset + OwnerFieldLength;
+
+            _accessor!.ReadArray(ownerOffset, _ownerBuffer, 0, OwnerFieldLength);
+
+            if (IsOwnerBufferEmpty())
+            {
+                _accessor.WriteArray(ownerOffset, _entryNameBytes, 0, OwnerFieldLength);
+                _osdSlot = i;
+                _entryOffset = entryOffset;
+                return true;
+            }
+
+            if (IsOwnerBufferEntryName())
+            {
+                _osdSlot = i;
+                _entryOffset = entryOffset;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsSlotOwnedByEntry(uint slot)
+    {
+        var entryOffset = GetEntryOffset(slot);
+        _accessor!.ReadArray(entryOffset + OwnerFieldLength, _ownerBuffer, 0, OwnerFieldLength);
+        if (!IsOwnerBufferEntryName())
+        {
+            return false;
+        }
+
+        _entryOffset = entryOffset;
+        return true;
+    }
+
+    private static bool IsOwnerByteTerminator(byte value)
+    {
+        return value == 0;
+    }
+
+    private bool IsOwnerBufferEmpty()
+    {
+        return IsOwnerByteTerminator(_ownerBuffer[0]);
+    }
+
+    private bool IsOwnerBufferEntryName()
+    {
+        for (var i = 0; i < OwnerFieldLength; i++)
+        {
+            var actual = _ownerBuffer[i];
+            var expected = _entryNameBytes[i];
+
+            if (actual != expected)
+            {
+                return false;
+            }
+
+            if (IsOwnerByteTerminator(expected))
+            {
+                return true;
+            }
+        }
+
+        return true;
+    }
+
+    private long GetEntryOffset(uint slot)
+    {
+        return _osdArrOffset + (long)slot * _osdEntrySize;
+    }
+
+    private void IncrementFrameCounter()
+    {
+        var currentFrame = _accessor!.ReadUInt32(32);
+        _accessor.Write(32, currentFrame + 1);
     }
 
     private static MemoryMappedFile OpenSharedMemory()
     {
         try
         {
-            return MemoryMappedFile.OpenExisting("RTSSSharedMemoryV2", MemoryMappedFileRights.ReadWrite);
+            return MemoryMappedFile.OpenExisting(SharedMemoryName, MemoryMappedFileRights.ReadWrite);
         }
         catch (Exception ex)
         {

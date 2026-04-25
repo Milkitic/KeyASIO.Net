@@ -11,15 +11,12 @@ public sealed class RtssMonitorService : IDisposable
     // RTSS hypertext color tags: we only colorize keys for quick visual scan.
     private const string CriticalKeyColorTag = "<C=FF69B4>";
     private const string ResetColorTag = "<C>";
-    private static readonly HashSet<string> s_hitsoundCriticalKeys = new(StringComparer.Ordinal)
-    {
-        "PlayMods",
-        "PlayTime",
-        "BaseMemoryTime",
-        "Combo",
-        "Score",
-        "OsuStatus",
-    };
+    private const string PlayModsKey = "PlayMods";
+    private const string PlayTimeKey = "PlayTime";
+    private const string BaseMemoryTimeKey = "BaseMemoryTime";
+    private const string ComboKey = "Combo";
+    private const string ScoreKey = "Score";
+    private const string OsuStatusKey = "OsuStatus";
 
     private readonly AppSettings _appSettings;
     private readonly SyncSessionContext _syncSessionContext;
@@ -29,6 +26,7 @@ public sealed class RtssMonitorService : IDisposable
     private Task? _updateTask;
     private CancellationTokenSource? _cts;
     private bool _disposed;
+    private long _nextFailureLogTimeMs;
 
     public RtssMonitorService(
         AppSettings appSettings,
@@ -129,12 +127,12 @@ public sealed class RtssMonitorService : IDisposable
                 AppendField(sb, "IsReplay", _syncSessionContext.IsReplay);
                 AppendField(sb, "ProcessId", _syncSessionContext.ProcessId);
                 AppendField(sb, "Username", _syncSessionContext.Username ?? "(null)");
-                AppendField(sb, "PlayMods", _syncSessionContext.PlayMods);
-                AppendField(sb, "PlayTime", _syncSessionContext.PlayTime);
-                AppendField(sb, "BaseMemoryTime", _syncSessionContext.BaseMemoryTime);
-                AppendField(sb, "Combo", _syncSessionContext.Combo);
-                AppendField(sb, "Score", _syncSessionContext.Score);
-                AppendField(sb, "OsuStatus", _syncSessionContext.OsuStatus);
+                AppendCriticalField(sb, PlayModsKey, _syncSessionContext.PlayMods);
+                AppendCriticalField(sb, PlayTimeKey, _syncSessionContext.PlayTime);
+                AppendCriticalField(sb, BaseMemoryTimeKey, _syncSessionContext.BaseMemoryTime);
+                AppendCriticalField(sb, ComboKey, _syncSessionContext.Combo);
+                AppendCriticalField(sb, ScoreKey, _syncSessionContext.Score);
+                AppendCriticalField(sb, OsuStatusKey, _syncSessionContext.OsuStatus);
                 AppendField(sb, "SyncedStatusText", _syncSessionContext.SyncedStatusText);
                 AppendField(sb, "Beatmap.Folder", _syncSessionContext.Beatmap.Folder ?? "(null)");
                 AppendField(sb, "Beatmap.Filename", _syncSessionContext.Beatmap.Filename ?? "(null)");
@@ -146,7 +144,12 @@ public sealed class RtssMonitorService : IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to update RTSS OSD.");
+                var now = Environment.TickCount64;
+                if (now >= _nextFailureLogTimeMs)
+                {
+                    _nextFailureLogTimeMs = now + 5000;
+                    _logger.LogWarning(ex, "Failed to update RTSS OSD.");
+                }
             }
 
             var elapsed = stopwatch.ElapsedMilliseconds - frameStart;
@@ -160,20 +163,18 @@ public sealed class RtssMonitorService : IDisposable
 
     private static void AppendField<T>(StringBuilder sb, string key, T value)
     {
-        var isCritical = s_hitsoundCriticalKeys.Contains(key);
-        if (isCritical)
-        {
-            sb.Append(CriticalKeyColorTag);
-        }
-
         sb.Append(key);
-
-        if (isCritical)
-        {
-            sb.Append(ResetColorTag);
-        }
-
         sb.Append(": ").Append(value?.ToString()).Append('\n');
+    }
+
+    private static void AppendCriticalField<T>(StringBuilder sb, string key, T value)
+    {
+        sb.Append(CriticalKeyColorTag)
+          .Append(key)
+          .Append(ResetColorTag)
+          .Append(": ")
+          .Append(value?.ToString())
+          .Append('\n');
     }
 
     public void Dispose()
