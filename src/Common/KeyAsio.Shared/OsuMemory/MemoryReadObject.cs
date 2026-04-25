@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Events;
 
@@ -15,6 +16,8 @@ public class MemoryReadObject
     public event ValueChangedEventHandler<Mods>? ModsChanged;
     public event ValueChangedEventHandler<int>? ProcessIdChanged;
     public event ValueChangedEventHandler<BeatmapIdentifier>? BeatmapIdentifierChanged;
+    public event ValueChangedEventHandler<SyncStatistics>? StatisticsChanged;
+    public event ValueChangedEventHandler<SyncHitErrors>? HitErrorsChanged;
 
     public string? PlayerName
     {
@@ -127,6 +130,43 @@ public class MemoryReadObject
             ProcessIdChanged?.Invoke(old, value);
         }
     }
+
+    public SyncStatistics Statistics
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            if (field == value) return;
+            var old = field;
+            field = value;
+            StatisticsChanged?.Invoke(old, value);
+        }
+    } = SyncStatistics.Empty;
+
+    public SyncHitErrors HitErrors
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            var oldValues = field.Values ?? [];
+            var newValues = value.Values ?? [];
+            if (field.Index == value.Index && oldValues.AsSpan().SequenceEqual(newValues))
+            {
+                return;
+            }
+
+            var old = field;
+            field = value with
+            {
+                Values = newValues
+            };
+            HitErrorsChanged?.Invoke(old, field);
+        }
+    } = SyncHitErrors.Empty;
 
     //public string? BeatmapFolder { get; set; } // CurrentBeatmap.FolderName
     //public string? BeatmapFileName { get; set; } // CurrentBeatmap.OsuFileName

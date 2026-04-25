@@ -217,12 +217,21 @@ internal static class DirectScanSample
 
             if (currentRulesetAddress != IntPtr.Zero)
             {
-                var score = GetValue<int>(sigScan, currentRulesetAddress + 0x100);
-                Console.WriteLine($"Score: {score}");
-
                 var playerPtr = GetPointer(sigScan, currentRulesetAddress + 0x68);
                 if (playerPtr != IntPtr.Zero)
                 {
+                    var scoreBase = GetPointer(sigScan, playerPtr + 0x44);
+                    if (scoreBase != IntPtr.Zero)
+                    {
+                        var score = GetValue<int>(sigScan, scoreBase + 0xFC);
+                        Console.WriteLine($"Score: {score}");
+                    }
+
+                    var legacyScore = GetValue<int>(sigScan, currentRulesetAddress + 0x100);
+                    Console.WriteLine($"ScoreLegacy: {legacyScore}");
+                    var cuttingEdgeScore = GetValue<int>(sigScan, currentRulesetAddress + 0xFC);
+                    Console.WriteLine($"ScoreCuttingEdge: {cuttingEdgeScore}");
+
                     var comboBase = GetPointer(sigScan, playerPtr + 0x38);
                     if (comboBase != IntPtr.Zero)
                     {

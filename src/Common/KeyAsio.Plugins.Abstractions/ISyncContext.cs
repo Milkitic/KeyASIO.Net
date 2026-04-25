@@ -28,6 +28,16 @@ public interface ISyncContext
     int PlayMods { get; }
 
     /// <summary>
+    /// Gameplay judgement statistics.
+    /// </summary>
+    SyncStatistics Statistics { get; }
+
+    /// <summary>
+    /// Latest hit error stream update.
+    /// </summary>
+    SyncHitErrors HitErrors { get; }
+
+    /// <summary>
     /// Current beatmap information
     /// </summary>
     SyncBeatmapInfo? Beatmap { get; }

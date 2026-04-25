@@ -23,6 +23,8 @@ public class SyncContextWrapper : ISyncContext
     public long LastUpdateTimestamp => _context.LastUpdateTimestamp;
 
     public int PlayMods => (int)_context.PlayMods;
+    public SyncStatistics Statistics => _context.Statistics;
+    public SyncHitErrors HitErrors => _context.HitErrors;
 
     public SyncBeatmapInfo? Beatmap
     {
