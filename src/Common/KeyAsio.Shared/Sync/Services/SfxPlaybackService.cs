@@ -37,7 +37,7 @@ public class SfxPlaybackService
             if (cachedAudio is null)
             {
                 _logger.LogWarning("Fail to play sample event: CachedSound not found");
-                return;
+                return null;
             }
 
             float volume;
@@ -61,6 +61,7 @@ public class SfxPlaybackService
         {
             var controlNode = (ControlEvent)hitsoundNode;
             PlayLoopAudio(cachedAudio, controlNode);
+            return null;
         }
     }
 
