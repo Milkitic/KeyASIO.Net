@@ -32,6 +32,12 @@ public class SfxPlaybackService
         var hitsoundNode = playbackInfo.PlaybackEvent;
         if (hitsoundNode is SampleEvent playableNode)
         {
+            if (cachedAudio is null)
+            {
+                _logger.LogWarning("Fail to play sample event: CachedSound not found");
+                return;
+            }
+
             float volume;
             if (_appSettings.Sync.Filters.IgnoreLineVolumes)
             {
@@ -52,7 +58,7 @@ public class SfxPlaybackService
         else
         {
             var controlNode = (ControlEvent)hitsoundNode;
-            PlayLoopAudio(cachedAudio!, controlNode);
+            PlayLoopAudio(cachedAudio, controlNode);
         }
     }
 
@@ -148,13 +154,20 @@ public class SfxPlaybackService
         _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
     }
 
-    public void PlayLoopAudio(CachedAudio cachedAudio, ControlEvent controlEvent)
+    public void PlayLoopAudio(CachedAudio? cachedAudio, ControlEvent controlEvent)
     {
         var effectMixer = _playbackEngine.EffectMixer;
         var volume = _appSettings.Sync.Filters.IgnoreLineVolumes ? 1 : controlEvent.Volume;
 
         if (controlEvent.ControlEventType == ControlEventType.LoopStart)
         {
+            if (cachedAudio is null)
+            {
+                _logger.LogWarning("LoopStart ignored because cached audio is missing. File: {File}",
+                    controlEvent.Filename ?? "(null)");
+                return;
+            }
+
             if (_loopProviderManager.ShouldRemoveAll((int)controlEvent.LoopChannel))
             {
                 _loopProviderManager.RemoveAll(effectMixer);

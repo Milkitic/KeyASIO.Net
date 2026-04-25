@@ -363,8 +363,18 @@ public class TaikoHitsoundSequencer : IHitsoundSequencer
                 break;
             }
 
+            bool mustDispatchControlSignal = node is ControlEvent
+            {
+                ControlEventType: ControlEventType.LoopStop or ControlEventType.Volume or ControlEventType.Balance
+            };
+
+            // Loop control signals must be dispatched even if delayed.
+            if (mustDispatchControlSignal)
+            {
+                buffer.Add(new PlaybackInfo(null, node));
+            }
             // 只有在延迟容忍度内才播放
-            if (playTime < node.Offset + AudioLatencyTolerance)
+            else if (playTime < node.Offset + AudioLatencyTolerance)
             {
                 if (_gameplayAudioService.TryGetAudioByNode(node, out var cachedSound))
                 {

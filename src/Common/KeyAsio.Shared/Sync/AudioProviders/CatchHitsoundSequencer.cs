@@ -141,8 +141,18 @@ public class CatchHitsoundSequencer : IHitsoundSequencer
                 break;
             }
 
+            bool mustDispatchControlSignal = node is ControlEvent
+            {
+                ControlEventType: ControlEventType.LoopStop or ControlEventType.Volume or ControlEventType.Balance
+            };
+
+            // Control signals must never be dropped because they release/update active loops.
+            if (mustDispatchControlSignal)
+            {
+                buffer.Add(new PlaybackInfo(null, node));
+            }
             // Only play if within tolerance
-            if (playTime < node.Offset + AudioLatencyTolerance)
+            else if (playTime < node.Offset + AudioLatencyTolerance)
             {
                 if (_gameplayAudioService.TryGetAudioByNode(node, out var cachedSound))
                 {
