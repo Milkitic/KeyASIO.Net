@@ -23,13 +23,13 @@ public sealed class ComboGrowthAudioGuard : IDisposable
     }
 
     /// <summary>
-    /// Captures the current combo value. Call this at the very start of a key-press
-    /// callback, before any processing, so the snapshot is taken before osu! has a
-    /// chance to update the combo in memory.
+    /// Captures the current validation baselines. Call this at the very start of a key-press
+    /// callback, before any processing, so snapshots are taken before osu! updates memory.
     /// </summary>
-    public int SnapshotCombo() => _syncSessionContext.Combo;
+    public (int Combo, int Score, int HitErrorIndex) SnapshotBaselines()
+        => (_syncSessionContext.Combo, _syncSessionContext.Score, _syncSessionContext.HitErrors.Index);
 
-    public void Track(ISampleProvider provider, int comboBaseline)
+    public void Track(ISampleProvider provider, int comboBaseline, int scoreBaseline, int hitErrorIndexBaseline)
     {
         if (!_syncSessionContext.IsStarted || _syncSessionContext.OsuStatus != OsuMemoryStatus.Playing)
         {
@@ -41,7 +41,7 @@ public sealed class ComboGrowthAudioGuard : IDisposable
 
         lock (_lock) _pendingValidations.Add(cts);
 
-        _ = ValidateAfterDelayAsync(provider, comboBaseline, revertDelay, cts);
+        _ = ValidateAfterDelayAsync(provider, comboBaseline, scoreBaseline, hitErrorIndexBaseline, revertDelay, cts);
     }
 
     public void Clear()
@@ -69,6 +69,8 @@ public sealed class ComboGrowthAudioGuard : IDisposable
     private async Task ValidateAfterDelayAsync(
         ISampleProvider provider,
         int comboBaseline,
+        int scoreBaseline,
+        int hitErrorIndexBaseline,
         int delayMs,
         CancellationTokenSource cts)
     {
@@ -86,7 +88,11 @@ public sealed class ComboGrowthAudioGuard : IDisposable
                 return;
             }
 
-            if (_syncSessionContext.Combo <= comboBaseline)
+            bool comboChanged = _syncSessionContext.Combo > comboBaseline;
+            bool scoreChanged = _syncSessionContext.Score > scoreBaseline;
+            bool hitErrorsChanged = _syncSessionContext.HitErrors.Index > hitErrorIndexBaseline;
+
+            if (!comboChanged && !scoreChanged && !hitErrorsChanged)
             {
                 _sfxPlaybackService.StopEffectsAudio(provider);
             }

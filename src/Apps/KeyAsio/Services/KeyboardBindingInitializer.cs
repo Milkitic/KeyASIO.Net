@@ -181,12 +181,12 @@ public class KeyboardBindingInitializer
                 if (keyIndex != -1)
                 {
                     var shouldGuardComboGrowth = mode == GameMode.Circle;
-                    // Capture combo baseline BEFORE ProcessInteraction/DispatchPlayback,
-                    // to avoid a race where the memory scan thread updates the combo
-                    // (from osu!'s hit processing) before Track() reads it.
-                    int comboBaseline = shouldGuardComboGrowth
-                        ? _comboGrowthAudioGuard.SnapshotCombo()
-                        : 0;
+                    // Capture baselines BEFORE ProcessInteraction/DispatchPlayback,
+                    // to avoid a race where the memory scan thread updates values
+                    // (from osu!'s hit processing) before Track() validates them.
+                    var (comboBaseline, scoreBaseline, hitErrorIndexBaseline) = shouldGuardComboGrowth
+                        ? _comboGrowthAudioGuard.SnapshotBaselines()
+                        : (0, 0, 0);
 
                     sequencer.ProcessInteraction(_playbackBuffer, keyIndex, keyTotal);
                     foreach (var playbackInfo in _playbackBuffer)
@@ -195,7 +195,11 @@ public class KeyboardBindingInitializer
                             cancellable: shouldGuardComboGrowth);
                         if (shouldGuardComboGrowth && provider != null)
                         {
-                            _comboGrowthAudioGuard.Track(provider, comboBaseline);
+                            _comboGrowthAudioGuard.Track(
+                                provider,
+                                comboBaseline,
+                                scoreBaseline,
+                                hitErrorIndexBaseline);
                         }
                     }
                 }
