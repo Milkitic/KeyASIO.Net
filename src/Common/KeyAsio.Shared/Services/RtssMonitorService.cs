@@ -8,6 +8,19 @@ namespace KeyAsio.Shared.Services;
 
 public sealed class RtssMonitorService : IDisposable
 {
+    // RTSS hypertext color tags: we only colorize keys for quick visual scan.
+    private const string CriticalKeyColorTag = "<C=FF69B4>";
+    private const string ResetColorTag = "<C>";
+    private static readonly HashSet<string> s_hitsoundCriticalKeys = new(StringComparer.Ordinal)
+    {
+        "PlayMods",
+        "PlayTime",
+        "BaseMemoryTime",
+        "Combo",
+        "Score",
+        "OsuStatus",
+    };
+
     private readonly AppSettings _appSettings;
     private readonly SyncSessionContext _syncSessionContext;
     private readonly ILogger<RtssMonitorService> _logger;
@@ -147,7 +160,20 @@ public sealed class RtssMonitorService : IDisposable
 
     private static void AppendField<T>(StringBuilder sb, string key, T value)
     {
-        sb.Append(key).Append(": ").Append(value?.ToString()).Append('\n');
+        var isCritical = s_hitsoundCriticalKeys.Contains(key);
+        if (isCritical)
+        {
+            sb.Append(CriticalKeyColorTag);
+        }
+
+        sb.Append(key);
+
+        if (isCritical)
+        {
+            sb.Append(ResetColorTag);
+        }
+
+        sb.Append(": ").Append(value?.ToString()).Append('\n');
     }
 
     public void Dispose()
