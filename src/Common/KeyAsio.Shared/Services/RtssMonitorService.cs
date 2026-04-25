@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Shared.Sync;
 using Microsoft.Extensions.Logging;
 
@@ -24,6 +25,11 @@ public sealed class RtssMonitorService : IDisposable
     private CancellationTokenSource? _cts;
     private bool _disposed;
     private long _nextFailureLogTimeMs;
+    private readonly Queue<int> _hitErrorWindow = new();
+    private int _hitErrorWindowSum;
+    private int _hitErrorWindowAbsSum;
+    private int? _lastHitError;
+    private const int HitErrorWindowSize = 64;
 
     public RtssMonitorService(
         AppSettings appSettings,
@@ -152,6 +158,16 @@ public sealed class RtssMonitorService : IDisposable
                 AppendCriticalField(sb, "Score", _syncSessionContext.Score);
                 AppendLineEnd(sb);
 
+                var stats = _syncSessionContext.Statistics;
+                AppendCriticalField(sb, "Stats",
+                    $"300:{stats.Great} 100:{stats.Ok} 50:{stats.Meh} miss:{stats.Miss} geki:{stats.Perfect} katu:{stats.Good}");
+                AppendLineEnd(sb);
+
+                var hitErrors = _syncSessionContext.HitErrors;
+                UpdateHitErrorWindow(hitErrors);
+                AppendCriticalField(sb, "HitErr", BuildHitErrorSummary(hitErrors));
+                AppendLineEnd(sb);
+
                 AppendField(sb, "Update", _syncSessionContext.LastUpdateTimestamp);
                 AppendLineEnd(sb);
 
@@ -216,6 +232,44 @@ public sealed class RtssMonitorService : IDisposable
         }
 
         sb.Append(value?.ToString());
+    }
+
+    private void UpdateHitErrorWindow(SyncHitErrors hitErrors)
+    {
+        var values = hitErrors.Values;
+        if (values == null || values.Length == 0) return;
+
+        for (int i = 0; i < values.Length; i++)
+        {
+            var error = values[i];
+            _hitErrorWindow.Enqueue(error);
+            _hitErrorWindowSum += error;
+            _hitErrorWindowAbsSum += Math.Abs(error);
+            _lastHitError = error;
+
+            while (_hitErrorWindow.Count > HitErrorWindowSize)
+            {
+                var removed = _hitErrorWindow.Dequeue();
+                _hitErrorWindowSum -= removed;
+                _hitErrorWindowAbsSum -= Math.Abs(removed);
+            }
+        }
+    }
+
+    private string BuildHitErrorSummary(SyncHitErrors hitErrors)
+    {
+        int delta = hitErrors.Values?.Length ?? 0;
+        int count = _hitErrorWindow.Count;
+        string lastText = _lastHitError.HasValue ? $"{FormatSigned(_lastHitError.Value)}ms" : "--";
+        string avgText = count > 0 ? $"{(double)_hitErrorWindowSum / count:F1}ms" : "--";
+        string avgAbsText = count > 0 ? $"{(double)_hitErrorWindowAbsSum / count:F1}ms" : "--";
+
+        return $"idx:{hitErrors.Index} Δ:{delta} last:{lastText} avg:{avgText} abs:{avgAbsText}";
+    }
+
+    private static string FormatSigned(int value)
+    {
+        return value >= 0 ? $"+{value}" : value.ToString();
     }
 
     public void Dispose()
