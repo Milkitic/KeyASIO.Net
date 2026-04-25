@@ -11,12 +11,9 @@ public sealed class RtssMonitorService : IDisposable
     // RTSS hypertext color tags: we only colorize keys for quick visual scan.
     private const string CriticalKeyColorTag = "<C=FF69B4>";
     private const string ResetColorTag = "<C>";
-    private const string PlayModsKey = "PlayMods";
-    private const string PlayTimeKey = "PlayTime";
-    private const string BaseMemoryTimeKey = "BaseMemoryTime";
-    private const string ComboKey = "Combo";
-    private const string ScoreKey = "Score";
-    private const string OsuStatusKey = "OsuStatus";
+    private const string BoolTrueColorTag = "<C=52C41A>";
+    private const string BoolFalseColorTag = "<C=F5222D>";
+    private const string SeparatorColorTag = "<C=8B5A2B>";
 
     private readonly AppSettings _appSettings;
     private readonly SyncSessionContext _syncSessionContext;
@@ -122,21 +119,41 @@ public sealed class RtssMonitorService : IDisposable
             try
             {
                 sb.Clear();
-                AppendField(sb, "ClientType", _syncSessionContext.ClientType);
+                AppendField(sb, "File", _syncSessionContext.Beatmap.Filename ?? "(null)");
+                AppendLineEnd(sb);
+
+                AppendField(sb, "Folder", _syncSessionContext.Beatmap.Folder ?? "(null)");
+                AppendLineEnd(sb);
+
+                AppendField(sb, "PID", _syncSessionContext.ProcessId);
+                AppendSeparator(sb);
+                AppendField(sb, "Client", _syncSessionContext.ClientType);
+                AppendLineEnd(sb);
+
+                AppendField(sb, "User", _syncSessionContext.Username ?? "(null)");
+                AppendSeparator(sb);
+                AppendField(sb, "Status", _syncSessionContext.OsuStatus);
+                AppendLineEnd(sb);
+
                 AppendField(sb, "IsStarted", _syncSessionContext.IsStarted);
+                AppendSeparator(sb);
                 AppendField(sb, "IsReplay", _syncSessionContext.IsReplay);
-                AppendField(sb, "ProcessId", _syncSessionContext.ProcessId);
-                AppendField(sb, "Username", _syncSessionContext.Username ?? "(null)");
-                AppendCriticalField(sb, PlayModsKey, _syncSessionContext.PlayMods);
-                AppendCriticalField(sb, PlayTimeKey, _syncSessionContext.PlayTime);
-                AppendCriticalField(sb, BaseMemoryTimeKey, _syncSessionContext.BaseMemoryTime);
-                AppendCriticalField(sb, ComboKey, _syncSessionContext.Combo);
-                AppendCriticalField(sb, ScoreKey, _syncSessionContext.Score);
-                AppendCriticalField(sb, OsuStatusKey, _syncSessionContext.OsuStatus);
-                AppendField(sb, "SyncedStatusText", _syncSessionContext.SyncedStatusText);
-                AppendField(sb, "Beatmap.Folder", _syncSessionContext.Beatmap.Folder ?? "(null)");
-                AppendField(sb, "Beatmap.Filename", _syncSessionContext.Beatmap.Filename ?? "(null)");
-                AppendField(sb, "LastUpdateTimestamp", _syncSessionContext.LastUpdateTimestamp);
+                AppendLineEnd(sb);
+
+                AppendCriticalField(sb, "Time", _syncSessionContext.PlayTime);
+                AppendSeparator(sb);
+                AppendCriticalField(sb, "RawTime", _syncSessionContext.BaseMemoryTime);
+                AppendLineEnd(sb);
+
+                AppendCriticalField(sb, "Mods", _syncSessionContext.PlayMods);
+                AppendSeparator(sb);
+                AppendCriticalField(sb, "Combo", _syncSessionContext.Combo);
+                AppendSeparator(sb);
+                AppendCriticalField(sb, "Score", _syncSessionContext.Score);
+                AppendLineEnd(sb);
+
+                AppendField(sb, "Update", _syncSessionContext.LastUpdateTimestamp);
+                AppendLineEnd(sb);
 
                 var text = sb.ToString();
                 _osdWriter?.Update(text);
@@ -163,7 +180,8 @@ public sealed class RtssMonitorService : IDisposable
     private static void AppendField<T>(StringBuilder sb, string key, T value)
     {
         sb.Append(key);
-        sb.Append(": ").Append(value?.ToString()).Append('\n');
+        sb.Append(": ");
+        AppendValue(sb, value);
     }
 
     private static void AppendCriticalField<T>(StringBuilder sb, string key, T value)
@@ -171,9 +189,33 @@ public sealed class RtssMonitorService : IDisposable
         sb.Append(CriticalKeyColorTag)
           .Append(key)
           .Append(ResetColorTag)
-          .Append(": ")
-          .Append(value?.ToString())
-          .Append('\n');
+          .Append(": ");
+        AppendValue(sb, value);
+    }
+
+    private static void AppendSeparator(StringBuilder sb)
+    {
+        sb.Append(SeparatorColorTag)
+          .Append(" \t")
+          .Append(ResetColorTag);
+    }
+
+    private static void AppendLineEnd(StringBuilder sb)
+    {
+        sb.Append('\n');
+    }
+
+    private static void AppendValue<T>(StringBuilder sb, T value)
+    {
+        if (value is bool boolValue)
+        {
+            sb.Append(boolValue ? BoolTrueColorTag : BoolFalseColorTag)
+              .Append(boolValue ? "true" : "false")
+              .Append(ResetColorTag);
+            return;
+        }
+
+        sb.Append(value?.ToString());
     }
 
     public void Dispose()
