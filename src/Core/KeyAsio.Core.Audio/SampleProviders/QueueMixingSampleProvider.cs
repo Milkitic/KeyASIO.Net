@@ -160,10 +160,17 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
                 AudioRecycling.QueueForRecycle(pending);
             }
 
+            // 丢弃所有挂起的移除请求，避免池化对象复用后误删新输入。
+            while (_pendingRemovals.TryDequeue(out _))
+            {
+            }
+
             Interlocked.Exchange(ref _estimatedSourceCount, 0);
             _clearRequested = false;
         }
 
+        // 先应用 additions，再应用 removals。
+        // 这样能覆盖 Add 后立刻 Remove 的竞态（同一帧内先排入删除请求的情况）。
         while (_pendingAdditions.TryDequeue(out var source))
         {
             if (_sources.Count < MaxInputs)
@@ -182,8 +189,8 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
         {
             if (_sources.Remove(toRemove))
             {
-                Interlocked.Decrement(ref _estimatedSourceCount);
                 AudioRecycling.QueueForRecycle(toRemove);
+                Interlocked.Decrement(ref _estimatedSourceCount);
             }
         }
     }

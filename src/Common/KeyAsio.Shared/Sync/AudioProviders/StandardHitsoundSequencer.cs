@@ -251,8 +251,19 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
                 break;
             }
 
-            // 只有在延迟容忍度内才播放
-            if (playTime < node.Offset + AudioLatencyTolerance)
+            bool mustDispatchControlSignal = node is ControlEvent
+            {
+                ControlEventType: ControlEventType.LoopStop or ControlEventType.Volume or ControlEventType.Balance
+            };
+
+            // LoopStop/Volume/Balance 是控制信号，绝不能因为延迟或缓存未命中被丢弃
+            if (mustDispatchControlSignal)
+            {
+                buffer.Add(new PlaybackInfo(null, node));
+            }
+
+            // 其他事件仍遵循延迟容忍窗口
+            else if (playTime < node.Offset + AudioLatencyTolerance)
             {
                 if (_gameplayAudioService.TryGetAudioByNode(node, out var cachedSound))
                 {
