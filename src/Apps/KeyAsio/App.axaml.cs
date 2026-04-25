@@ -39,6 +39,8 @@ public partial class App : Application
             var memorySyncBridge = Program.Host.Services.GetRequiredService<MemorySyncBridge>();
             memorySyncBridge.Start();
 
+            _ = Program.Host.Services.GetRequiredService<RtssMonitorService>();
+
             var keyboardBindingInitializer = Program.Host.Services.GetRequiredService<KeyboardBindingInitializer>();
             keyboardBindingInitializer.Setup();
             var appSettings = Program.Host.Services.GetRequiredService<AppSettings>();

@@ -121,6 +121,9 @@ public partial class AppSettingsSync : INotifyPropertyChanged
     [Description("[Experimental] Enable music‑related functions.")]
     public bool EnableMixSync { get; set; }
 
+    [Description("Enable RTSS on-screen display monitoring for SyncSessionContext data.")]
+    public bool EnableRtssMonitoring { get; set; }
+
     public AppSettingsSyncScanning Scanning { get => field ??= new(); init; }
     public AppSettingsSyncPlayback Playback { get => field ??= new(); init; }
     public AppSettingsSyncFilters Filters { get => field ??= new(); init; }

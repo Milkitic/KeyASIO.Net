@@ -1881,5 +1881,23 @@ namespace KeyAsio.Lang {
                 return ResourceManager.GetString("UpdateChannel_Alpha", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   查找类似 RTSS Monitoring 的本地化字符串。
+        /// </summary>
+        internal static string Sync_RtssMonitoring {
+            get {
+                return ResourceManager.GetString("Sync_RtssMonitoring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Display SyncSessionContext data via RTSS on-screen display at 100 FPS. 的本地化字符串。
+        /// </summary>
+        internal static string Sync_RtssMonitoringDescription {
+            get {
+                return ResourceManager.GetString("Sync_RtssMonitoringDescription", resourceCulture);
+            }
+        }
     }
 }
