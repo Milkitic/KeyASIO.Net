@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Events;
 using KeyAsio.Shared.OsuMemory;
@@ -237,6 +238,8 @@ public class SyncSessionContext
     }
 
     public int Score { get; set; }
+    public SyncStatistics Statistics { get; set; } = SyncStatistics.Empty;
+    public SyncHitErrors HitErrors { get; set; } = SyncHitErrors.Empty;
 
     public OsuMemoryStatus OsuStatus
     {
@@ -250,6 +253,12 @@ public class SyncSessionContext
             // 状态切换时，重置所有保护逻辑，允许时间跳变
             _lastReturnedPlayTime = int.MinValue;
             _isFrozen = false;
+
+            if (value != OsuMemoryStatus.Playing)
+            {
+                Statistics = SyncStatistics.Empty;
+                HitErrors = SyncHitErrors.Empty;
+            }
 
             // 重置锚点
             _anchorTick = Stopwatch.GetTimestamp();

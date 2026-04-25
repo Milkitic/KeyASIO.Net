@@ -174,6 +174,9 @@ public partial class UpdateService : ObservableObject
 
     public async Task<bool> CheckRulesUpdateAsync()
     {
+#if DEBUG
+        return true;
+#endif
         try
         {
             var rulesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "osu_memory_rules.json");

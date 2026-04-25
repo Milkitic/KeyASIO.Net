@@ -4,6 +4,7 @@ using Coosu.Shared.IO;
 using KeyAsio.Core.Memory;
 using KeyAsio.Core.Memory.Configuration;
 using KeyAsio.Core.Memory.Utils;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using Microsoft.Extensions.Logging;
 
@@ -31,6 +32,16 @@ public class MemoryScan
     private bool _isStarted;
     private readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
     private ValueDefinition? _valueDefinition;
+    private ValueDefinition? _scoreCuttingEdgeValueDefinition;
+    private ValueDefinition? _scoreLegacyValueDefinition;
+    private ValueDefinition? _comboValueDefinition;
+    private ValueDefinition? _hit100ValueDefinition;
+    private ValueDefinition? _hit300ValueDefinition;
+    private ValueDefinition? _hit50ValueDefinition;
+    private ValueDefinition? _hitGekiValueDefinition;
+    private ValueDefinition? _hitKatuValueDefinition;
+    private ValueDefinition? _hitMissValueDefinition;
+
     private string? _folderName;
 
     public MemoryScan(ILogger<MemoryScan> logger)
@@ -210,6 +221,16 @@ public class MemoryScan
                     _logger.LogWarning("Memory profile is missing required 'AudioTime' definition");
                 }
 
+                _memoryContext.TryGetProfile("ScoreCuttingEdge", out _scoreCuttingEdgeValueDefinition);
+                _memoryContext.TryGetProfile("ScoreLegacy", out _scoreLegacyValueDefinition);
+                _memoryContext.TryGetProfile("Combo", out _comboValueDefinition);
+                _memoryContext.TryGetProfile("Hit100", out _hit100ValueDefinition);
+                _memoryContext.TryGetProfile("Hit300", out _hit300ValueDefinition);
+                _memoryContext.TryGetProfile("Hit50", out _hit50ValueDefinition);
+                _memoryContext.TryGetProfile("HitGeki", out _hitGekiValueDefinition);
+                _memoryContext.TryGetProfile("HitKatu", out _hitKatuValueDefinition);
+                _memoryContext.TryGetProfile("HitMiss", out _hitMissValueDefinition);
+
                 _logger.LogInformation("Connected to osu! process");
                 MemoryReadObject.ProcessId = _process.Id;
                 return true;
@@ -245,12 +266,23 @@ public class MemoryScan
         _memoryContext = null;
         _songsDirectory = null;
         _scanSuccessful = false;
+        _scoreCuttingEdgeValueDefinition = null;
+        _scoreLegacyValueDefinition = null;
+        _comboValueDefinition = null;
+        _hit100ValueDefinition = null;
+        _hit300ValueDefinition = null;
+        _hit50ValueDefinition = null;
+        _hitGekiValueDefinition = null;
+        _hitKatuValueDefinition = null;
+        _hitMissValueDefinition = null;
 
         _folderName = null;
-        MemoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
-        MemoryReadObject.PlayingTime = 0;
-        MemoryReadObject.ProcessId = 0;
-        MemoryReadObject.BeatmapIdentifier = default;
+        memoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
+        memoryReadObject.PlayingTime = 0;
+        memoryReadObject.ProcessId = 0;
+        memoryReadObject.BeatmapIdentifier = default;
+        memoryReadObject.Statistics = SyncStatistics.Empty;
+        memoryReadObject.HitErrors = SyncHitErrors.Empty;
         if (exiting)
         {
             _logger.LogInformation("Disconnected from osu! process");
@@ -357,7 +389,39 @@ public class MemoryScan
             if (memoryReadObject.OsuStatus == OsuMemoryStatus.Playing)
             {
                 memoryReadObject.IsReplay = _osuMemoryData.IsReplay;
-                memoryReadObject.Score = _osuMemoryData.Score;
+                var score = _osuMemoryData.Score;
+
+                var preferredScoreDef = _scoreLegacyValueDefinition;
+                if (_memoryContext.TryGetString("OsuVersion", out var osuVersion) &&
+                    !string.IsNullOrEmpty(osuVersion) &&
+                    (osuVersion.Contains("cuttingedge", StringComparison.OrdinalIgnoreCase) ||
+                     osuVersion.Contains("tourney", StringComparison.OrdinalIgnoreCase)))
+                {
+                    preferredScoreDef = _scoreCuttingEdgeValueDefinition;
+                }
+
+                if (preferredScoreDef != null &&
+                    _memoryContext.TryGetValueDef<int>(preferredScoreDef, out var preferredScore) &&
+                    preferredScore > 0)
+                {
+                    score = preferredScore;
+                }
+                else if (score <= 0 &&
+                         _scoreLegacyValueDefinition != null &&
+                         _memoryContext.TryGetValueDef<int>(_scoreLegacyValueDefinition, out var legacyScore) &&
+                         legacyScore > 0)
+                {
+                    score = legacyScore;
+                }
+                else if (score <= 0 &&
+                         _scoreCuttingEdgeValueDefinition != null &&
+                         _memoryContext.TryGetValueDef<int>(_scoreCuttingEdgeValueDefinition, out var cuttingEdgeScore) &&
+                         cuttingEdgeScore > 0)
+                {
+                    score = cuttingEdgeScore;
+                }
+
+                memoryReadObject.Score = score;
                 memoryReadObject.Combo = _osuMemoryData.Combo;
             }
             else
@@ -403,5 +467,102 @@ public class MemoryScan
         {
             memoryReadObject.PlayingTime = audioTime;
         }
+
+        if (memoryReadObject.OsuStatus != OsuMemoryStatus.Playing)
+        {
+            memoryReadObject.Statistics = SyncStatistics.Empty;
+            memoryReadObject.HitErrors = SyncHitErrors.Empty;
+            return;
+        }
+
+        memoryReadObject.Statistics = new SyncStatistics(
+            ReadStat(_hitGekiValueDefinition),
+            ReadStat(_hit300ValueDefinition),
+            ReadStat(_hitKatuValueDefinition),
+            ReadStat(_hit100ValueDefinition),
+            ReadStat(_hit50ValueDefinition),
+            ReadStat(_hitMissValueDefinition));
+
+        memoryReadObject.HitErrors = ReadHitErrors(memoryReadObject.HitErrors.Index);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int ReadStat(ValueDefinition? definition)
+    {
+        return _memoryContext != null && _memoryContext.TryGetValueDef<short>(definition, out var value)
+            ? value
+            : 0;
+    }
+
+    private SyncHitErrors ReadHitErrors(int lastIndex)
+    {
+        int safeLastIndex = Math.Max(0, lastIndex);
+
+        if (_memoryContext == null || _sigScan == null || _comboValueDefinition == null)
+        {
+            return new SyncHitErrors(safeLastIndex, []);
+        }
+
+        var scoreBase = _memoryContext.ResolveBaseAddress(_comboValueDefinition);
+        if (scoreBase == IntPtr.Zero)
+        {
+            return new SyncHitErrors(safeLastIndex, []);
+        }
+
+        if (!MemoryReadHelper.TryGetPointer(_sigScan, scoreBase + 0x38, out var hitErrorsListBase) ||
+            hitErrorsListBase == IntPtr.Zero)
+        {
+            return new SyncHitErrors(safeLastIndex, []);
+        }
+
+        if (!MemoryReadHelper.TryGetPointer(_sigScan, hitErrorsListBase + 0x4, out var itemsBase) ||
+            itemsBase == IntPtr.Zero)
+        {
+            return new SyncHitErrors(safeLastIndex, []);
+        }
+
+        if (!MemoryReadHelper.TryGetValue<int>(_sigScan, hitErrorsListBase + 0xc, out var size) ||
+            size is < 0 or > 100_000)
+        {
+            return new SyncHitErrors(safeLastIndex, []);
+        }
+
+        if (safeLastIndex > size)
+        {
+            safeLastIndex = 0;
+        }
+
+        int count = size - safeLastIndex;
+        if (count <= 0)
+        {
+            return new SyncHitErrors(size, []);
+        }
+
+        var errors = new int[count];
+        int readCount = 0;
+        int index = safeLastIndex;
+        for (int i = safeLastIndex; i < size; i++)
+        {
+            if (!MemoryReadHelper.TryGetValue<int>(_sigScan, itemsBase + 0x8 + 0x4 * i, out var error))
+            {
+                break;
+            }
+
+            if (error is < -10_000 or > 10_000)
+            {
+                _logger.LogDebug("Strange value in hitErrors: {HitError}", error);
+                break;
+            }
+
+            errors[readCount++] = error;
+            index = i + 1;
+        }
+
+        if (readCount != errors.Length)
+        {
+            Array.Resize(ref errors, readCount);
+        }
+
+        return new SyncHitErrors(index, errors);
     }
 }

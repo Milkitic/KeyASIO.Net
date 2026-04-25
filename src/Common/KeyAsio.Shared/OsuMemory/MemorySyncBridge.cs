@@ -1,5 +1,6 @@
 ﻿﻿using System.ComponentModel;
 using System.Text;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
@@ -108,6 +109,8 @@ public class MemorySyncBridge
         _memoryScan.MemoryReadObject.OsuStatusChanged += OnOsuStatusChanged;
         _memoryScan.MemoryReadObject.ProcessIdChanged += OnProcessIdChanged;
         _memoryScan.MemoryReadObject.PlayingTimeChanged += OnPlayingTimeChanged;
+        _memoryScan.MemoryReadObject.StatisticsChanged += OnStatisticsChanged;
+        _memoryScan.MemoryReadObject.HitErrorsChanged += OnHitErrorsChanged;
     }
 
     private void OnPlayerNameChanged(string? oldName, string? newName)
@@ -215,6 +218,30 @@ public class MemorySyncBridge
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to update SyncSessionContext.Score");
+        }
+    }
+
+    private void OnStatisticsChanged(SyncStatistics oldStatistics, SyncStatistics newStatistics)
+    {
+        try
+        {
+            _syncSessionContext.Statistics = newStatistics;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Statistics");
+        }
+    }
+
+    private void OnHitErrorsChanged(SyncHitErrors oldHitErrors, SyncHitErrors newHitErrors)
+    {
+        try
+        {
+            _syncSessionContext.HitErrors = newHitErrors;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.HitErrors");
         }
     }
 }
