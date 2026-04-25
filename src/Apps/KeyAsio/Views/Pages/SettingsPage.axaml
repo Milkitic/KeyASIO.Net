@@ -160,6 +160,13 @@
 
             <controls:SettingItem
               Classes="Switch"
+              Description="{I18N {x:Static lang:SRKeys.Sync_RtssMonitoringDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Sync_RtssMonitoring}}"
+              Icon="Monitor"
+              IsChecked="{Binding AppSettings.Sync.EnableRtssMonitoring}" />
+
+            <controls:SettingItem
+              Classes="Switch"
               Description="{I18N {x:Static lang:SRKeys.Settings_PerformanceBoost}}"
               Header="{I18N {x:Static lang:SRKeys.Settings_EnableAvx512}}"
               Icon="RocketLaunch"

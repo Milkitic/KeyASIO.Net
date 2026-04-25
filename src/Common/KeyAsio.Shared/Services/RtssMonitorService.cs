@@ -136,7 +136,6 @@ public sealed class RtssMonitorService : IDisposable
                 AppendField(sb, "SyncedStatusText", _syncSessionContext.SyncedStatusText);
                 AppendField(sb, "Beatmap.Folder", _syncSessionContext.Beatmap.Folder ?? "(null)");
                 AppendField(sb, "Beatmap.Filename", _syncSessionContext.Beatmap.Filename ?? "(null)");
-                AppendField(sb, "Beatmap.FilenameFull", _syncSessionContext.Beatmap.FilenameFull ?? "(null)");
                 AppendField(sb, "LastUpdateTimestamp", _syncSessionContext.LastUpdateTimestamp);
 
                 var text = sb.ToString();

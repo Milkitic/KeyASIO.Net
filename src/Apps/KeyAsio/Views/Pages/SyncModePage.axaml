@@ -199,13 +199,6 @@
         <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Sync_AdvancedSettings}}">
           <StackPanel Margin="0,0,8,0" Spacing="10">
             <controls:SettingItem
-              Description="{I18N {x:Static lang:SRKeys.Sync_RtssMonitoringDescription}}"
-              Header="{I18N {x:Static lang:SRKeys.Sync_RtssMonitoring}}"
-              Icon="Monitor"
-              Classes="Switch"
-              IsChecked="{Binding AppSettings.Sync.EnableRtssMonitoring}" />
-
-            <controls:SettingItem
               Description="{I18N {x:Static lang:SRKeys.Sync_GeneralScanIntervalDescription}}"
               Header="{I18N {x:Static lang:SRKeys.Sync_GeneralScanInterval}}"
               Icon="TimerRefresh">
