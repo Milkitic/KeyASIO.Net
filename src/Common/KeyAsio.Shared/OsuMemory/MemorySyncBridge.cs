@@ -109,6 +109,7 @@ public class MemorySyncBridge
         _memoryScan.MemoryReadObject.OsuStatusChanged += OnOsuStatusChanged;
         _memoryScan.MemoryReadObject.ProcessIdChanged += OnProcessIdChanged;
         _memoryScan.MemoryReadObject.PlayingTimeChanged += OnPlayingTimeChanged;
+        _memoryScan.MemoryReadObject.TimingScanCompleted += OnTimingScanCompleted;
         _memoryScan.MemoryReadObject.StatisticsChanged += OnStatisticsChanged;
         _memoryScan.MemoryReadObject.HitErrorsChanged += OnHitErrorsChanged;
     }
@@ -194,6 +195,18 @@ public class MemorySyncBridge
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to update SyncSessionContext.BaseMemoryTime");
+        }
+    }
+
+    private void OnTimingScanCompleted(long oldGeneration, long newGeneration)
+    {
+        try
+        {
+            _syncSessionContext.TimingScanGeneration = newGeneration;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update SyncSessionContext.TimingScanGeneration");
         }
     }
 

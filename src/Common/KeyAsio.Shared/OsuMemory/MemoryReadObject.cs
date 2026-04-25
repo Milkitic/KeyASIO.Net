@@ -13,6 +13,7 @@ public class MemoryReadObject
     public event ValueChangedEventHandler<bool>? IsReplayChanged;
     public event ValueChangedEventHandler<OsuMemoryStatus>? OsuStatusChanged;
     public event ValueChangedEventHandler<int>? PlayingTimeChanged;
+    public event ValueChangedEventHandler<long>? TimingScanCompleted;
     public event ValueChangedEventHandler<Mods>? ModsChanged;
     public event ValueChangedEventHandler<int>? ProcessIdChanged;
     public event ValueChangedEventHandler<BeatmapIdentifier>? BeatmapIdentifierChanged;
@@ -102,6 +103,20 @@ public class MemoryReadObject
             PlayingTimeChanged?.Invoke(old, value);
         }
     } // GeneralData.AudioTime
+
+    public long TimingScanGeneration
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            if (field == value) return;
+            var old = field;
+            field = value;
+            TimingScanCompleted?.Invoke(old, value);
+        }
+    }
 
     public Mods Mods
     {

@@ -141,7 +141,7 @@ public partial class AppSettingsSyncScanning : INotifyPropertyChanged
     public int TimingScanInterval { get; set; } = 2;
 
     [Description("Lower values verify combo changes more promptly after speculative hitsound playback.")]
-    public int RevertHitsoundDelay { get; set; } = 5;
+    public int RevertHitsoundDelay { get; set; } = 16;
 }
 
 public partial class AppSettingsSyncPlayback : INotifyPropertyChanged

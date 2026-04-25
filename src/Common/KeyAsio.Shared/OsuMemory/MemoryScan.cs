@@ -30,6 +30,7 @@ public class MemoryScan
     private Task? _readTask;
     private CancellationTokenSource? _cts;
     private bool _isStarted;
+    private long _timingScanGeneration;
     private readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
     private ValueDefinition? _valueDefinition;
     private ValueDefinition? _comboValueDefinition;
@@ -152,7 +153,9 @@ public class MemoryScan
             if (now >= nextTimingScan)
             {
                 ReadTiming(memoryReadObject);
+                ReadScore(memoryReadObject);
                 ReadCombo(memoryReadObject);
+                memoryReadObject.TimingScanGeneration = ++_timingScanGeneration;
                 nextTimingScan = now + _timingInterval;
                 didWork = true;
             }
@@ -283,10 +286,13 @@ public class MemoryScan
         _hitMissValueDefinition = null;
 
         _folderName = null;
+        _timingScanGeneration = 0;
         memoryReadObject.OsuStatus = OsuMemoryStatus.NotRunning;
         memoryReadObject.PlayingTime = 0;
+        memoryReadObject.TimingScanGeneration = 0;
         memoryReadObject.ProcessId = 0;
         memoryReadObject.BeatmapIdentifier = default;
+        memoryReadObject.Score = 0;
         memoryReadObject.Statistics = SyncStatistics.Empty;
         memoryReadObject.HitErrors = SyncHitErrors.Empty;
         if (exiting)
@@ -395,39 +401,7 @@ public class MemoryScan
             if (memoryReadObject.OsuStatus == OsuMemoryStatus.Playing)
             {
                 memoryReadObject.IsReplay = _osuMemoryData.IsReplay;
-                var score = _osuMemoryData.Score;
-
-                var preferredScoreDef = _scoreLegacyValueDefinition;
-                if (_memoryContext.TryGetString("OsuVersion", out var osuVersion) &&
-                    !string.IsNullOrEmpty(osuVersion) &&
-                    (osuVersion.Contains("cuttingedge", StringComparison.OrdinalIgnoreCase) ||
-                     osuVersion.Contains("tourney", StringComparison.OrdinalIgnoreCase)))
-                {
-                    preferredScoreDef = _scoreCuttingEdgeValueDefinition;
-                }
-
-                if (preferredScoreDef != null &&
-                    _memoryContext.TryGetValueDef<int>(preferredScoreDef, out var preferredScore) &&
-                    preferredScore > 0)
-                {
-                    score = preferredScore;
-                }
-                else if (score <= 0 &&
-                         _scoreLegacyValueDefinition != null &&
-                         _memoryContext.TryGetValueDef<int>(_scoreLegacyValueDefinition, out var legacyScore) &&
-                         legacyScore > 0)
-                {
-                    score = legacyScore;
-                }
-                else if (score <= 0 &&
-                         _scoreCuttingEdgeValueDefinition != null &&
-                         _memoryContext.TryGetValueDef<int>(_scoreCuttingEdgeValueDefinition, out var cuttingEdgeScore) &&
-                         cuttingEdgeScore > 0)
-                {
-                    score = cuttingEdgeScore;
-                }
-
-                memoryReadObject.Score = score;
+                ReadScore(memoryReadObject);
                 memoryReadObject.Combo = _osuMemoryData.Combo;
             }
             else
@@ -504,6 +478,48 @@ public class MemoryScan
         }
 
         return false;
+    }
+
+    private void ReadScore(MemoryReadObject memoryReadObject)
+    {
+        if (memoryReadObject.OsuStatus != OsuMemoryStatus.Playing || _memoryContext == null)
+        {
+            memoryReadObject.Score = 0;
+            return;
+        }
+
+        var score = _osuMemoryData.Score;
+        var preferredScoreDef = _scoreLegacyValueDefinition;
+        if (_memoryContext.TryGetString("OsuVersion", out var osuVersion) &&
+            !string.IsNullOrEmpty(osuVersion) &&
+            (osuVersion.Contains("cuttingedge", StringComparison.OrdinalIgnoreCase) ||
+             osuVersion.Contains("tourney", StringComparison.OrdinalIgnoreCase)))
+        {
+            preferredScoreDef = _scoreCuttingEdgeValueDefinition;
+        }
+
+        if (preferredScoreDef != null &&
+            _memoryContext.TryGetValueDef<int>(preferredScoreDef, out var preferredScore) &&
+            preferredScore > 0)
+        {
+            score = preferredScore;
+        }
+        else if (score <= 0 &&
+                 _scoreLegacyValueDefinition != null &&
+                 _memoryContext.TryGetValueDef<int>(_scoreLegacyValueDefinition, out var legacyScore) &&
+                 legacyScore > 0)
+        {
+            score = legacyScore;
+        }
+        else if (score <= 0 &&
+                 _scoreCuttingEdgeValueDefinition != null &&
+                 _memoryContext.TryGetValueDef<int>(_scoreCuttingEdgeValueDefinition, out var cuttingEdgeScore) &&
+                 cuttingEdgeScore > 0)
+        {
+            score = cuttingEdgeScore;
+        }
+
+        memoryReadObject.Score = score;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

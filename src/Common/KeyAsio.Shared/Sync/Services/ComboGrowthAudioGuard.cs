@@ -5,6 +5,9 @@ namespace KeyAsio.Shared.Sync.Services;
 
 public sealed class ComboGrowthAudioGuard : IDisposable
 {
+    private const int RequiredTimingScansAfterKeyDown = 2;
+    private const int ValidationPollIntervalMs = 1;
+
     private readonly Lock _lock = new();
     private readonly List<CancellationTokenSource> _pendingValidations = new(8);
     private readonly SyncSessionContext _syncSessionContext;
@@ -26,22 +29,42 @@ public sealed class ComboGrowthAudioGuard : IDisposable
     /// Captures the current validation baselines. Call this at the very start of a key-press
     /// callback, before any processing, so snapshots are taken before osu! updates memory.
     /// </summary>
-    public (int Combo, int Score, int HitErrorIndex) SnapshotBaselines()
-        => (_syncSessionContext.Combo, _syncSessionContext.Score, _syncSessionContext.HitErrors.Index);
+    public (int Combo, int Score, int HitErrorIndex, long TimingScanGeneration) SnapshotBaselines()
+        => (_syncSessionContext.Combo,
+            _syncSessionContext.Score,
+            _syncSessionContext.HitErrors.Index,
+            _syncSessionContext.TimingScanGeneration);
 
-    public void Track(ISampleProvider provider, int comboBaseline, int scoreBaseline, int hitErrorIndexBaseline)
+    public void Track(
+        ISampleProvider provider,
+        int comboBaseline,
+        int scoreBaseline,
+        int hitErrorIndexBaseline,
+        long timingScanGenerationBaseline)
     {
         if (!_syncSessionContext.IsStarted || _syncSessionContext.OsuStatus != OsuMemoryStatus.Playing)
         {
             return;
         }
 
-        int revertDelay = Math.Max(1, _appSettings.Sync.Scanning.RevertHitsoundDelay);
+        int revertDelay = _appSettings.Sync.Scanning.RevertHitsoundDelay;
+        if (revertDelay <= 0)
+        {
+            // Explicit opt-out: do not run rollback validation or stop the speculative hitsound.
+            return;
+        }
         var cts = CancellationTokenSource.CreateLinkedTokenSource(_disposeCts.Token);
 
         lock (_lock) _pendingValidations.Add(cts);
 
-        _ = ValidateAfterDelayAsync(provider, comboBaseline, scoreBaseline, hitErrorIndexBaseline, revertDelay, cts);
+        _ = ValidateAfterDelayAsync(
+            provider,
+            comboBaseline,
+            scoreBaseline,
+            hitErrorIndexBaseline,
+            timingScanGenerationBaseline,
+            revertDelay,
+            cts);
     }
 
     public void Clear()
@@ -71,6 +94,7 @@ public sealed class ComboGrowthAudioGuard : IDisposable
         int comboBaseline,
         int scoreBaseline,
         int hitErrorIndexBaseline,
+        long timingScanGenerationBaseline,
         int delayMs,
         CancellationTokenSource cts)
     {
@@ -78,7 +102,19 @@ public sealed class ComboGrowthAudioGuard : IDisposable
         {
             await Task.Delay(delayMs, cts.Token).ConfigureAwait(false);
 
-            if (cts.IsCancellationRequested || _disposeCts.IsCancellationRequested)
+            var requiredTimingScanGeneration = timingScanGenerationBaseline + RequiredTimingScansAfterKeyDown;
+            var maxExtraWaitMs = Math.Max(ValidationPollIntervalMs, _appSettings.Sync.Scanning.TimingScanInterval * 3);
+            var waitStartedAt = Environment.TickCount64;
+
+            while (!IsDisposedOrCanceled(cts) &&
+                   !HasConfirmedHit(comboBaseline, scoreBaseline, hitErrorIndexBaseline) &&
+                   _syncSessionContext.TimingScanGeneration < requiredTimingScanGeneration &&
+                   Environment.TickCount64 - waitStartedAt < maxExtraWaitMs)
+            {
+                await Task.Delay(ValidationPollIntervalMs, cts.Token).ConfigureAwait(false);
+            }
+
+            if (IsDisposedOrCanceled(cts))
             {
                 return;
             }
@@ -88,11 +124,12 @@ public sealed class ComboGrowthAudioGuard : IDisposable
                 return;
             }
 
-            bool comboChanged = _syncSessionContext.Combo > comboBaseline;
-            bool scoreChanged = _syncSessionContext.Score > scoreBaseline;
-            bool hitErrorsChanged = _syncSessionContext.HitErrors.Index > hitErrorIndexBaseline;
+            if (_syncSessionContext.TimingScanGeneration < requiredTimingScanGeneration)
+            {
+                return;
+            }
 
-            if (!comboChanged && !scoreChanged && !hitErrorsChanged)
+            if (!HasConfirmedHit(comboBaseline, scoreBaseline, hitErrorIndexBaseline))
             {
                 _sfxPlaybackService.StopEffectsAudio(provider);
             }
@@ -105,5 +142,16 @@ public sealed class ComboGrowthAudioGuard : IDisposable
             lock (_lock) _pendingValidations.Remove(cts);
             cts.Dispose();
         }
+    }
+
+    private bool IsDisposedOrCanceled(CancellationTokenSource cts)
+        => cts.IsCancellationRequested || _disposeCts.IsCancellationRequested;
+
+    private bool HasConfirmedHit(int comboBaseline, int scoreBaseline, int hitErrorIndexBaseline)
+    {
+        bool comboChanged = _syncSessionContext.Combo > comboBaseline;
+        bool scoreChanged = _syncSessionContext.Score > scoreBaseline;
+        bool hitErrorsChanged = _syncSessionContext.HitErrors.Index > hitErrorIndexBaseline;
+        return comboChanged || scoreChanged || hitErrorsChanged;
     }
 }

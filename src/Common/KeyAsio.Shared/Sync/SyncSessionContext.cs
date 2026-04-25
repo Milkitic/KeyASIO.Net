@@ -238,6 +238,7 @@ public class SyncSessionContext
     }
 
     public int Score { get; set; }
+    public long TimingScanGeneration { get; set; }
     public SyncStatistics Statistics { get; set; } = SyncStatistics.Empty;
     public SyncHitErrors HitErrors { get; set; } = SyncHitErrors.Empty;
 
@@ -256,6 +257,7 @@ public class SyncSessionContext
 
             if (value != OsuMemoryStatus.Playing)
             {
+                TimingScanGeneration = 0;
                 Statistics = SyncStatistics.Empty;
                 HitErrors = SyncHitErrors.Empty;
             }

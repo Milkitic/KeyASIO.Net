@@ -227,7 +227,7 @@
               <NumericUpDown
                 FormatString="F0"
                 Maximum="1000"
-                Minimum="1"
+                Minimum="0"
                 Value="{Binding AppSettings.Sync.Scanning.RevertHitsoundDelay}" />
             </controls:SettingItem>
           </StackPanel>

@@ -75,7 +75,7 @@ public class PresetManager
         // Extreme
         if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 1 &&
-            _appSettings.Sync.Scanning.RevertHitsoundDelay == 5 &&
+            _appSettings.Sync.Scanning.RevertHitsoundDelay == 16 &&
             _appSettings.Sync.Playback.LimiterType == LimiterType.Off &&
             _appSettings.Sync.Playback.BalanceMode == BalanceMode.Off)
         {
@@ -85,7 +85,7 @@ public class PresetManager
         // Fast
         if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 2 &&
-            _appSettings.Sync.Scanning.RevertHitsoundDelay == 5 &&
+            _appSettings.Sync.Scanning.RevertHitsoundDelay == 16 &&
             _appSettings.Sync.Playback.LimiterType == LimiterType.Polynomial &&
             _appSettings.Sync.Playback.BalanceMode == BalanceMode.ConstantPower)
         {
@@ -95,7 +95,7 @@ public class PresetManager
         // Standard
         if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 2 &&
-            _appSettings.Sync.Scanning.RevertHitsoundDelay == 5 &&
+            _appSettings.Sync.Scanning.RevertHitsoundDelay == 16 &&
             _appSettings.Sync.Playback.LimiterType == LimiterType.Master &&
             _appSettings.Sync.Playback.BalanceMode == BalanceMode.MidSide)
         {
@@ -134,7 +134,7 @@ public class PresetManager
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 2;
-        _appSettings.Sync.Scanning.RevertHitsoundDelay = 5;
+        _appSettings.Sync.Scanning.RevertHitsoundDelay = 16;
 
         // todo: 平衡器算法、限频器算法、无视所有音量与声道变化等
     }
@@ -146,7 +146,7 @@ public class PresetManager
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 2;
-        _appSettings.Sync.Scanning.RevertHitsoundDelay = 5;
+        _appSettings.Sync.Scanning.RevertHitsoundDelay = 16;
     }
 
     private void ApplyExtreme()
@@ -156,6 +156,6 @@ public class PresetManager
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 1;
-        _appSettings.Sync.Scanning.RevertHitsoundDelay = 5;
+        _appSettings.Sync.Scanning.RevertHitsoundDelay = 16;
     }
 }

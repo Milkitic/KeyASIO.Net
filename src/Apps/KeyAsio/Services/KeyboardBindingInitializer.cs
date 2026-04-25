@@ -184,9 +184,9 @@ public class KeyboardBindingInitializer
                     // Capture baselines BEFORE ProcessInteraction/DispatchPlayback,
                     // to avoid a race where the memory scan thread updates values
                     // (from osu!'s hit processing) before Track() validates them.
-                    var (comboBaseline, scoreBaseline, hitErrorIndexBaseline) = shouldGuardComboGrowth
+                    var (comboBaseline, scoreBaseline, hitErrorIndexBaseline, timingScanGenerationBaseline) = shouldGuardComboGrowth
                         ? _comboGrowthAudioGuard.SnapshotBaselines()
-                        : (0, 0, 0);
+                        : (0, 0, 0, 0L);
 
                     sequencer.ProcessInteraction(_playbackBuffer, keyIndex, keyTotal);
                     foreach (var playbackInfo in _playbackBuffer)
@@ -199,7 +199,8 @@ public class KeyboardBindingInitializer
                                 provider,
                                 comboBaseline,
                                 scoreBaseline,
-                                hitErrorIndexBaseline);
+                                hitErrorIndexBaseline,
+                                timingScanGenerationBaseline);
                         }
                     }
                 }
