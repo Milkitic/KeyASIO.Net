@@ -20,6 +20,7 @@ public class RealtimeOptions : ViewModelBase
     private bool _forceNightcoreBeats;
     private int _generalScanInterval = 50;
     private int _timingScanInterval = 15;
+    private int _revertHitsoundDelay = 5;
 
     [Description("If the set value is lower, the generic fields will be updated more promptly.\r\n" +
                  "This property is targeted at delay-insensitive fields and can be appropriately increased to reduce CPU usage.")]
@@ -36,6 +37,13 @@ public class RealtimeOptions : ViewModelBase
     {
         get => _timingScanInterval;
         set => SetField(ref _timingScanInterval, value);
+    }
+
+    [Description("If the set value is lower, combo changes will be verified more promptly after speculative hitsound playback.")]
+    public int RevertHitsoundDelay
+    {
+        get => _revertHitsoundDelay;
+        set => SetField(ref _revertHitsoundDelay, value);
     }
 
     [Description("If enabled, the software will perform memory scanning and play the right hitsounds of beatmaps.")]

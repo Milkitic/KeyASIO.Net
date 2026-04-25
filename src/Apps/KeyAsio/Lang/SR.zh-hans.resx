@@ -564,6 +564,12 @@
   <data name="Sync_GeneralScanIntervalDescription" xml:space="preserve">
     <value>数值越低，常规字段更新越及时。增加此值可降低 CPU 占用。</value>
   </data>
+  <data name="Sync_RevertHitsoundDelay" xml:space="preserve">
+    <value>Combo 扫描间隔 (ms)</value>
+  </data>
+  <data name="Sync_RevertHitsoundDelayDescription" xml:space="preserve">
+    <value>数值越低，预播放音效后越快确认 Combo 是否增长。</value>
+  </data>
   <data name="Sync_IgnoreVolumeChanges" xml:space="preserve">
     <value>忽略音量变化</value>
   </data>

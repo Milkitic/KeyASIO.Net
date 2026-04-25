@@ -15,6 +15,7 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<SfxPlaybackService>();
+        services.AddSingleton<ComboGrowthAudioGuard>();
         services.AddSingleton<GameplaySessionManager>();
 
         services.AddSingleton<SyncSessionContext>();

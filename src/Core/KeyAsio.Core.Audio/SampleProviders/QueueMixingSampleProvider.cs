@@ -164,14 +164,6 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
             _clearRequested = false;
         }
 
-        while (_pendingRemovals.TryDequeue(out var toRemove))
-        {
-            if (_sources.Remove(toRemove))
-            {
-                AudioRecycling.QueueForRecycle(toRemove);
-            }
-        }
-
         while (_pendingAdditions.TryDequeue(out var source))
         {
             if (_sources.Count < MaxInputs)
@@ -183,6 +175,15 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
                 // 理论上 AddMixerInput 已经拦截了，但这作为防御性编程
                 AudioRecycling.QueueForRecycle(source);
                 Interlocked.Decrement(ref _estimatedSourceCount);
+            }
+        }
+
+        while (_pendingRemovals.TryDequeue(out var toRemove))
+        {
+            if (_sources.Remove(toRemove))
+            {
+                Interlocked.Decrement(ref _estimatedSourceCount);
+                AudioRecycling.QueueForRecycle(toRemove);
             }
         }
     }

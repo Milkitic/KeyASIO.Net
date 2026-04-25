@@ -21,6 +21,7 @@ public class PlayingState : IGameState
     private readonly SharedViewModel _sharedViewModel;
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly GameplayAudioService _gameplayAudioService;
+    private readonly ComboGrowthAudioGuard _comboGrowthAudioGuard;
     private readonly List<PlaybackInfo> _playbackBuffer = new(64);
 
     private long _lastHitsoundSyncTimestamp;
@@ -35,7 +36,8 @@ public class PlayingState : IGameState
         SfxPlaybackService sfxPlaybackService,
         SharedViewModel sharedViewModel,
         GameplaySessionManager gameplaySessionManager,
-        GameplayAudioService gameplayAudioService)
+        GameplayAudioService gameplayAudioService,
+        ComboGrowthAudioGuard comboGrowthAudioGuard)
     {
         _logger = logger;
         _playbackEngine = playbackEngine;
@@ -44,6 +46,7 @@ public class PlayingState : IGameState
         _sharedViewModel = sharedViewModel;
         _gameplaySessionManager = gameplaySessionManager;
         _gameplayAudioService = gameplayAudioService;
+        _comboGrowthAudioGuard = comboGrowthAudioGuard;
 
         _disableComboBreakSfx = appSettings.Sync.Filters.DisableComboBreakSfx;
         appSettings.Sync.Filters.PropertyChanged += (_, e) =>
@@ -57,6 +60,7 @@ public class PlayingState : IGameState
 
     public async Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
+        _comboGrowthAudioGuard.Clear();
         _lastHitsoundSyncTimestamp = 0;
         if (ctx.Beatmap == default)
         {
@@ -69,6 +73,7 @@ public class PlayingState : IGameState
 
     public void Exit(SyncSessionContext ctx, OsuMemoryStatus to)
     {
+        _comboGrowthAudioGuard.Clear();
     }
 
     public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isPaused)
@@ -112,7 +117,7 @@ public class PlayingState : IGameState
         if (_disableComboBreakSfx) return;
         if (!ctx.IsStarted) return;
         if (ctx.Score == 0) return;
-        if (newCombo >= oldCombo || oldCombo < 20) return;
+        if (newCombo >= oldCombo || oldCombo < 21) return;
 
         if (_gameplayAudioService.TryGetCachedAudio("combobreak", out var cachedAudio))
         {
@@ -131,6 +136,7 @@ public class PlayingState : IGameState
     private void OnRetry(SyncSessionContext ctx)
     {
         var mixer = _playbackEngine.EffectMixer;
+        _comboGrowthAudioGuard.Clear();
         _sfxPlaybackService.ClearAllLoops(mixer);
         mixer?.RemoveAllMixerInputs();
         _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);

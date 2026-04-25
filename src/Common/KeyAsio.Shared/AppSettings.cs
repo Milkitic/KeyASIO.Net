@@ -139,6 +139,9 @@ public partial class AppSettingsSyncScanning : INotifyPropertyChanged
                  "Intended for delay‑sensitive fields; keep as low as possible. " +
                  "Increase if audio cutting occurs.")]
     public int TimingScanInterval { get; set; } = 2;
+
+    [Description("Lower values verify combo changes more promptly after speculative hitsound playback.")]
+    public int RevertHitsoundDelay { get; set; } = 5;
 }
 
 public partial class AppSettingsSyncPlayback : INotifyPropertyChanged

@@ -7,6 +7,7 @@ using KeyAsio.Core.Audio.Utils;
 using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
+using NAudio.Wave;
 
 namespace KeyAsio.Shared.Sync.Services;
 
@@ -26,7 +27,8 @@ public class SfxPlaybackService
         _appSettings.Sync.Playback.PropertyChanged += OnPlaybackSettingsChanged;
     }
 
-    public void DispatchPlayback(PlaybackInfo playbackInfo, float? overrideVolume = null)
+    public ISampleProvider? DispatchPlayback(PlaybackInfo playbackInfo, float? overrideVolume = null,
+        bool cancellable = false)
     {
         var cachedAudio = playbackInfo.CachedAudio;
         var hitsoundNode = playbackInfo.PlaybackEvent;
@@ -47,21 +49,23 @@ public class SfxPlaybackService
                     volume = playableNode.Volume;
             }
 
-            PlayEffectsAudio(cachedAudio, volume, playableNode.Balance);
+            return PlayEffectsAudio(cachedAudio, volume, playableNode.Balance, cancellable);
         }
         else
         {
             var controlNode = (ControlEvent)hitsoundNode;
             PlayLoopAudio(cachedAudio!, controlNode);
+            return null;
         }
     }
 
-    public void PlayEffectsAudio(CachedAudio? cachedAudio, float volume, float balance)
+    public ISampleProvider? PlayEffectsAudio(CachedAudio? cachedAudio, float volume, float balance,
+        bool cancellable = false)
     {
         if (cachedAudio is null)
         {
             _logger.LogWarning("Fail to play: CachedSound not found");
-            return;
+            return null;
         }
 
         if (cachedAudio.SourceHash != null && cachedAudio.SourceHash.StartsWith("internal://dynamic/"))
@@ -112,16 +116,17 @@ public class SfxPlaybackService
                 var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
                     _appSettings.Sync.Playback.BalanceMode, AntiClipStrategy.None);
 
-                _playbackEngine.EffectMixer.AddMixerInput(balanceProvider);
+                var handle = AddEffectMixerInput(balanceProvider, cancellable);
                 _logger.LogTrace("Play Dynamic: {Key} (Freq: {Freq:F1})", cachedAudio.SourceHash,
                     provider.FundamentalFrequency);
+                return handle;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error playing dynamic audio");
             }
 
-            return;
+            return null;
         }
 
         if (_appSettings.Sync.Filters.IgnoreLineVolumes)
@@ -138,7 +143,9 @@ public class SfxPlaybackService
             var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
                 _appSettings.Sync.Playback.BalanceMode, AntiClipStrategy.None); // 削波处理交给MasterLimiterProvider
 
-            _playbackEngine.EffectMixer.AddMixerInput(balanceProvider);
+            var handle = AddEffectMixerInput(balanceProvider, cancellable);
+            _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
+            return handle;
         }
         catch (Exception ex)
         {
@@ -146,6 +153,27 @@ public class SfxPlaybackService
         }
 
         _logger.LogTrace("Play {File}; Vol. {Volume}; Bal. {Balance}", cachedAudio.SourceHash, volume, balance);
+        return null;
+    }
+
+    public void StopEffectsAudio(ISampleProvider provider)
+    {
+        if (provider is StoppableSampleProvider stoppableProvider)
+        {
+            stoppableProvider.Stop();
+        }
+
+        _playbackEngine.EffectMixer.RemoveMixerInput(provider);
+    }
+
+    private ISampleProvider AddEffectMixerInput(ISampleProvider provider, bool cancellable)
+    {
+        var mixerInput = cancellable
+            ? new StoppableSampleProvider(provider)
+            : provider;
+
+        _playbackEngine.EffectMixer.AddMixerInput(mixerInput);
+        return mixerInput;
     }
 
     public void PlayLoopAudio(CachedAudio cachedAudio, ControlEvent controlEvent)

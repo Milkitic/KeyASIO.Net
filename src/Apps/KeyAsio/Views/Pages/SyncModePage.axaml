@@ -219,6 +219,17 @@
                 Minimum="1"
                 Value="{Binding AppSettings.Sync.Scanning.TimingScanInterval}" />
             </controls:SettingItem>
+
+            <controls:SettingItem
+              Description="{I18N {x:Static lang:SRKeys.Sync_RevertHitsoundDelayDescription}}"
+              Header="{I18N {x:Static lang:SRKeys.Sync_RevertHitsoundDelay}}"
+              Icon="TimerCheck">
+              <NumericUpDown
+                FormatString="F0"
+                Maximum="1000"
+                Minimum="1"
+                Value="{Binding AppSettings.Sync.Scanning.RevertHitsoundDelay}" />
+            </controls:SettingItem>
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>

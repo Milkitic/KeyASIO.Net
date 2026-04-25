@@ -35,6 +35,7 @@ public class KeyboardBindingInitializer
     private readonly IPlaybackEngine _playbackEngine;
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
+    private readonly ComboGrowthAudioGuard _comboGrowthAudioGuard;
     private readonly SkinManager _skinManager;
 
     private IKeyboardHook _keyboardHook = null!;
@@ -53,6 +54,7 @@ public class KeyboardBindingInitializer
         IPlaybackEngine playbackEngine,
         GameplaySessionManager gameplaySessionManager,
         SfxPlaybackService sfxPlaybackService,
+        ComboGrowthAudioGuard comboGrowthAudioGuard,
         SkinManager skinManager)
     {
         _logger = logger;
@@ -61,6 +63,7 @@ public class KeyboardBindingInitializer
         _playbackEngine = playbackEngine;
         _gameplaySessionManager = gameplaySessionManager;
         _sfxPlaybackService = sfxPlaybackService;
+        _comboGrowthAudioGuard = comboGrowthAudioGuard;
         _skinManager = skinManager;
     }
 
@@ -148,6 +151,7 @@ public class KeyboardBindingInitializer
                 var sequencer = _gameplaySessionManager.CurrentHitsoundSequencer;
                 int keyIndex = -1;
                 int keyTotal = 0;
+                var mode = _gameplaySessionManager.OsuFile?.General.Mode ?? GameMode.Circle;
 
                 if (sequencer is ManiaHitsoundSequencer)
                 {
@@ -163,7 +167,6 @@ public class KeyboardBindingInitializer
                 }
                 else
                 {
-                    var mode = _gameplaySessionManager.OsuFile?.General.Mode ?? GameMode.Circle;
                     List<HookKeys>? activeKeys = mode switch
                     {
                         GameMode.Taiko => _appSettings.Input.TaikoKeys,
@@ -177,10 +180,23 @@ public class KeyboardBindingInitializer
 
                 if (keyIndex != -1)
                 {
+                    var shouldGuardComboGrowth = mode == GameMode.Circle;
+                    // Capture combo baseline BEFORE ProcessInteraction/DispatchPlayback,
+                    // to avoid a race where the memory scan thread updates the combo
+                    // (from osu!'s hit processing) before Track() reads it.
+                    int comboBaseline = shouldGuardComboGrowth
+                        ? _comboGrowthAudioGuard.SnapshotCombo()
+                        : 0;
+
                     sequencer.ProcessInteraction(_playbackBuffer, keyIndex, keyTotal);
                     foreach (var playbackInfo in _playbackBuffer)
                     {
-                        _sfxPlaybackService.DispatchPlayback(playbackInfo);
+                        var provider = _sfxPlaybackService.DispatchPlayback(playbackInfo,
+                            cancellable: shouldGuardComboGrowth);
+                        if (shouldGuardComboGrowth && provider != null)
+                        {
+                            _comboGrowthAudioGuard.Track(provider, comboBaseline);
+                        }
                     }
                 }
             }

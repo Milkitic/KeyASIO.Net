@@ -31,6 +31,7 @@ public class MemoryScan
     private bool _isStarted;
     private readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
     private ValueDefinition? _valueDefinition;
+    private ValueDefinition? _comboValueDefinition;
     private string? _folderName;
 
     public MemoryScan(ILogger<MemoryScan> logger)
@@ -141,6 +142,7 @@ public class MemoryScan
             if (now >= nextTimingScan)
             {
                 ReadTiming(memoryReadObject);
+                ReadCombo(memoryReadObject);
                 nextTimingScan = now + _timingInterval;
                 didWork = true;
             }
@@ -208,6 +210,11 @@ public class MemoryScan
                 if (!_memoryContext.TryGetProfile("AudioTime", out _valueDefinition))
                 {
                     _logger.LogWarning("Memory profile is missing required 'AudioTime' definition");
+                }
+
+                if (!_memoryContext.TryGetProfile("Combo", out _comboValueDefinition))
+                {
+                    _logger.LogWarning("Memory profile is missing required 'Combo' definition");
                 }
 
                 _logger.LogInformation("Connected to osu! process");
@@ -403,5 +410,18 @@ public class MemoryScan
         {
             memoryReadObject.PlayingTime = audioTime;
         }
+    }
+
+    private bool ReadCombo(MemoryReadObject memoryReadObject)
+    {
+        if (memoryReadObject.OsuStatus == OsuMemoryStatus.Playing &&
+            _memoryContext != null &&
+            _memoryContext.TryGetValueDef<ushort>(_comboValueDefinition, out var combo))
+        {
+            memoryReadObject.Combo = combo;
+            return true;
+        }
+
+        return false;
     }
 }

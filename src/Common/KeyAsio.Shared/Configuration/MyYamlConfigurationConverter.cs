@@ -126,7 +126,8 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 Scanning = new AppSettingsSyncScanning
                 {
                     GeneralScanInterval = s.RealtimeOptions.GeneralScanInterval,
-                    TimingScanInterval = s.RealtimeOptions.TimingScanInterval
+                    TimingScanInterval = s.RealtimeOptions.TimingScanInterval,
+                    RevertHitsoundDelay = s.RealtimeOptions.RevertHitsoundDelay
                 },
                 Playback = new AppSettingsSyncPlayback
                 {
@@ -185,6 +186,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
             {
                 s.RealtimeOptions.GeneralScanInterval = y.Sync.Scanning.GeneralScanInterval;
                 s.RealtimeOptions.TimingScanInterval = y.Sync.Scanning.TimingScanInterval;
+                s.RealtimeOptions.RevertHitsoundDelay = y.Sync.Scanning.RevertHitsoundDelay;
             }
             if (y.Sync.Playback != null)
             {

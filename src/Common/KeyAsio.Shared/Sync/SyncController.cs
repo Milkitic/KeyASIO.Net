@@ -31,6 +31,7 @@ public class SyncController : IDisposable
         BeatmapHitsoundLoader beatmapHitsoundLoader,
         SfxPlaybackService sfxPlaybackService,
         GameplaySessionManager gameplaySessionManager,
+        ComboGrowthAudioGuard comboGrowthAudioGuard,
         SyncSessionContext syncSessionContext,
         IPluginManager pluginManager)
     {
@@ -64,7 +65,7 @@ public class SyncController : IDisposable
         {
             [OsuMemoryStatus.Playing] = new PlayingState(playingStateLogger, appSettings, playbackEngine,
                 beatmapHitsoundLoader, sfxPlaybackService, sharedViewModel, gameplaySessionManager,
-                gameplayAudioService),
+                gameplayAudioService, comboGrowthAudioGuard),
             [OsuMemoryStatus.ResultsScreen] = new ResultsState(),
             [OsuMemoryStatus.NotRunning] = new NotRunningState(),
             [OsuMemoryStatus.SongSelection] = new BrowsingState(gameplaySessionManager),

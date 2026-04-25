@@ -562,6 +562,12 @@ You can change option later.</value>
   <data name="Sync_GeneralScanIntervalDescription" xml:space="preserve">
     <value>Lower values update generic fields more promptly. Increase to reduce CPU usage.</value>
   </data>
+  <data name="Sync_RevertHitsoundDelay" xml:space="preserve">
+    <value>Combo Scan Interval (ms)</value>
+  </data>
+  <data name="Sync_RevertHitsoundDelayDescription" xml:space="preserve">
+    <value>Lower values verify combo changes more promptly after speculative hitsound playback.</value>
+  </data>
   <data name="Sync_IgnoreVolumeChanges" xml:space="preserve">
     <value>Ignore Volume Changes</value>
   </data>

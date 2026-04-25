@@ -117,9 +117,9 @@ public class GameplaySessionManager
             BeatmapFolder = folder;
 
             PerformCache(folder, AudioFilename);
-            //ResetNodes(_syncSessionContext.PlayTime);
 
             _syncSessionContext.IsStarted = true;
+            ResetNodes(_syncSessionContext.PlayTime);
 
             _oldLatencyMode = GCSettings.LatencyMode;
             if (!RuntimeInfo.IsSatori)

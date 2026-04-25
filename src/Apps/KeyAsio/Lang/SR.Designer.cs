@@ -1268,6 +1268,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Update Channel 的本地化字符串。
+        /// </summary>
+        internal static string Settings_UpdateChannel {
+            get {
+                return ResourceManager.GetString("Settings_UpdateChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Updates 的本地化字符串。
         /// </summary>
         internal static string Settings_Updates {
@@ -1412,6 +1421,42 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Combo Scan Interval (ms) 的本地化字符串。
+        /// </summary>
+        internal static string Sync_RevertHitsoundDelay {
+            get {
+                return ResourceManager.GetString("Sync_RevertHitsoundDelay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Lower values verify combo changes more promptly after speculative hitsound playback. 的本地化字符串。
+        /// </summary>
+        internal static string Sync_RevertHitsoundDelayDescription {
+            get {
+                return ResourceManager.GetString("Sync_RevertHitsoundDelayDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 RTSS Monitoring 的本地化字符串。
+        /// </summary>
+        internal static string Sync_RtssMonitoring {
+            get {
+                return ResourceManager.GetString("Sync_RtssMonitoring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Display SyncSessionContext data via RTSS on-screen display at 100 FPS. 的本地化字符串。
+        /// </summary>
+        internal static string Sync_RtssMonitoringDescription {
+            get {
+                return ResourceManager.GetString("Sync_RtssMonitoringDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Selected Skin 的本地化字符串。
         /// </summary>
         internal static string Sync_SelectedSkin {
@@ -1525,6 +1570,33 @@ namespace KeyAsio.Lang {
         internal static string TrayIcon_OpenDashboard {
             get {
                 return ResourceManager.GetString("TrayIcon_OpenDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Alpha 的本地化字符串。
+        /// </summary>
+        internal static string UpdateChannel_Alpha {
+            get {
+                return ResourceManager.GetString("UpdateChannel_Alpha", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Beta 的本地化字符串。
+        /// </summary>
+        internal static string UpdateChannel_Beta {
+            get {
+                return ResourceManager.GetString("UpdateChannel_Beta", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Stable 的本地化字符串。
+        /// </summary>
+        internal static string UpdateChannel_Stable {
+            get {
+                return ResourceManager.GetString("UpdateChannel_Stable", resourceCulture);
             }
         }
         
@@ -1843,60 +1915,6 @@ namespace KeyAsio.Lang {
         internal static string Wizard_Welcome_Title {
             get {
                 return ResourceManager.GetString("Wizard_Welcome_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Update Channel 的本地化字符串。
-        /// </summary>
-        internal static string Settings_UpdateChannel {
-            get {
-                return ResourceManager.GetString("Settings_UpdateChannel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Stable 的本地化字符串。
-        /// </summary>
-        internal static string UpdateChannel_Stable {
-            get {
-                return ResourceManager.GetString("UpdateChannel_Stable", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Beta 的本地化字符串。
-        /// </summary>
-        internal static string UpdateChannel_Beta {
-            get {
-                return ResourceManager.GetString("UpdateChannel_Beta", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Alpha 的本地化字符串。
-        /// </summary>
-        internal static string UpdateChannel_Alpha {
-            get {
-                return ResourceManager.GetString("UpdateChannel_Alpha", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 RTSS Monitoring 的本地化字符串。
-        /// </summary>
-        internal static string Sync_RtssMonitoring {
-            get {
-                return ResourceManager.GetString("Sync_RtssMonitoring", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Display SyncSessionContext data via RTSS on-screen display at 100 FPS. 的本地化字符串。
-        /// </summary>
-        internal static string Sync_RtssMonitoringDescription {
-            get {
-                return ResourceManager.GetString("Sync_RtssMonitoringDescription", resourceCulture);
             }
         }
     }

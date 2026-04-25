@@ -558,6 +558,12 @@
   <data name="Sync_GeneralScanIntervalDescription" xml:space="preserve">
     <value>値を下げるほど一般フィールドの更新が速くなります。値を上げると CPU 使用率を下げられます。</value>
   </data>
+  <data name="Sync_RevertHitsoundDelay" xml:space="preserve">
+    <value>Combo スキャン間隔 (ms)</value>
+  </data>
+  <data name="Sync_RevertHitsoundDelayDescription" xml:space="preserve">
+    <value>値を下げるほど、先行再生したヒットサウンド後の Combo 増加確認が速くなります。</value>
+  </data>
   <data name="Sync_IgnoreVolumeChanges" xml:space="preserve">
     <value>音量変更を無視</value>
   </data>

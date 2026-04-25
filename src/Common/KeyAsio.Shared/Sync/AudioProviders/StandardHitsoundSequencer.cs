@@ -86,6 +86,17 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         // 用于处理同组音符（堆叠/Chord）
         bool hasHit = false;
         Guid? currentGroupGuid = null;
+        PlaybackEvent? fallbackNode = null;
+        bool soundQueued = false;
+
+        if (_hitQueue.TryPeek(out var firstHitNode))
+        {
+            fallbackNode = firstHitNode;
+        }
+        else if (_playbackQueue.TryPeek(out var firstPlaybackNode))
+        {
+            fallbackNode = firstPlaybackNode;
+        }
 
         // 循环处理队列，直到：
         // 1. 队列空了
@@ -104,11 +115,11 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
                 // 如果 GUID 变了，说明这一组（Chord）处理完了，停止
                 if (node.Guid != currentGroupGuid)
                 {
-                    return;
+                    break;
                 }
 
                 // 同组音符，直接播放，不需要再判定时间
-                DequeueAndPlay(buffer, _hitQueue);
+                soundQueued |= DequeueAndPlay(buffer, _hitQueue);
                 continue;
             }
 
@@ -118,7 +129,7 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
             if (diff > KeyThresholdMilliseconds)
             {
                 //_logger.LogDebug("Pruning expired node at {Offset} (Current: {PlayTime})", node.Offset, playTime);
-                _hitQueue.Dequeue(); // 移除过期音符
+                fallbackNode = _hitQueue.Dequeue(); // 移除过期音符
                 continue; // 【关键修复】：不返回，继续用当次点击去检查下一个音符！
             }
 
@@ -129,7 +140,8 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
             {
                 // 还没到判定窗口，且因为队列是有序的，后面的肯定也更早。
                 // 停止处理，等待时间流逝。
-                return;
+                fallbackNode = node;
+                break;
             }
 
             // --- 情况 4: 命中判定窗口 (Hit) ---
@@ -142,9 +154,15 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
             currentGroupGuid = node.Guid;
 
             // 播放并移除
-            DequeueAndPlay(buffer, _hitQueue);
+            fallbackNode = node;
+            soundQueued |= DequeueAndPlay(buffer, _hitQueue);
 
             // 循环继续，去检查是否还有同 GUID 的重叠音符
+        }
+
+        if (!soundQueued && fallbackNode != null)
+        {
+            TryQueuePlayback(buffer, fallbackNode);
         }
     }
 
@@ -247,12 +265,20 @@ public class StandardHitsoundSequencer : IHitsoundSequencer
         }
     }
 
-    private void DequeueAndPlay<T>(List<PlaybackInfo> buffer, Queue<T> queue) where T : PlaybackEvent
+    private bool DequeueAndPlay<T>(List<PlaybackInfo> buffer, Queue<T> queue) where T : PlaybackEvent
     {
         var node = queue.Dequeue();
+        return TryQueuePlayback(buffer, node);
+    }
+
+    private bool TryQueuePlayback(List<PlaybackInfo> buffer, PlaybackEvent node)
+    {
         if (_gameplayAudioService.TryGetAudioByNode(node, out var cachedSound))
         {
             buffer.Add(new PlaybackInfo(cachedSound, node));
+            return true;
         }
+
+        return false;
     }
 }
