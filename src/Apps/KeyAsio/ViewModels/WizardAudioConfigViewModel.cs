@@ -5,6 +5,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Core.Audio;
 using KeyAsio.Shared;
+using Milki.Extensions.Configuration;
+using NAudio.Wave;
 using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
@@ -236,7 +238,14 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             if (SelectedAudioDevice != null)
             {
                 _playbackEngine.StopDevice();
-                _playbackEngine.StartDevice(SelectedAudioDevice);
+                _playbackEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
+                _playbackEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
+                _playbackEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
+                _playbackEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
+                _playbackEngine.StartDevice(SelectedAudioDevice, new WaveFormat(_appSettings.Audio.SampleRate, 2));
+
+                _appSettings.Audio.PlaybackDevice = _playbackEngine.CurrentDeviceDescription ?? SelectedAudioDevice;
+                SaveSettings();
 
                 // If success
                 ValidationSuccess = true;
@@ -253,6 +262,22 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         finally
         {
             IsValidationRunning = false;
+        }
+    }
+
+    private void SaveSettings()
+    {
+        try
+        {
+            _appSettings.Save();
+        }
+        catch (Exception ex)
+        {
+            _toastManager.CreateToast()
+                .WithTitle("无法保存设置")
+                .WithContent(ex.Message)
+                .OfType(NotificationType.Error)
+                .Queue();
         }
     }
 
