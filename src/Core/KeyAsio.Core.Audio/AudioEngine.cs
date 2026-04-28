@@ -132,13 +132,16 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
     public void StopDevice()
     {
         if (CurrentDevice == null) return;
-        CurrentDevice.Dispose();
+        var currentDevice = CurrentDevice;
+
+        CurrentDevice = null;
+        CurrentDeviceDescription = null;
         _limiterProvider = null;
         _effectVolumeSampleProvider.Source = null;
         _musicVolumeSampleProvider.Source = null;
         _mainVolumeSampleProvider.Source = null;
-        CurrentDevice = null;
-        CurrentDeviceDescription = null;
+
+        currentDevice.Dispose();
     }
 
     public void Dispose()

@@ -75,6 +75,7 @@ public class SettingsManager : IDisposable
         Subscribe(_appSettings.Sync.Scanning);
         Subscribe(_appSettings.Sync.Playback);
         Subscribe(_appSettings.Sync.Filters);
+        Subscribe(_appSettings.Update);
     }
 
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)

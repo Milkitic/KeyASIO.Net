@@ -520,11 +520,11 @@ public partial class AudioSettingsViewModel : ObservableObject
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
         }
 
-        for (int i = 0; i < 3; i++)
+        for (var i = 0; i < 3; i++)
         {
             try
             {
-                PlaybackEngine.CurrentDevice?.Dispose();
+                PlaybackEngine.StopDevice();
                 break;
             }
             catch (Exception ex)
@@ -534,7 +534,6 @@ public partial class AudioSettingsViewModel : ObservableObject
             }
         }
 
-        PlaybackEngine.StopDevice();
         _gameplayAudioService.ClearCaches();
     }
 

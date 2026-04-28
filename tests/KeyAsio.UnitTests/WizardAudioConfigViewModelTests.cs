@@ -189,7 +189,9 @@ public class WizardAudioConfigViewModelTests
         Assert.True(result);
         Assert.Equal(AudioSubStep.Validation, vm.CurrentAudioSubStep);
         Assert.True(vm.ValidationSuccess);
-        _mockPlaybackEngine.Verify(e => e.StartDevice(device, null), Times.Once);
+        Assert.Equal(device, _appSettings.Audio.PlaybackDevice);
+        _mockPlaybackEngine.Verify(e => e.StartDevice(device,
+            It.Is<WaveFormat>(f => f.SampleRate == _appSettings.Audio.SampleRate && f.Channels == 2)), Times.Once);
     }
 
     [AvaloniaFact]
