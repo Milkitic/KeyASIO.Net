@@ -1,4 +1,3 @@
-using KeyAsio.Core.Audio;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 
 namespace KeyAsio.Core.OsuAudio.Timeline;
@@ -37,12 +36,6 @@ public sealed class PlaybackEventTimelineScheduler
     {
         _nextIndex = FindFirstEventAtOrAfter(position.TotalMilliseconds);
         _lastPosition = position;
-    }
-
-    public int CollectDueEvents(IPlaybackClock clock, ICollection<PlaybackEvent> destination)
-    {
-        ArgumentNullException.ThrowIfNull(clock);
-        return CollectDueEvents(clock.Position, destination);
     }
 
     public int CollectDueEvents(TimeSpan position, ICollection<PlaybackEvent> destination)

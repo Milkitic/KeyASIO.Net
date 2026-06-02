@@ -52,6 +52,11 @@ public static class NightcoreBeatGenerator
     public static List<PlaybackEvent> GetHitsoundNodes(OsuFile osuFile, TimeSpan mp3MaxDuration)
     {
         var timingSection = osuFile.TimingPoints;
+        if (timingSection == null || osuFile.HitObjects == null)
+        {
+            return [];
+        }
+
         var redLines = timingSection.TimingList.Where(k => !k.IsInherit);
         var allTimings = timingSection.GetInterval(0.5);
         var redLineGroups = redLines

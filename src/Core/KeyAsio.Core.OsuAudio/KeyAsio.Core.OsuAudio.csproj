@@ -10,9 +10,4 @@
   <ItemGroup>
     <PackageReference Include="Coosu.Beatmap" Version="2.5.1" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\KeyAsio.Core.Audio\KeyAsio.Core.Audio.csproj" />
-  </ItemGroup>
-
 </Project>
