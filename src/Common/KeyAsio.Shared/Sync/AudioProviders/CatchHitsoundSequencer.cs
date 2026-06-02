@@ -1,6 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using KeyAsio.Core.Audio;
-using KeyAsio.Shared.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;

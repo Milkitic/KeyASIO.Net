@@ -1,14 +1,14 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Sections;
 using Coosu.Beatmap.Sections.GamePlay;
 using Coosu.Beatmap.Sections.HitObject;
 using Coosu.Beatmap.Sections.Timing;
 using Coosu.Shared;
-using KeyAsio.Shared.Hitsounds.Playback;
-using KeyAsio.Shared.Utils;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Utils;
 
-namespace KeyAsio.Shared.Hitsounds;
+namespace KeyAsio.Core.OsuAudio.Hitsounds;
 
 public sealed class BeatmapSetContext
 {

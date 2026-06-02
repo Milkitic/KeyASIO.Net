@@ -1,4 +1,4 @@
-﻿using KeyAsio.Shared.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 
 namespace KeyAsio.Shared.Sync;

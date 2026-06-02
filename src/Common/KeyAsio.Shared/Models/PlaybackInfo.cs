@@ -1,5 +1,5 @@
-﻿using KeyAsio.Core.Audio.Caching;
-using KeyAsio.Shared.Hitsounds.Playback;
+using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 
 namespace KeyAsio.Shared.Models;
 

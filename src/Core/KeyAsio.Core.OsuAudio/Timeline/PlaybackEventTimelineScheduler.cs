@@ -1,5 +1,5 @@
 using KeyAsio.Core.Audio;
-using KeyAsio.Shared.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 
 namespace KeyAsio.Core.OsuAudio.Timeline;
 

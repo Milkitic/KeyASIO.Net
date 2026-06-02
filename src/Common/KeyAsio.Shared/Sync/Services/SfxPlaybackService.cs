@@ -1,10 +1,10 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Core.Audio.Utils;
-using KeyAsio.Shared.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using Microsoft.Extensions.Logging;
 

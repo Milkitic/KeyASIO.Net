@@ -1,4 +1,4 @@
-namespace KeyAsio.Shared.Hitsounds;
+namespace KeyAsio.Core.OsuAudio.Hitsounds;
 
 public sealed class HitsoundAnalyzingException : Exception
 {

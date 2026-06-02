@@ -1,8 +1,6 @@
-﻿using Coosu.Beatmap;
-using KeyAsio.Shared.Hitsounds.Playback;
-using KeyAsio.Shared.Utils;
-
-namespace KeyAsio.Shared.Hitsounds;
+using Coosu.Beatmap;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
+namespace KeyAsio.Core.OsuAudio.Hitsounds;
 
 public static class NightcoreBeatGenerator
 {
@@ -62,10 +60,9 @@ public static class NightcoreBeatGenerator
             )
             .ToList();
 
-        var maxTime = MathEx.Max(mp3MaxDuration.TotalMilliseconds,
-            osuFile.HitObjects.MaxTime,
-            timingSection.MaxTime
-        );
+        var maxTime = mp3MaxDuration.TotalMilliseconds;
+        if (osuFile.HitObjects.MaxTime > maxTime) maxTime = osuFile.HitObjects.MaxTime;
+        if (timingSection.MaxTime > maxTime) maxTime = timingSection.MaxTime;
         var hitsoundList = new List<PlaybackEvent>();
 
         for (int i = 0; i < redLineGroups.Count; i++)

@@ -1,10 +1,10 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 
 using KeyAsio.Core.Audio;
+using KeyAsio.Core.OsuAudio.Hitsounds;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Shared;
-using KeyAsio.Shared.Hitsounds;
-using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Plugins;
 using KeyAsio.Shared.Sync;
