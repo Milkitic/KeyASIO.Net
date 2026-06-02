@@ -42,6 +42,7 @@ public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
 
         await ClearAsync(cancellationToken).ConfigureAwait(false);
         EnsureCompatibleFormat(source.WaveFormat);
+        source.OutputChanged += OnSourceOutputChanged;
 
         lock (_gate)
         {
@@ -108,6 +109,7 @@ public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
             return;
         }
 
+        source.OutputChanged -= OnSourceOutputChanged;
         await source.StopAsync(cancellationToken).ConfigureAwait(false);
         RemoveFromMixer(source);
 
@@ -149,6 +151,16 @@ public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
             if (!_isInMixer) return;
             _playbackEngine.MusicMixer.RemoveMixerInput(source.Output);
             _isInMixer = false;
+        }
+    }
+
+    private void OnSourceOutputChanged(ISampleProvider oldOutput, ISampleProvider newOutput)
+    {
+        lock (_gate)
+        {
+            if (!_isInMixer) return;
+            _playbackEngine.MusicMixer.RemoveMixerInput(oldOutput);
+            _playbackEngine.MusicMixer.AddMixerInput(newOutput);
         }
     }
 

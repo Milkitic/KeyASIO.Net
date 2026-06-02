@@ -4,6 +4,8 @@ namespace KeyAsio.Core.Audio;
 
 public interface IMusicPlaybackSource : IPlaybackClock, IAsyncDisposable
 {
+    event Action<ISampleProvider, ISampleProvider>? OutputChanged;
+
     WaveFormat WaveFormat { get; }
     TimeSpan Duration { get; }
     ISampleProvider Output { get; }

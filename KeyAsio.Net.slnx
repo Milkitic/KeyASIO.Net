@@ -25,4 +25,5 @@
   <Project Path="src\Core\KeyAsio.Core.Audio\KeyAsio.Core.Audio.csproj" />
   <Project Path="src\Core\KeyAsio.Core.Memory\KeyAsio.Core.Memory.csproj" />
   <Project Path="src\Core\KeyAsio.Core.OsuAudio\KeyAsio.Core.OsuAudio.csproj" />
+  <Project Path="src\Core\KeyAsio.Core.OsuPlayback\KeyAsio.Core.OsuPlayback.csproj" />
 </Solution>
