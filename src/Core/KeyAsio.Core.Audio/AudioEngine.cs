@@ -144,6 +144,18 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         currentDevice.Dispose();
     }
 
+    WaveFormat? IMusicPlaybackSink.WaveFormat => MusicMixer?.WaveFormat;
+
+    public void AddInput(ISampleProvider input)
+    {
+        MusicMixer.AddMixerInput(input);
+    }
+
+    public void RemoveInput(ISampleProvider input)
+    {
+        MusicMixer.RemoveMixerInput(input);
+    }
+
     public void Dispose()
     {
         CurrentDevice?.Dispose();

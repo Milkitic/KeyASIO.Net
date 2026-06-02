@@ -14,6 +14,9 @@ public sealed class PlaybackEventTimelineScheduler
     public IReadOnlyList<PlaybackEvent> Events => _events;
     public int NextIndex => _nextIndex;
     public bool IsCompleted => _nextIndex >= _events.Count;
+    public TimeSpan? NextEventTime => IsCompleted
+        ? null
+        : TimeSpan.FromMilliseconds(_events[_nextIndex].Offset);
 
     public void Load(IEnumerable<PlaybackEvent> playbackEvents)
     {

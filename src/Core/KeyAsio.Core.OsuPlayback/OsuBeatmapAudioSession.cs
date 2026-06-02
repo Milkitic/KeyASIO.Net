@@ -9,16 +9,17 @@ using NAudio.Wave;
 
 namespace KeyAsio.Core.OsuPlayback;
 
-public sealed class OsuBeatmapAudioSession : IAsyncDisposable
+public sealed class OsuBeatmapAudioSession : IPlaybackClock, IAsyncDisposable
 {
-    private static readonly TimeSpan SchedulerInterval = TimeSpan.FromMilliseconds(1);
+    private static readonly TimeSpan MinimumSchedulerDelay = TimeSpan.FromMilliseconds(1);
+    private static readonly TimeSpan MaximumSchedulerDelay = TimeSpan.FromMilliseconds(50);
     private const int CacheWindowMilliseconds = 12_000;
     private const int CacheAdvanceMilliseconds = 8_000;
 
     private readonly IPlaybackEngine _playbackEngine;
     private readonly StandaloneMusicTransport _musicTransport;
     private readonly AudioCacheManager _audioCacheManager;
-    private readonly IPlaybackRateProcessorFactory? _rateProcessorFactory;
+    private readonly IPlaybackRateProcessorFactory _rateProcessorFactory;
     private readonly OsuPlaybackEventDispatcher _eventDispatcher;
     private readonly OsuPlaybackEventAudioCache _eventAudioCache;
     private readonly PlaybackEventTimelineScheduler _timelineScheduler = new();
@@ -38,14 +39,17 @@ public sealed class OsuBeatmapAudioSession : IAsyncDisposable
         StandaloneMusicTransport musicTransport,
         AudioCacheManager audioCacheManager,
         IPlaybackRateProcessorFactory? rateProcessorFactory = null,
+        IOsuEffectPlaybackBus? effectPlaybackBus = null,
         ILogger? logger = null)
     {
         _playbackEngine = playbackEngine;
         _musicTransport = musicTransport;
         _audioCacheManager = audioCacheManager;
-        _rateProcessorFactory = rateProcessorFactory;
+        _rateProcessorFactory = rateProcessorFactory ?? NoPlaybackRateProcessorFactory.Instance;
         _logger = logger;
-        _eventDispatcher = new OsuPlaybackEventDispatcher(playbackEngine, logger);
+        _eventDispatcher = new OsuPlaybackEventDispatcher(
+            effectPlaybackBus ?? new DefaultOsuEffectPlaybackBus(playbackEngine.EffectMixer),
+            logger);
         _eventAudioCache = new OsuPlaybackEventAudioCache(audioCacheManager, logger);
     }
 
@@ -53,7 +57,9 @@ public sealed class OsuBeatmapAudioSession : IAsyncDisposable
 
     public TimeSpan Position => _musicTransport.Position;
     public TimeSpan Duration => _musicTransport.Duration;
+    public PlaybackRateState RateState => _musicTransport.RateState;
     public bool IsRunning => _musicTransport.IsRunning;
+    public bool SupportsPlaybackRateChange => _musicTransport.SupportsPlaybackRateChange;
 
     public int ManualOffsetMilliseconds
     {
@@ -246,7 +252,8 @@ public sealed class OsuBeatmapAudioSession : IAsyncDisposable
                     break;
                 }
 
-                await Task.Delay(SchedulerInterval, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(GetNextSchedulerDelay(ToEventClock(position)), cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
@@ -268,6 +275,32 @@ public sealed class OsuBeatmapAudioSession : IAsyncDisposable
                 .ConfigureAwait(false);
             _eventDispatcher.Dispatch(playbackEvent, cachedAudio);
         }
+    }
+
+    private TimeSpan GetNextSchedulerDelay(TimeSpan eventClock)
+    {
+        var nextEventTime = _timelineScheduler.NextEventTime;
+        if (nextEventTime == null)
+        {
+            return MaximumSchedulerDelay;
+        }
+
+        var eventDelta = nextEventTime.Value - eventClock;
+        if (eventDelta <= TimeSpan.Zero)
+        {
+            return MinimumSchedulerDelay;
+        }
+
+        var rate = Math.Max(Math.Abs(RateState.Rate), 0.01f);
+        var realTimeDelay = TimeSpan.FromTicks((long)(eventDelta.Ticks / rate));
+        if (realTimeDelay < MinimumSchedulerDelay)
+        {
+            return MinimumSchedulerDelay;
+        }
+
+        return realTimeDelay > MaximumSchedulerDelay
+            ? MaximumSchedulerDelay
+            : realTimeDelay;
     }
 
     private void StartCacheWindowIfNeeded(int positionMilliseconds)

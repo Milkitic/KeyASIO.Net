@@ -3,7 +3,7 @@ using NAudio.Wave;
 
 namespace KeyAsio.Core.Audio;
 
-public interface IPlaybackEngine : IDisposable
+public interface IPlaybackEngine : IMusicPlaybackSink, IDisposable
 {
     IWavePlayer? CurrentDevice { get; }
     DeviceDescription? CurrentDeviceDescription { get; }

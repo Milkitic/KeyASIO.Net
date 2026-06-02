@@ -9,6 +9,7 @@ public interface IMusicPlaybackSource : IPlaybackClock, IAsyncDisposable
     WaveFormat WaveFormat { get; }
     TimeSpan Duration { get; }
     ISampleProvider Output { get; }
+    bool SupportsPlaybackRateChange { get; }
 
     Task PlayAsync(CancellationToken cancellationToken = default);
     Task PauseAsync(CancellationToken cancellationToken = default);

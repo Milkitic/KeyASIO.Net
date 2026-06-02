@@ -4,16 +4,16 @@ namespace KeyAsio.Core.Audio;
 
 public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
 {
-    private readonly IPlaybackEngine _playbackEngine;
+    private readonly IMusicPlaybackSink _playbackSink;
     private readonly Lock _gate = new();
 
     private IMusicPlaybackSource? _source;
     private bool _ownsSource;
     private bool _isInMixer;
 
-    public StandaloneMusicTransport(IPlaybackEngine playbackEngine)
+    public StandaloneMusicTransport(IMusicPlaybackSink playbackSink)
     {
-        _playbackEngine = playbackEngine;
+        _playbackSink = playbackSink;
     }
 
     public event Action<MusicTransportState>? StateChanged;
@@ -34,6 +34,7 @@ public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
     public TimeSpan Duration => Source?.Duration ?? TimeSpan.Zero;
     public PlaybackRateState RateState => Source?.RateState ?? PlaybackRateState.Normal;
     public bool IsRunning => Source?.IsRunning ?? false;
+    public bool SupportsPlaybackRateChange => Source?.SupportsPlaybackRateChange ?? false;
 
     public async Task LoadAsync(IMusicPlaybackSource source, bool ownsSource = true,
         CancellationToken cancellationToken = default)
@@ -139,7 +140,7 @@ public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
         lock (_gate)
         {
             if (_isInMixer) return;
-            _playbackEngine.MusicMixer.AddMixerInput(source.Output);
+            _playbackSink.AddInput(source.Output);
             _isInMixer = true;
         }
     }
@@ -149,7 +150,7 @@ public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
         lock (_gate)
         {
             if (!_isInMixer) return;
-            _playbackEngine.MusicMixer.RemoveMixerInput(source.Output);
+            _playbackSink.RemoveInput(source.Output);
             _isInMixer = false;
         }
     }
@@ -159,14 +160,14 @@ public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
         lock (_gate)
         {
             if (!_isInMixer) return;
-            _playbackEngine.MusicMixer.RemoveMixerInput(oldOutput);
-            _playbackEngine.MusicMixer.AddMixerInput(newOutput);
+            _playbackSink.RemoveInput(oldOutput);
+            _playbackSink.AddInput(newOutput);
         }
     }
 
     private void EnsureCompatibleFormat(WaveFormat sourceFormat)
     {
-        var mixerFormat = _playbackEngine.MusicMixer.WaveFormat
+        var mixerFormat = _playbackSink.WaveFormat
                           ?? throw new InvalidOperationException("The playback engine music mixer is not started.");
 
         if (sourceFormat.SampleRate != mixerFormat.SampleRate ||

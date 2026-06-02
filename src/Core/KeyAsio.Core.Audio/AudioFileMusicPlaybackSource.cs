@@ -7,7 +7,7 @@ namespace KeyAsio.Core.Audio;
 public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
 {
     private readonly CachedAudio _cachedAudio;
-    private readonly IPlaybackRateProcessorFactory? _rateProcessorFactory;
+    private readonly IPlaybackRateProcessorFactory _rateProcessorFactory;
     private readonly Lock _gate = new();
 
     private CachedAudioProvider _audioProvider;
@@ -15,7 +15,7 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
     private ISampleProvider _output;
     private bool _isRunning;
 
-    private AudioFileMusicPlaybackSource(CachedAudio cachedAudio, IPlaybackRateProcessorFactory? rateProcessorFactory)
+    private AudioFileMusicPlaybackSource(CachedAudio cachedAudio, IPlaybackRateProcessorFactory rateProcessorFactory)
     {
         _cachedAudio = cachedAudio;
         _rateProcessorFactory = rateProcessorFactory;
@@ -47,7 +47,8 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
             throw new InvalidOperationException($"Failed to load music file: {filePath}");
         }
 
-        return new AudioFileMusicPlaybackSource(cachedAudio, rateProcessorFactory);
+        return new AudioFileMusicPlaybackSource(cachedAudio,
+            rateProcessorFactory ?? NoPlaybackRateProcessorFactory.Instance);
     }
 
     public WaveFormat WaveFormat { get; }
@@ -56,6 +57,7 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
     public PlaybackRateState RateState { get; private set; } = PlaybackRateState.Normal;
     public bool IsRunning => _isRunning;
     public ISampleProvider Output => _output;
+    public bool SupportsPlaybackRateChange => _rateProcessorFactory.IsSupported;
 
     public Task PlayAsync(CancellationToken cancellationToken = default)
     {
@@ -109,14 +111,14 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
             }
             else
             {
+                if (!_rateProcessorFactory.IsSupported)
+                {
+                    throw new NotSupportedException(
+                        "Playback rate changes require an IPlaybackRateProcessorFactory implementation.");
+                }
+
                 if (_rateProcessor == null)
                 {
-                    if (_rateProcessorFactory == null)
-                    {
-                        throw new NotSupportedException(
-                            "Playback rate changes require an IPlaybackRateProcessorFactory implementation.");
-                    }
-
                     _rateProcessor = _rateProcessorFactory.Create(_audioProvider, rateState);
                     _output = _rateProcessor;
                 }

@@ -1,8 +1,6 @@
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
-using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
-using KeyAsio.Core.Audio.Utils;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using Microsoft.Extensions.Logging;
 
@@ -10,13 +8,12 @@ namespace KeyAsio.Core.OsuPlayback;
 
 public sealed class OsuPlaybackEventDispatcher
 {
-    private readonly LoopProviderManager _loopProviderManager = new();
-    private readonly IPlaybackEngine _playbackEngine;
+    private readonly IOsuEffectPlaybackBus _effectPlaybackBus;
     private readonly ILogger? _logger;
 
-    public OsuPlaybackEventDispatcher(IPlaybackEngine playbackEngine, ILogger? logger = null)
+    public OsuPlaybackEventDispatcher(IOsuEffectPlaybackBus effectPlaybackBus, ILogger? logger = null)
     {
-        _playbackEngine = playbackEngine;
+        _effectPlaybackBus = effectPlaybackBus;
         _logger = logger;
     }
 
@@ -40,7 +37,7 @@ public sealed class OsuPlaybackEventDispatcher
 
     public void ClearLoops()
     {
-        _loopProviderManager.RemoveAll(_playbackEngine.EffectMixer);
+        _effectPlaybackBus.StopAllLoops();
     }
 
     private void PlaySample(SampleEvent sampleEvent, CachedAudio? cachedAudio)
@@ -60,15 +57,7 @@ public sealed class OsuPlaybackEventDispatcher
 
         try
         {
-            var cachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
-            var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(cachedAudioProvider, volume);
-            var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(
-                volumeProvider,
-                sampleEvent.Balance * BalanceFactor,
-                BalanceMode,
-                AntiClipStrategy.None);
-
-            _playbackEngine.EffectMixer.AddMixerInput(balanceProvider);
+            _effectPlaybackBus.PlayOneShot(cachedAudio, volume, sampleEvent.Balance, BalanceMode, BalanceFactor);
         }
         catch (Exception ex)
         {
@@ -88,27 +77,26 @@ public sealed class OsuPlaybackEventDispatcher
                     return;
                 }
 
-                if (_loopProviderManager.ShouldRemoveAll((int)controlEvent.LoopChannel))
+                if (_effectPlaybackBus.HasLoop((int)controlEvent.LoopChannel))
                 {
-                    _loopProviderManager.RemoveAll(_playbackEngine.EffectMixer);
+                    _effectPlaybackBus.StopAllLoops();
                 }
 
-                _loopProviderManager.Create((int)controlEvent.LoopChannel,
+                _effectPlaybackBus.StartLoop((int)controlEvent.LoopChannel,
                     cachedAudio,
-                    _playbackEngine.EffectMixer,
                     controlEvent.Volume * HitsoundVolume,
                     controlEvent.Balance,
                     BalanceMode,
-                    balanceFactor: BalanceFactor);
+                    BalanceFactor);
                 break;
             case ControlEventType.LoopStop:
-                _loopProviderManager.Remove((int)controlEvent.LoopChannel, _playbackEngine.EffectMixer);
+                _effectPlaybackBus.StopLoop((int)controlEvent.LoopChannel);
                 break;
             case ControlEventType.Volume:
-                _loopProviderManager.ChangeAllVolumes(controlEvent.Volume * HitsoundVolume, volumeFactor: 1);
+                _effectPlaybackBus.ChangeAllLoopVolumes(controlEvent.Volume * HitsoundVolume);
                 break;
             case ControlEventType.Balance:
-                _loopProviderManager.ChangeAllBalances(controlEvent.Balance, BalanceFactor);
+                _effectPlaybackBus.ChangeAllLoopBalances(controlEvent.Balance, BalanceFactor);
                 break;
         }
     }
