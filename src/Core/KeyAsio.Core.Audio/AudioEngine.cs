@@ -13,7 +13,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 {
     private readonly IAudioDeviceManager _audioDeviceManager;
     private readonly ILogger<AudioEngine> _logger;
-    private readonly object _deviceLock = new();
+    private readonly Lock _deviceLock = new();
     private SynchronizationContext? _context;
 
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null) { ExcludeFromPool = true };
