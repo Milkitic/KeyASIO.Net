@@ -122,7 +122,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         var (outputDevice, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription, _context);
 
         var newWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
-        bool waveFormatChanged = EngineWaveFormat == null ||
+        bool waveFormatChanged = EngineWaveFormat == null! ||
                                  EngineWaveFormat.SampleRate != newWaveFormat.SampleRate ||
                                  EngineWaveFormat.Channels != newWaveFormat.Channels;
 
@@ -153,7 +153,6 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 
             _mainVolumeSampleProvider.Source = RootMixer;
             _limiterProvider = new DynamicLimiterProvider(_mainVolumeSampleProvider, _limiterType);
-            RootSampleProvider = _limiterProvider;
         }
         else
         {
@@ -164,8 +163,9 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
             {
                 _limiterProvider = new DynamicLimiterProvider(_mainVolumeSampleProvider, _limiterType);
             }
-            RootSampleProvider = _limiterProvider;
         }
+
+        RootSampleProvider = _limiterProvider;
 
         ISampleProvider root = RootSampleProvider;
 
