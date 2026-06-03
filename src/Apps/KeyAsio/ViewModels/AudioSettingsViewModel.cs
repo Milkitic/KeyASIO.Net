@@ -420,7 +420,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
 
         HasUnsavedAudioChanges =
-            !AreDevicesEqual(potentialDevice, _originalAudioSettings.PlaybackDevice) ||
+            !DeviceComparer.AreSettingsEqual(potentialDevice, _originalAudioSettings.PlaybackDevice) ||
             SelectedSampleRate != _originalAudioSettings.SampleRate;
     }
 
@@ -518,29 +518,5 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
 
         _gameplayAudioService.ClearCaches();
-    }
-
-    private static bool AreDevicesEqual(DeviceDescription? d1, DeviceDescription? d2)
-    {
-        if (d1 == null && d2 == null) return true;
-        if (d1 == null || d2 == null) return false;
-        if (d1.WavePlayerType == WavePlayerType.ASIO)
-        {
-            return d1.WavePlayerType == d2.WavePlayerType &&
-                   d1.DeviceId == d2.DeviceId &&
-                   d1.ForceASIOBufferSize == d2.ForceASIOBufferSize;
-        }
-
-        if (d1.WavePlayerType == WavePlayerType.WASAPI)
-        {
-            return d1.WavePlayerType == d2.WavePlayerType &&
-                   d1.DeviceId == d2.DeviceId &&
-                   d1.Latency == d2.Latency &&
-                   d1.IsExclusive == d2.IsExclusive;
-        }
-
-        return d1.WavePlayerType == d2.WavePlayerType &&
-               d1.DeviceId == d2.DeviceId &&
-               d1.Latency == d2.Latency;
     }
 }

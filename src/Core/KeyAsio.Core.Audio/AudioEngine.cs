@@ -13,6 +13,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 {
     private readonly IAudioDeviceManager _audioDeviceManager;
     private readonly ILogger<AudioEngine> _logger;
+    private readonly object _deviceLock = new();
     private SynchronizationContext? _context;
 
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null) { ExcludeFromPool = true };
@@ -82,9 +83,25 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 
     public void StartDevice(DeviceDescription? deviceDescription, WaveFormat? waveFormat = null)
     {
+        try
+        {
+            lock (_deviceLock)
+            {
+                StartDeviceCore(deviceDescription, waveFormat);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while starting audio device.");
+            DeviceError?.Invoke(ex);
+            throw;
+        }
+    }
+
+    private void StartDeviceCore(DeviceDescription? deviceDescription, WaveFormat? waveFormat = null)
+    {
         waveFormat ??= new WaveFormat(44100, 2);
 
-        // Check if already running with identical settings
         if (CurrentDevice != null &&
             SourceWaveFormat != null &&
             SourceWaveFormat.SampleRate == waveFormat.SampleRate &&
@@ -96,7 +113,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 
         if (CurrentDevice != null)
         {
-            StopDevice();
+            StopDeviceCore();
         }
 
         _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
@@ -167,7 +184,6 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 
         if (ex != null)
         {
-            DeviceError?.Invoke(ex);
             throw ex;
         }
 
@@ -185,6 +201,14 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
     }
 
     public void StopDevice()
+    {
+        lock (_deviceLock)
+        {
+            StopDeviceCore();
+        }
+    }
+
+    private void StopDeviceCore()
     {
         if (CurrentDevice == null) return;
         var currentDevice = CurrentDevice;
@@ -208,12 +232,16 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         {
             try
             {
-                var desc = CurrentDeviceDescription;
-                var format = SourceWaveFormat;
-                if (desc == null) return;
-                
-                StopDevice();
-                StartDevice(desc, format);
+                lock (_deviceLock)
+                {
+                    var desc = CurrentDeviceDescription;
+                    var format = SourceWaveFormat;
+                    if (desc == null) return;
+
+                    StopDeviceCore();
+                    StartDeviceCore(desc, format);
+                }
+
                 _logger.LogInformation("ASIO driver reset completed successfully.");
             }
             catch (Exception ex)
@@ -238,7 +266,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 
     public void Dispose()
     {
-        CurrentDevice?.Dispose();
+        StopDevice();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
