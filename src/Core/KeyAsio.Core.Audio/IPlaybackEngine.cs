@@ -1,10 +1,14 @@
-﻿using KeyAsio.Core.Audio.SampleProviders;
+using KeyAsio.Core.Audio.SampleProviders;
 using NAudio.Wave;
 
 namespace KeyAsio.Core.Audio;
 
 public interface IPlaybackEngine : IMusicPlaybackSink, IDisposable
 {
+    event Action<DeviceDescription>? DeviceStarted;
+    event Action? DeviceStopped;
+    event Action<Exception>? DeviceError;
+
     IWavePlayer? CurrentDevice { get; }
     DeviceDescription? CurrentDeviceDescription { get; }
 
