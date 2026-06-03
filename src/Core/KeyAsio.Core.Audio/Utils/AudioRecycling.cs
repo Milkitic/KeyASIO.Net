@@ -30,6 +30,11 @@ public static class AudioRecycling
 
         while (current is IRecyclableProvider recyclable)
         {
+            if (current is IPoolable { ExcludeFromPool: true })
+            {
+                return;
+            }
+
             var next = recyclable.ResetAndGetSource();
             switch (current)
             {

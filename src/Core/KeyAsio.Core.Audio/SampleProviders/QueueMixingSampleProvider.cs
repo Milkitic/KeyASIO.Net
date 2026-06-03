@@ -27,6 +27,7 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
 
     public QueueMixingSampleProvider(WaveFormat waveFormat)
     {
+        ArgumentNullException.ThrowIfNull(waveFormat);
         if (waveFormat.Encoding != WaveFormatEncoding.IeeeFloat)
             throw new ArgumentException("Mixer wave format must be IEEE float");
         WaveFormat = waveFormat;
@@ -38,28 +39,32 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
         ISampleProvider? firstSource = null;
         foreach (var mixerInput in sources)
         {
-            AddMixerInput(mixerInput);
             if (firstSource == null)
             {
-                WaveFormat = mixerInput.WaveFormat;
+                WaveFormat = mixerInput.WaveFormat
+                             ?? throw new InvalidOperationException("Mixer input wave format is not initialized.");
                 firstSource = mixerInput;
             }
             else
             {
                 EnsureWaveFormat(mixerInput);
             }
+
+            _sources.Add(mixerInput);
         }
 
         if (firstSource == null) throw new ArgumentException("Must provide at least one input");
+        _estimatedSourceCount = _sources.Count;
     }
 
-    public WaveFormat? WaveFormat { get; }
+    public WaveFormat WaveFormat { get; private set; } = null!;
 
     public bool ReadFully { get; set; }
     public bool WantsKeep { get; set; }
 
     public void AddMixerInput(ISampleProvider mixerInput)
     {
+        ArgumentNullException.ThrowIfNull(mixerInput);
         if (_isDisposed) return;
 
         EnsureWaveFormat(mixerInput);
@@ -197,8 +202,13 @@ public sealed class QueueMixingSampleProvider : IMixingSampleProvider, IDisposab
 
     private void EnsureWaveFormat(ISampleProvider mixerInput)
     {
-        if (WaveFormat.SampleRate != mixerInput.WaveFormat.SampleRate ||
-            WaveFormat.Channels != mixerInput.WaveFormat.Channels)
+        var mixerFormat = WaveFormat
+                          ?? throw new InvalidOperationException("Mixer wave format is not initialized.");
+        var inputFormat = mixerInput.WaveFormat
+                          ?? throw new InvalidOperationException("Mixer input wave format is not initialized.");
+
+        if (mixerFormat.SampleRate != inputFormat.SampleRate ||
+            mixerFormat.Channels != inputFormat.Channels)
         {
             throw new ArgumentException("All mixer inputs must have the same WaveFormat");
         }

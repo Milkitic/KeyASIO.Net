@@ -175,6 +175,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
             try
             {
                 outputDevice.Init(new PerfSampleToWaveProvider(root));
+                outputDevice.Play();
             }
             catch (Exception e)
             {
@@ -184,10 +185,9 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 
         if (ex != null)
         {
+            DisposeDeviceOnAudioContext(outputDevice);
             throw ex;
         }
-
-        outputDevice.Play();
 
         CurrentDevice = outputDevice;
         CurrentDeviceDescription = actualDescription;
@@ -213,16 +213,49 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         if (CurrentDevice == null) return;
         var currentDevice = CurrentDevice;
 
-        if (currentDevice is AsioOut asioOut)
+        CurrentDevice = null;
+        CurrentDeviceDescription = null;
+
+        DisposeDeviceOnAudioContext(currentDevice);
+        DeviceStopped?.Invoke();
+    }
+
+    private void DisposeDeviceOnAudioContext(IWavePlayer device)
+    {
+        var context = _context;
+        if (context == null)
+        {
+            DisposeDevice(device);
+            return;
+        }
+
+        Exception? ex = null;
+        context.Send(_ =>
+        {
+            try
+            {
+                DisposeDevice(device);
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+        }, null);
+
+        if (ex != null)
+        {
+            throw ex;
+        }
+    }
+
+    private void DisposeDevice(IWavePlayer device)
+    {
+        if (device is AsioOut asioOut)
         {
             asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
         }
 
-        CurrentDevice = null;
-        CurrentDeviceDescription = null;
-
-        currentDevice.Dispose();
-        DeviceStopped?.Invoke();
+        device.Dispose();
     }
 
     private void AsioOut_DriverResetRequest(object? sender, EventArgs e)
