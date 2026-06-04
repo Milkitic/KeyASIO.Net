@@ -139,7 +139,7 @@ public sealed class StandaloneMusicTransport : IPlaybackClock, IAsyncDisposable
     {
         lock (_gate)
         {
-            if (_isInMixer) return;
+            _playbackSink.RemoveInput(source.Output);
             _playbackSink.AddInput(source.Output);
             _isInMixer = true;
         }
