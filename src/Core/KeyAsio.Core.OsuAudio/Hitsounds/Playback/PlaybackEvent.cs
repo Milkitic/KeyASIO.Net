@@ -1,4 +1,4 @@
-﻿namespace KeyAsio.Shared.Hitsounds.Playback;
+namespace KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 
 public abstract class PlaybackEvent
 {

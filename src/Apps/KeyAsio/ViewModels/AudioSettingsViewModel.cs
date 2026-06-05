@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
@@ -61,6 +61,8 @@ public partial class AudioSettingsViewModel : ObservableObject
         _audioDeviceManager = audioDeviceManager;
         _gameplayAudioService = gameplayAudioService;
         PlaybackEngine = playbackEngine;
+
+        PlaybackEngine.DeviceError += PlaybackEngine_DeviceError;
 
         _ = InitializeAudioSettingsAsync();
     }
@@ -418,7 +420,7 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
 
         HasUnsavedAudioChanges =
-            !AreDevicesEqual(potentialDevice, _originalAudioSettings.PlaybackDevice) ||
+            !DeviceComparer.AreSettingsEqual(potentialDevice, _originalAudioSettings.PlaybackDevice) ||
             SelectedSampleRate != _originalAudioSettings.SampleRate;
     }
 
@@ -437,7 +439,6 @@ public partial class AudioSettingsViewModel : ObservableObject
             if (PlaybackEngine.CurrentDevice is AsioOut asioOut)
             {
                 var actualDd = PlaybackEngine.CurrentDeviceDescription;
-                asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 FramesPerBuffer = $"{asioOut.FramesPerBuffer}→{actualDd.AsioActualSamples} samples";
                 AsioLatencyMs = actualDd.AsioLatencyMs;
             }
@@ -482,43 +483,25 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
     }
 
-    private async void AsioOut_DriverResetRequest(object? sender, EventArgs e)
+    private void PlaybackEngine_DeviceError(Exception ex)
     {
-        try
+        _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var deviceDescription = _appSettings.Audio.PlaybackDevice;
-            if (deviceDescription == null) return;
-
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                await DisposeDeviceAsync();
-                await LoadDevice(deviceDescription);
-
-                if (DeviceErrorMessage != null)
-                {
-                    ToastManager?.CreateToast()
-                        .WithTitle("Device Reset Failed")
-                        .WithContent(DeviceErrorMessage)
-                        .OfType(NotificationType.Error)
-                        .Dismiss().After(TimeSpan.FromSeconds(3))
-                        .Dismiss().ByClicking()
-                        .Queue();
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error while resetting ASIO driver.");
-        }
+            DeviceErrorMessage = ex.Message;
+            DeviceFullErrorMessage = ex.ToString();
+            ToastManager?.CreateToast()
+                .WithTitle("Device Error")
+                .WithContent(ex.Message)
+                .OfType(NotificationType.Error)
+                .Dismiss().After(TimeSpan.FromSeconds(5))
+                .Dismiss().ByClicking()
+                .Queue();
+        });
     }
 
     private async ValueTask DisposeDeviceAsync()
     {
         OnDeviceChanged?.Invoke(null);
-        if (PlaybackEngine.CurrentDevice is AsioOut asioOut)
-        {
-            asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
-        }
 
         for (var i = 0; i < 3; i++)
         {
@@ -535,29 +518,5 @@ public partial class AudioSettingsViewModel : ObservableObject
         }
 
         _gameplayAudioService.ClearCaches();
-    }
-
-    private static bool AreDevicesEqual(DeviceDescription? d1, DeviceDescription? d2)
-    {
-        if (d1 == null && d2 == null) return true;
-        if (d1 == null || d2 == null) return false;
-        if (d1.WavePlayerType == WavePlayerType.ASIO)
-        {
-            return d1.WavePlayerType == d2.WavePlayerType &&
-                   d1.DeviceId == d2.DeviceId &&
-                   d1.ForceASIOBufferSize == d2.ForceASIOBufferSize;
-        }
-
-        if (d1.WavePlayerType == WavePlayerType.WASAPI)
-        {
-            return d1.WavePlayerType == d2.WavePlayerType &&
-                   d1.DeviceId == d2.DeviceId &&
-                   d1.Latency == d2.Latency &&
-                   d1.IsExclusive == d2.IsExclusive;
-        }
-
-        return d1.WavePlayerType == d2.WavePlayerType &&
-               d1.DeviceId == d2.DeviceId &&
-               d1.Latency == d2.Latency;
     }
 }

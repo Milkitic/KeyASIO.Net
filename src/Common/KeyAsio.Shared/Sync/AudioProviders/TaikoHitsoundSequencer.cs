@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
-using KeyAsio.Shared.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;

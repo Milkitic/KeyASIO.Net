@@ -1,7 +1,7 @@
-﻿using Coosu.Beatmap;
+using Coosu.Beatmap;
+using KeyAsio.Core.OsuAudio.Hitsounds;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
-using KeyAsio.Shared.Hitsounds;
-using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 

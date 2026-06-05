@@ -1,9 +1,10 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Utils;
 using KeyAsio.Shared;
-using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync.AudioProviders;

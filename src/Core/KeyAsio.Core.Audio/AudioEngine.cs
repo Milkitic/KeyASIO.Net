@@ -1,8 +1,9 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Core.Audio.SampleProviders.Limiters;
 using KeyAsio.Core.Audio.Wave;
+using Microsoft.Extensions.Logging;
 using Milki.Extensions.Threading;
 using NAudio.Wave;
 
@@ -11,6 +12,8 @@ namespace KeyAsio.Core.Audio;
 public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 {
     private readonly IAudioDeviceManager _audioDeviceManager;
+    private readonly ILogger<AudioEngine> _logger;
+    private readonly Lock _deviceLock = new();
     private SynchronizationContext? _context;
 
     private readonly EnhancedVolumeSampleProvider _effectVolumeSampleProvider = new(null) { ExcludeFromPool = true };
@@ -19,9 +22,14 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
     private DynamicLimiterProvider? _limiterProvider;
     private LimiterType _limiterType = LimiterType.Master;
 
-    public AudioEngine(IAudioDeviceManager audioDeviceManager)
+    public event Action<DeviceDescription>? DeviceStarted;
+    public event Action? DeviceStopped;
+    public event Action<Exception>? DeviceError;
+
+    public AudioEngine(IAudioDeviceManager audioDeviceManager, ILogger<AudioEngine>? logger = null)
     {
         _audioDeviceManager = audioDeviceManager;
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<AudioEngine>.Instance;
     }
 
     public IWavePlayer? CurrentDevice { get; private set; }
@@ -75,38 +83,91 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 
     public void StartDevice(DeviceDescription? deviceDescription, WaveFormat? waveFormat = null)
     {
+        try
+        {
+            lock (_deviceLock)
+            {
+                StartDeviceCore(deviceDescription, waveFormat);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while starting audio device.");
+            DeviceError?.Invoke(ex);
+            throw;
+        }
+    }
+
+    private void StartDeviceCore(DeviceDescription? deviceDescription, WaveFormat? waveFormat = null)
+    {
+        waveFormat ??= new WaveFormat(44100, 2);
+
+        if (CurrentDevice != null &&
+            SourceWaveFormat != null &&
+            SourceWaveFormat.SampleRate == waveFormat.SampleRate &&
+            SourceWaveFormat.Channels == waveFormat.Channels &&
+            DeviceComparer.AreSettingsEqual(deviceDescription, CurrentDeviceDescription))
+        {
+            return;
+        }
+
+        if (CurrentDevice != null)
+        {
+            StopDeviceCore();
+        }
+
         _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
             staThread: true, threadPriority: ThreadPriority.AboveNormal);
 
         var (outputDevice, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription, _context);
 
-        waveFormat ??= new WaveFormat(44100, 2);
+        var newWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
+        bool waveFormatChanged = EngineWaveFormat == null! ||
+                                 EngineWaveFormat.SampleRate != newWaveFormat.SampleRate ||
+                                 EngineWaveFormat.Channels != newWaveFormat.Channels;
+
         SourceWaveFormat = waveFormat;
-        EngineWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
+        EngineWaveFormat = newWaveFormat;
 
-        RootMixer = new QueueMixingSampleProvider(EngineWaveFormat)
+        if (waveFormatChanged)
         {
-            ReadFully = true
-        };
-        EffectMixer = new QueueMixingSampleProvider(EngineWaveFormat)
-        {
-            ReadFully = true,
-            WantsKeep = true
-        };
-        _effectVolumeSampleProvider.Source = EffectMixer;
+            RootMixer = new QueueMixingSampleProvider(EngineWaveFormat)
+            {
+                ReadFully = true
+            };
+            EffectMixer = new QueueMixingSampleProvider(EngineWaveFormat)
+            {
+                ReadFully = true,
+                WantsKeep = true
+            };
+            _effectVolumeSampleProvider.Source = EffectMixer;
 
-        MusicMixer = new QueueMixingSampleProvider(EngineWaveFormat)
-        {
-            ReadFully = true,
-            WantsKeep = true
-        };
-        _musicVolumeSampleProvider.Source = MusicMixer;
-        RootMixer.AddMixerInput(_effectVolumeSampleProvider);
-        RootMixer.AddMixerInput(_musicVolumeSampleProvider);
+            MusicMixer = new QueueMixingSampleProvider(EngineWaveFormat)
+            {
+                ReadFully = true,
+                WantsKeep = true
+            };
+            _musicVolumeSampleProvider.Source = MusicMixer;
+            RootMixer.AddMixerInput(_effectVolumeSampleProvider);
+            RootMixer.AddMixerInput(_musicVolumeSampleProvider);
 
-        _mainVolumeSampleProvider.Source = RootMixer;
-        _limiterProvider = new DynamicLimiterProvider(_mainVolumeSampleProvider, _limiterType);
-        ISampleProvider root = _limiterProvider;
+            _mainVolumeSampleProvider.Source = RootMixer;
+            _limiterProvider = new DynamicLimiterProvider(_mainVolumeSampleProvider, _limiterType);
+        }
+        else
+        {
+            _effectVolumeSampleProvider.Source = EffectMixer;
+            _musicVolumeSampleProvider.Source = MusicMixer;
+            _mainVolumeSampleProvider.Source = RootMixer;
+            if (_limiterProvider == null)
+            {
+                _limiterProvider = new DynamicLimiterProvider(_mainVolumeSampleProvider, _limiterType);
+            }
+        }
+
+        RootSampleProvider = _limiterProvider;
+
+        ISampleProvider root = RootSampleProvider;
 
         Exception? ex = null;
         _context.Send(_ =>
@@ -114,6 +175,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
             try
             {
                 outputDevice.Init(new PerfSampleToWaveProvider(root));
+                outputDevice.Play();
             }
             catch (Exception e)
             {
@@ -121,32 +183,123 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
             }
         }, null);
 
-        if (ex != null) throw ex;
-        outputDevice.Play();
+        if (ex != null)
+        {
+            DisposeDeviceOnAudioContext(outputDevice);
+            throw ex;
+        }
 
         CurrentDevice = outputDevice;
         CurrentDeviceDescription = actualDescription;
-        RootSampleProvider = root;
+
+        if (outputDevice is AsioOut asioOut)
+        {
+            asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
+        }
+
+        DeviceStarted?.Invoke(actualDescription);
     }
 
     public void StopDevice()
+    {
+        lock (_deviceLock)
+        {
+            StopDeviceCore();
+        }
+    }
+
+    private void StopDeviceCore()
     {
         if (CurrentDevice == null) return;
         var currentDevice = CurrentDevice;
 
         CurrentDevice = null;
         CurrentDeviceDescription = null;
-        _limiterProvider = null;
-        _effectVolumeSampleProvider.Source = null;
-        _musicVolumeSampleProvider.Source = null;
-        _mainVolumeSampleProvider.Source = null;
 
-        currentDevice.Dispose();
+        DisposeDeviceOnAudioContext(currentDevice);
+        DeviceStopped?.Invoke();
+    }
+
+    private void DisposeDeviceOnAudioContext(IWavePlayer device)
+    {
+        var context = _context;
+        if (context == null)
+        {
+            DisposeDevice(device);
+            return;
+        }
+
+        Exception? ex = null;
+        context.Send(_ =>
+        {
+            try
+            {
+                DisposeDevice(device);
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+        }, null);
+
+        if (ex != null)
+        {
+            throw ex;
+        }
+    }
+
+    private void DisposeDevice(IWavePlayer device)
+    {
+        if (device is AsioOut asioOut)
+        {
+            asioOut.DriverResetRequest -= AsioOut_DriverResetRequest;
+        }
+
+        device.Dispose();
+    }
+
+    private void AsioOut_DriverResetRequest(object? sender, EventArgs e)
+    {
+        _logger.LogWarning("ASIO driver requested reset. Re-initializing audio device...");
+        _context?.Post(_ =>
+        {
+            try
+            {
+                lock (_deviceLock)
+                {
+                    var desc = CurrentDeviceDescription;
+                    var format = SourceWaveFormat;
+                    if (desc == null) return;
+
+                    StopDeviceCore();
+                    StartDeviceCore(desc, format);
+                }
+
+                _logger.LogInformation("ASIO driver reset completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to re-initialize ASIO device after driver reset request.");
+                DeviceError?.Invoke(ex);
+            }
+        }, null);
+    }
+
+    WaveFormat? IMusicPlaybackSink.WaveFormat => MusicMixer?.WaveFormat;
+
+    public void AddInput(ISampleProvider input)
+    {
+        MusicMixer.AddMixerInput(input);
+    }
+
+    public void RemoveInput(ISampleProvider input)
+    {
+        MusicMixer.RemoveMixerInput(input);
     }
 
     public void Dispose()
     {
-        CurrentDevice?.Dispose();
+        StopDevice();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

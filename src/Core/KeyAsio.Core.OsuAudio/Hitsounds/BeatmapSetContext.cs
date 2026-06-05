@@ -1,19 +1,19 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Sections;
 using Coosu.Beatmap.Sections.GamePlay;
 using Coosu.Beatmap.Sections.HitObject;
 using Coosu.Beatmap.Sections.Timing;
 using Coosu.Shared;
-using KeyAsio.Shared.Hitsounds.Playback;
-using KeyAsio.Shared.Utils;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Utils;
 
-namespace KeyAsio.Shared.Hitsounds;
+namespace KeyAsio.Core.OsuAudio.Hitsounds;
 
 public sealed class BeatmapSetContext
 {
     private static readonly Type s_objectSamplesetType = typeof(ObjectSamplesetType);
-    private static readonly AsyncSequentialWorker s_worker = new(name: nameof(BeatmapSetContext));
+    private static readonly SemaphoreSlim s_workerGate = new(1, 1);
 
     private readonly OsuAudioFileCache _cache = new();
     private readonly string _directory;
@@ -32,7 +32,9 @@ public sealed class BeatmapSetContext
         var directoryInfo = new DirectoryInfo(_directory);
         var waveFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var osuFiles = new List<OsuFile>();
-        await s_worker.EnqueueAsync(() =>
+
+        await s_workerGate.WaitAsync().ConfigureAwait(false);
+        try
         {
             foreach (var fileInfo in directoryInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
             {
@@ -61,12 +63,14 @@ public sealed class BeatmapSetContext
                 osuFiles.Add(OsuFile.ReadFromFile(fileInfo.FullName));
             }
 
-            return Task.CompletedTask;
-        }).ConfigureAwait(false);
-
-        WaveFiles = waveFiles;
-        OsuFiles = osuFiles;
-        _isInitialized = true;
+            WaveFiles = waveFiles;
+            OsuFiles = osuFiles;
+            _isInitialized = true;
+        }
+        finally
+        {
+            s_workerGate.Release();
+        }
     }
 
     public async Task<List<PlaybackEvent>> GetHitsoundNodesAsync(OsuFile osuFile)
@@ -78,7 +82,9 @@ public sealed class BeatmapSetContext
 
         var hitObjects = osuFile.HitObjects.HitObjectList;
         var elements = new List<PlaybackEvent>(hitObjects.Count);
-        await s_worker.EnqueueAsync(() =>
+
+        await s_workerGate.WaitAsync().ConfigureAwait(false);
+        try
         {
             osuFile.HitObjects.ComputeSlidersByCurrentSettings();
 
@@ -98,7 +104,7 @@ public sealed class BeatmapSetContext
 
             if (osuFile.Events?.Samples == null)
             {
-                return Task.CompletedTask;
+                return elements.OrderBy(k => k.Offset).ToList();
             }
 
             foreach (var sampleData in osuFile.Events.Samples)
@@ -106,9 +112,11 @@ public sealed class BeatmapSetContext
                 elements.Add(PlaybackEvent.Create(Guid.NewGuid(), sampleData.Offset, sampleData.Volume / 100f, 0,
                     sampleData.Filename, ResourceOwner.Beatmap, SampleLayer.Sampling));
             }
-
-            return Task.CompletedTask;
-        }).ConfigureAwait(false);
+        }
+        finally
+        {
+            s_workerGate.Release();
+        }
 
         return elements.OrderBy(k => k.Offset).ToList();
     }

@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
-using KeyAsio.Shared.Hitsounds.Playback;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.Services;

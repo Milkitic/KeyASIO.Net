@@ -1,7 +1,7 @@
-﻿using System.Collections.Concurrent;
-using KeyAsio.Shared.Hitsounds.Playback;
+using System.Collections.Concurrent;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 
-namespace KeyAsio.Shared.Utils;
+namespace KeyAsio.Core.OsuAudio.Utils;
 
 public class OsuAudioFileCache
 {

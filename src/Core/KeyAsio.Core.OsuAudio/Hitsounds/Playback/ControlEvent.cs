@@ -1,6 +1,6 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
-namespace KeyAsio.Shared.Hitsounds.Playback;
+namespace KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 
 [DebuggerDisplay("{DebuggerDisplay}")]
 public class ControlEvent : PlaybackEvent
