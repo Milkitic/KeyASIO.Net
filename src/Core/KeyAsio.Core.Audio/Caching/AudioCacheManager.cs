@@ -20,12 +20,22 @@ public class AudioCacheManager
     ];
 
     private readonly ILogger<AudioCacheManager> _logger;
+    private readonly IAudioDecodeCalibrationProvider? _calibrationProvider;
+    private readonly bool _useAutomaticMp3GaplessCorrection;
     private readonly ConcurrentDictionary<string, CategoryCache> _categoryDictionary = new();
     private readonly ConcurrentDictionary<int, WaveFormat> _waveFormats = new();
 
     public AudioCacheManager(ILogger<AudioCacheManager> logger)
+        : this(logger, AudioDecodeCalibrationStore.TryLoadFromEnvironment(logger))
+    {
+    }
+
+    public AudioCacheManager(ILogger<AudioCacheManager> logger, IAudioDecodeCalibrationProvider? calibrationProvider,
+        bool useAutomaticMp3GaplessCorrection = true)
     {
         _logger = logger;
+        _calibrationProvider = calibrationProvider;
+        _useAutomaticMp3GaplessCorrection = useAutomaticMp3GaplessCorrection;
     }
 
     public bool TryGet(string cacheKey, [NotNullWhen(true)] out CachedAudio? cachedAudio, string? category = null)
@@ -217,7 +227,7 @@ public class AudioCacheManager
 
     private static string ComputeHash(ReadOnlyMemory<byte> data)
     {
-        return Blake3.Hasher.Hash(data.Span).ToString();
+        return AudioSourceHash.Compute(data.Span);
     }
 
     private async Task<CachedAudio> CreateAudioCacheAsync(string cacheKey, string hash, byte[] rentBuffer,
@@ -226,6 +236,7 @@ public class AudioCacheManager
         await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
         var (waveProvider, estimatedShortSamples) =
             GetWaveProvider(audioFileReader, cacheKey, waveFormat.SampleRate);
+        var cachedWaveFormat = waveProvider.WaveFormat;
 
         var sw = HighPrecisionTimer.StartNew();
 
@@ -238,7 +249,7 @@ public class AudioCacheManager
         int totalBytes = 0;
         int currentCapacity = estimatedBytes;
 
-        var bufferSize = Math.Min(waveProvider.WaveFormat.AverageBytesPerSecond, 64 * 1024);
+        var bufferSize = Math.Min(cachedWaveFormat.AverageBytesPerSecond, 64 * 1024);
         var readBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
         try
@@ -264,13 +275,58 @@ public class AudioCacheManager
             if (waveProvider is IDisposable d) d.Dispose();
         }
 
+        var calibration = GetDecodeCalibration(hash, rentBuffer.AsSpan(0, bytesRead));
+        if (calibration != null)
+        {
+            var correction = AudioDecodeCalibrationApplier.Apply(
+                owner.Memory.Span.Slice(0, totalBytes),
+                cachedWaveFormat,
+                calibration);
+
+            if (correction.Applied)
+            {
+                owner.Dispose();
+                owner = correction.Owner!;
+                totalBytes = correction.Length;
+                currentCapacity = totalBytes;
+                _logger?.LogDebug(
+                    "Applied audio decode calibration for {CacheKey}: offset={OffsetFrames} frames, " +
+                    "durationDelta={DurationDeltaFrames} frames",
+                    cacheKey,
+                    correction.OffsetFrames,
+                    correction.DurationDeltaFrames);
+            }
+        }
+
         if (totalBytes < currentCapacity)
         {
             owner.Resize(totalBytes);
         }
 
         _logger?.LogDebug("Cached {CacheKey} (Unmanaged) in {Elapsed:N2}ms", cacheKey, sw.Elapsed.TotalMilliseconds);
-        return new CachedAudio(hash, owner, totalBytes, waveProvider.WaveFormat);
+        return new CachedAudio(hash, owner, totalBytes, cachedWaveFormat);
+    }
+
+    private AudioDecodeCalibration? GetDecodeCalibration(string hash, ReadOnlySpan<byte> fileData)
+    {
+        if (_calibrationProvider?.TryGetCalibration(hash, out var calibration) == true)
+            return calibration;
+
+        if (!_useAutomaticMp3GaplessCorrection)
+            return null;
+
+        if (!Mp3GaplessInfo.TryRead(fileData, out var mp3GaplessInfo))
+            return null;
+
+        return new AudioDecodeCalibration
+        {
+            SourceHash = hash,
+            SampleRate = mp3GaplessInfo.SampleRate,
+            OffsetFrames = mp3GaplessInfo.StartSkipSamples,
+            DurationDeltaFrames = mp3GaplessInfo.TotalDiscardSamples,
+            Correlation = 1,
+            Name = "mp3-gapless"
+        };
     }
 
     private (IWaveProvider waveProvider, long estimatedShortSamples) GetWaveProvider(
