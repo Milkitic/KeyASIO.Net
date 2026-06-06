@@ -223,15 +223,66 @@ public class AudioCacheManager
     private async Task<CachedAudio> CreateAudioCacheAsync(string cacheKey, string hash, byte[] rentBuffer,
         int bytesRead, WaveFormat waveFormat)
     {
+        var fileFormat = DetermineFileFormat(rentBuffer, bytesRead);
+        if (ShouldPreferBass(fileFormat))
+        {
+            try
+            {
+                return CreateAudioCacheFromBass(cacheKey, hash, rentBuffer, bytesRead, waveFormat.SampleRate);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Failed to decode {CacheKey} with BASS. Falling back to NAudio.", cacheKey);
+            }
+        }
+
         await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
         var (waveProvider, estimatedShortSamples) =
             GetWaveProvider(audioFileReader, cacheKey, waveFormat.SampleRate);
 
+        return CreateAudioCacheFromWaveProvider(cacheKey, hash, waveProvider, estimatedShortSamples,
+            audioFileReader.Length);
+    }
+
+    private CachedAudio CreateAudioCacheFromBass(string cacheKey, string hash, byte[] sourceData, int bytesRead,
+        int targetSampleRate)
+    {
+        var decoded = BassAudioDecoder.Decode(sourceData, bytesRead);
+        var targetFormat = GetPcm16WaveFormat(targetSampleRate);
+
+        if (decoded.WaveFormat.SampleRate == targetFormat.SampleRate &&
+            decoded.WaveFormat.Channels == targetFormat.Channels)
+        {
+            var owner = UnmanagedByteMemoryOwner.Allocate(decoded.Data.Length);
+            decoded.Data.CopyTo(owner.Memory.Span);
+
+            _logger?.LogDebug("Cached {CacheKey} via BASS without resampling", cacheKey);
+            return new CachedAudio(hash, owner, decoded.Data.Length, targetFormat);
+        }
+
+        using var decodedStream = new MemoryStream(decoded.Data, writable: false);
+        using var rawSource = new RawSourceWaveStream(decodedStream, decoded.WaveFormat);
+        var resampler = new MediaFoundationResampler(rawSource, targetFormat)
+        {
+            ResamplerQuality = 60
+        };
+
+        long estimatedShortSamples = decoded.Data.Length > 0
+            ? (long)(decoded.Data.Length *
+                     ((double)targetFormat.AverageBytesPerSecond / decoded.WaveFormat.AverageBytesPerSecond) / 2)
+            : -1;
+
+        return CreateAudioCacheFromWaveProvider(cacheKey, hash, resampler, estimatedShortSamples, decoded.Data.Length);
+    }
+
+    private CachedAudio CreateAudioCacheFromWaveProvider(string cacheKey, string hash, IWaveProvider waveProvider,
+        long estimatedShortSamples, long fallbackEstimatedBytes)
+    {
         var sw = HighPrecisionTimer.StartNew();
 
         int estimatedBytes = Math.Max(estimatedShortSamples > 0
             ? (int)(estimatedShortSamples * 2) // 16-bit = 2 bytes
-            : (int)(audioFileReader.Length), 4096);
+            : (int)fallbackEstimatedBytes, 4096);
 
         var owner = UnmanagedByteMemoryOwner.Allocate(estimatedBytes);
 
@@ -271,6 +322,17 @@ public class AudioCacheManager
 
         _logger?.LogDebug("Cached {CacheKey} (Unmanaged) in {Elapsed:N2}ms", cacheKey, sw.Elapsed.TotalMilliseconds);
         return new CachedAudio(hash, owner, totalBytes, waveProvider.WaveFormat);
+    }
+
+    private static FileFormat DetermineFileFormat(byte[] data, int length)
+    {
+        using var stream = new MemoryStream(data, 0, length, writable: false);
+        return FileFormatHelper.DetermineFileFormatFromStream(stream);
+    }
+
+    private static bool ShouldPreferBass(FileFormat fileFormat)
+    {
+        return fileFormat is FileFormat.Mp3 or FileFormat.Mp3Id3 or FileFormat.Ogg;
     }
 
     private (IWaveProvider waveProvider, long estimatedShortSamples) GetWaveProvider(
