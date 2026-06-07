@@ -20,21 +20,18 @@ public class AudioCacheManager
     ];
 
     private readonly ILogger<AudioCacheManager> _logger;
-    private readonly IAudioDecodeCalibrationProvider? _calibrationProvider;
     private readonly bool _useAutomaticMp3GaplessCorrection;
     private readonly ConcurrentDictionary<string, CategoryCache> _categoryDictionary = new();
     private readonly ConcurrentDictionary<int, WaveFormat> _waveFormats = new();
 
     public AudioCacheManager(ILogger<AudioCacheManager> logger)
-        : this(logger, AudioDecodeCalibrationStore.TryLoadFromEnvironment(logger))
+        : this(logger, useAutomaticMp3GaplessCorrection: true)
     {
     }
 
-    public AudioCacheManager(ILogger<AudioCacheManager> logger, IAudioDecodeCalibrationProvider? calibrationProvider,
-        bool useAutomaticMp3GaplessCorrection = true)
+    public AudioCacheManager(ILogger<AudioCacheManager> logger, bool useAutomaticMp3GaplessCorrection)
     {
         _logger = logger;
-        _calibrationProvider = calibrationProvider;
         _useAutomaticMp3GaplessCorrection = useAutomaticMp3GaplessCorrection;
     }
 
@@ -227,7 +224,7 @@ public class AudioCacheManager
 
     private static string ComputeHash(ReadOnlyMemory<byte> data)
     {
-        return AudioSourceHash.Compute(data.Span);
+        return Blake3.Hasher.Hash(data.Span).ToString();
     }
 
     private async Task<CachedAudio> CreateAudioCacheAsync(string cacheKey, string hash, byte[] rentBuffer,
@@ -275,13 +272,13 @@ public class AudioCacheManager
             if (waveProvider is IDisposable d) d.Dispose();
         }
 
-        var calibration = GetDecodeCalibration(hash, rentBuffer.AsSpan(0, bytesRead));
-        if (calibration != null)
+        if (_useAutomaticMp3GaplessCorrection &&
+            Mp3GaplessInfo.TryRead(rentBuffer.AsSpan(0, bytesRead), out var mp3GaplessInfo))
         {
-            var correction = AudioDecodeCalibrationApplier.Apply(
+            var correction = Mp3GaplessAudioTrimmer.Apply(
                 owner.Memory.Span.Slice(0, totalBytes),
                 cachedWaveFormat,
-                calibration);
+                mp3GaplessInfo);
 
             if (correction.Applied)
             {
@@ -290,11 +287,11 @@ public class AudioCacheManager
                 totalBytes = correction.Length;
                 currentCapacity = totalBytes;
                 _logger?.LogDebug(
-                    "Applied audio decode calibration for {CacheKey}: offset={OffsetFrames} frames, " +
-                    "durationDelta={DurationDeltaFrames} frames",
+                    "Applied MP3 gapless correction for {CacheKey}: startSkip={StartSkipFrames} frames, " +
+                    "totalDiscard={TotalDiscardFrames} frames",
                     cacheKey,
-                    correction.OffsetFrames,
-                    correction.DurationDeltaFrames);
+                    correction.StartSkipFrames,
+                    correction.TotalDiscardFrames);
             }
         }
 
@@ -305,28 +302,6 @@ public class AudioCacheManager
 
         _logger?.LogDebug("Cached {CacheKey} (Unmanaged) in {Elapsed:N2}ms", cacheKey, sw.Elapsed.TotalMilliseconds);
         return new CachedAudio(hash, owner, totalBytes, cachedWaveFormat);
-    }
-
-    private AudioDecodeCalibration? GetDecodeCalibration(string hash, ReadOnlySpan<byte> fileData)
-    {
-        if (_calibrationProvider?.TryGetCalibration(hash, out var calibration) == true)
-            return calibration;
-
-        if (!_useAutomaticMp3GaplessCorrection)
-            return null;
-
-        if (!Mp3GaplessInfo.TryRead(fileData, out var mp3GaplessInfo))
-            return null;
-
-        return new AudioDecodeCalibration
-        {
-            SourceHash = hash,
-            SampleRate = mp3GaplessInfo.SampleRate,
-            OffsetFrames = mp3GaplessInfo.StartSkipSamples,
-            DurationDeltaFrames = mp3GaplessInfo.TotalDiscardSamples,
-            Correlation = 1,
-            Name = "mp3-gapless"
-        };
     }
 
     private (IWaveProvider waveProvider, long estimatedShortSamples) GetWaveProvider(
