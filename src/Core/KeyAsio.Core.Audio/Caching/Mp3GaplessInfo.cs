@@ -24,6 +24,15 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
         }
 
         var frameData = data.Slice(offset, frame.FrameLength);
+        return TryReadXingOrInfo(frameData, frame, out info) ||
+               TryReadVbri(frameData, frame, out info);
+    }
+
+    private static bool TryReadXingOrInfo(ReadOnlySpan<byte> frameData, Mp3FrameHeader frame,
+        out Mp3GaplessInfo info)
+    {
+        info = default;
+
         var xingOffset = GetXingOffset(frame);
         if (xingOffset < 0 || xingOffset + 8 > frameData.Length)
             return false;
@@ -84,6 +93,26 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
             return false;
 
         info = new Mp3GaplessInfo(frame.SampleRate, startSkip, endDiscard);
+        return true;
+    }
+
+    private static bool TryReadVbri(ReadOnlySpan<byte> frameData, Mp3FrameHeader frame, out Mp3GaplessInfo info)
+    {
+        info = default;
+
+        const int vbriOffset = 4 + 32;
+        if (vbriOffset + 8 > frameData.Length ||
+            !frameData.Slice(vbriOffset, 4).SequenceEqual("VBRI"u8))
+        {
+            return false;
+        }
+
+        var encoderDelay = BinaryPrimitives.ReadUInt16BigEndian(frameData.Slice(vbriOffset + 6, 2));
+        var startSkip = Math.Max(0, encoderDelay - frame.SamplesPerFrame);
+        if (startSkip <= 0)
+            return false;
+
+        info = new Mp3GaplessInfo(frame.SampleRate, startSkip, 0);
         return true;
     }
 
@@ -194,7 +223,13 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
         if (frameLength <= 4 || frameLength > 16 * 1024)
             return false;
 
-        frame = new Mp3FrameHeader(version, layer, sampleRate, channelMode == 3 ? 1 : 2, frameLength);
+        frame = new Mp3FrameHeader(
+            version,
+            layer,
+            sampleRate,
+            channelMode == 3 ? 1 : 2,
+            frameLength,
+            samplesPerFrame);
         return true;
     }
 
@@ -203,7 +238,8 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
         MpegLayer Layer,
         int SampleRate,
         int Channels,
-        int FrameLength);
+        int FrameLength,
+        int SamplesPerFrame);
 
     private enum MpegVersion
     {

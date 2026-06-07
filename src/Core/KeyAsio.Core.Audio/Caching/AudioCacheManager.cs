@@ -24,12 +24,7 @@ public class AudioCacheManager
     private readonly ConcurrentDictionary<string, CategoryCache> _categoryDictionary = new();
     private readonly ConcurrentDictionary<int, WaveFormat> _waveFormats = new();
 
-    public AudioCacheManager(ILogger<AudioCacheManager> logger)
-        : this(logger, useAutomaticMp3GaplessCorrection: true)
-    {
-    }
-
-    public AudioCacheManager(ILogger<AudioCacheManager> logger, bool useAutomaticMp3GaplessCorrection)
+    public AudioCacheManager(ILogger<AudioCacheManager> logger, bool useAutomaticMp3GaplessCorrection = true)
     {
         _logger = logger;
         _useAutomaticMp3GaplessCorrection = useAutomaticMp3GaplessCorrection;
