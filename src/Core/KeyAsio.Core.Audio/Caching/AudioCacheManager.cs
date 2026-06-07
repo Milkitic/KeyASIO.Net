@@ -20,12 +20,14 @@ public class AudioCacheManager
     ];
 
     private readonly ILogger<AudioCacheManager> _logger;
+    private readonly bool _useAutomaticMp3GaplessCorrection;
     private readonly ConcurrentDictionary<string, CategoryCache> _categoryDictionary = new();
     private readonly ConcurrentDictionary<int, WaveFormat> _waveFormats = new();
 
-    public AudioCacheManager(ILogger<AudioCacheManager> logger)
+    public AudioCacheManager(ILogger<AudioCacheManager> logger, bool useAutomaticMp3GaplessCorrection = true)
     {
         _logger = logger;
+        _useAutomaticMp3GaplessCorrection = useAutomaticMp3GaplessCorrection;
     }
 
     public bool TryGet(string cacheKey, [NotNullWhen(true)] out CachedAudio? cachedAudio, string? category = null)
@@ -226,6 +228,7 @@ public class AudioCacheManager
         await using var audioFileReader = new AudioFileReader(rentBuffer, 0, bytesRead);
         var (waveProvider, estimatedShortSamples) =
             GetWaveProvider(audioFileReader, cacheKey, waveFormat.SampleRate);
+        var cachedWaveFormat = waveProvider.WaveFormat;
 
         var sw = HighPrecisionTimer.StartNew();
 
@@ -238,7 +241,7 @@ public class AudioCacheManager
         int totalBytes = 0;
         int currentCapacity = estimatedBytes;
 
-        var bufferSize = Math.Min(waveProvider.WaveFormat.AverageBytesPerSecond, 64 * 1024);
+        var bufferSize = Math.Min(cachedWaveFormat.AverageBytesPerSecond, 64 * 1024);
         var readBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
         try
@@ -264,13 +267,37 @@ public class AudioCacheManager
             if (waveProvider is IDisposable d) d.Dispose();
         }
 
+        if (_useAutomaticMp3GaplessCorrection &&
+            LooksLikeMp3(rentBuffer.AsSpan(0, bytesRead)) &&
+            Mp3GaplessInfo.TryRead(rentBuffer.AsSpan(0, bytesRead), out var mp3GaplessInfo))
+        {
+            var correction = Mp3GaplessAudioTrimmer.Apply(
+                owner.Memory.Span.Slice(0, totalBytes),
+                cachedWaveFormat,
+                mp3GaplessInfo);
+
+            if (correction.Applied)
+            {
+                owner.Dispose();
+                owner = correction.Owner!;
+                totalBytes = correction.Length;
+                currentCapacity = totalBytes;
+                _logger?.LogDebug(
+                    "Applied MP3 gapless correction for {CacheKey}: startSkip={StartSkipFrames} frames, " +
+                    "totalDiscard={TotalDiscardFrames} frames",
+                    cacheKey,
+                    correction.StartSkipFrames,
+                    correction.TotalDiscardFrames);
+            }
+        }
+
         if (totalBytes < currentCapacity)
         {
             owner.Resize(totalBytes);
         }
 
         _logger?.LogDebug("Cached {CacheKey} (Unmanaged) in {Elapsed:N2}ms", cacheKey, sw.Elapsed.TotalMilliseconds);
-        return new CachedAudio(hash, owner, totalBytes, waveProvider.WaveFormat);
+        return new CachedAudio(hash, owner, totalBytes, cachedWaveFormat);
     }
 
     private (IWaveProvider waveProvider, long estimatedShortSamples) GetWaveProvider(
@@ -322,6 +349,17 @@ public class AudioCacheManager
         }
 
         return (provider, estimatedSamples);
+    }
+
+    private static bool LooksLikeMp3(ReadOnlySpan<byte> data)
+    {
+        if (data.Length < 3)
+            return false;
+
+        if (data.Slice(0, 3).SequenceEqual("ID3"u8))
+            return true;
+
+        return data[0] == 0xFF && (data[1] & 0xE0) == 0xE0;
     }
 
     private WaveFormat GetPcm16WaveFormat(int targetSampleRate)
