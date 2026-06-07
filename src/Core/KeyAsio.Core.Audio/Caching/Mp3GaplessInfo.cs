@@ -7,6 +7,32 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
 {
     private const int Mp3DecoderDelay = 529;
 
+    private const int MaxFrameHeaderScanBytes = 4096;
+
+    private static readonly int[,,] s_bitrates =
+    {
+        {
+            { 0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448 },
+            { 0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384 },
+            { 0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320 }
+        },
+        {
+            { 0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256 },
+            { 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160 },
+            { 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160 }
+        }
+    };
+
+    private static readonly int[,] s_samplesPerFrame =
+    {
+        { 384, 1152, 1152 },
+        { 384, 1152, 576 }
+    };
+
+    private static readonly int[] s_sampleRatesVersion1 = [44100, 48000, 32000];
+    private static readonly int[] s_sampleRatesVersion2 = [22050, 24000, 16000];
+    private static readonly int[] s_sampleRatesVersion25 = [11025, 12000, 8000];
+
     public int TotalDiscardSamples => StartSkipSamples + EndDiscardSamples;
 
     public static bool TryRead(ReadOnlySpan<byte> data, out Mp3GaplessInfo info)
@@ -19,9 +45,7 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
 
         if (frame.Layer != MpegLayer.Layer3 || frame.FrameLength <= 0 ||
             offset + frame.FrameLength > data.Length)
-        {
             return false;
-        }
 
         var frameData = data.Slice(offset, frame.FrameLength);
         return TryReadXingOrInfo(frameData, frame, out info) ||
@@ -61,9 +85,7 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
         if (!encoder.StartsWith("LAME", StringComparison.Ordinal) &&
             !encoder.StartsWith("Lavf", StringComparison.Ordinal) &&
             !encoder.StartsWith("Lavc", StringComparison.Ordinal))
-        {
             return false;
-        }
 
         cursor += 9;
         cursor += 1; // Info tag revision + VBR method
@@ -103,9 +125,7 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
         const int vbriOffset = 4 + 32;
         if (vbriOffset + 8 > frameData.Length ||
             !frameData.Slice(vbriOffset, 4).SequenceEqual("VBRI"u8))
-        {
             return false;
-        }
 
         var encoderDelay = BinaryPrimitives.ReadUInt16BigEndian(frameData.Slice(vbriOffset + 6, 2));
         var startSkip = Math.Max(0, encoderDelay - frame.SamplesPerFrame);
@@ -135,14 +155,17 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
     {
         return frame.Version == MpegVersion.Version1
             ? frame.Channels == 1 ? 4 + 17 : 4 + 32
-            : frame.Channels == 1 ? 4 + 9 : 4 + 17;
+            : frame.Channels == 1
+                ? 4 + 9
+                : 4 + 17;
     }
 
     private static bool TryReadFrameHeader(ReadOnlySpan<byte> data, int startOffset, out Mp3FrameHeader frame)
     {
         frame = default;
 
-        for (var offset = Math.Max(0, startOffset); offset + 4 <= data.Length; offset++)
+        var limit = Math.Min(data.Length, Math.Max(0, startOffset) + MaxFrameHeaderScanBytes);
+        for (var offset = Math.Max(0, startOffset); offset + 4 <= limit; offset++)
         {
             var header = BinaryPrimitives.ReadUInt32BigEndian(data.Slice(offset, 4));
             if (!TryParseHeader(header, out frame))
@@ -199,22 +222,22 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
             return false;
 
         var versionIndex = version == MpegVersion.Version1 ? 0 : 1;
-        var bitrate = Bitrates[versionIndex, layerIndex, bitrateIndex] * 1000;
+        var bitrate = s_bitrates[versionIndex, layerIndex, bitrateIndex] * 1000;
         if (bitrate <= 0)
             return false;
 
         var sampleRate = version switch
         {
-            MpegVersion.Version1 => SampleRatesVersion1[sampleRateIndex],
-            MpegVersion.Version2 => SampleRatesVersion2[sampleRateIndex],
-            MpegVersion.Version25 => SampleRatesVersion25[sampleRateIndex],
+            MpegVersion.Version1 => s_sampleRatesVersion1[sampleRateIndex],
+            MpegVersion.Version2 => s_sampleRatesVersion2[sampleRateIndex],
+            MpegVersion.Version25 => s_sampleRatesVersion25[sampleRateIndex],
             _ => 0
         };
 
         if (sampleRate <= 0)
             return false;
 
-        var samplesPerFrame = SamplesPerFrame[versionIndex, layerIndex];
+        var samplesPerFrame = s_samplesPerFrame[versionIndex, layerIndex];
         var coefficient = samplesPerFrame / 8;
         var frameLength = layer == MpegLayer.Layer1
             ? (coefficient * bitrate / sampleRate + (padding ? 1 : 0)) * 4
@@ -256,28 +279,4 @@ internal readonly record struct Mp3GaplessInfo(int SampleRate, int StartSkipSamp
         Layer2 = 2,
         Layer1 = 3
     }
-
-    private static readonly int[,,] Bitrates =
-    {
-        {
-            { 0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448 },
-            { 0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384 },
-            { 0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320 }
-        },
-        {
-            { 0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256 },
-            { 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160 },
-            { 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160 }
-        }
-    };
-
-    private static readonly int[,] SamplesPerFrame =
-    {
-        { 384, 1152, 1152 },
-        { 384, 1152, 576 }
-    };
-
-    private static readonly int[] SampleRatesVersion1 = [44100, 48000, 32000];
-    private static readonly int[] SampleRatesVersion2 = [22050, 24000, 16000];
-    private static readonly int[] SampleRatesVersion25 = [11025, 12000, 8000];
 }

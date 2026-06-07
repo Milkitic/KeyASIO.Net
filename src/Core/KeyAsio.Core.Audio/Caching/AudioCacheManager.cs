@@ -268,6 +268,7 @@ public class AudioCacheManager
         }
 
         if (_useAutomaticMp3GaplessCorrection &&
+            LooksLikeMp3(rentBuffer.AsSpan(0, bytesRead)) &&
             Mp3GaplessInfo.TryRead(rentBuffer.AsSpan(0, bytesRead), out var mp3GaplessInfo))
         {
             var correction = Mp3GaplessAudioTrimmer.Apply(
@@ -348,6 +349,17 @@ public class AudioCacheManager
         }
 
         return (provider, estimatedSamples);
+    }
+
+    private static bool LooksLikeMp3(ReadOnlySpan<byte> data)
+    {
+        if (data.Length < 3)
+            return false;
+
+        if (data.Slice(0, 3).SequenceEqual("ID3"u8))
+            return true;
+
+        return data[0] == 0xFF && (data[1] & 0xE0) == 0xE0;
     }
 
     private WaveFormat GetPcm16WaveFormat(int targetSampleRate)
