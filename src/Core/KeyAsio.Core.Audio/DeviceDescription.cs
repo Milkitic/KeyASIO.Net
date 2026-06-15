@@ -1,21 +1,21 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 
 namespace KeyAsio.Core.Audio;
 
 public record DeviceDescription
 {
-    [Description("Support types: ASIO, WASAPI, DirectSound")]
+    [Description("Support types: ASIO, WASAPI, DirectSound, SDL, SDL3")]
     public WavePlayerType WavePlayerType { get; init; }
 
-    [Description("Available for ASIO, WASAPI, DirectSound (Guid)")]
+    [Description("Available for ASIO, WASAPI, DirectSound (Guid), SDL/SDL3 (device name)")]
     public string? DeviceId { get; init; }
 
     [Description("Available for WASAPI, DirectSound")]
     [IgnoreDataMember]
     public string? FriendlyName { get; init; }
 
-    [Description("Available for WASAPI (excluded >= 3ms, non-excluded >= 0ms), DirectSound (around >= 20ms)")]
+    [Description("Available for WASAPI (excluded >= 3ms, non-excluded >= 0ms), DirectSound (around >= 20ms), SDL/SDL3 (converted to buffer frames by upper layer)")]
     public int Latency { get; init; }
 
     [Description("Available for ASIO, zero for preffered buffer size from driver.")]

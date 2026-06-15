@@ -119,7 +119,8 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         _context = SynchronizationContext.Current ?? new SingleSynchronizationContext("AudioPlaybackEngine_STA",
             staThread: true, threadPriority: ThreadPriority.AboveNormal);
 
-        var (outputDevice, actualDescription) = _audioDeviceManager.CreateDevice(deviceDescription, _context);
+        var creationDeviceDescription = PrepareDeviceDescriptionForCreation(deviceDescription, waveFormat);
+        var (outputDevice, actualDescription) = _audioDeviceManager.CreateDevice(creationDeviceDescription, _context);
 
         var newWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(waveFormat.SampleRate, waveFormat.Channels);
         bool waveFormatChanged = EngineWaveFormat == null! ||
@@ -190,14 +191,41 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         }
 
         CurrentDevice = outputDevice;
-        CurrentDeviceDescription = actualDescription;
+        CurrentDeviceDescription = RestoreDeviceDescriptionForState(deviceDescription, actualDescription);
 
         if (outputDevice is AsioOut asioOut)
         {
             asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
         }
 
-        DeviceStarted?.Invoke(actualDescription);
+        DeviceStarted?.Invoke(CurrentDeviceDescription);
+    }
+
+    /// <summary>
+    /// Hook for subclasses to rewrite the device description before it is handed to
+    /// the <see cref="IAudioDeviceManager"/>. The default implementation is a no-op;
+    /// a subclass can, for example, convert latency from milliseconds to buffer
+    /// frames for a backend that requires the latter.
+    /// </summary>
+    protected virtual DeviceDescription? PrepareDeviceDescriptionForCreation(
+        DeviceDescription? description,
+        WaveFormat waveFormat)
+    {
+        return description;
+    }
+
+    /// <summary>
+    /// Hook for subclasses to adjust the post-creation description that becomes the
+    /// engine's <see cref="CurrentDeviceDescription"/>. The default implementation
+    /// returns <paramref name="actualDescription"/> as-is; a subclass can, for
+    /// example, restore the user-facing latency in milliseconds after the backend
+    /// has reported a buffer-frame value.
+    /// </summary>
+    protected virtual DeviceDescription RestoreDeviceDescriptionForState(
+        DeviceDescription? configuredDescription,
+        DeviceDescription actualDescription)
+    {
+        return actualDescription;
     }
 
     public void StopDevice()

@@ -1,12 +1,10 @@
-﻿namespace KeyAsio.Core.Audio;
+namespace KeyAsio.Core.Audio;
 
+// ReSharper disable InconsistentNaming 
 public enum WavePlayerType
 {
     DirectSound,
-
-    // ReSharper disable once InconsistentNaming 
     WASAPI,
-
-    // ReSharper disable once InconsistentNaming 
-    ASIO
+    ASIO,
+    SDL
 }
