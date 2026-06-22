@@ -41,6 +41,11 @@ public sealed class SilentMusicPlaybackSource : IMusicPlaybackSource
     public bool IsRunning => _isRunning;
     public ISampleProvider Output => _output;
     public bool SupportsPlaybackRateChange => _rateProcessorFactory.IsSupported;
+    public bool IsLooping
+    {
+        get => _audioProvider.IsLooping;
+        set => _audioProvider.IsLooping = value;
+    }
 
     public Task PlayAsync(CancellationToken cancellationToken = default)
     {
@@ -146,6 +151,7 @@ internal sealed class SilentSampleProvider : ISampleProvider
     }
 
     public WaveFormat WaveFormat { get; }
+    public bool IsLooping { get; set; }
 
     public TimeSpan Duration =>
         TimeSpan.FromSeconds((double)_totalSamples / (WaveFormat.SampleRate * _channels));
@@ -174,6 +180,13 @@ internal sealed class SilentSampleProvider : ISampleProvider
 
         lock (_gate)
         {
+            if (IsLooping && _totalSamples > 0)
+            {
+                Array.Clear(buffer, offset, count);
+                _position = (_position + count) % _totalSamples;
+                return count;
+            }
+
             var remaining = _totalSamples - _position;
             if (remaining <= 0) return 0;
 

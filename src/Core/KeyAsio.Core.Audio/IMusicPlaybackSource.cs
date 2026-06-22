@@ -10,6 +10,7 @@ public interface IMusicPlaybackSource : IPlaybackClock, IAsyncDisposable
     TimeSpan Duration { get; }
     ISampleProvider Output { get; }
     bool SupportsPlaybackRateChange { get; }
+    bool IsLooping { get; set; }
 
     Task PlayAsync(CancellationToken cancellationToken = default);
     Task PauseAsync(CancellationToken cancellationToken = default);
