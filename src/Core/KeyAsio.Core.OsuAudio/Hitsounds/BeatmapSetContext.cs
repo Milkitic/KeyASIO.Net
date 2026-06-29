@@ -12,6 +12,8 @@ namespace KeyAsio.Core.OsuAudio.Hitsounds;
 
 public sealed class BeatmapSetContext
 {
+    private const double TimingPointLookupToleranceMilliseconds = 2;
+
     private static readonly Type s_objectSamplesetType = typeof(ObjectSamplesetType);
     private static readonly SemaphoreSlim s_workerGate = new(1, 1);
 
@@ -145,7 +147,7 @@ public sealed class BeatmapSetContext
         var itemOffset = hitObject.ObjectType == HitObjectType.Spinner
             ? hitObject.HoldEnd // spinner
             : hitObject.Offset; // hold & circle
-        var timingPoint = timingSection.GetLine(itemOffset);
+        var timingPoint = GetTimingPoint(timingSection, itemOffset);
 
         float balance = ignoreBalance ? 0 : GetObjectBalance(hitObject.X);
         float volume = GetObjectVolume(hitObject, timingPoint);
@@ -210,8 +212,8 @@ public sealed class BeatmapSetContext
         for (var i = 0; i < sliderEdges.Length; i++)
         {
             var item = sliderEdges[i];
-            var itemOffset = item.Offset;
-            var timingPoint = timingSection.GetLine(itemOffset);
+            var itemOffset = ToSliderEventOffset(item.Offset);
+            var timingPoint = GetTimingPoint(timingSection, itemOffset);
 
             float balance = ignoreBalance ? 0 : GetObjectBalance(item.Point.X);
             float volume = GetObjectVolume(hitObject, timingPoint);
@@ -233,7 +235,7 @@ public sealed class BeatmapSetContext
             var guid = Guid.NewGuid();
             foreach (var (filename, resourceOwner, _) in hitsoundBuffer)
             {
-                var element = PlaybackEvent.Create(guid, (int)itemOffset, volume, balance, filename, resourceOwner,
+                var element = PlaybackEvent.Create(guid, itemOffset, volume, balance, filename, resourceOwner,
                     i == 0 ? SampleLayer.Primary : SampleLayer.Secondary);
                 elements.Add(element);
             }
@@ -247,15 +249,15 @@ public sealed class BeatmapSetContext
         var ticks = sliderInfo.GetSliderTicks();
         foreach (var sliderTick in ticks)
         {
-            var itemOffset = sliderTick.Offset;
+            var itemOffset = ToSliderEventOffset(sliderTick.Offset);
 
-            var edgeOffset = (itemOffset - sliderInfo.StartTime) / sliderInfo.CurrentSingleDuration;
+            var edgeOffset = (sliderTick.Offset - sliderInfo.StartTime) / sliderInfo.CurrentSingleDuration;
             if (Math.Abs(Math.Round(edgeOffset, 0) - edgeOffset) <= 0.01)
             {
                 continue;
             }
 
-            var timingPoint = timingSection.GetLine(itemOffset);
+            var timingPoint = GetTimingPoint(timingSection, itemOffset);
 
             float balance = ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X);
             float volume = GetObjectVolume(hitObject, timingPoint) /* * 1.25f*/; // ticks x1.25?
@@ -265,7 +267,7 @@ public sealed class BeatmapSetContext
                 timingPoint, hitObject, hitsoundBuffer, ignoreBase);
             var (filename, resourceOwner, _) = hitsoundBuffer.First();
 
-            var element = PlaybackEvent.Create(Guid.NewGuid(), (int)itemOffset, volume, balance, filename,
+            var element = PlaybackEvent.Create(Guid.NewGuid(), itemOffset, volume, balance, filename,
                 resourceOwner, SampleLayer.Effects);
             elements.Add(element);
         }
@@ -277,9 +279,9 @@ public sealed class BeatmapSetContext
         var slideElements = new List<PlaybackEvent>();
         var sliderEdges = hitObject.SliderInfo!.GetEdges();
 
-        var startOffset = hitObject.Offset;
-        var endOffset = sliderEdges[sliderEdges.Length - 1].Offset;
-        var timingPoint = timingSection.GetLine(startOffset);
+        var startOffset = ToSliderEventOffset(hitObject.Offset);
+        var endOffset = ToSliderEventOffset(sliderEdges[sliderEdges.Length - 1].Offset);
+        var timingPoint = GetTimingPoint(timingSection, startOffset);
 
         float balance = ignoreBalance ? 0 : GetObjectBalance(hitObject.X);
         float volume = GetObjectVolume(hitObject, timingPoint);
@@ -330,7 +332,7 @@ public sealed class BeatmapSetContext
                             .Filename == filename)
                     {
                         // optimize by only change volume
-                        element = PlaybackEvent.CreateLoopVolumeSignal((int)timing.Offset, volume);
+                        element = PlaybackEvent.CreateLoopVolumeSignal(ToSliderEventOffset(timing.Offset), volume);
                     }
                     else
                     {
@@ -343,7 +345,7 @@ public sealed class BeatmapSetContext
                             continue;
 
                         // new sample
-                        element = PlaybackEvent.CreateLoopSignal((int)timing.Offset, volume, balance,
+                        element = PlaybackEvent.CreateLoopSignal(ToSliderEventOffset(timing.Offset), volume, balance,
                             filename, resourceOwner, channel);
                     }
 
@@ -355,8 +357,8 @@ public sealed class BeatmapSetContext
         }
 
         // end slide
-        var stopElement = PlaybackEvent.CreateLoopStopSignal((int)endOffset, LoopChannel.Normal);
-        var stopElement2 = PlaybackEvent.CreateLoopStopSignal((int)endOffset, LoopChannel.Whistle);
+        var stopElement = PlaybackEvent.CreateLoopStopSignal(endOffset, LoopChannel.Normal);
+        var stopElement2 = PlaybackEvent.CreateLoopStopSignal(endOffset, LoopChannel.Whistle);
         slideElements.Add(stopElement);
         slideElements.Add(stopElement2);
         foreach (var slideElement in slideElements)
@@ -372,10 +374,36 @@ public sealed class BeatmapSetContext
         var trails = hitObject.SliderInfo!.GetSliderSlides();
         foreach (var sliderTick in trails)
         {
-            var balanceElement = PlaybackEvent.CreateLoopBalanceSignal((int)sliderTick.Offset,
+            var balanceElement = PlaybackEvent.CreateLoopBalanceSignal(ToSliderEventOffset(sliderTick.Offset),
                 ignoreBalance ? 0 : GetObjectBalance(sliderTick.Point.X));
             elements.Add(balanceElement);
         }
+    }
+
+    private static int ToSliderEventOffset(double offset)
+    {
+        return (int)Math.Ceiling(offset - 0.000001);
+    }
+
+    private static TimingPoint GetTimingPoint(TimingSection timingSection, double offset)
+    {
+        var timingPoint = timingSection.GetLine(offset);
+        foreach (var nextTimingPoint in timingSection.TimingList)
+        {
+            if (nextTimingPoint.Offset <= offset)
+            {
+                continue;
+            }
+
+            if (nextTimingPoint.Offset - offset > TimingPointLookupToleranceMilliseconds)
+            {
+                break;
+            }
+
+            return nextTimingPoint;
+        }
+
+        return timingPoint;
     }
 
     private void AnalyzeHitsoundFiles(
