@@ -13,6 +13,7 @@ using KeyAsio.Shared.Plugins;
 using KeyAsio.Secrets;
 using KeyAsio.Services;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Localization;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Sync;
 using KeyAsio.ViewModels.Dialogs;
@@ -57,7 +58,7 @@ public partial class MainWindowViewModel : IDisposable
         PluginManager = new PluginManagerViewModel(null!, AppSettings);
         KeyBinding = new KeyBindingViewModel(null!, DialogManager, AppSettings, null!);
 
-        LanguageManager = new LanguageManager(null!, AppSettings);
+        LanguageManager = new LanguageManager(null!);
         _presetManager = new PresetManager(AppSettings);
 
         UpdateService = null!;

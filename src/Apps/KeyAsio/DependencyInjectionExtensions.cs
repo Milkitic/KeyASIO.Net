@@ -1,4 +1,6 @@
 ﻿using KeyAsio.Services;
+using KeyAsio.Services.Localization;
+using KeyAsio.Shared.Localization;
 using KeyAsio.Shared.Models;
 using KeyAsio.ViewModels;
 using KeyAsio.ViewModels.Dialogs;
@@ -32,6 +34,8 @@ public static class DependencyInjectionExtensions
         services.AddTransient<PluginManagerViewModel>();
 
         services.AddSingleton<KeyboardBindingInitializer>();
+
+        services.AddSingleton<ILanguagePreferenceStore, AppSettingsLanguagePreferenceStore>();
 
         services.AddHostedService<IpcService>();
         services.AddHostedService<GuiStartupService>();

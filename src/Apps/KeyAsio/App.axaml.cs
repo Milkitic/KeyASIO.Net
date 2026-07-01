@@ -5,6 +5,7 @@ using KeyAsio.Core.Audio;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Services;
 using KeyAsio.Shared;
+using KeyAsio.Shared.Localization;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Plugins;
 using KeyAsio.Shared.Services;
@@ -26,23 +27,27 @@ public partial class App : Application
         //I18NExtension.Culture = new CultureInfo("en-US");
         UiDispatcher.SetUiSynchronizationContext();
 
+        LocalizationService.Instance.ConfigureStringResolver(static key => KeyAsio.Lang.SR.ResourceManager.GetString(key) ?? key);
+        LocalizationService.Instance.ConfigureCultureApplier(static culture => KeyAsio.Lang.SR.Culture = culture);
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Ensure SettingsManager is initialized to subscribe to settings changes
-            Program.Host.Services.GetRequiredService<SettingsManager>();
+            var services = Program.Host.Services;
+            services.GetRequiredService<SettingsManager>();
 
-            var memorySyncBridge = Program.Host.Services.GetRequiredService<MemorySyncBridge>();
+            var memorySyncBridge = services.GetRequiredService<MemorySyncBridge>();
             memorySyncBridge.Start();
 
-            _ = Program.Host.Services.GetRequiredService<RtssMonitorService>();
+            _ = services.GetRequiredService<RtssMonitorService>();
 
-            var keyboardBindingInitializer = Program.Host.Services.GetRequiredService<KeyboardBindingInitializer>();
+            var keyboardBindingInitializer = services.GetRequiredService<KeyboardBindingInitializer>();
             keyboardBindingInitializer.Setup();
-            var appSettings = Program.Host.Services.GetRequiredService<AppSettings>();
+            var appSettings = services.GetRequiredService<AppSettings>();
             keyboardBindingInitializer.RegisterAllKeys();
 
-            var pluginManager = Program.Host.Services.GetRequiredService<IPluginManager>();
-            var playbackEngine = Program.Host.Services.GetRequiredService<IPlaybackEngine>();
+            var pluginManager = services.GetRequiredService<IPluginManager>();
+            var playbackEngine = services.GetRequiredService<IPlaybackEngine>();
 
             // InternalPlugins
             pluginManager.LoadPlugins(AppDomain.CurrentDomain.BaseDirectory, "KeyAsio.Plugins.*.dll",
@@ -55,13 +60,13 @@ public partial class App : Application
             pluginManager.InitializePlugins(new AudioEngineWrapper(playbackEngine));
             pluginManager.StartupPlugins();
 
-            var syncController = Program.Host.Services.GetRequiredService<SyncController>();
+            var syncController = services.GetRequiredService<SyncController>();
             syncController.Start();
 
-            var presetManager = Program.Host.Services.GetRequiredService<PresetManager>();
+            var presetManager = services.GetRequiredService<PresetManager>();
             presetManager.Initialize();
 
-            var mainWindow = Program.Host.Services.GetRequiredService<MainWindow>();
+            var mainWindow = services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
             desktop.Exit += Desktop_Exit;
         }
