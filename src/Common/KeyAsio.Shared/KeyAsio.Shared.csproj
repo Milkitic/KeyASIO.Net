@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.18" />
-    <PackageReference Include="Avalonia.Skia" Version="11.3.18" />
+    <PackageReference Include="Avalonia" Version="12.0.5" />
+    <PackageReference Include="Avalonia.Skia" Version="12.0.5" />
     <PackageReference Include="Coosu.Beatmap" Version="2.5.1" />
     <PackageReference Include="dnlib" Version="4.5.0" />
     <PackageReference Include="Fody" Version="6.9.3">
@@ -26,11 +26,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SukiUI" Version="6.0.3" />
+    <PackageReference Include="SukiUI" Version="7.0.1" />
     <PackageReference Include="System.Management" Version="10.0.9" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.9" />
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 

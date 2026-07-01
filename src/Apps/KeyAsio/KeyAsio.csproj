@@ -48,15 +48,15 @@
 
   <ItemGroup>
     <PackageReference Include="Antelcat.I18N.Avalonia" Version="1.1.2" />
-    <PackageReference Include="Avalonia" Version="11.3.18" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.1.1">
+    <PackageReference Include="Avalonia" Version="12.0.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.5" />
+    <!--Condition below can be used to remove AvaloniaUI.DiagnosticsSupport from build output in Release configuration.-->
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
       <!--<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>-->
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
+    <PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
     <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.298">
       <PrivateAssets>all</PrivateAssets>
@@ -69,9 +69,8 @@
     <PackageReference Include="Octokit" Version="14.0.0" />
     <PackageReference Include="Semver" Version="3.0.0" />
     <PackageReference Include="Sentry.Extensions.Logging" Version="6.6.0" />
-    <PackageReference Include="SukiUI" Version="6.0.3" />
-    <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.9.2" />
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+    <PackageReference Include="SukiUI" Version="7.0.1" />
+    <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="12.0.0.13" />
   </ItemGroup>
 
   <ItemGroup>
