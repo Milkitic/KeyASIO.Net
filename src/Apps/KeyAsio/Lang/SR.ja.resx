@@ -393,7 +393,7 @@
     <value>同期モード</value>
   </data>
   <data name="Plugin_Corrupted" xml:space="preserve">
-    <value>利用不可</value>
+    <value>Plugin Missing</value>
   </data>
   <data name="Preset_AppliedContent" xml:space="preserve">
     <value>次のプリセットに切り替えました: {0}</value>

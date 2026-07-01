@@ -68,6 +68,7 @@
     <PackageReference Include="Octokit" Version="14.0.0" />
     <PackageReference Include="Semver" Version="3.0.0" />
     <PackageReference Include="Sentry.Extensions.Logging" Version="6.6.0" />
+    <PackageReference Include="SmoothScroll.Avalonia" Version="12.0.0.12" />
     <PackageReference Include="SukiUI" Version="7.0.1" />
     <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="12.0.0.13" />
   </ItemGroup>

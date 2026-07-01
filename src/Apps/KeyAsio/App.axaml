@@ -4,6 +4,7 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
+  xmlns:smoothScroll="clr-namespace:SmoothScroll.Avalonia.Controls;assembly=SmoothScroll.Avalonia.Controls"
   RequestedThemeVariant="Default">
   <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
@@ -30,5 +31,6 @@
     <StyleInclude Source="/Styles/Controls.axaml" />
     <StyleInclude Source="/Styles/SettingItemStyles.axaml" />
     <StyleInclude Source="/Styles/StatBadgeStyles.axaml" />
+    <smoothScroll:ScrollViewerSmoothTheme />
   </Application.Styles>
 </Application>

@@ -399,7 +399,7 @@
     <value>同步模式</value>
   </data>
   <data name="Plugin_Corrupted" xml:space="preserve">
-    <value>不可用</value>
+    <value>插件丢失</value>
   </data>
   <data name="Preset_AppliedContent" xml:space="preserve">
     <value>已成功切换到：{0}</value>
