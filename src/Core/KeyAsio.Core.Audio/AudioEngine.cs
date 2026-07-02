@@ -186,7 +186,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
 
         if (ex != null)
         {
-            DisposeDeviceOnAudioContext(outputDevice);
+            DisposeDevice(outputDevice);
             throw ex;
         }
 
@@ -244,36 +244,13 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         CurrentDevice = null;
         CurrentDeviceDescription = null;
 
-        DisposeDeviceOnAudioContext(currentDevice);
+        _limiterProvider = null;
+        _effectVolumeSampleProvider.Source = null;
+        _musicVolumeSampleProvider.Source = null;
+        _mainVolumeSampleProvider.Source = null;
+
+        DisposeDevice(currentDevice);
         DeviceStopped?.Invoke();
-    }
-
-    private void DisposeDeviceOnAudioContext(IWavePlayer device)
-    {
-        var context = _context;
-        if (context == null)
-        {
-            DisposeDevice(device);
-            return;
-        }
-
-        Exception? ex = null;
-        context.Send(_ =>
-        {
-            try
-            {
-                DisposeDevice(device);
-            }
-            catch (Exception e)
-            {
-                ex = e;
-            }
-        }, null);
-
-        if (ex != null)
-        {
-            throw ex;
-        }
     }
 
     private void DisposeDevice(IWavePlayer device)

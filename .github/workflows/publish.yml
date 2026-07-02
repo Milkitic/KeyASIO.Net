@@ -87,6 +87,18 @@ jobs:
         copy .\ci-publish-win64-fd-r2r\KeyASIO.exe .\ci-publish-win64-fd-r2r\KeyASIO.original.exe
         .\src\Apps\KeyAsio\afterbuild.ps1 .\ci-publish-win64-fd-r2r\KeyASIO.exe
 
+    - name: Remove native PDBs
+      shell: pwsh
+      run: |
+        $publishDirs = @(
+          ".\ci-publish-win64",
+          ".\ci-publish-win64-r2r",
+          ".\ci-publish-win64-fd",
+          ".\ci-publish-win64-fd-r2r"
+        )
+        Get-ChildItem -Path $publishDirs -Recurse -File -Include "libSkiaSharp.pdb", "libHarfBuzzSharp.pdb" -ErrorAction SilentlyContinue |
+          Remove-Item -Force -ErrorAction SilentlyContinue
+
     - name: Upload Artifacts
       if: contains(github.ref_name, 'alpha')
       uses: actions/upload-artifact@v4
