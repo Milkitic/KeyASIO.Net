@@ -1,4 +1,5 @@
 using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Plugins;
 using KeyAsio.Shared.Services;
 using KeyAsio.Shared.Sync.Services;
@@ -12,6 +13,14 @@ public static class DependencyInjectionExtensions
     {
         services.AddSingleton<IPluginManager, PluginManager>();
 
+        services.AddSingleton<LazerIpcBridge>();
+        services.AddSingleton<StableMemoryGameSyncSource>();
+        services.AddSingleton<LazerIpcGameSyncSource>();
+        services.AddSingleton<IGameSyncSource>(serviceProvider =>
+            serviceProvider.GetRequiredService<StableMemoryGameSyncSource>());
+        services.AddSingleton<IGameSyncSource>(serviceProvider =>
+            serviceProvider.GetRequiredService<LazerIpcGameSyncSource>());
+        services.AddSingleton<GameSyncSourceCoordinator>();
         services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<SfxPlaybackService>();

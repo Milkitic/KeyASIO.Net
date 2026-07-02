@@ -29,12 +29,14 @@ public class BeatmapHitsoundLoader
     public List<SampleEvent> KeyList => _keyList;
 
     public async Task<OsuFile?> InitializeNodeListsAsync(string folder, string diffFilename,
-        IHitsoundSequencer hitsoundSequencer, Mods playMods)
+        IHitsoundSequencer hitsoundSequencer, Mods playMods, IBeatmapResourceCatalog? resourceCatalog = null)
     {
         _keyList.Clear();
         _playbackList.Clear();
 
-        var beatmapSetContext = new BeatmapSetContext(folder);
+        var beatmapSetContext = resourceCatalog != null
+            ? new BeatmapSetContext(resourceCatalog)
+            : new BeatmapSetContext(folder);
         using (DebugUtils.CreateTimer("InitFolder", _logger))
         {
             await beatmapSetContext.InitializeAsync(diffFilename,

@@ -17,13 +17,19 @@ public sealed class BeatmapSetContext
     private static readonly Type s_objectSamplesetType = typeof(ObjectSamplesetType);
     private static readonly SemaphoreSlim s_workerGate = new(1, 1);
 
-    private readonly OsuAudioFileCache _cache = new();
     private readonly string _directory;
+    private readonly IBeatmapResourceCatalog _resources;
     private bool _isInitialized;
 
     public BeatmapSetContext(string directory)
+        : this(BeatmapResourceCatalog.FromDirectory(directory))
     {
-        _directory = new DirectoryInfo(directory).FullName;
+    }
+
+    public BeatmapSetContext(IBeatmapResourceCatalog resources)
+    {
+        _resources = resources;
+        _directory = resources.RootPath ?? "";
     }
 
     public List<OsuFile> OsuFiles { get; private set; } = [];
@@ -31,21 +37,20 @@ public sealed class BeatmapSetContext
 
     public async Task InitializeAsync(string? specificOsuFilename = null, bool ignoreWaveFiles = false)
     {
-        var directoryInfo = new DirectoryInfo(_directory);
         var waveFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var osuFiles = new List<OsuFile>();
 
         await s_workerGate.WaitAsync().ConfigureAwait(false);
         try
         {
-            foreach (var fileInfo in directoryInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+            foreach (var fileInfo in _resources.Resources)
             {
-                var ext = fileInfo.Extension;
+                var ext = Path.GetExtension(fileInfo.Name);
                 if (OsuAudioFileCache.SupportExtensions.Contains(ext))
                 {
                     if (!ignoreWaveFiles)
                     {
-                        waveFiles.Add(Path.GetFileNameWithoutExtension(fileInfo.Name));
+                        AddAudioLookupKeys(waveFiles, fileInfo.Name);
                     }
 
                     continue;
@@ -57,12 +62,12 @@ public sealed class BeatmapSetContext
                 }
 
                 if (specificOsuFilename != null &&
-                    !string.Equals(specificOsuFilename, fileInfo.Name, StringComparison.OrdinalIgnoreCase))
+                    !IsSameBeatmapFilename(specificOsuFilename, fileInfo.Name))
                 {
                     continue;
                 }
 
-                osuFiles.Add(OsuFile.ReadFromFile(fileInfo.FullName));
+                osuFiles.Add(OsuFile.ReadFromFile(fileInfo.Path));
             }
 
             WaveFiles = waveFiles;
@@ -73,6 +78,23 @@ public sealed class BeatmapSetContext
         {
             s_workerGate.Release();
         }
+    }
+
+    private static void AddAudioLookupKeys(HashSet<string> waveFiles, string filename)
+    {
+        var normalizedName = BeatmapResourceCatalog.NormalizeName(filename);
+        waveFiles.Add(BeatmapResourceCatalog.RemoveExtension(normalizedName));
+        waveFiles.Add(Path.GetFileNameWithoutExtension(normalizedName));
+    }
+
+    private static bool IsSameBeatmapFilename(string expected, string actual)
+    {
+        var normalizedExpected = BeatmapResourceCatalog.NormalizeName(expected);
+        var normalizedActual = BeatmapResourceCatalog.NormalizeName(actual);
+
+        return string.Equals(normalizedExpected, normalizedActual, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(Path.GetFileName(normalizedExpected), Path.GetFileName(normalizedActual),
+                   StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task<List<PlaybackEvent>> GetHitsoundNodesAsync(OsuFile osuFile)
@@ -418,10 +440,8 @@ public sealed class BeatmapSetContext
         hitsoundBuffer.Clear();
         if (!string.IsNullOrEmpty(hitObject.FileName))
         {
-            var filename = _cache.GetFileUntilFind(_directory,
-                Path.GetFileNameWithoutExtension(hitObject.FileName)!,
-                out _);
-            hitsoundBuffer.Add(new HitsoundInfo(filename, ResourceOwner.Beatmap, itemHitsound));
+            var filename = ResolveBeatmapAudioFilename(hitObject.FileName, out var resourceOwner);
+            hitsoundBuffer.Add(new HitsoundInfo(filename, resourceOwner, itemHitsound));
             return;
         }
 
@@ -468,7 +488,7 @@ public sealed class BeatmapSetContext
             }
             else if (WaveFiles.Contains(fileNameWithoutExt))
             {
-                filenameVsb.Append(_cache.GetFileUntilFind(_directory, fileNameWithoutExt, out resourceOwner));
+                filenameVsb.Append(ResolveBeatmapAudioFilename(fileNameWithoutExt, out resourceOwner));
             }
             else
             {
@@ -478,6 +498,23 @@ public sealed class BeatmapSetContext
 
             hitsoundBuffer[i] = new HitsoundInfo(filenameVsb.ToString(), resourceOwner, hitsoundType);
         }
+    }
+
+    private string ResolveBeatmapAudioFilename(string fileNameOrNameWithoutExtension, out ResourceOwner resourceOwner)
+    {
+        if (_resources.TryResolveAudio(fileNameOrNameWithoutExtension, out var file))
+        {
+            resourceOwner = ResourceOwner.Beatmap;
+            return file.Name;
+        }
+
+        resourceOwner = ResourceOwner.UserSkin;
+        if (!string.IsNullOrEmpty(Path.GetExtension(fileNameOrNameWithoutExtension)))
+        {
+            return BeatmapResourceCatalog.NormalizeName(fileNameOrNameWithoutExtension);
+        }
+
+        return fileNameOrNameWithoutExtension + OsuAudioFileCache.OggExtension;
     }
 
     private static float GetObjectBalance(float x)

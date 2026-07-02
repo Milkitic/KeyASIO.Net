@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Events;
@@ -240,6 +241,7 @@ public class SyncSessionContext
     public int Score { get; set; }
     public SyncStatistics Statistics { get; set; } = SyncStatistics.Empty;
     public SyncHitErrors HitErrors { get; set; } = SyncHitErrors.Empty;
+    public IBeatmapResourceCatalog? BeatmapResourceCatalog { get; set; }
 
     public OsuMemoryStatus OsuStatus
     {
