@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using System.IO.Pipes;
-using KeyAsio.Shared.Events;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.OsuMemory;
@@ -9,28 +9,36 @@ namespace KeyAsio.Shared.OsuMemory;
 public sealed class LazerIpcBridge : IDisposable
 {
     public const string PipeName = "KeyAsio.LazerBridge.v1";
+    public const string EventPipeName = "KeyAsio.LazerBridge.Events.v1";
     public const int ProtocolVersion = 1;
     private const int MaxFrameLength = 4 * 1024 * 1024;
 
     private readonly ILogger<LazerIpcBridge> _logger;
+    private readonly ConcurrentDictionary<Task, byte> _clientTasks = new();
     private CancellationTokenSource? _cts;
-    private Task? _acceptLoopTask;
+    private Task[]? _acceptLoopTasks;
     private int _clientCount;
+    private int _timingClientCount;
+    private int _eventClientCount;
 
     public LazerIpcBridge(ILogger<LazerIpcBridge> logger)
     {
         _logger = logger;
     }
 
-    public event ValueChangedEventHandler<bool>? ConnectionChanged;
-    public event Action<LazerIpcDeltaFrame>? FrameReceived;
+    public event Action<LazerIpcChannel, bool, bool>? ChannelConnectionChanged;
+    public event Action<LazerIpcChannel, LazerIpcDeltaFrame>? FrameReceived;
 
     public void Start()
     {
-        if (_acceptLoopTask != null) return;
+        if (_acceptLoopTasks != null) return;
 
         _cts = new CancellationTokenSource();
-        _acceptLoopTask = Task.Run(() => AcceptLoopAsync(_cts.Token));
+        _acceptLoopTasks =
+        [
+            Task.Run(() => AcceptLoopAsync(LazerIpcChannel.Timing, PipeName, _cts.Token)),
+            Task.Run(() => AcceptLoopAsync(LazerIpcChannel.Events, EventPipeName, _cts.Token)),
+        ];
     }
 
     public async Task StopAsync()
@@ -39,11 +47,11 @@ public sealed class LazerIpcBridge : IDisposable
 
         await _cts.CancelAsync();
 
-        if (_acceptLoopTask != null)
+        if (_acceptLoopTasks != null)
         {
             try
             {
-                await _acceptLoopTask;
+                await Task.WhenAll(_acceptLoopTasks);
             }
             catch (OperationCanceledException)
             {
@@ -51,28 +59,30 @@ public sealed class LazerIpcBridge : IDisposable
             }
         }
 
+        var clientTasks = _clientTasks.Keys.ToArray();
+        if (clientTasks.Length > 0)
+        {
+            await Task.WhenAll(clientTasks);
+        }
+
         _cts.Dispose();
         _cts = null;
-        _acceptLoopTask = null;
-
-        if (Interlocked.Exchange(ref _clientCount, 0) > 0)
-        {
-            ConnectionChanged?.Invoke(true, false);
-        }
+        _acceptLoopTasks = null;
     }
 
-    private async Task AcceptLoopAsync(CancellationToken token)
+    private async Task AcceptLoopAsync(LazerIpcChannel channel, string pipeName, CancellationToken token)
     {
         while (!token.IsCancellationRequested)
         {
-            var server = new NamedPipeServerStream(PipeName, PipeDirection.In,
+            var server = new NamedPipeServerStream(pipeName, PipeDirection.In,
                 NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte,
                 PipeOptions.Asynchronous);
 
             try
             {
                 await server.WaitForConnectionAsync(token);
-                _ = Task.Run(() => HandleClientAsync(server, token), CancellationToken.None);
+                TrackClientTask(Task.Run(() => HandleClientAsync(server, channel, pipeName, token),
+                    CancellationToken.None));
             }
             catch (OperationCanceledException)
             {
@@ -82,7 +92,7 @@ public sealed class LazerIpcBridge : IDisposable
             catch (Exception ex)
             {
                 await server.DisposeAsync();
-                _logger.LogWarning(ex, "Failed to accept lazer IPC client.");
+                _logger.LogWarning(ex, "Failed to accept lazer IPC client on pipe {PipeName}.", pipeName);
 
                 try
                 {
@@ -96,14 +106,32 @@ public sealed class LazerIpcBridge : IDisposable
         }
     }
 
-    private async Task HandleClientAsync(NamedPipeServerStream server, CancellationToken token)
+    private void TrackClientTask(Task task)
     {
+        _clientTasks.TryAdd(task, 0);
+        _ = task.ContinueWith(static (completedTask, state) =>
+        {
+            var tasks = (ConcurrentDictionary<Task, byte>)state!;
+            tasks.TryRemove(completedTask, out _);
+        }, _clientTasks, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+    }
+
+    private async Task HandleClientAsync(NamedPipeServerStream server, LazerIpcChannel channel, string pipeName,
+        CancellationToken token)
+    {
+        var oldChannelCount = IncrementChannelClientCount(channel) - 1;
+        if (oldChannelCount == 0)
+        {
+            ChannelConnectionChanged?.Invoke(channel, false, true);
+        }
+
         var oldCount = Interlocked.Increment(ref _clientCount) - 1;
         if (oldCount == 0)
         {
             _logger.LogInformation("osu!lazer IPC bridge connected.");
-            ConnectionChanged?.Invoke(false, true);
         }
+
+        _logger.LogDebug("osu!lazer IPC pipe connected: {PipeName}.", pipeName);
 
         await using (server)
         {
@@ -131,7 +159,7 @@ public sealed class LazerIpcBridge : IDisposable
                         continue;
                     }
 
-                    FrameReceived?.Invoke(frame);
+                    FrameReceived?.Invoke(channel, frame);
                 }
             }
             catch (OperationCanceledException)
@@ -140,20 +168,46 @@ public sealed class LazerIpcBridge : IDisposable
             }
             catch (IOException ex)
             {
-                _logger.LogDebug(ex, "osu!lazer IPC bridge disconnected.");
+                _logger.LogDebug(ex, "osu!lazer IPC pipe disconnected: {PipeName}.", pipeName);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Unexpected lazer IPC bridge error.");
+                _logger.LogWarning(ex, "Unexpected lazer IPC bridge error on pipe {PipeName}.", pipeName);
             }
         }
 
+        var newChannelCount = DecrementChannelClientCount(channel);
+        if (newChannelCount == 0)
+        {
+            ChannelConnectionChanged?.Invoke(channel, true, false);
+        }
+
         var newCount = Interlocked.Decrement(ref _clientCount);
+        _logger.LogDebug("osu!lazer IPC pipe disconnected: {PipeName}.", pipeName);
         if (newCount == 0)
         {
             _logger.LogInformation("osu!lazer IPC bridge disconnected.");
-            ConnectionChanged?.Invoke(true, false);
         }
+    }
+
+    private int IncrementChannelClientCount(LazerIpcChannel channel)
+    {
+        return channel switch
+        {
+            LazerIpcChannel.Timing => Interlocked.Increment(ref _timingClientCount),
+            LazerIpcChannel.Events => Interlocked.Increment(ref _eventClientCount),
+            _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, null)
+        };
+    }
+
+    private int DecrementChannelClientCount(LazerIpcChannel channel)
+    {
+        return channel switch
+        {
+            LazerIpcChannel.Timing => Interlocked.Decrement(ref _timingClientCount),
+            LazerIpcChannel.Events => Interlocked.Decrement(ref _eventClientCount),
+            _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, null)
+        };
     }
 
     private async ValueTask<LazerIpcDeltaFrame?> ReadFrameAsync(Stream stream, byte[] lengthBuffer,
@@ -190,4 +244,10 @@ public sealed class LazerIpcBridge : IDisposable
     {
         StopAsync().GetAwaiter().GetResult();
     }
+}
+
+public enum LazerIpcChannel
+{
+    Timing,
+    Events,
 }

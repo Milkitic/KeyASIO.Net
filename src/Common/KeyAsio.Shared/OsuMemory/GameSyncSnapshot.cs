@@ -36,6 +36,23 @@ public sealed class GameSyncSnapshot
         HitErrors = SyncHitErrors.Empty
     };
 
+    public GameSyncSnapshot Clone() => new()
+    {
+        ClientType = ClientType,
+        ProcessId = ProcessId,
+        Username = Username,
+        PlayMods = PlayMods,
+        IsReplay = IsReplay,
+        Score = Score,
+        Combo = Combo,
+        Statistics = Statistics,
+        HitErrors = CloneHitErrors(HitErrors),
+        Beatmap = Beatmap,
+        BeatmapResourceCatalog = BeatmapResourceCatalog,
+        PlayTime = PlayTime,
+        Status = Status
+    };
+
     /// <summary>
     /// Resets this instance to a disconnected state in place, avoiding a new
     /// allocation on the low-frequency disconnect path.
@@ -55,5 +72,11 @@ public sealed class GameSyncSnapshot
         BeatmapResourceCatalog = null;
         PlayTime = 0;
         Status = OsuMemoryStatus.NotRunning;
+    }
+
+    private static SyncHitErrors CloneHitErrors(SyncHitErrors hitErrors)
+    {
+        var values = hitErrors.Values;
+        return new SyncHitErrors(hitErrors.Index, values.Length == 0 ? [] : (int[])values.Clone());
     }
 }

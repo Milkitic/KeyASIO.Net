@@ -10,15 +10,21 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     private readonly LazerIpcBridge _lazerIpcBridge;
     private readonly GameSyncSnapshot _snapshot;
     private readonly LazerIpcFrame _frame = new();
+    private readonly object frameLock = new();
     private bool _eventsBound;
     private bool _connected;
+    private bool _timingConnected;
+    private bool _eventConnected;
+    private bool _hasTimingFrame;
+    private bool _hasEventFrame;
+    private bool _legacySinglePipeMode;
     private IBeatmapResourceCatalog? _resourceCatalog;
 
     public LazerIpcGameSyncSource(LazerIpcBridge lazerIpcBridge)
     {
         _lazerIpcBridge = lazerIpcBridge;
         _snapshot = GameSyncSnapshot.NotRunning(ClientType);
-        CurrentSnapshot = _snapshot;
+        CurrentSnapshot = _snapshot.Clone();
     }
 
     public string Name => "osu!lazer IPC";
@@ -39,38 +45,113 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     public async Task StopAsync()
     {
         await _lazerIpcBridge.StopAsync();
-        _connected = false;
-        _resourceCatalog = null;
-        _frame.Reset();
-        _snapshot.ResetToNotRunning(ClientType);
-        AvailabilityChanged?.Invoke(this, false);
+
+        bool availabilityChanged;
+        lock (frameLock)
+        {
+            _timingConnected = false;
+            _eventConnected = false;
+            ResetFrameStateLocked();
+            availabilityChanged = SetAvailabilityLocked(false);
+        }
+
+        if (availabilityChanged)
+            AvailabilityChanged?.Invoke(this, false);
     }
 
     private void BindEvents()
     {
         if (_eventsBound) return;
 
-        _lazerIpcBridge.ConnectionChanged += OnConnectionChanged;
+        _lazerIpcBridge.ChannelConnectionChanged += OnChannelConnectionChanged;
         _lazerIpcBridge.FrameReceived += OnFrameReceived;
         _eventsBound = true;
     }
 
-    private void OnConnectionChanged(bool oldValue, bool newValue)
+    private void OnChannelConnectionChanged(LazerIpcChannel channel, bool oldValue, bool newValue)
     {
-        _connected = newValue;
-        if (!newValue)
+        bool availabilityChanged;
+        bool isAvailable;
+
+        lock (frameLock)
         {
-            _resourceCatalog = null;
-            _frame.Reset();
-            _snapshot.ResetToNotRunning(ClientType);
+            switch (channel)
+            {
+                case LazerIpcChannel.Timing:
+                    _timingConnected = newValue;
+                    break;
+
+                case LazerIpcChannel.Events:
+                    _eventConnected = newValue;
+                    if (newValue)
+                        _legacySinglePipeMode = false;
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
+            }
+
+            if (!newValue)
+            {
+                ResetFrameStateLocked();
+            }
+
+            isAvailable = CanBeAvailableLocked();
+            availabilityChanged = SetAvailabilityLocked(isAvailable);
         }
 
-        AvailabilityChanged?.Invoke(this, newValue);
+        if (availabilityChanged)
+            AvailabilityChanged?.Invoke(this, isAvailable);
     }
 
-    private void OnFrameReceived(LazerIpcDeltaFrame deltaFrame)
+    private void OnFrameReceived(LazerIpcChannel channel, LazerIpcDeltaFrame deltaFrame)
     {
-        _connected = true;
+        bool availabilityChanged;
+        bool isAvailable;
+        GameSyncSnapshot? snapshotToPublish = null;
+
+        lock (frameLock)
+        {
+            switch (channel)
+            {
+                case LazerIpcChannel.Timing:
+                    _hasTimingFrame = true;
+                    if (ContainsEventFields(deltaFrame))
+                    {
+                        _legacySinglePipeMode = true;
+                        _hasEventFrame = true;
+                    }
+
+                    break;
+
+                case LazerIpcChannel.Events:
+                    _hasEventFrame = true;
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
+            }
+
+            ApplyFrameLocked(deltaFrame);
+            isAvailable = CanBeAvailableLocked();
+            availabilityChanged = SetAvailabilityLocked(isAvailable);
+
+            if (_connected)
+            {
+                snapshotToPublish = _snapshot.Clone();
+                CurrentSnapshot = snapshotToPublish;
+            }
+        }
+
+        if (availabilityChanged)
+            AvailabilityChanged?.Invoke(this, isAvailable);
+
+        if (snapshotToPublish != null)
+            SnapshotReceived?.Invoke(this, snapshotToPublish);
+    }
+
+    private void ApplyFrameLocked(LazerIpcDeltaFrame deltaFrame)
+    {
         var beatmapChanged = deltaFrame.HasField(LazerIpcFieldKind.BeatmapFolder) ||
                              deltaFrame.HasField(LazerIpcFieldKind.BeatmapFilename);
         var beatmapFilesChanged = deltaFrame.HasField(LazerIpcFieldKind.BeatmapFiles);
@@ -119,9 +200,35 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         snapshot.BeatmapResourceCatalog = _resourceCatalog;
         snapshot.PlayTime = frame.PlayTime;
         snapshot.Status = status;
-
-        SnapshotReceived?.Invoke(this, _snapshot);
     }
+
+    private void ResetFrameStateLocked()
+    {
+        _hasTimingFrame = false;
+        _hasEventFrame = false;
+        _legacySinglePipeMode = false;
+        _resourceCatalog = null;
+        _frame.Reset();
+        _snapshot.ResetToNotRunning(ClientType);
+        CurrentSnapshot = _snapshot.Clone();
+    }
+
+    private bool CanBeAvailableLocked()
+        => _timingConnected &&
+           (_eventConnected || _legacySinglePipeMode) &&
+           _hasTimingFrame &&
+           _hasEventFrame;
+
+    private bool SetAvailabilityLocked(bool isAvailable)
+    {
+        if (_connected == isAvailable) return false;
+
+        _connected = isAvailable;
+        return true;
+    }
+
+    private static bool ContainsEventFields(LazerIpcDeltaFrame deltaFrame)
+        => deltaFrame.Fields.Any(field => field.Kind is not (LazerIpcFieldKind.ProcessId or LazerIpcFieldKind.PlayTime));
 
     private static string CreateCatalogCacheKey(LazerIpcFrame frame)
     {
