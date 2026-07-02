@@ -1,6 +1,6 @@
+using System.Buffers;
+using System.Buffers.Binary;
 using System.IO.Pipes;
-using System.Text;
-using System.Text.Json;
 using KeyAsio.Shared.Events;
 using Microsoft.Extensions.Logging;
 
@@ -10,6 +10,7 @@ public sealed class LazerIpcBridge : IDisposable
 {
     public const string PipeName = "KeyAsio.LazerBridge.v1";
     public const int ProtocolVersion = 1;
+    private const int MaxFrameLength = 4 * 1024 * 1024;
 
     private readonly ILogger<LazerIpcBridge> _logger;
     private CancellationTokenSource? _cts;
@@ -22,7 +23,7 @@ public sealed class LazerIpcBridge : IDisposable
     }
 
     public event ValueChangedEventHandler<bool>? ConnectionChanged;
-    public event Action<LazerIpcFrame>? FrameReceived;
+    public event Action<LazerIpcDeltaFrame>? FrameReceived;
 
     public void Start()
     {
@@ -105,30 +106,28 @@ public sealed class LazerIpcBridge : IDisposable
         }
 
         await using (server)
-        using (var reader = new StreamReader(server, Encoding.UTF8))
         {
+            var lengthBuffer = new byte[sizeof(int)];
             try
             {
                 while (!token.IsCancellationRequested && server.IsConnected)
                 {
-                    var line = await reader.ReadLineAsync().WaitAsync(token);
-                    if (line == null) break;
-                    if (line.Length == 0) continue;
-
-                    LazerIpcFrame? frame;
+                    LazerIpcDeltaFrame? frame;
                     try
                     {
-                        frame = JsonSerializer.Deserialize(line, LazerIpcJsonContext.Default.LazerIpcFrame);
+                        frame = await ReadFrameAsync(server, lengthBuffer, token);
                     }
-                    catch (JsonException ex)
+                    catch (InvalidDataException ex)
                     {
                         _logger.LogDebug(ex, "Ignoring malformed lazer IPC frame.");
                         continue;
                     }
 
-                    if (frame?.Version != ProtocolVersion)
+                    if (frame == null) break;
+
+                    if (frame.Version != ProtocolVersion)
                     {
-                        _logger.LogDebug("Ignoring unsupported lazer IPC protocol version {Version}.", frame?.Version);
+                        _logger.LogDebug("Ignoring unsupported lazer IPC protocol version {Version}.", frame.Version);
                         continue;
                     }
 
@@ -154,6 +153,36 @@ public sealed class LazerIpcBridge : IDisposable
         {
             _logger.LogInformation("osu!lazer IPC bridge disconnected.");
             ConnectionChanged?.Invoke(true, false);
+        }
+    }
+
+    private async ValueTask<LazerIpcDeltaFrame?> ReadFrameAsync(Stream stream, byte[] lengthBuffer,
+        CancellationToken token)
+    {
+        try
+        {
+            await stream.ReadExactlyAsync(lengthBuffer, token);
+        }
+        catch (EndOfStreamException)
+        {
+            return null;
+        }
+
+        var length = BinaryPrimitives.ReadInt32LittleEndian(lengthBuffer);
+        if (length <= 0 || length > MaxFrameLength)
+        {
+            throw new IOException($"Invalid lazer IPC frame length: {length}.");
+        }
+
+        var buffer = ArrayPool<byte>.Shared.Rent(length);
+        try
+        {
+            await stream.ReadExactlyAsync(buffer.AsMemory(0, length), token);
+            return LazerIpcDeltaFrame.Parse(buffer.AsSpan(0, length));
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 

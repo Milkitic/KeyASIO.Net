@@ -9,6 +9,7 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
 {
     private readonly LazerIpcBridge _lazerIpcBridge;
     private readonly GameSyncSnapshot _snapshot;
+    private readonly LazerIpcFrame _frame = new();
     private bool _eventsBound;
     private bool _connected;
     private IBeatmapResourceCatalog? _resourceCatalog;
@@ -40,6 +41,7 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         await _lazerIpcBridge.StopAsync();
         _connected = false;
         _resourceCatalog = null;
+        _frame.Reset();
         _snapshot.ResetToNotRunning(ClientType);
         AvailabilityChanged?.Invoke(this, false);
     }
@@ -59,21 +61,34 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         if (!newValue)
         {
             _resourceCatalog = null;
+            _frame.Reset();
             _snapshot.ResetToNotRunning(ClientType);
         }
 
         AvailabilityChanged?.Invoke(this, newValue);
     }
 
-    private void OnFrameReceived(LazerIpcFrame frame)
+    private void OnFrameReceived(LazerIpcDeltaFrame deltaFrame)
     {
         _connected = true;
+        var beatmapChanged = deltaFrame.HasField(LazerIpcFieldKind.BeatmapFolder) ||
+                             deltaFrame.HasField(LazerIpcFieldKind.BeatmapFilename);
+        var beatmapFilesChanged = deltaFrame.HasField(LazerIpcFieldKind.BeatmapFiles);
+
+        if (beatmapChanged && !beatmapFilesChanged)
+        {
+            _resourceCatalog = null;
+            _frame.ClearBeatmapFiles();
+        }
+
+        _frame.Apply(deltaFrame);
+        var frame = _frame;
 
         var status = Enum.IsDefined(typeof(OsuMemoryStatus), frame.Status)
             ? (OsuMemoryStatus)frame.Status
             : OsuMemoryStatus.Unknown;
 
-        if (frame.BeatmapFiles.Length > 0)
+        if (beatmapFilesChanged && frame.BeatmapFiles.Length > 0)
         {
             var resourceCatalog = BeatmapResourceCatalog.FromMappings(
                 frame.BeatmapFiles.Select(file => new BeatmapResource(file.Name, file.Path)),
