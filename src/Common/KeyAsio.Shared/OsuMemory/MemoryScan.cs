@@ -32,8 +32,8 @@ public class MemoryScan
     private bool _isStarted;
     private readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
     private ValueDefinition? _valueDefinition;
-    private ValueDefinition? _scoreCuttingEdgeValueDefinition;
-    private ValueDefinition? _scoreLegacyValueDefinition;
+    private ValueDefinition? _scoreProcessorValueDefinition;
+    private ValueDefinition? _scoreV2ValueDefinition;
     private ValueDefinition? _comboValueDefinition;
     private ValueDefinition? _hit100ValueDefinition;
     private ValueDefinition? _hit300ValueDefinition;
@@ -221,8 +221,8 @@ public class MemoryScan
                     _logger.LogWarning("Memory profile is missing required 'AudioTime' definition");
                 }
 
-                _memoryContext.TryGetProfile("ScoreCuttingEdge", out _scoreCuttingEdgeValueDefinition);
-                _memoryContext.TryGetProfile("ScoreLegacy", out _scoreLegacyValueDefinition);
+                _memoryContext.TryGetProfile("ScoreProcessor", out _scoreProcessorValueDefinition);
+                _memoryContext.TryGetProfile("ScoreV2", out _scoreV2ValueDefinition);
                 _memoryContext.TryGetProfile("Combo", out _comboValueDefinition);
                 _memoryContext.TryGetProfile("Hit100", out _hit100ValueDefinition);
                 _memoryContext.TryGetProfile("Hit300", out _hit300ValueDefinition);
@@ -266,8 +266,8 @@ public class MemoryScan
         _memoryContext = null;
         _songsDirectory = null;
         _scanSuccessful = false;
-        _scoreCuttingEdgeValueDefinition = null;
-        _scoreLegacyValueDefinition = null;
+        _scoreProcessorValueDefinition = null;
+        _scoreV2ValueDefinition = null;
         _comboValueDefinition = null;
         _hit100ValueDefinition = null;
         _hit300ValueDefinition = null;
@@ -391,34 +391,14 @@ public class MemoryScan
                 memoryReadObject.IsReplay = _osuMemoryData.IsReplay;
                 var score = _osuMemoryData.Score;
 
-                var preferredScoreDef = _scoreLegacyValueDefinition;
-                if (_memoryContext.TryGetString("OsuVersion", out var osuVersion) &&
-                    !string.IsNullOrEmpty(osuVersion) &&
-                    (osuVersion.Contains("cuttingedge", StringComparison.OrdinalIgnoreCase) ||
-                     osuVersion.Contains("tourney", StringComparison.OrdinalIgnoreCase)))
+                if (_scoreProcessorValueDefinition != null &&
+                    _memoryContext.TryGetValueDef<int>(_scoreProcessorValueDefinition, out var scoreProcessor) &&
+                    scoreProcessor != 0 &&
+                    _scoreV2ValueDefinition != null &&
+                    _memoryContext.TryGetValueDef<int>(_scoreV2ValueDefinition, out var scoreV2) &&
+                    scoreV2 > 0)
                 {
-                    preferredScoreDef = _scoreCuttingEdgeValueDefinition;
-                }
-
-                if (preferredScoreDef != null &&
-                    _memoryContext.TryGetValueDef<int>(preferredScoreDef, out var preferredScore) &&
-                    preferredScore > 0)
-                {
-                    score = preferredScore;
-                }
-                else if (score <= 0 &&
-                         _scoreLegacyValueDefinition != null &&
-                         _memoryContext.TryGetValueDef<int>(_scoreLegacyValueDefinition, out var legacyScore) &&
-                         legacyScore > 0)
-                {
-                    score = legacyScore;
-                }
-                else if (score <= 0 &&
-                         _scoreCuttingEdgeValueDefinition != null &&
-                         _memoryContext.TryGetValueDef<int>(_scoreCuttingEdgeValueDefinition, out var cuttingEdgeScore) &&
-                         cuttingEdgeScore > 0)
-                {
-                    score = cuttingEdgeScore;
+                    score = scoreV2;
                 }
 
                 memoryReadObject.Score = score;

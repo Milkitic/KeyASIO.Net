@@ -75,11 +75,11 @@
     },
     "PlayerPtr": {
       "base": "RulesetPtr",
-      "offsets": ["0x68"]
+      "offsets": ["0x64"]
     },
     "ScoreBase": {
       "base": "PlayerPtr",
-      "offsets": ["0x44"]
+      "offsets": ["0x38"]
     },
     "ComboBase": {
       "base": "PlayerPtr",
@@ -111,9 +111,9 @@
     "Username": { "base": "UserPanelPtr", "offset": "0x30", "type": "managed_string" },
     "SkinFolder": { "base": "SkinDataPtr", "offset": "0x44", "type": "managed_string" },
     "IsReplay": { "base": "IsReplayPtr", "offset": "0x0", "type": "bool" },
-    "Score": { "base": "ScoreBase", "offset": "0xFC", "type": "int" },
-    "ScoreCuttingEdge": { "base": "RulesetPtr", "offset": "0xFC", "type": "int" },
-    "ScoreLegacy": { "base": "RulesetPtr", "offset": "0x100", "type": "int" },
+    "Score": { "base": "ScoreBase", "offset": "0x78", "type": "int" },
+    "ScoreProcessor": { "base": "ScoreBase", "offset": "0x54", "type": "int" },
+    "ScoreV2": { "base": "RulesetPtr", "offset": "0xF8", "type": "int" },
     "Combo": { "base": "ComboBase", "offset": "0x94", "type": "ushort" },
     "Hit100": { "base": "ComboBase", "offset": "0x88", "type": "short" },
     "Hit300": { "base": "ComboBase", "offset": "0x8A", "type": "short" },
