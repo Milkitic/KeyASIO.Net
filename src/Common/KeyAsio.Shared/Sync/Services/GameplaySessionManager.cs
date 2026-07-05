@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Coosu.Beatmap;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
+using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Shared.Events;
 using KeyAsio.Shared.Utils;
@@ -99,7 +100,8 @@ public class GameplaySessionManager
             _logger.LogInformation("Start playing.");
             OsuFile = null;
 
-            var folder = Path.GetDirectoryName(beatmapFilenameFull);
+            var resourceCatalog = _syncSessionContext.BeatmapResourceCatalog;
+            var folder = ResolveBeatmapFolder(beatmapFilenameFull, beatmapFilename, resourceCatalog);
             if (folder == null)
             {
                 throw new DirectoryNotFoundException("Failed to determine the beatmap directory.");
@@ -111,12 +113,16 @@ public class GameplaySessionManager
             }
 
             var osuFile = await _beatmapHitsoundLoader.InitializeNodeListsAsync(folder, beatmapFilename,
-                CurrentHitsoundSequencer, _syncSessionContext.PlayMods);
+                CurrentHitsoundSequencer, _syncSessionContext.PlayMods, resourceCatalog);
             OsuFile = osuFile;
             AudioFilename = osuFile?.General?.AudioFilename;
             BeatmapFolder = folder;
 
-            PerformCache(folder, AudioFilename);
+            var cacheContextKey = resourceCatalog != null
+                ? $"{resourceCatalog.CacheKey}|{beatmapFilename}"
+                : folder;
+
+            PerformCache(folder, AudioFilename, resourceCatalog, cacheContextKey);
             //ResetNodes(_syncSessionContext.PlayTime);
 
             _syncSessionContext.IsStarted = true;
@@ -148,15 +154,29 @@ public class GameplaySessionManager
         }
     }
 
-    private void PerformCache(string newFolder, string? audioFilename)
+    private static string? ResolveBeatmapFolder(string? beatmapFilenameFull, string? beatmapFilename,
+        IBeatmapResourceCatalog? resourceCatalog)
     {
-        if (_lastCachedFolder != null && _lastCachedFolder != newFolder)
+        if (beatmapFilename != null && resourceCatalog?.TryResolve(beatmapFilename, out var mappedBeatmap) == true)
+        {
+            return Path.GetDirectoryName(mappedBeatmap.Path);
+        }
+
+        return beatmapFilenameFull != null
+            ? Path.GetDirectoryName(beatmapFilenameFull)
+            : resourceCatalog?.RootPath;
+    }
+
+    private void PerformCache(string newFolder, string? audioFilename, IBeatmapResourceCatalog? resourceCatalog,
+        string cacheContextKey)
+    {
+        if (_lastCachedFolder != null && _lastCachedFolder != cacheContextKey)
         {
             _logger.LogInformation("Cleaning caches caused by folder changing.");
             _gameplayAudioService.ClearCaches();
         }
 
-        _lastCachedFolder = newFolder;
+        _lastCachedFolder = cacheContextKey;
 
         if (_audioEngine.CurrentDevice == null)
         {
@@ -164,7 +184,7 @@ public class GameplaySessionManager
             return;
         }
 
-        _gameplayAudioService.SetContext(newFolder, audioFilename);
+        _gameplayAudioService.SetContext(newFolder, audioFilename, resourceCatalog);
         _gameplayAudioService.PrecacheMusicAndSkinInBackground();
     }
 

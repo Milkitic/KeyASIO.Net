@@ -1,7 +1,5 @@
-﻿﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Text;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
@@ -10,19 +8,23 @@ namespace KeyAsio.Shared.OsuMemory;
 
 public class MemorySyncBridge
 {
-    private readonly MemoryScan _memoryScan;
+    private readonly GameSyncSourceCoordinator _sourceCoordinator;
+    private readonly StableMemoryGameSyncSource _stableSource;
     private readonly SyncSessionContext _syncSessionContext;
     private readonly AppSettings _appSettings;
     private readonly ILogger<MemorySyncBridge> _logger;
     private bool _initialized;
+    private bool _isRunning;
 
     public MemorySyncBridge(
-        MemoryScan memoryScan,
+        GameSyncSourceCoordinator sourceCoordinator,
+        StableMemoryGameSyncSource stableSource,
         SyncSessionContext syncSessionContext,
         AppSettings appSettings,
         ILogger<MemorySyncBridge> logger)
     {
-        _memoryScan = memoryScan;
+        _sourceCoordinator = sourceCoordinator;
+        _stableSource = stableSource;
         _syncSessionContext = syncSessionContext;
         _appSettings = appSettings;
         _logger = logger;
@@ -33,19 +35,10 @@ public class MemorySyncBridge
         if (_initialized) return;
         _initialized = true;
 
-        BindEvents();
-
-        _appSettings.Sync.Scanning.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName is nameof(AppSettingsSyncScanning.GeneralScanInterval)
-                or nameof(AppSettingsSyncScanning.TimingScanInterval))
-            {
-                _memoryScan.UpdateIntervals(_appSettings.Sync.Scanning.GeneralScanInterval,
-                    _appSettings.Sync.Scanning.TimingScanInterval);
-            }
-        };
-
+        _appSettings.Sync.Scanning.PropertyChanged += OnScanningSettingsChanged;
         _appSettings.Sync.PropertyChanged += OnSyncSettingsChanged;
+
+        ConfigureStableSourceIntervals();
 
         _logger.LogInformation("Initial EnableSync state: {State}", _appSettings.Sync.EnableSync);
         _logger.LogInformation("Initial EnableMixSync state: {State}", _appSettings.Sync.EnableMixSync);
@@ -54,6 +47,21 @@ public class MemorySyncBridge
         {
             StartScanning();
         }
+    }
+
+    private void OnScanningSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(AppSettingsSyncScanning.GeneralScanInterval)
+            or nameof(AppSettingsSyncScanning.TimingScanInterval))
+        {
+            ConfigureStableSourceIntervals();
+        }
+    }
+
+    private void ConfigureStableSourceIntervals()
+    {
+        _stableSource.ConfigureIntervals(_appSettings.Sync.Scanning.GeneralScanInterval,
+            _appSettings.Sync.Scanning.TimingScanInterval);
     }
 
     private void OnSyncSettingsChanged(object? sender, PropertyChangedEventArgs e)
@@ -79,6 +87,8 @@ public class MemorySyncBridge
 
     private void StartScanning()
     {
+        if (_isRunning) return;
+
         try
         {
             var player = EncodeUtils.FromBase64String(_appSettings.Logging.PlayerBase64 ?? "", Encoding.ASCII);
@@ -89,159 +99,16 @@ public class MemorySyncBridge
             _logger.LogWarning(ex, "Failed to decode PlayerBase64 string.");
         }
 
-        _memoryScan.Start(_appSettings.Sync.Scanning.GeneralScanInterval,
-            _appSettings.Sync.Scanning.TimingScanInterval);
+        ConfigureStableSourceIntervals();
+        _sourceCoordinator.Start();
+        _isRunning = true;
     }
 
     private async Task StopScanningAsync()
     {
-        await _memoryScan.StopAsync();
-    }
+        if (!_isRunning) return;
 
-    private void BindEvents()
-    {
-        _memoryScan.MemoryReadObject.PlayerNameChanged += OnPlayerNameChanged;
-        _memoryScan.MemoryReadObject.ModsChanged += OnModsChanged;
-        _memoryScan.MemoryReadObject.ComboChanged += OnComboChanged;
-        _memoryScan.MemoryReadObject.ScoreChanged += OnScoreChanged;
-        _memoryScan.MemoryReadObject.IsReplayChanged += OnIsReplayChanged;
-        _memoryScan.MemoryReadObject.BeatmapIdentifierChanged += OnBeatmapIdentifierChanged;
-        _memoryScan.MemoryReadObject.OsuStatusChanged += OnOsuStatusChanged;
-        _memoryScan.MemoryReadObject.ProcessIdChanged += OnProcessIdChanged;
-        _memoryScan.MemoryReadObject.PlayingTimeChanged += OnPlayingTimeChanged;
-        _memoryScan.MemoryReadObject.StatisticsChanged += OnStatisticsChanged;
-        _memoryScan.MemoryReadObject.HitErrorsChanged += OnHitErrorsChanged;
-    }
-
-    private void OnPlayerNameChanged(string? oldName, string? newName)
-    {
-        try
-        {
-            _syncSessionContext.Username = newName;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Username");
-        }
-    }
-
-    private void OnModsChanged(Mods oldMods, Mods newMods)
-    {
-        try
-        {
-            _syncSessionContext.PlayMods = newMods;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.PlayMods");
-        }
-    }
-
-    private void OnIsReplayChanged(bool oldIsReplay, bool newIsReplay)
-    {
-        try
-        {
-            _syncSessionContext.IsReplay = newIsReplay;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.IsReplay");
-        }
-    }
-
-    private void OnBeatmapIdentifierChanged(BeatmapIdentifier oldBeatmap, BeatmapIdentifier newBeatmap)
-    {
-        try
-        {
-            _syncSessionContext.Beatmap = newBeatmap;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Beatmap");
-        }
-    }
-
-    private void OnOsuStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus)
-    {
-        try
-        {
-            _syncSessionContext.OsuStatus = newStatus;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.OsuStatus");
-        }
-    }
-
-    private void OnProcessIdChanged(int oldId, int newId)
-    {
-        try
-        {
-            _syncSessionContext.ProcessId = newId;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.ProcessId");
-        }
-    }
-
-    private void OnPlayingTimeChanged(int oldTime, int newTime)
-    {
-        try
-        {
-            _syncSessionContext.BaseMemoryTime = newTime;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.BaseMemoryTime");
-        }
-    }
-
-    private void OnComboChanged(int oldCombo, int newCombo)
-    {
-        try
-        {
-            _syncSessionContext.Combo = newCombo;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Combo");
-        }
-    }
-
-    private void OnScoreChanged(int oldScore, int newScore)
-    {
-        try
-        {
-            _syncSessionContext.Score = newScore;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Score");
-        }
-    }
-
-    private void OnStatisticsChanged(SyncStatistics oldStatistics, SyncStatistics newStatistics)
-    {
-        try
-        {
-            _syncSessionContext.Statistics = newStatistics;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.Statistics");
-        }
-    }
-
-    private void OnHitErrorsChanged(SyncHitErrors oldHitErrors, SyncHitErrors newHitErrors)
-    {
-        try
-        {
-            _syncSessionContext.HitErrors = newHitErrors;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to update SyncSessionContext.HitErrors");
-        }
+        await _sourceCoordinator.StopAsync();
+        _isRunning = false;
     }
 }

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Core.OsuAudio.Utils;
 using KeyAsio.Shared.Models;
@@ -33,6 +34,7 @@ public class GameplayAudioService : IDisposable
     private readonly SkinManager _skinManager;
     private string? _beatmapFolder;
     private string? _audioFilename;
+    private IBeatmapResourceCatalog? _beatmapResourceCatalog;
 
     private readonly AsyncSequentialWorker _cachingWorker;
 
@@ -65,10 +67,12 @@ public class GameplayAudioService : IDisposable
         }
     }
 
-    public void SetContext(string? beatmapFolder, string? audioFilename)
+    public void SetContext(string? beatmapFolder, string? audioFilename,
+        IBeatmapResourceCatalog? beatmapResourceCatalog = null)
     {
         _beatmapFolder = beatmapFolder;
         _audioFilename = audioFilename;
+        _beatmapResourceCatalog = beatmapResourceCatalog;
     }
 
     public void ClearCaches()
@@ -112,7 +116,7 @@ public class GameplayAudioService : IDisposable
         {
             if (folder != null && _audioFilename != null)
             {
-                var musicPath = Path.Combine(folder, _audioFilename);
+                var musicPath = ResolveBeatmapFilePath(folder, _audioFilename);
 
                 var (_, status) = await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(musicPath, waveFormat);
 
@@ -207,7 +211,12 @@ public class GameplayAudioService : IDisposable
         var filename = _osuAudioFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var resourceOwner);
 
         CachedAudio result;
-        if (resourceOwner == ResourceOwner.UserSkin)
+        if (TryResolveBeatmapAudioPath(beatmapFolder, filenameWithoutExt, out var beatmapPath))
+        {
+            category = BeatmapCacheIdentifier;
+            result = await LoadAndCacheAudioAsync(beatmapPath, category, waveFormat);
+        }
+        else if (resourceOwner == ResourceOwner.UserSkin)
         {
             category = UserCacheIdentifier;
             result = await ResolveAndLoadSkinAudioAsync(filenameWithoutExt, skinFolder, category, waveFormat);
@@ -215,7 +224,7 @@ public class GameplayAudioService : IDisposable
         else
         {
             category = BeatmapCacheIdentifier;
-            var path = Path.Combine(beatmapFolder, filename);
+            var path = ResolveBeatmapFilePath(beatmapFolder, filename);
             result = await LoadAndCacheAudioAsync(path, category, waveFormat);
         }
 
@@ -259,12 +268,41 @@ public class GameplayAudioService : IDisposable
         else
         {
             category = BeatmapCacheIdentifier;
-            var path = Path.Combine(beatmapFolder, playbackEvent.Filename);
+            var path = ResolveBeatmapFilePath(beatmapFolder, playbackEvent.Filename);
             result = await LoadAndCacheAudioAsync(path, category, waveFormat);
         }
 
         _playNodeToCachedAudioMapping.TryAdd(playbackEvent, result);
         _filenameToCachedAudioMapping.TryAdd(playbackEvent.Filename, result);
+    }
+
+    private string ResolveBeatmapFilePath(string beatmapFolder, string filename)
+    {
+        if (_beatmapResourceCatalog?.TryResolve(filename, out var mappedFile) == true)
+        {
+            return mappedFile.Path;
+        }
+
+        return Path.Combine(beatmapFolder, filename);
+    }
+
+    private bool TryResolveBeatmapAudioPath(string beatmapFolder, string filenameWithoutExt, out string path)
+    {
+        if (_beatmapResourceCatalog?.TryResolveAudio(filenameWithoutExt, out var mappedFile) == true)
+        {
+            path = mappedFile.Path;
+            return true;
+        }
+
+        var filename = _osuAudioFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var resourceOwner);
+        if (resourceOwner == ResourceOwner.Beatmap)
+        {
+            path = ResolveBeatmapFilePath(beatmapFolder, filename);
+            return true;
+        }
+
+        path = string.Empty;
+        return false;
     }
 
     private async Task<CachedAudio> ResolveAndLoadSkinAudioAsync(string filenameKey, string skinFolder, string category,

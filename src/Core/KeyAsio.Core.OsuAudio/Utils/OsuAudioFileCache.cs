@@ -14,6 +14,8 @@ public class OsuAudioFileCache
     public static IReadOnlySet<string> SupportExtensions { get; } =
         new HashSet<string>(s_supportExtensionsInPriorityOrder, StringComparer.OrdinalIgnoreCase);
 
+    public static IReadOnlyList<string> SupportExtensionsInPriorityOrder { get; } = s_supportExtensionsInPriorityOrder;
+
     private readonly ConcurrentDictionary<string, (string filename, ResourceOwner resourceOwner)> _pathCache = new();
 
     public string GetFileUntilFind(string sourceFolder, string fileNameWithoutExtension, out ResourceOwner resourceOwner)
