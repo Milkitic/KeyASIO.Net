@@ -26,6 +26,7 @@ public class PlayingState : IGameState
     private long _lastHitsoundSyncTimestamp;
     private bool _disableComboBreakSfx;
     private bool? _lastIsReplay;
+    private int _lastObservedLazerMissCount;
 
     public PlayingState(
         ILogger<PlayingState> logger,
@@ -58,6 +59,7 @@ public class PlayingState : IGameState
     public async Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
         _lastHitsoundSyncTimestamp = 0;
+        _lastObservedLazerMissCount = ctx.Statistics.Miss;
         if (ctx.Beatmap == default)
         {
             // Beatmap is required to start; keep silent if absent
@@ -109,10 +111,13 @@ public class PlayingState : IGameState
 
     public void OnComboChanged(SyncSessionContext ctx, int oldCombo, int newCombo)
     {
+        var hasNewLazerMiss = ctx.ClientType != GameClientType.Lazer || ConsumeLazerMissIncrease(ctx.Statistics.Miss);
+
         if (_disableComboBreakSfx) return;
         if (!ctx.IsStarted) return;
         if (ctx.Score == 0) return;
         if (newCombo >= oldCombo || oldCombo < 20) return;
+        if (!hasNewLazerMiss) return;
 
         if (_gameplayAudioService.TryGetCachedAudio("combobreak", out var cachedAudio))
         {
@@ -130,10 +135,24 @@ public class PlayingState : IGameState
 
     private void OnRetry(SyncSessionContext ctx)
     {
+        _lastObservedLazerMissCount = ctx.Statistics.Miss;
         var mixer = _playbackEngine.EffectMixer;
         _sfxPlaybackService.ClearAllLoops(mixer);
         mixer?.RemoveAllMixerInputs();
         _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);
+    }
+
+    private bool ConsumeLazerMissIncrease(int missCount)
+    {
+        if (missCount < _lastObservedLazerMissCount)
+        {
+            _lastObservedLazerMissCount = missCount;
+            return false;
+        }
+
+        var increased = missCount > _lastObservedLazerMissCount;
+        _lastObservedLazerMissCount = missCount;
+        return increased;
     }
 
     private void SyncHitsounds(SyncSessionContext ctx, int newMs)
