@@ -122,13 +122,13 @@ public sealed class GameSyncSourceCoordinator
             _syncSessionContext.PlayMods = snapshot.PlayMods;
             _syncSessionContext.IsReplay = snapshot.IsReplay;
             _syncSessionContext.Score = snapshot.Score;
-            _syncSessionContext.Combo = snapshot.Combo;
             _syncSessionContext.Statistics = snapshot.Statistics;
             _syncSessionContext.HitErrors = snapshot.HitErrors;
             _syncSessionContext.BeatmapResourceCatalog = snapshot.BeatmapResourceCatalog;
             _syncSessionContext.Beatmap = snapshot.Beatmap;
             _syncSessionContext.BaseMemoryTime = snapshot.PlayTime;
             _syncSessionContext.OsuStatus = snapshot.Status;
+            _syncSessionContext.Combo = snapshot.Combo;
         }
         catch (Exception ex)
         {
