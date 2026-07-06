@@ -31,6 +31,8 @@ public class MemoryScan
     private CancellationTokenSource? _cts;
     private bool _isStarted;
     private readonly ManualResetEventSlim _intervalUpdatedEvent = new(false);
+    private readonly ManualResetEventSlim _scanResumeEvent = new(true);
+    private volatile bool _scanSuppressed;
     private ValueDefinition? _valueDefinition;
     private ValueDefinition? _scoreProcessorValueDefinition;
     private ValueDefinition? _scoreV2ValueDefinition;
@@ -61,6 +63,10 @@ public class MemoryScan
         _isStarted = true;
         _generalInterval = generalInterval;
         _timingInterval = timingInterval;
+        if (_scanSuppressed)
+            _scanResumeEvent.Reset();
+        else
+            _scanResumeEvent.Set();
 
         try
         {
@@ -85,6 +91,7 @@ public class MemoryScan
     {
         if (!_isStarted) return;
         await _cts!.CancelAsync();
+        _scanResumeEvent.Set();
 
         if (_readTask != null)
             await _readTask;
@@ -101,6 +108,23 @@ public class MemoryScan
         _generalInterval = generalInterval;
         _timingInterval = timingInterval;
         _intervalUpdatedEvent.Set();
+    }
+
+    public void SetScanSuppressed(bool suppressed)
+    {
+        if (_scanSuppressed == suppressed) return;
+
+        _scanSuppressed = suppressed;
+        if (suppressed)
+        {
+            _scanResumeEvent.Reset();
+            _logger.LogInformation("osu!stable memory scan suppressed.");
+        }
+        else
+        {
+            _scanResumeEvent.Set();
+            _logger.LogInformation("osu!stable memory scan resumed.");
+        }
     }
 
     public void ReloadRules()
@@ -132,9 +156,25 @@ public class MemoryScan
 
         while (!_cts!.IsCancellationRequested)
         {
+            if (_scanSuppressed)
+            {
+                WaitWhileScanSuppressed(memoryReadObject);
+                nextGeneralScan = stopwatch.ElapsedMilliseconds;
+                nextTimingScan = nextGeneralScan;
+                continue;
+            }
+
             if (!EnsureConnected(memoryReadObject))
             {
                 Thread.Sleep(500);
+                continue;
+            }
+
+            if (_scanSuppressed)
+            {
+                WaitWhileScanSuppressed(memoryReadObject);
+                nextGeneralScan = stopwatch.ElapsedMilliseconds;
+                nextTimingScan = nextGeneralScan;
                 continue;
             }
 
@@ -170,8 +210,27 @@ public class MemoryScan
         }
     }
 
+    private void WaitWhileScanSuppressed(MemoryReadObject memoryReadObject)
+    {
+        CleanupProcess(memoryReadObject, delayOnDisconnect: false);
+
+        while (_scanSuppressed && _cts?.IsCancellationRequested == false)
+        {
+            try
+            {
+                _scanResumeEvent.Wait(_cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+        }
+    }
+
     private bool EnsureConnected(MemoryReadObject memoryReadObject)
     {
+        if (_scanSuppressed) return false;
+
         if (_process != null && !_processExited)
             return true;
 
@@ -195,6 +254,7 @@ public class MemoryScan
                         for (var i = 0; i < 60; i++)
                         {
                             if (_cts?.IsCancellationRequested == true) return false;
+                            if (_scanSuppressed) return false;
                             Thread.Sleep(100);
                         }
                     }
@@ -250,7 +310,7 @@ public class MemoryScan
         _processExited = true;
     }
 
-    private void CleanupProcess(MemoryReadObject memoryReadObject)
+    private void CleanupProcess(MemoryReadObject memoryReadObject, bool delayOnDisconnect = true)
     {
         var exiting = _process != null;
         if (_process != null)
@@ -286,7 +346,10 @@ public class MemoryScan
         if (exiting)
         {
             _logger.LogInformation("Disconnected from osu! process");
-            Thread.Sleep(2000);
+            if (delayOnDisconnect)
+            {
+                Thread.Sleep(2000);
+            }
         }
     }
 
@@ -294,6 +357,7 @@ public class MemoryScan
     private bool EnsureScanned()
     {
         if (_scanSuccessful) return true;
+        if (_scanSuppressed) return false;
         if (_memoryContext == null) return false;
 
         _memoryContext.Scan();

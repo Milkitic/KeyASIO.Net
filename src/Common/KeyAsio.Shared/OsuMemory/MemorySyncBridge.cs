@@ -10,21 +10,28 @@ public class MemorySyncBridge
 {
     private readonly GameSyncSourceCoordinator _sourceCoordinator;
     private readonly StableMemoryGameSyncSource _stableSource;
+    private readonly LazerIpcBridge _lazerIpcBridge;
     private readonly SyncSessionContext _syncSessionContext;
     private readonly AppSettings _appSettings;
     private readonly ILogger<MemorySyncBridge> _logger;
+    private readonly object _lazerConnectionLock = new();
     private bool _initialized;
     private bool _isRunning;
+    private volatile bool _isStopping;
+    private bool _lazerTimingConnected;
+    private bool _lazerEventsConnected;
 
     public MemorySyncBridge(
         GameSyncSourceCoordinator sourceCoordinator,
         StableMemoryGameSyncSource stableSource,
+        LazerIpcBridge lazerIpcBridge,
         SyncSessionContext syncSessionContext,
         AppSettings appSettings,
         ILogger<MemorySyncBridge> logger)
     {
         _sourceCoordinator = sourceCoordinator;
         _stableSource = stableSource;
+        _lazerIpcBridge = lazerIpcBridge;
         _syncSessionContext = syncSessionContext;
         _appSettings = appSettings;
         _logger = logger;
@@ -37,6 +44,7 @@ public class MemorySyncBridge
 
         _appSettings.Sync.Scanning.PropertyChanged += OnScanningSettingsChanged;
         _appSettings.Sync.PropertyChanged += OnSyncSettingsChanged;
+        _lazerIpcBridge.ChannelConnectionChanged += OnLazerIpcChannelConnectionChanged;
 
         ConfigureStableSourceIntervals();
 
@@ -62,6 +70,34 @@ public class MemorySyncBridge
     {
         _stableSource.ConfigureIntervals(_appSettings.Sync.Scanning.GeneralScanInterval,
             _appSettings.Sync.Scanning.TimingScanInterval);
+    }
+
+    private void OnLazerIpcChannelConnectionChanged(LazerIpcChannel channel, bool oldValue, bool newValue)
+    {
+        bool suppressStableScan;
+
+        lock (_lazerConnectionLock)
+        {
+            switch (channel)
+            {
+                case LazerIpcChannel.Timing:
+                    _lazerTimingConnected = newValue;
+                    break;
+
+                case LazerIpcChannel.Events:
+                    _lazerEventsConnected = newValue;
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
+            }
+
+            suppressStableScan = _lazerTimingConnected || _lazerEventsConnected;
+        }
+
+        if (_isStopping) return;
+
+        _stableSource.SetMemoryScanSuppressed(suppressStableScan);
     }
 
     private void OnSyncSettingsChanged(object? sender, PropertyChangedEventArgs e)
@@ -108,7 +144,22 @@ public class MemorySyncBridge
     {
         if (!_isRunning) return;
 
-        await _sourceCoordinator.StopAsync();
-        _isRunning = false;
+        _isStopping = true;
+        try
+        {
+            await _sourceCoordinator.StopAsync();
+        }
+        finally
+        {
+            lock (_lazerConnectionLock)
+            {
+                _lazerTimingConnected = false;
+                _lazerEventsConnected = false;
+            }
+
+            _stableSource.SetMemoryScanSuppressed(false);
+            _isStopping = false;
+            _isRunning = false;
+        }
     }
 }

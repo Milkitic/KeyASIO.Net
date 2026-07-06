@@ -8,6 +8,7 @@ public sealed class StableMemoryGameSyncSource : IGameSyncSource
     private readonly GameSyncSnapshot _snapshot;
     private bool _eventsBound;
     private bool _started;
+    private bool _memoryScanSuppressed;
     private int _generalInterval;
     private int _timingInterval;
 
@@ -36,6 +37,20 @@ public sealed class StableMemoryGameSyncSource : IGameSyncSource
         if (_started)
         {
             _memoryScan.UpdateIntervals(generalInterval, timingInterval);
+        }
+    }
+
+    public void SetMemoryScanSuppressed(bool suppressed)
+    {
+        if (_memoryScanSuppressed == suppressed) return;
+
+        _memoryScanSuppressed = suppressed;
+        _memoryScan.SetScanSuppressed(suppressed);
+
+        if (suppressed)
+        {
+            _snapshot.ResetToNotRunning(ClientType);
+            SnapshotReceived?.Invoke(this, _snapshot);
         }
     }
 
