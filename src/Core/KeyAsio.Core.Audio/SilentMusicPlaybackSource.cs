@@ -8,16 +8,17 @@ public sealed class SilentMusicPlaybackSource : IMusicPlaybackSource
     private readonly SilentSampleProvider _audioProvider;
     private readonly IPlaybackRateProcessorFactory _rateProcessorFactory;
     private readonly Lock _gate = new();
+    private readonly PlaybackTimelineClock _clock;
 
     private IPlaybackRateProcessor? _rateProcessor;
     private ISampleProvider _output;
-    private bool _isRunning;
 
     private SilentMusicPlaybackSource(TimeSpan duration, WaveFormat waveFormat,
         IPlaybackRateProcessorFactory rateProcessorFactory)
     {
         _audioProvider = new SilentSampleProvider(duration, waveFormat);
         _rateProcessorFactory = rateProcessorFactory;
+        _clock = new PlaybackTimelineClock(duration);
         _output = _audioProvider;
         WaveFormat = _audioProvider.WaveFormat;
     }
@@ -36,35 +37,44 @@ public sealed class SilentMusicPlaybackSource : IMusicPlaybackSource
 
     public WaveFormat WaveFormat { get; }
     public TimeSpan Duration => _audioProvider.Duration;
-    public TimeSpan Position => _audioProvider.PlayTime;
+    public TimeSpan Position => _clock.Position;
     public PlaybackRateState RateState { get; private set; } = PlaybackRateState.Normal;
-    public bool IsRunning => _isRunning;
+    public bool IsRunning => _clock.IsRunning;
     public ISampleProvider Output => _output;
     public bool SupportsPlaybackRateChange => _rateProcessorFactory.IsSupported;
     public bool IsLooping
     {
         get => _audioProvider.IsLooping;
-        set => _audioProvider.IsLooping = value;
+        set
+        {
+            lock (_gate)
+            {
+                _audioProvider.IsLooping = value;
+                _clock.IsLooping = value;
+                _audioProvider.PlayTime = _clock.Position;
+                _rateProcessor?.Reposition();
+            }
+        }
     }
 
     public Task PlayAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _isRunning = true;
+        _clock.Start();
         return Task.CompletedTask;
     }
 
     public Task PauseAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _isRunning = false;
+        _clock.Stop();
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _isRunning = false;
+        _clock.Stop();
         return SeekAsync(TimeSpan.Zero, cancellationToken);
     }
 
@@ -74,6 +84,7 @@ public sealed class SilentMusicPlaybackSource : IMusicPlaybackSource
         lock (_gate)
         {
             _audioProvider.PlayTime = position;
+            _clock.Seek(position);
             _rateProcessor?.Reposition();
         }
 
@@ -89,8 +100,11 @@ public sealed class SilentMusicPlaybackSource : IMusicPlaybackSource
         {
             if (RateState.Equals(rateState)) return Task.CompletedTask;
 
+            var currentPosition = _clock.Position;
             var oldOutput = _output;
+            _audioProvider.PlayTime = currentPosition;
             RateState = rateState;
+            _clock.SetRate(rateState.Rate);
 
             if (rateState.Rate.Equals(1.0f))
             {

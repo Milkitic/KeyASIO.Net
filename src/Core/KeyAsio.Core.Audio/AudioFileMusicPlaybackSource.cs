@@ -9,18 +9,19 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
     private readonly CachedAudio _cachedAudio;
     private readonly IPlaybackRateProcessorFactory _rateProcessorFactory;
     private readonly Lock _gate = new();
+    private readonly PlaybackTimelineClock _clock;
 
     private CachedAudioProvider _audioProvider;
     private readonly LoopSampleProvider _loopProvider;
     private IPlaybackRateProcessor? _rateProcessor;
     private ISampleProvider _output;
-    private bool _isRunning;
     private bool _isLooping;
 
     private AudioFileMusicPlaybackSource(CachedAudio cachedAudio, IPlaybackRateProcessorFactory rateProcessorFactory)
     {
         _cachedAudio = cachedAudio;
         _rateProcessorFactory = rateProcessorFactory;
+        _clock = new PlaybackTimelineClock(cachedAudio.Duration);
         _audioProvider = CreateAudioProvider(cachedAudio);
         _loopProvider = new LoopSampleProvider(_audioProvider)
         {
@@ -59,9 +60,9 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
 
     public WaveFormat WaveFormat { get; }
     public TimeSpan Duration => _cachedAudio.Duration;
-    public TimeSpan Position => _audioProvider.PlayTime;
+    public TimeSpan Position => _clock.Position;
     public PlaybackRateState RateState { get; private set; } = PlaybackRateState.Normal;
-    public bool IsRunning => _isRunning;
+    public bool IsRunning => _clock.IsRunning;
     public ISampleProvider Output => _output;
     public bool SupportsPlaybackRateChange => _rateProcessorFactory.IsSupported;
     public bool IsLooping
@@ -81,6 +82,8 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
 
                 var oldOutput = _output;
                 _isLooping = value;
+                _clock.IsLooping = value;
+                SeekSourceLocked(_clock.Position);
                 RebuildOutputLocked(oldOutput);
             }
         }
@@ -89,21 +92,21 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
     public Task PlayAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _isRunning = true;
+        _clock.Start();
         return Task.CompletedTask;
     }
 
     public Task PauseAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _isRunning = false;
+        _clock.Stop();
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _isRunning = false;
+        _clock.Stop();
         return SeekAsync(TimeSpan.Zero, cancellationToken);
     }
 
@@ -112,7 +115,8 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
         cancellationToken.ThrowIfCancellationRequested();
         lock (_gate)
         {
-            _audioProvider.PlayTime = position;
+            SeekSourceLocked(position);
+            _clock.Seek(position);
             _rateProcessor?.Reposition();
         }
 
@@ -127,8 +131,11 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
         {
             if (RateState.Equals(rateState)) return Task.CompletedTask;
 
+            var currentPosition = _clock.Position;
             var oldOutput = _output;
+            SeekSourceLocked(currentPosition);
             RateState = rateState;
+            _clock.SetRate(rateState.Rate);
             RebuildOutputLocked(oldOutput);
         }
 
@@ -170,6 +177,11 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
         {
             OutputChanged?.Invoke(oldOutput, _output);
         }
+    }
+
+    private void SeekSourceLocked(TimeSpan position)
+    {
+        _audioProvider.PlayTime = position;
     }
 
     private static CachedAudioProvider CreateAudioProvider(CachedAudio cachedAudio)
