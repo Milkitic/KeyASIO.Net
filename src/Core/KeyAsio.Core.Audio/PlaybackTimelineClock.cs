@@ -9,6 +9,7 @@ internal sealed class PlaybackTimelineClock
     private readonly double _ticksPerTimestamp;
     private readonly TimeSpan _duration;
     private TimeSpan _basePosition;
+    private TimeSpan _positionCompensation;
     private long _startTimestamp;
     private float _rate = 1;
     private bool _isLooping;
@@ -56,7 +57,7 @@ internal sealed class PlaybackTimelineClock
         {
             lock (_gate)
             {
-                _basePosition = GetPositionNoLock();
+                _basePosition = GetSourcePositionNoLock();
                 _isLooping = value;
             }
         }
@@ -68,7 +69,18 @@ internal sealed class PlaybackTimelineClock
         {
             lock (_gate)
             {
-                return GetPositionNoLock();
+                return Normalize(GetSourcePositionNoLock() + _positionCompensation);
+            }
+        }
+    }
+
+    internal TimeSpan SourcePosition
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return GetSourcePositionNoLock();
             }
         }
     }
@@ -89,7 +101,7 @@ internal sealed class PlaybackTimelineClock
         lock (_gate)
         {
             if (!_isRunning) return;
-            _basePosition = GetPositionNoLock();
+            _basePosition = GetSourcePositionNoLock();
             _isRunning = false;
         }
     }
@@ -108,10 +120,21 @@ internal sealed class PlaybackTimelineClock
 
     public void SetRate(float rate)
     {
+        SetRate(rate, TimeSpan.Zero);
+    }
+
+    public void SetRate(PlaybackRateState rateState)
+    {
+        SetRate(rateState.Rate, CalculatePositionCompensation(rateState));
+    }
+
+    private void SetRate(float rate, TimeSpan positionCompensation)
+    {
         lock (_gate)
         {
-            _basePosition = GetPositionNoLock();
+            _basePosition = GetSourcePositionNoLock();
             _rate = rate;
+            _positionCompensation = positionCompensation;
             if (_isRunning)
             {
                 _startTimestamp = _getTimestamp();
@@ -119,7 +142,7 @@ internal sealed class PlaybackTimelineClock
         }
     }
 
-    private TimeSpan GetPositionNoLock()
+    private TimeSpan GetSourcePositionNoLock()
     {
         if (!_isRunning)
         {
@@ -129,6 +152,22 @@ internal sealed class PlaybackTimelineClock
         var elapsedTicks = (_getTimestamp() - _startTimestamp) * _ticksPerTimestamp;
         var scaledTicks = elapsedTicks * _rate;
         return Normalize(_basePosition + TimeSpan.FromTicks((long)scaledTicks));
+    }
+
+    private static TimeSpan CalculatePositionCompensation(PlaybackRateState rateState)
+    {
+        if (!rateState.PreservePitch || rateState.Rate.Equals(1.0f))
+        {
+            return TimeSpan.Zero;
+        }
+
+        var delta = rateState.Rate - 1.0;
+        var baseCompensationMilliseconds = rateState.PreservePitchCompensationMilliseconds;
+        var milliseconds = delta >= 0
+            ? -delta / 0.5 * baseCompensationMilliseconds
+            : -delta / 0.25 * baseCompensationMilliseconds;
+
+        return TimeSpan.FromMilliseconds(milliseconds);
     }
 
     private TimeSpan Normalize(TimeSpan position)

@@ -83,7 +83,7 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
                 var oldOutput = _output;
                 _isLooping = value;
                 _clock.IsLooping = value;
-                SeekSourceLocked(_clock.Position);
+                SeekSourceLocked(_clock.SourcePosition);
                 RebuildOutputLocked(oldOutput);
             }
         }
@@ -131,11 +131,11 @@ public sealed class AudioFileMusicPlaybackSource : IMusicPlaybackSource
         {
             if (RateState.Equals(rateState)) return Task.CompletedTask;
 
-            var currentPosition = _clock.Position;
+            var currentPosition = _clock.SourcePosition;
             var oldOutput = _output;
             SeekSourceLocked(currentPosition);
             RateState = rateState;
-            _clock.SetRate(rateState.Rate);
+            _clock.SetRate(rateState);
             RebuildOutputLocked(oldOutput);
         }
 

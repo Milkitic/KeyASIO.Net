@@ -51,7 +51,7 @@ public sealed class SilentMusicPlaybackSource : IMusicPlaybackSource
             {
                 _audioProvider.IsLooping = value;
                 _clock.IsLooping = value;
-                _audioProvider.PlayTime = _clock.Position;
+                _audioProvider.PlayTime = _clock.SourcePosition;
                 _rateProcessor?.Reposition();
             }
         }
@@ -100,11 +100,11 @@ public sealed class SilentMusicPlaybackSource : IMusicPlaybackSource
         {
             if (RateState.Equals(rateState)) return Task.CompletedTask;
 
-            var currentPosition = _clock.Position;
+            var currentPosition = _clock.SourcePosition;
             var oldOutput = _output;
             _audioProvider.PlayTime = currentPosition;
             RateState = rateState;
-            _clock.SetRate(rateState.Rate);
+            _clock.SetRate(rateState);
 
             if (rateState.Rate.Equals(1.0f))
             {
