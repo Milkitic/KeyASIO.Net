@@ -10,8 +10,9 @@ public sealed class LazerIpcBridge : IDisposable
 {
     public const string PipeName = "KeyAsio.LazerBridge.v1";
     public const string EventPipeName = "KeyAsio.LazerBridge.Events.v1";
-    public const int ProtocolVersion = 1;
-    private const int MaxFrameLength = 4 * 1024 * 1024;
+    public const int ProtocolVersion = 2;
+    // Event frames may include lazer skin and file metadata; large skin libraries can exceed several MB.
+    private const int MaxFrameLength = 64 * 1024 * 1024;
 
     private readonly ILogger<LazerIpcBridge> _logger;
     private readonly ConcurrentDictionary<Task, byte> _clientTasks = new();

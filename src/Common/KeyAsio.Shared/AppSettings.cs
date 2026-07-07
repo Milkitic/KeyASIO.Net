@@ -2,6 +2,7 @@
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.Sync;
 using Milki.Extensions.Configuration;
 using Milki.Extensions.MouseKeyHook;
 
@@ -71,6 +72,9 @@ public partial class AppSettingsPaths : INotifyPropertyChanged
 
     [Description("Allow automatic loading of skins from osu! folder.")]
     public bool AllowAutoLoadSkins { get; set; }
+
+    [Description("Last synced game client type (Stable or Lazer).")]
+    public GameClientType ClientType { get; set; } = GameClientType.Stable;
 }
 
 public partial class AppSettingsAudio : INotifyPropertyChanged

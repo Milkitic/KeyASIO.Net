@@ -19,6 +19,11 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     private bool _hasEventFrame;
     private bool _legacySinglePipeMode;
     private IBeatmapResourceCatalog? _resourceCatalog;
+    private LazerIpcSkinInfo[]? _lastPublishedSkinInfos;
+    private string? _lastPublishedUserDataDirectory;
+    private string? _lastPublishedExeDirectory;
+
+    public event Action<LazerIpcSkinInfo[]?, string?, string?>? LazerSkinContextReceived;
 
     public LazerIpcGameSyncSource(LazerIpcBridge lazerIpcBridge)
     {
@@ -109,6 +114,10 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         bool availabilityChanged;
         bool isAvailable;
         GameSyncSnapshot? snapshotToPublish = null;
+        LazerIpcSkinInfo[]? skinInfosToPublish = null;
+        string? userDataDirectoryToPublish = null;
+        string? exeDirectoryToPublish = null;
+        bool skinContextChanged = false;
 
         lock (frameLock)
         {
@@ -141,6 +150,28 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
                 snapshotToPublish = _snapshot.Clone();
                 CurrentSnapshot = snapshotToPublish;
             }
+
+            // Detect changes to lazer skin context.
+            if (!ReferenceEquals(_frame.SkinInfos, _lastPublishedSkinInfos))
+            {
+                _lastPublishedSkinInfos = _frame.SkinInfos;
+                skinInfosToPublish = _frame.SkinInfos;
+                skinContextChanged = true;
+            }
+
+            if (_frame.UserDataDirectory != _lastPublishedUserDataDirectory)
+            {
+                _lastPublishedUserDataDirectory = _frame.UserDataDirectory;
+                userDataDirectoryToPublish = _frame.UserDataDirectory;
+                skinContextChanged = true;
+            }
+
+            if (_frame.ExeDirectory != _lastPublishedExeDirectory)
+            {
+                _lastPublishedExeDirectory = _frame.ExeDirectory;
+                exeDirectoryToPublish = _frame.ExeDirectory;
+                skinContextChanged = true;
+            }
         }
 
         if (availabilityChanged)
@@ -148,6 +179,14 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
 
         if (snapshotToPublish != null)
             SnapshotReceived?.Invoke(this, snapshotToPublish);
+
+        if (skinContextChanged)
+        {
+            LazerSkinContextReceived?.Invoke(
+                skinInfosToPublish,
+                userDataDirectoryToPublish,
+                exeDirectoryToPublish);
+        }
     }
 
     private void ApplyFrameLocked(LazerIpcDeltaFrame deltaFrame)
@@ -211,6 +250,10 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         _frame.Reset();
         _snapshot.ResetToNotRunning(ClientType);
         CurrentSnapshot = _snapshot.Clone();
+
+        _lastPublishedSkinInfos = null;
+        _lastPublishedUserDataDirectory = null;
+        _lastPublishedExeDirectory = null;
     }
 
     private bool CanBeAvailableLocked()

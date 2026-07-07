@@ -12,6 +12,9 @@ public sealed class GameSyncSourceCoordinator
     private IGameSyncSource? _activeSource;
     private bool _started;
     private GameSyncSnapshot? _disconnectedSnapshot;
+    private GameClientType _lastClientType = GameClientType.Stable;
+
+    public event Action<GameClientType>? ClientTypeChanged;
 
     public GameSyncSourceCoordinator(
         SyncSessionContext syncSessionContext,
@@ -117,6 +120,11 @@ public sealed class GameSyncSourceCoordinator
         try
         {
             _syncSessionContext.ClientType = snapshot.ClientType;
+            if (snapshot.ClientType != _lastClientType)
+            {
+                _lastClientType = snapshot.ClientType;
+                ClientTypeChanged?.Invoke(snapshot.ClientType);
+            }
             _syncSessionContext.ProcessId = snapshot.ProcessId;
             _syncSessionContext.Username = snapshot.Username;
             _syncSessionContext.PlayMods = snapshot.PlayMods;

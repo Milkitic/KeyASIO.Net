@@ -4,6 +4,8 @@ using Coosu.Shared.IO;
 using dnlib.DotNet;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Shared.Models;
+using KeyAsio.Shared.OsuMemory;
+using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Utils;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
@@ -30,10 +32,30 @@ public class SkinManager
         "nightcore-clap", "nightcore-finish", "nightcore-hat", "nightcore-kick"
     ];
 
+    // Lazer built-in skin folders (mirroring osu.Game SkinInfo well-known GUIDs).
+    // FolderName is the GUID string; Folder points to the lazer user data directory
+    // (used to resolve the realm-backed file store at runtime).
+    private static readonly (string Guid, SkinDescription Description)[] s_lazerBuiltinSkins =
+    [
+        ("CFFA69DE-B3E3-4DEE-8563-3C4F425C05D0",
+            new SkinDescription("argon", "{lazer-argon}", "osu! \"argon\" (2022)", "team osu!")),
+        ("9FC9CF5D-0F16-4C71-8256-98868321AC43",
+            new SkinDescription("argon_pro", "{lazer-argon_pro}", "osu! \"argon\" pro (2022)", "team osu!")),
+        ("2991CFD8-2140-469A-BCB9-2EC23FBCE4AD",
+            new SkinDescription("triangles", "{lazer-triangles}", "osu! \"triangles\" (2017)", "team osu!")),
+        ("81F02CD3-EEC6-4865-AC23-FAE26A386187",
+            new SkinDescription("classic", "{lazer-classic}", "osu! \"classic\" (2013)", "team osu!")),
+        ("0555C76A-CC6B-4BB4-9548-DF76BA72EF25",
+            new SkinDescription("retro", "{lazer-retro}", "osu! \"retro\" (2008)", "team osu!")),
+    ];
+
     private readonly ILogger<SkinManager> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
     private readonly SharedViewModel _sharedViewModel;
+    private readonly LazerIpcGameSyncSource? _lazerSyncSource;
+    private readonly SyncSessionContext _syncSessionContext;
+    private readonly GameSyncSourceCoordinator _syncSourceCoordinator;
 
     private readonly AsyncLock _asyncLock = new();
 
@@ -45,16 +67,33 @@ public class SkinManager
 
     private readonly Dictionary<string, byte[]> _dictionary = new();
 
+    // Lazer skin context (received via IPC).
+    private LazerIpcSkinInfo[]? _lazerSkinInfos;
+    private string? _lazerUserDataDirectory;
+    private string? _lazerExeDirectory;
+    private GameClientType _lastKnownClientType = GameClientType.Stable;
+
     public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings, AudioCacheManager audioCacheManager,
-        SharedViewModel sharedViewModel)
+        SharedViewModel sharedViewModel, LazerIpcGameSyncSource? lazerSyncSource, SyncSessionContext syncSessionContext,
+        GameSyncSourceCoordinator syncSourceCoordinator)
     {
         _logger = logger;
         _appSettings = appSettings;
         _audioCacheManager = audioCacheManager;
         _sharedViewModel = sharedViewModel;
+        _lazerSyncSource = lazerSyncSource;
+        _syncSessionContext = syncSessionContext;
+        _syncSourceCoordinator = syncSourceCoordinator;
         _sharedViewModel.PropertyChanged += SharedViewModel_PropertyChanged;
 
         _skinLoadingWorker = new AsyncSequentialWorker(_logger, "SkinManagerWorker");
+
+        if (_lazerSyncSource != null)
+        {
+            _lazerSyncSource.LazerSkinContextReceived += OnLazerSkinContextReceived;
+        }
+
+        _syncSourceCoordinator.ClientTypeChanged += OnClientTypeChanged;
     }
 
     public bool IsStarted => _processPollingCts != null;
@@ -112,6 +151,79 @@ public class SkinManager
         {
             _appSettings.Paths.SelectedSkinName = _sharedViewModel.SelectedSkin?.FolderName;
         }
+    }
+
+    private void OnLazerSkinContextReceived(LazerIpcSkinInfo[]? skinInfos, string? userDataDirectory, string? exeDirectory)
+    {
+        bool changed = false;
+
+        if (skinInfos != null)
+        {
+            _lazerSkinInfos = skinInfos;
+            changed = true;
+        }
+
+        if (userDataDirectory != null)
+        {
+            if (_lazerUserDataDirectory != userDataDirectory)
+            {
+                _lazerUserDataDirectory = userDataDirectory;
+                changed = true;
+            }
+        }
+
+        if (exeDirectory != null)
+        {
+            if (_lazerExeDirectory != exeDirectory)
+            {
+                _lazerExeDirectory = exeDirectory;
+                changed = true;
+            }
+        }
+
+        if (!changed)
+            return;
+
+        _logger.LogInformation(
+            "Lazer skin context updated: {SkinCount} skins, user data: {UserDataDir}, exe: {ExeDir}",
+            _lazerSkinInfos?.Length ?? 0, _lazerUserDataDirectory, _lazerExeDirectory);
+
+        EnsureLazerClientTypeAndOsuFolder();
+        _ = RefreshSkinsAsync();
+    }
+
+    private void EnsureLazerClientTypeAndOsuFolder()
+    {
+        // Update ClientType to Lazer and set OsuFolderPath to lazer's exe directory.
+        if (_lazerExeDirectory == null)
+            return;
+
+        _appSettings.Paths.ClientType = GameClientType.Lazer;
+        _lastKnownClientType = GameClientType.Lazer;
+
+        if (!string.Equals(_appSettings.Paths.OsuFolderPath, _lazerExeDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogInformation("Updating osu folder to lazer exe directory: {Path}", _lazerExeDirectory);
+            _appSettings.Paths.OsuFolderPath = _lazerExeDirectory;
+        }
+    }
+
+    private void OnClientTypeChanged(GameClientType newClientType)
+    {
+        if (newClientType == _lastKnownClientType)
+            return;
+
+        _lastKnownClientType = newClientType;
+        _appSettings.Paths.ClientType = newClientType;
+        _logger.LogInformation("Sync client type changed to {ClientType}", newClientType);
+
+        if (newClientType == GameClientType.Stable)
+        {
+            // When switching back to stable, re-detect stable's osu folder from running process.
+            CheckAndSetOsuPath(Process.GetProcessesByName("osu!"));
+        }
+
+        _ = RefreshSkinsAsync();
     }
 
     private void StartProcessListener()
@@ -245,7 +357,22 @@ public class SkinManager
 
     private async Task LoadSkinsInternal(CancellationToken token)
     {
-        if (string.IsNullOrEmpty(_appSettings.Paths.OsuFolderPath)) return;
+        if (string.IsNullOrEmpty(_appSettings.Paths.OsuFolderPath))
+        {
+            // Even without an osu folder, we can still expose lazer's built-in skins.
+            if (_lazerSkinInfos != null)
+            {
+                await LoadLazerSkinsAsync(token);
+            }
+
+            return;
+        }
+
+        if (_appSettings.Paths.ClientType == GameClientType.Lazer)
+        {
+            await LoadLazerSkinsAsync(token);
+            return;
+        }
 
         ExtractDefaultResources(_appSettings.Paths.OsuFolderPath, token);
 
@@ -274,6 +401,45 @@ public class SkinManager
         var newSkinList = new List<SkinDescription> { SkinDescription.Internal, SkinDescription.Classic };
         newSkinList.AddRange(loadedSkins);
 
+        await PublishSkinListAsync(newSkinList, token);
+    }
+
+    private async Task LoadLazerSkinsAsync(CancellationToken token)
+    {
+        var newSkinList = new List<SkinDescription> { SkinDescription.Internal };
+
+        // 5 built-in skins (mirrors stable's behavior: always available).
+        foreach (var (_, description) in s_lazerBuiltinSkins)
+        {
+            newSkinList.Add(description);
+        }
+
+        // User skins from lazer realm (via IPC).
+        if (_lazerSkinInfos != null)
+        {
+            foreach (var info in _lazerSkinInfos)
+            {
+                if (info.Protected)
+                    continue; // Built-in skins are added separately with stable FolderNames.
+
+                if (token.IsCancellationRequested) return;
+
+                var folder = Path.Combine(_lazerUserDataDirectory ?? "", "files", info.Id);
+                var folderName = info.Name ?? info.Id;
+
+                newSkinList.Add(new SkinDescription(
+                    folderName,
+                    folder,
+                    info.Name,
+                    info.Creator));
+            }
+        }
+
+        await PublishSkinListAsync(newSkinList, token);
+    }
+
+    private async Task PublishSkinListAsync(List<SkinDescription> newSkinList, CancellationToken token)
+    {
         var selectedName = _appSettings.Paths.SelectedSkinName;
         var targetSkin = newSkinList.FirstOrDefault(k => k.FolderName == selectedName)
                          ?? SkinDescription.Internal;

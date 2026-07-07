@@ -21,6 +21,9 @@ public sealed class LazerIpcFrame
     public SyncStatistics Statistics { get; private set; }
     public int HitErrorIndex { get; private set; }
     public int[] HitErrors { get; private set; } = [];
+    public LazerIpcSkinInfo[]? SkinInfos { get; private set; }
+    public string? UserDataDirectory { get; private set; }
+    public string? ExeDirectory { get; private set; }
 
     public void Reset()
     {
@@ -39,12 +42,17 @@ public sealed class LazerIpcFrame
         Statistics = SyncStatistics.Empty;
         HitErrorIndex = 0;
         HitErrors = [];
+        SkinInfos = null;
+        UserDataDirectory = null;
+        ExeDirectory = null;
     }
 
     public void ClearBeatmapFiles()
     {
         BeatmapFiles = [];
     }
+
+    public bool HasLazerSkinInfos => SkinInfos != null;
 
     public void Apply(LazerIpcDeltaFrame deltaFrame)
     {
@@ -106,6 +114,18 @@ public sealed class LazerIpcFrame
                     HitErrorIndex = field.IntValue;
                     HitErrors = field.IntArrayValue ?? [];
                     break;
+
+                case LazerIpcFieldKind.SkinInfos:
+                    SkinInfos = field.SkinInfosValue;
+                    break;
+
+                case LazerIpcFieldKind.UserDataDirectory:
+                    UserDataDirectory = field.StringValue;
+                    break;
+
+                case LazerIpcFieldKind.ExeDirectory:
+                    ExeDirectory = field.StringValue;
+                    break;
             }
         }
     }
@@ -126,6 +146,9 @@ public enum LazerIpcFieldKind : byte
     BeatmapFiles = 11,
     Statistics = 12,
     HitErrors = 13,
+    SkinInfos = 14,
+    UserDataDirectory = 15,
+    ExeDirectory = 16,
 }
 
 public sealed partial class LazerIpcDeltaFrame
@@ -168,6 +191,8 @@ public sealed partial class LazerIpcDeltaFrame
                 case LazerIpcFieldKind.Username:
                 case LazerIpcFieldKind.BeatmapFolder:
                 case LazerIpcFieldKind.BeatmapFilename:
+                case LazerIpcFieldKind.UserDataDirectory:
+                case LazerIpcFieldKind.ExeDirectory:
                     field.StringValue = reader.ReadString();
                     break;
 
@@ -182,6 +207,10 @@ public sealed partial class LazerIpcDeltaFrame
                 case LazerIpcFieldKind.HitErrors:
                     field.IntValue = reader.ReadInt32();
                     field.IntArrayValue = reader.ReadInt32Array();
+                    break;
+
+                case LazerIpcFieldKind.SkinInfos:
+                    field.SkinInfosValue = reader.ReadSkinInfos();
                     break;
 
                 default:
@@ -223,12 +252,23 @@ public partial struct LazerIpcDeltaField
     public LazerIpcFile[]? FilesValue { get; set; }
     public LazerIpcStatistics StatisticsValue { get; set; }
     public int[]? IntArrayValue { get; set; }
+    public LazerIpcSkinInfo[]? SkinInfosValue { get; set; }
 }
 
 public sealed partial class LazerIpcFile
 {
     public string Name { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
+}
+
+public sealed partial class LazerIpcSkinInfo
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Creator { get; set; } = string.Empty;
+    public string InstantiationInfo { get; set; } = string.Empty;
+    public bool Protected { get; set; }
+    public LazerIpcFile[] Files { get; set; } = [];
 }
 
 public partial struct LazerIpcStatistics
@@ -362,6 +402,41 @@ file ref struct PayloadReader
         }
 
         return values;
+    }
+
+    public LazerIpcSkinInfo[]? ReadSkinInfos()
+    {
+        var count = ReadInt32();
+        if (count < 0)
+        {
+            if (count == -1)
+            {
+                return null;
+            }
+
+            throw new InvalidDataException($"Invalid lazer IPC skin info count: {count}.");
+        }
+
+        if (count > 10_000)
+        {
+            throw new InvalidDataException($"Invalid lazer IPC skin info count: {count}.");
+        }
+
+        var infos = new LazerIpcSkinInfo[count];
+        for (var i = 0; i < infos.Length; i++)
+        {
+            infos[i] = new LazerIpcSkinInfo
+            {
+                Id = ReadString() ?? string.Empty,
+                Name = ReadString() ?? string.Empty,
+                Creator = ReadString() ?? string.Empty,
+                InstantiationInfo = ReadString() ?? string.Empty,
+                Protected = ReadByte() != 0,
+                Files = ReadFiles() ?? []
+            };
+        }
+
+        return infos;
     }
 
     public void EnsureEnd()
