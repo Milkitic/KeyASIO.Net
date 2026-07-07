@@ -223,6 +223,15 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
+        ///   查找类似 For some ASIO drivers, the buffer size can be manually specified at creation. However, this option has no effect on most sound card drivers. 的本地化字符串。
+        /// </summary>
+        internal static string Audio_ForceBufferSizeDescription {
+            get {
+                return ResourceManager.GetString("Audio_ForceBufferSizeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 ASIO driver detected. Recommended to select &apos;ASIO&apos; driver type. 的本地化字符串。
         /// </summary>
         internal static string Audio_InfoBar_Message_AsioDetected {
@@ -1178,7 +1187,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Performance Boost 的本地化字符串。
+        ///   查找类似 Provides additional performance gains in audio processing. 的本地化字符串。
         /// </summary>
         internal static string Settings_PerformanceBoost {
             get {
@@ -1214,7 +1223,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Uses low-latency key hooks when disabled 的本地化字符串。
+        ///   查找类似 Provides better performance for triggered clicks. If you encounter compatibility issues, disable this option; a low-level keyboard hook (WH_KEYBOARD_LL) will be used instead. 的本地化字符串。
         /// </summary>
         internal static string Settings_RawInputDescription {
             get {
@@ -1430,7 +1439,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Display SyncSessionContext data via RTSS on-screen display at 100 FPS. 的本地化字符串。
+        ///   查找类似 Display debug data in real time via RTSS (Rivatuner Statistics Server). 的本地化字符串。
         /// </summary>
         internal static string Sync_RtssMonitoringDescription {
             get {

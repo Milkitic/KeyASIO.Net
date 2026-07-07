@@ -78,7 +78,7 @@
               </StackPanel>
 
               <StackPanel IsVisible="{Binding AudioSettings.IsAsio}" Spacing="{StaticResource SpacingLarge}">
-                <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Audio_ForceBufferSize}}" Icon="TimerSand">
+                <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Audio_ForceBufferSize}}" Description="{I18N {x:Static lang:SRKeys.Audio_ForceBufferSizeDescription}}" Icon="TimerSand">
                   <TextBlock Classes="Value" Text="{Binding AudioSettings.ForceAsioBufferSize, StringFormat='{}{0} samples'}" />
                 </controls:SettingItem>
                 <Slider

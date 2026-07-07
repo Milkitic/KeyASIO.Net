@@ -171,6 +171,9 @@
   <data name="Audio_ForceBufferSize" xml:space="preserve">
     <value>强制缓冲区大小</value>
   </data>
+  <data name="Audio_ForceBufferSizeDescription" xml:space="preserve">
+    <value>对于部分 ASIO 驱动，可在创建时手动指定缓冲区大小；但对大多数声卡驱动而言，此项无效。</value>
+  </data>
   <data name="Audio_InfoBar_Message_AsioDetected" xml:space="preserve">
     <value>检测到 ASIO 驱动，建议在驱动类型中选择“ASIO”。</value>
   </data>
@@ -492,7 +495,7 @@
     <value>osu! 文件夹路径</value>
   </data>
   <data name="Settings_PerformanceBoost" xml:space="preserve">
-    <value>性能提升</value>
+    <value>在音频处理中可获得额外的性能提升。</value>
   </data>
   <data name="Settings_PresetMode" xml:space="preserve">
     <value>预设模式</value>
@@ -504,7 +507,7 @@
     <value>原始输入</value>
   </data>
   <data name="Settings_RawInputDescription" xml:space="preserve">
-    <value>禁用时使用低延迟键盘钩子</value>
+    <value>触发点击时将获得更好的性能。如遇到兼容性问题，请关闭该选项以使用低级键盘钩子（WH_KEYBOARD_LL）。</value>
   </data>
   <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
     <value>选择 osu! 文件夹</value>
@@ -590,6 +593,12 @@
   </data>
   <data name="Sync_TimingScanIntervalDescription" xml:space="preserve">
     <value>数值越低，时间字段更新越及时。如果出现音频卡顿，请增加此值。</value>
+  </data>
+  <data name="Sync_RtssMonitoring" xml:space="preserve">
+    <value>RTSS 监控</value>
+  </data>
+  <data name="Sync_RtssMonitoringDescription" xml:space="preserve">
+    <value>通过 RTSS (Rivatuner Statistics Server) 实时显示调试数据。</value>
   </data>
   <data name="Sync_WidthNarrow" xml:space="preserve">
     <value>窄</value>

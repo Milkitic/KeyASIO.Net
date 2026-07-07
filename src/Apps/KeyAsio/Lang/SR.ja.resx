@@ -171,6 +171,9 @@
   <data name="Audio_ForceBufferSize" xml:space="preserve">
     <value>バッファサイズを強制</value>
   </data>
+  <data name="Audio_ForceBufferSizeDescription" xml:space="preserve">
+    <value>一部の ASIO ドライバでは作成時にバッファサイズを手動指定できますが、大多数のサウンドカードドライバではこの設定は無効です。</value>
+  </data>
   <data name="Audio_InfoBar_Message_AsioDetected" xml:space="preserve">
     <value>ASIO ドライバーを検出しました。ドライバータイプで「ASIO」を選択することを推奨します。</value>
   </data>
@@ -486,7 +489,7 @@
     <value>osu! フォルダーのパス</value>
   </data>
   <data name="Settings_PerformanceBoost" xml:space="preserve">
-    <value>パフォーマンスブースト</value>
+    <value>オーディオ処理において追加のパフォーマンス向上が得られます。</value>
   </data>
   <data name="Settings_PresetMode" xml:space="preserve">
     <value>プリセットモード</value>
@@ -498,7 +501,7 @@
     <value>生入力</value>
   </data>
   <data name="Settings_RawInputDescription" xml:space="preserve">
-    <value>無効時は低遅延のキーフックを使用します。</value>
+    <value>トリガークリック時により良いパフォーマンスが得られます。互換性の問題が発生した場合は、このオプションを無効にしてください。無効にすると、低レベルキーボードフック（WH_KEYBOARD_LL）が使用されます。</value>
   </data>
   <data name="Settings_SelectOsuFolder_Title" xml:space="preserve">
     <value>osu! フォルダーを選択</value>
@@ -584,6 +587,12 @@
   </data>
   <data name="Sync_TimingScanIntervalDescription" xml:space="preserve">
     <value>値を下げるほどタイミングの更新が速くなります。音が途切れる場合は値を上げてください。</value>
+  </data>
+  <data name="Sync_RtssMonitoring" xml:space="preserve">
+    <value>RTSS モニタリング</value>
+  </data>
+  <data name="Sync_RtssMonitoringDescription" xml:space="preserve">
+    <value>RTSS (Rivatuner Statistics Server) を介してデバッグデータをリアルタイムに表示します。</value>
   </data>
   <data name="Sync_WidthNarrow" xml:space="preserve">
     <value>狭い</value>
