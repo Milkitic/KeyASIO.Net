@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Coosu.Beatmap.Sections.GamePlay;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Core.OsuAudio.Utils;
 using KeyAsio.Shared;
@@ -37,6 +38,7 @@ public class KeyboardBindingInitializer
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SkinManager _skinManager;
+    private readonly SharedViewModel _sharedViewModel;
 
     private IKeyboardHook _keyboardHook = null!;
     public IKeyboardHook KeyboardHook => _keyboardHook;
@@ -54,7 +56,8 @@ public class KeyboardBindingInitializer
         IPlaybackEngine playbackEngine,
         GameplaySessionManager gameplaySessionManager,
         SfxPlaybackService sfxPlaybackService,
-        SkinManager skinManager)
+        SkinManager skinManager,
+        SharedViewModel sharedViewModel)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -63,6 +66,7 @@ public class KeyboardBindingInitializer
         _gameplaySessionManager = gameplaySessionManager;
         _sfxPlaybackService = sfxPlaybackService;
         _skinManager = skinManager;
+        _sharedViewModel = sharedViewModel;
     }
 
     public void Setup()
@@ -214,24 +218,49 @@ public class KeyboardBindingInitializer
         string? cacheKey = null;
         CachedAudio? cachedAudio = null;
 
+        var selectedSkin = _sharedViewModel.SelectedSkin;
         var selectedSkinName = _appSettings.Paths.SelectedSkinName;
         var osuFolder = _appSettings.Paths.OsuFolderPath;
+        var skinFolder = selectedSkin?.Folder ?? "";
 
-        if (!string.IsNullOrWhiteSpace(selectedSkinName) &&
-            !string.Equals(selectedSkinName, SkinDescription.Internal.FolderName, StringComparison.OrdinalIgnoreCase))
+        if (selectedSkin != null &&
+            !string.Equals(selectedSkin.FolderName, SkinDescription.Internal.FolderName, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.Equals(selectedSkinName, SkinDescription.Classic.FolderName, StringComparison.OrdinalIgnoreCase))
+            // Lazer built-in skins (argon, triangles, classic, retro)
+            if (skinFolder.StartsWith("{lazer-", StringComparison.OrdinalIgnoreCase))
+            {
+                cachedAudio = TryLoadLazerBuiltinAudio(skinFolder, sampleName, waveFormat, out cacheKey)
+                              ?? TryLoadLazerBuiltinAudio(skinFolder, "normal-hitnormal", waveFormat, out cacheKey);
+            }
+            // Stable classic skin
+            else if (string.Equals(selectedSkin.FolderName, SkinDescription.Classic.FolderName, StringComparison.OrdinalIgnoreCase))
             {
                 cachedAudio = TryLoadClassicAudio(waveFormat, out cacheKey);
             }
+            // Stable custom skin
             else if (!string.IsNullOrWhiteSpace(osuFolder))
             {
-                var skinFolder = Path.Combine(osuFolder, "Skins", selectedSkinName);
-                if (Directory.Exists(skinFolder))
+                var stableSkinFolder = Path.Combine(osuFolder, "Skins", selectedSkinName);
+                if (Directory.Exists(stableSkinFolder))
                 {
-                    cachedAudio = TryLoadSkinAudio(skinFolder, sampleName, waveFormat, out cacheKey)
-                                  ?? TryLoadSkinAudio(skinFolder, "normal-hitnormal", waveFormat, out cacheKey);
+                    cachedAudio = TryLoadSkinAudio(stableSkinFolder, sampleName, waveFormat, out cacheKey)
+                                  ?? TryLoadSkinAudio(stableSkinFolder, "normal-hitnormal", waveFormat, out cacheKey);
                 }
+            }
+
+            // Lazer custom skins: try catalog
+            if (cachedAudio == null && _skinManager.TryGetSkinCatalog(skinFolder, out var catalog))
+            {
+                cachedAudio = TryLoadSkinCatalogAudio(catalog, sampleName, waveFormat, out cacheKey)
+                              ?? TryLoadSkinCatalogAudio(catalog, "normal-hitnormal", waveFormat, out cacheKey);
+            }
+
+            // Fallback: lazer classic sounds (lazer mode) or stable classic (stable mode)
+            if (cachedAudio == null)
+            {
+                cachedAudio = TryLoadLazerBuiltinAudio("{lazer-classic}", sampleName, waveFormat, out cacheKey)
+                              ?? TryLoadLazerBuiltinAudio("{lazer-classic}", "normal-hitnormal", waveFormat, out cacheKey)
+                              ?? TryLoadClassicAudio(waveFormat, out cacheKey);
             }
         }
 
@@ -255,10 +284,10 @@ public class KeyboardBindingInitializer
         cacheKey = null;
         string resourceName = "soft-hitnormal";
 
-        if (!_skinManager.TryGetResource(resourceName, out var data))
+        if (!_skinManager.TryGetStableResource(resourceName, out var data))
         {
             resourceName = "normal-hitnormal";
-            if (!_skinManager.TryGetResource(resourceName, out data))
+            if (!_skinManager.TryGetStableResource(resourceName, out data))
             {
                 return null;
             }
@@ -283,6 +312,35 @@ public class KeyboardBindingInitializer
         var path = Path.Combine(skinFolder, filename);
         var result = _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(path, waveFormat).GetAwaiter().GetResult();
         cacheKey = path;
+        return result.CachedAudio;
+    }
+
+    private CachedAudio? TryLoadSkinCatalogAudio(IBeatmapResourceCatalog catalog, string filenameWithoutExt,
+        WaveFormat waveFormat, out string? cacheKey)
+    {
+        cacheKey = null;
+        if (!catalog.TryResolveAudio(filenameWithoutExt, out var resource))
+        {
+            return null;
+        }
+
+        var result = _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(resource.Path, waveFormat).GetAwaiter().GetResult();
+        cacheKey = resource.Path;
+        return result.CachedAudio;
+    }
+
+    private CachedAudio? TryLoadLazerBuiltinAudio(string skinFolder, string filenameWithoutExt,
+        WaveFormat waveFormat, out string? cacheKey)
+    {
+        cacheKey = null;
+        if (!_skinManager.TryGetLazerResource(skinFolder, filenameWithoutExt, out var data))
+        {
+            return null;
+        }
+
+        cacheKey = $"lazer://{skinFolder}/{filenameWithoutExt}";
+        using var stream = new MemoryStream(data);
+        var result = _audioCacheManager.GetOrCreateOrEmptyAsync(cacheKey, stream, waveFormat).GetAwaiter().GetResult();
         return result.CachedAudio;
     }
 }

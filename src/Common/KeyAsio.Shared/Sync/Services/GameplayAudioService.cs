@@ -321,7 +321,28 @@ public class GameplayAudioService : IDisposable
             return _audioCacheManager.CreateDynamic(dynamicKey, waveFormat);
         }
 
-        if (_skinManager.TryGetResource(filenameKey, out var bytes))
+        // Lazer user skins: resolve via the skin's resource catalog (file-to-path mappings
+        // received from the lazer IPC). The skinFolder is a virtual key, not a real directory.
+        if (_skinManager.TryGetSkinCatalog(skinFolder, out var skinCatalog) &&
+            skinCatalog.TryResolveAudio(filenameKey, out var skinResource))
+        {
+            return await LoadAndCacheAudioAsync(skinResource.Path, category, waveFormat);
+        }
+
+        // Lazer built-in skins: use per-skin extracted resources with classic → triangles fallback.
+        // For custom lazer skins that didn't have the sample, fall back to classic sounds.
+        var lazerSkinFolder = skinFolder.StartsWith("{lazer-", StringComparison.OrdinalIgnoreCase)
+            ? skinFolder
+            : "{lazer-classic}";
+        if (_skinManager.TryGetLazerResource(lazerSkinFolder, filenameKey, out var lazerBytes))
+        {
+            var key = $"lazer://{lazerSkinFolder}/{filenameKey}";
+            using var stream = new MemoryStream(lazerBytes);
+            return await LoadAndCacheAudioFromStreamAsync(key, stream, category, waveFormat);
+        }
+
+        // Stable fallback (osu!gameplay.dll resources)
+        if (_skinManager.TryGetStableResource(filenameKey, out var bytes))
         {
             var key = $"internal://{filenameKey}";
             using var stream = new MemoryStream(bytes);

@@ -1,8 +1,9 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Coosu.Shared.IO;
 using dnlib.DotNet;
 using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync;
@@ -49,6 +50,17 @@ public class SkinManager
             new SkinDescription("retro", "{lazer-retro}", "osu! \"retro\" (2008)", "team osu!")),
     ];
 
+    // Maps lazer built-in skin Folder → resource path prefix in osu.Game.Resources.dll.
+    // Retro has no gameplay audio samples; it shares Legacy (classic) sounds.
+    private static readonly Dictionary<string, string> s_lazerBuiltinResourcePrefixes = new()
+    {
+        ["{lazer-argon}"] = "Samples.Gameplay.Argon",
+        ["{lazer-argon_pro}"] = "Samples.Gameplay.ArgonPro",
+        ["{lazer-triangles}"] = "Samples.Gameplay",
+        ["{lazer-classic}"] = "Skins.Legacy",
+        ["{lazer-retro}"] = "Skins.Legacy",
+    };
+
     private readonly ILogger<SkinManager> _logger;
     private readonly AppSettings _appSettings;
     private readonly AudioCacheManager _audioCacheManager;
@@ -65,7 +77,9 @@ public class SkinManager
 
     private readonly AsyncSequentialWorker _skinLoadingWorker;
 
-    private readonly Dictionary<string, byte[]> _dictionary = new();
+    private readonly Dictionary<string, byte[]> _stableDefaultResources = new();
+    private readonly Dictionary<string, IBeatmapResourceCatalog> _lazerSkinCatalogs = new();
+    private readonly Dictionary<string, byte[]> _lazerDefaultResources = new();
 
     // Lazer skin context (received via IPC).
     private LazerIpcSkinInfo[]? _lazerSkinInfos;
@@ -98,9 +112,30 @@ public class SkinManager
 
     public bool IsStarted => _processPollingCts != null;
 
-    public bool TryGetResource(string key, [NotNullWhen(true)] out byte[]? data)
+    public bool TryGetStableResource(string key, [NotNullWhen(true)] out byte[]? data)
     {
-        return _dictionary.TryGetValue(key, out data);
+        return _stableDefaultResources.TryGetValue(key, out data);
+    }
+
+    public bool TryGetSkinCatalog(string folder, [NotNullWhen(true)] out IBeatmapResourceCatalog? catalog)
+    {
+        return _lazerSkinCatalogs.TryGetValue(folder, out catalog);
+    }
+
+    public bool TryGetLazerResource(string skinFolder, string key, [NotNullWhen(true)] out byte[]? data)
+    {
+        // Try the specified skin first
+        if (_lazerDefaultResources.TryGetValue($"{skinFolder}:{key}", out data))
+            return true;
+
+        // Fallback: classic → triangles (for missing keys like nightcore in argon)
+        if (_lazerDefaultResources.TryGetValue($"{{lazer-classic}}:{key}", out data))
+            return true;
+
+        if (_lazerDefaultResources.TryGetValue($"{{lazer-triangles}}:{key}", out data))
+            return true;
+
+        return false;
     }
 
     public Task ReloadSkinsAsync() => RefreshSkinsAsync();
@@ -217,6 +252,12 @@ public class SkinManager
         _appSettings.Paths.ClientType = newClientType;
         _logger.LogInformation("Sync client type changed to {ClientType}", newClientType);
 
+        // Clear default resources so they get re-extracted from the appropriate source
+        // (osu!gameplay.dll for stable, osu.Game.Resources.dll for lazer).
+        _stableDefaultResources.Clear();
+        _lazerSkinCatalogs.Clear();
+        _lazerDefaultResources.Clear();
+
         if (newClientType == GameClientType.Stable)
         {
             // When switching back to stable, re-detect stable's osu folder from running process.
@@ -325,9 +366,9 @@ public class SkinManager
                 _sharedViewModel.Skins.Clear();
                 _sharedViewModel.Skins.Add(SkinDescription.Internal);
                 _sharedViewModel.SelectedSkin = SkinDescription.Internal;
-                foreach (var key in _dictionary.Keys)
+                foreach (var key in _stableDefaultResources.Keys)
                 {
-                    _dictionary[key] = Array.Empty<byte>();
+                    _stableDefaultResources[key] = Array.Empty<byte>();
                 }
             });
             return;
@@ -406,6 +447,8 @@ public class SkinManager
 
     private async Task LoadLazerSkinsAsync(CancellationToken token)
     {
+        _lazerSkinCatalogs.Clear();
+
         var newSkinList = new List<SkinDescription> { SkinDescription.Internal };
 
         // 5 built-in skins (mirrors stable's behavior: always available).
@@ -413,6 +456,9 @@ public class SkinManager
         {
             newSkinList.Add(description);
         }
+
+        // Extract default gameplay audio from osu.Game.Resources.dll for built-in skins.
+        ExtractLazerDefaultResources(token);
 
         // User skins from lazer realm (via IPC).
         if (_lazerSkinInfos != null)
@@ -426,6 +472,17 @@ public class SkinManager
 
                 var folder = Path.Combine(_lazerUserDataDirectory ?? "", "files", info.Id);
                 var folderName = info.Name ?? info.Id;
+
+                // Build a resource catalog from the skin's files so audio can be
+                // resolved by name to the actual hash-based file store paths.
+                if (info.Files.Length > 0)
+                {
+                    var catalog = BeatmapResourceCatalog.FromMappings(
+                        info.Files.Select(f => new BeatmapResource(f.Name, f.Path)),
+                        folder,
+                        $"lazer-skin:{info.Id}");
+                    _lazerSkinCatalogs[folder] = catalog;
+                }
 
                 newSkinList.Add(new SkinDescription(
                     folderName,
@@ -467,7 +524,7 @@ public class SkinManager
 
     private void ExtractDefaultResources(string osuPath, CancellationToken token)
     {
-        if (_dictionary.Count > 0) return;
+        if (_stableDefaultResources.Count > 0) return;
         var dllPath = Path.Combine(osuPath, "osu!gameplay.dll");
         if (!File.Exists(dllPath))
         {
@@ -499,7 +556,7 @@ public class SkinManager
                     if (resourceData.Length <= 4) return;
 
                     var bytes = resourceData.AsSpan(4).ToArray();
-                    _dictionary[resourcesKey] = bytes;
+                    _stableDefaultResources[resourcesKey] = bytes;
                     _logger.LogDebug("Extracted '{ResourcesKey}' ({Bytes} bytes)", resourcesKey, bytes.Length);
                 }
                 catch (ArgumentException)
@@ -511,6 +568,90 @@ public class SkinManager
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to extract default resources from osu!gameplay.dll");
+        }
+    }
+
+    private void ExtractLazerDefaultResources(CancellationToken token)
+    {
+        if (_lazerDefaultResources.Count > 0) return;
+
+        var exeDir = _lazerExeDirectory;
+        if (string.IsNullOrEmpty(exeDir))
+        {
+            _logger.LogDebug("Lazer exe directory not available; skipping default resource extraction.");
+            return;
+        }
+
+        var dllPath = Path.Combine(exeDir, "osu.Game.Resources.dll");
+        if (!File.Exists(dllPath))
+        {
+            _logger.LogDebug("osu.Game.Resources.dll not found at {Path}", dllPath);
+            return;
+        }
+
+        try
+        {
+            if (token.IsCancellationRequested) return;
+
+            using var module = ModuleDefMD.Load(dllPath);
+            var assemblyName = module.Assembly?.Name ?? "osu.Game.Resources";
+
+            // Build a lookup of all embedded resource names.
+            var resourceNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var res in module.Resources)
+            {
+                if (res is EmbeddedResource emb)
+                    resourceNames.Add(emb.Name);
+            }
+
+            // For each built-in skin, extract its samples from the corresponding resource path.
+            // e.g. argon → "osu.Game.Resources.Samples.Gameplay.Argon.normal-hitnormal.wav"
+            //      classic → "osu.Game.Resources.Skins.Legacy.normal-hitnormal.wav"
+            foreach (var (skinFolder, pathPrefix) in s_lazerBuiltinResourcePrefixes)
+            {
+                var dotPrefix = pathPrefix.Replace('/', '.');
+
+                foreach (var key in s_resourcesKeys)
+                {
+                    if (token.IsCancellationRequested) return;
+
+                    // Try .wav > .mp3 > .ogg in priority order
+                    foreach (var ext in new[] { ".wav", ".mp3", ".ogg" })
+                    {
+                        var manifestName = $"{assemblyName}.{dotPrefix}.{key}{ext}";
+                        if (!resourceNames.Contains(manifestName))
+                            continue;
+
+                        var emb = module.Resources.FindEmbeddedResource(manifestName);
+                        if (emb == null) break;
+
+                        try
+                        {
+                            using var stream = emb.CreateReader().AsStream();
+                            using var ms = new MemoryStream();
+                            stream.CopyTo(ms);
+                            var storageKey = $"{skinFolder}:{key}";
+                            _lazerDefaultResources[storageKey] = ms.ToArray();
+                            _logger.LogDebug("Extracted '{Key}' for {Skin} from osu.Game.Resources.dll ({Bytes} bytes)",
+                                key, skinFolder, _lazerDefaultResources[storageKey].Length);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to extract '{Key}' for {Skin} from osu.Game.Resources.dll",
+                                key, skinFolder);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            _logger.LogInformation("Extracted {Count} lazer default audio resources from osu.Game.Resources.dll",
+                _lazerDefaultResources.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to extract default resources from osu.Game.Resources.dll");
         }
     }
 
