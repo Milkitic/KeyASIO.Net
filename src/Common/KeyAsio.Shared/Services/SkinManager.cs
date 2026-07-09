@@ -4,6 +4,7 @@ using Coosu.Shared.IO;
 using dnlib.DotNet;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.OsuAudio.Hitsounds;
+using KeyAsio.LazerProtocol;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync;
@@ -82,7 +83,7 @@ public class SkinManager
     private readonly Dictionary<string, byte[]> _lazerDefaultResources = new();
 
     // Lazer skin context (received via IPC).
-    private LazerIpcSkinInfo[]? _lazerSkinInfos;
+    private LazerSkinInfo[]? _lazerSkinInfos;
     private string? _lazerUserDataDirectory;
     private string? _lazerExeDirectory;
     private GameClientType _lastKnownClientType = GameClientType.Stable;
@@ -188,7 +189,7 @@ public class SkinManager
         }
     }
 
-    private void OnLazerSkinContextReceived(LazerIpcSkinInfo[]? skinInfos, string? userDataDirectory, string? exeDirectory)
+    private void OnLazerSkinContextReceived(LazerSkinInfo[]? skinInfos, string? userDataDirectory, string? exeDirectory)
     {
         bool changed = false;
 

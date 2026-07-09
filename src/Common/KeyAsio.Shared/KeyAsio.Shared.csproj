@@ -38,6 +38,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj" />
     <ProjectReference Include="..\..\..\dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
+    <ProjectReference Include="..\..\..\dependencies\osu.Game.Rulesets.KeyAsio\KeyAsio.LazerProtocol\KeyAsio.LazerProtocol.csproj" />
     <ProjectReference Include="..\..\Core\KeyAsio.Core.Audio\KeyAsio.Core.Audio.csproj" />
     <ProjectReference Include="..\..\Core\KeyAsio.Core.Memory\KeyAsio.Core.Memory.csproj" />
     <ProjectReference Include="..\..\Core\KeyAsio.Core.OsuAudio\KeyAsio.Core.OsuAudio.csproj" />

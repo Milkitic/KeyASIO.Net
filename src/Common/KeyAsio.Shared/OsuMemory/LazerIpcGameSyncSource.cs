@@ -1,4 +1,5 @@
 using KeyAsio.Core.OsuAudio.Hitsounds;
+using KeyAsio.LazerProtocol;
 using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.Sync;
@@ -16,11 +17,11 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     private bool _hasTimingFrame;
     private bool _hasEventFrame;
     private IBeatmapResourceCatalog? _resourceCatalog;
-    private LazerIpcSkinInfo[]? _lastPublishedSkinInfos;
+    private LazerSkinInfo[]? _lastPublishedSkinInfos;
     private string? _lastPublishedUserDataDirectory;
     private string? _lastPublishedExeDirectory;
 
-    public event Action<LazerIpcSkinInfo[]?, string?, string?>? LazerSkinContextReceived;
+    public event Action<LazerSkinInfo[]?, string?, string?>? LazerSkinContextReceived;
 
     public LazerIpcGameSyncSource(LazerIpcBridge lazerIpcBridge)
     {
@@ -88,11 +89,11 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
             AvailabilityChanged?.Invoke(this, isAvailable);
     }
 
-    private void OnFrameReceived(LazerIpcChannel channel, LazerIpcDeltaFrame deltaFrame)
+    private void OnFrameReceived(LazerIpcChannel channel, LazerDeltaFrame deltaFrame)
     {
         bool availabilityChanged;
         bool isAvailable;
-        LazerIpcSkinInfo[]? skinInfosToPublish = null;
+        LazerSkinInfo[]? skinInfosToPublish = null;
         string? userDataDirectoryToPublish = null;
         string? exeDirectoryToPublish = null;
         bool skinContextChanged = false;
@@ -155,11 +156,11 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         }
     }
 
-    private void ApplyFrameLocked(LazerIpcDeltaFrame deltaFrame)
+    private void ApplyFrameLocked(LazerDeltaFrame deltaFrame)
     {
-        var beatmapChanged = deltaFrame.HasField(LazerIpcFieldKind.BeatmapFolder) ||
-                             deltaFrame.HasField(LazerIpcFieldKind.BeatmapFilename);
-        var beatmapFilesChanged = deltaFrame.HasField(LazerIpcFieldKind.BeatmapFiles);
+        var beatmapChanged = deltaFrame.HasField(LazerFieldKind.BeatmapFolder) ||
+                             deltaFrame.HasField(LazerFieldKind.BeatmapFilename);
+        var beatmapFilesChanged = deltaFrame.HasField(LazerFieldKind.BeatmapFiles);
 
         if (beatmapChanged && !beatmapFilesChanged)
         {

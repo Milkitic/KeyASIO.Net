@@ -2,15 +2,16 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.IO.Pipes;
+using KeyAsio.LazerProtocol;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Shared.OsuMemory;
 
 public sealed class LazerIpcBridge : IDisposable
 {
-    public const string PipeName = "KeyAsio.LazerBridge.v1";
-    public const string EventPipeName = "KeyAsio.LazerBridge.Events.v1";
-    public const int ProtocolVersion = 2;
+    public const string PipeName = LazerProtocolConstants.TimingPipeName;
+    public const string EventPipeName = LazerProtocolConstants.EventPipeName;
+    public const int ProtocolVersion = LazerProtocolConstants.ProtocolVersion;
     // Event frames may include lazer skin and file metadata; large skin libraries can exceed several MB.
     private const int MaxFrameLength = 64 * 1024 * 1024;
 
@@ -32,7 +33,7 @@ public sealed class LazerIpcBridge : IDisposable
     public bool IsAnyChannelConnected => IsTimingConnected || IsEventsConnected;
 
     public event Action<LazerIpcChannel, bool, bool>? ChannelConnectionChanged;
-    public event Action<LazerIpcChannel, LazerIpcDeltaFrame>? FrameReceived;
+    public event Action<LazerIpcChannel, LazerDeltaFrame>? FrameReceived;
 
     public void Start()
     {
@@ -145,7 +146,7 @@ public sealed class LazerIpcBridge : IDisposable
             {
                 while (!token.IsCancellationRequested && server.IsConnected)
                 {
-                    LazerIpcDeltaFrame? frame;
+                    LazerDeltaFrame? frame;
                     try
                     {
                         frame = await ReadFrameAsync(server, lengthBuffer, token);
@@ -215,7 +216,7 @@ public sealed class LazerIpcBridge : IDisposable
         };
     }
 
-    private async ValueTask<LazerIpcDeltaFrame?> ReadFrameAsync(Stream stream, byte[] lengthBuffer,
+    private async ValueTask<LazerDeltaFrame?> ReadFrameAsync(Stream stream, byte[] lengthBuffer,
         CancellationToken token)
     {
         try
@@ -237,7 +238,7 @@ public sealed class LazerIpcBridge : IDisposable
         try
         {
             await stream.ReadExactlyAsync(buffer.AsMemory(0, length), token);
-            return LazerIpcDeltaFrame.Parse(buffer.AsSpan(0, length));
+            return LazerDeltaFrame.Parse(buffer.AsSpan(0, length));
         }
         finally
         {
