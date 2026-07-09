@@ -14,12 +14,9 @@ public class MemorySyncBridge
     private readonly SyncSessionContext _syncSessionContext;
     private readonly AppSettings _appSettings;
     private readonly ILogger<MemorySyncBridge> _logger;
-    private readonly object _lazerConnectionLock = new();
     private bool _initialized;
     private bool _isRunning;
     private volatile bool _isStopping;
-    private bool _lazerTimingConnected;
-    private bool _lazerEventsConnected;
 
     public MemorySyncBridge(
         GameSyncSourceCoordinator sourceCoordinator,
@@ -74,30 +71,9 @@ public class MemorySyncBridge
 
     private void OnLazerIpcChannelConnectionChanged(LazerIpcChannel channel, bool oldValue, bool newValue)
     {
-        bool suppressStableScan;
-
-        lock (_lazerConnectionLock)
-        {
-            switch (channel)
-            {
-                case LazerIpcChannel.Timing:
-                    _lazerTimingConnected = newValue;
-                    break;
-
-                case LazerIpcChannel.Events:
-                    _lazerEventsConnected = newValue;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
-            }
-
-            suppressStableScan = _lazerTimingConnected || _lazerEventsConnected;
-        }
-
         if (_isStopping) return;
 
-        _stableSource.SetMemoryScanSuppressed(suppressStableScan);
+        _stableSource.SetMemoryScanSuppressed(_lazerIpcBridge.IsAnyChannelConnected);
     }
 
     private void OnSyncSettingsChanged(object? sender, PropertyChangedEventArgs e)
@@ -151,12 +127,6 @@ public class MemorySyncBridge
         }
         finally
         {
-            lock (_lazerConnectionLock)
-            {
-                _lazerTimingConnected = false;
-                _lazerEventsConnected = false;
-            }
-
             _stableSource.SetMemoryScanSuppressed(false);
             _isStopping = false;
             _isRunning = false;

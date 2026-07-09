@@ -27,6 +27,10 @@ public sealed class LazerIpcBridge : IDisposable
         _logger = logger;
     }
 
+    public bool IsTimingConnected => Volatile.Read(ref _timingClientCount) > 0;
+    public bool IsEventsConnected => Volatile.Read(ref _eventClientCount) > 0;
+    public bool IsAnyChannelConnected => IsTimingConnected || IsEventsConnected;
+
     public event Action<LazerIpcChannel, bool, bool>? ChannelConnectionChanged;
     public event Action<LazerIpcChannel, LazerIpcDeltaFrame>? FrameReceived;
 

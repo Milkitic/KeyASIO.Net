@@ -13,11 +13,8 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     private readonly object frameLock = new();
     private bool _eventsBound;
     private bool _connected;
-    private bool _timingConnected;
-    private bool _eventConnected;
     private bool _hasTimingFrame;
     private bool _hasEventFrame;
-    private bool _legacySinglePipeMode;
     private IBeatmapResourceCatalog? _resourceCatalog;
     private LazerIpcSkinInfo[]? _lastPublishedSkinInfos;
     private string? _lastPublishedUserDataDirectory;
@@ -29,7 +26,7 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     {
         _lazerIpcBridge = lazerIpcBridge;
         _snapshot = GameSyncSnapshot.NotRunning(ClientType);
-        CurrentSnapshot = _snapshot.Clone();
+        CurrentSnapshot = _snapshot;
     }
 
     public string Name => "osu!lazer IPC";
@@ -54,8 +51,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         bool availabilityChanged;
         lock (frameLock)
         {
-            _timingConnected = false;
-            _eventConnected = false;
             ResetFrameStateLocked();
             availabilityChanged = SetAvailabilityLocked(false);
         }
@@ -80,22 +75,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
 
         lock (frameLock)
         {
-            switch (channel)
-            {
-                case LazerIpcChannel.Timing:
-                    _timingConnected = newValue;
-                    break;
-
-                case LazerIpcChannel.Events:
-                    _eventConnected = newValue;
-                    if (newValue)
-                        _legacySinglePipeMode = false;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
-            }
-
             if (!newValue)
             {
                 ResetFrameStateLocked();
@@ -113,7 +92,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     {
         bool availabilityChanged;
         bool isAvailable;
-        GameSyncSnapshot? snapshotToPublish = null;
         LazerIpcSkinInfo[]? skinInfosToPublish = null;
         string? userDataDirectoryToPublish = null;
         string? exeDirectoryToPublish = null;
@@ -125,12 +103,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
             {
                 case LazerIpcChannel.Timing:
                     _hasTimingFrame = true;
-                    if (ContainsEventFields(deltaFrame))
-                    {
-                        _legacySinglePipeMode = true;
-                        _hasEventFrame = true;
-                    }
-
                     break;
 
                 case LazerIpcChannel.Events:
@@ -144,12 +116,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
             ApplyFrameLocked(deltaFrame);
             isAvailable = CanBeAvailableLocked();
             availabilityChanged = SetAvailabilityLocked(isAvailable);
-
-            if (_connected)
-            {
-                snapshotToPublish = _snapshot.Clone();
-                CurrentSnapshot = snapshotToPublish;
-            }
 
             // Detect changes to lazer skin context.
             if (!ReferenceEquals(_frame.SkinInfos, _lastPublishedSkinInfos))
@@ -177,8 +143,8 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         if (availabilityChanged)
             AvailabilityChanged?.Invoke(this, isAvailable);
 
-        if (snapshotToPublish != null)
-            SnapshotReceived?.Invoke(this, snapshotToPublish);
+        if (isAvailable)
+            SnapshotReceived?.Invoke(this, _snapshot);
 
         if (skinContextChanged)
         {
@@ -245,11 +211,10 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     {
         _hasTimingFrame = false;
         _hasEventFrame = false;
-        _legacySinglePipeMode = false;
         _resourceCatalog = null;
         _frame.Reset();
         _snapshot.ResetToNotRunning(ClientType);
-        CurrentSnapshot = _snapshot.Clone();
+        CurrentSnapshot = _snapshot;
 
         _lastPublishedSkinInfos = null;
         _lastPublishedUserDataDirectory = null;
@@ -257,8 +222,8 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     }
 
     private bool CanBeAvailableLocked()
-        => _timingConnected &&
-           (_eventConnected || _legacySinglePipeMode) &&
+        => _lazerIpcBridge.IsTimingConnected &&
+           _lazerIpcBridge.IsEventsConnected &&
            _hasTimingFrame &&
            _hasEventFrame;
 
@@ -269,9 +234,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         _connected = isAvailable;
         return true;
     }
-
-    private static bool ContainsEventFields(LazerIpcDeltaFrame deltaFrame)
-        => deltaFrame.Fields.Any(field => field.Kind is not (LazerIpcFieldKind.ProcessId or LazerIpcFieldKind.PlayTime));
 
     private static string CreateCatalogCacheKey(LazerIpcFrame frame)
     {
