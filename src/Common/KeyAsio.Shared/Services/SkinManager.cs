@@ -441,7 +441,7 @@ public class SkinManager
         }
 
         var newSkinList = new List<SkinDescription> { SkinDescription.Internal, SkinDescription.Classic };
-        newSkinList.AddRange(loadedSkins);
+        newSkinList.AddRange(OrderUserSkins(loadedSkins));
 
         await PublishSkinListAsync(newSkinList, token);
     }
@@ -462,6 +462,7 @@ public class SkinManager
         ExtractLazerDefaultResources(token);
 
         // User skins from lazer realm (via IPC).
+        var lazerUserSkins = new List<SkinDescription>();
         if (_lazerSkinInfos != null)
         {
             foreach (var info in _lazerSkinInfos)
@@ -485,7 +486,7 @@ public class SkinManager
                     _lazerSkinCatalogs[folder] = catalog;
                 }
 
-                newSkinList.Add(new SkinDescription(
+                lazerUserSkins.Add(new SkinDescription(
                     folderName,
                     folder,
                     info.Name,
@@ -493,8 +494,17 @@ public class SkinManager
             }
         }
 
+        newSkinList.AddRange(OrderUserSkins(lazerUserSkins));
+
         await PublishSkinListAsync(newSkinList, token);
     }
+
+    /// <summary>
+    /// Sort user skins alphabetically by their display description (case-insensitive, ordinal),
+    /// matching the ordering users expect from osu! stable/lazer skin dropdowns.
+    /// </summary>
+    private static IEnumerable<SkinDescription> OrderUserSkins(IEnumerable<SkinDescription> userSkins)
+        => userSkins.OrderBy(static s => s.Description, StringComparer.OrdinalIgnoreCase);
 
     private async Task PublishSkinListAsync(List<SkinDescription> newSkinList, CancellationToken token)
     {
