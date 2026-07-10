@@ -1,4 +1,4 @@
-﻿using KeyAsio.Plugins.Abstractions.OsuMemory;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.OsuMemory;
 using KeyAsio.Shared.Sync.Services;
 
@@ -23,7 +23,7 @@ public class BrowsingState : IGameState
     {
     }
 
-    public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isPaused)
+    public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isAudioPaused)
     {
     }
 

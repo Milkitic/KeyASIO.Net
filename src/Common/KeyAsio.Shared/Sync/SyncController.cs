@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Memory.Utils;
 using KeyAsio.Plugins.Abstractions;
@@ -181,7 +181,7 @@ public class SyncController : IDisposable
 
             if (!blockBase)
             {
-                _stateMachine.Current?.OnTick(_syncSessionContext, oldTime, newTime, oldTime == newTime);
+                _stateMachine.Current?.OnTick(_syncSessionContext, oldTime, newTime, _syncSessionContext.IsAudioPaused);
             }
 
             oldTime = newTime;

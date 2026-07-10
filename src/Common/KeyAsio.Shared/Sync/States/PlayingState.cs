@@ -73,7 +73,7 @@ public class PlayingState : IGameState
     {
     }
 
-    public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isPaused)
+    public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isAudioPaused)
     {
         if (!ctx.IsStarted) return;
 

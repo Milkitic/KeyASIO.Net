@@ -1,4 +1,4 @@
-﻿using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Plugins.Abstractions;
 using KeyAsio.Shared.OsuMemory;
 
 namespace KeyAsio.Shared.Sync;
@@ -25,6 +25,7 @@ public class SyncContextWrapper : ISyncContext
     public int PlayMods => (int)_context.PlayMods;
     public SyncStatistics Statistics => _context.Statistics;
     public SyncHitErrors HitErrors => _context.HitErrors;
+    public bool IsAudioPaused => _context.IsAudioPaused;
 
     public SyncBeatmapInfo? Beatmap
     {

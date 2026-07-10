@@ -1,4 +1,4 @@
-﻿using KeyAsio.Plugins.Abstractions.OsuMemory;
+using KeyAsio.Plugins.Abstractions.OsuMemory;
 using KeyAsio.Shared.OsuMemory;
 
 namespace KeyAsio.Shared.Sync.States;
@@ -18,7 +18,7 @@ public class ResultsState : IGameState
     {
     }
 
-    public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isPaused)
+    public void OnTick(SyncSessionContext ctx, int prevMs, int currMs, bool isAudioPaused)
     {
     }
 

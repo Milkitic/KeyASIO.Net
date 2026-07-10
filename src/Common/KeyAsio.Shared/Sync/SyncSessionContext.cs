@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using KeyAsio.Core.OsuAudio.Hitsounds;
@@ -48,6 +48,12 @@ public class SyncSessionContext
     public GameClientType ClientType { get; set; }
     public bool IsStarted { get; set; }
     public bool IsReplay { get; set; }
+
+    /// <summary>
+    /// 音频是否处于暂停/冻结状态。
+    /// 由 PlayTime 的单调性保护逻辑自动维护：当预测时间持续微小倒退时为 true，恢复正常前进时为 false。
+    /// </summary>
+    public bool IsAudioPaused => _isFrozen;
     public int ProcessId { get; set; } = -1;
 
     public string? Username

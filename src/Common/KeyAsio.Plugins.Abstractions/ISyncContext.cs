@@ -41,4 +41,9 @@ public interface ISyncContext
     /// Current beatmap information
     /// </summary>
     SyncBeatmapInfo? Beatmap { get; }
+
+    /// <summary>
+    /// Whether audio is paused/frozen (predicted time is in micro-regression protection).
+    /// </summary>
+    bool IsAudioPaused { get; }
 }
