@@ -1,0 +1,37 @@
+[Forum page](https://osu.ppy.sh/community/forums/topics/1602658)
+
+## Release notes
+
+### Summary
+A landmark release that brings **osu!lazer** support to KeyASIO. The game-sync layer has been re-architected around a pluggable `IGameSyncSource` abstraction, with a new named-pipe IPC bridge that streams live gameplay data directly from lazer — no memory scanning required. Lazer beatmaps and skins (including the built-in argon/triangles/classic/retro skins) now load dynamically, with audio extracted from `osu.Game.Resources.dll`. On the audio side, a new `PlaybackTimelineClock` unifies play/pause/seek/loop/rate-change handling and fixes a position-drift bug when preserving pitch during rate changes.
+
+
+### Features
+- **osu!lazer IPC Game Sync**: New `IGameSyncSource` abstraction unifies osu!stable memory scanning and osu!lazer IPC under a single `GameSyncSourceCoordinator` that auto-selects the highest-priority available source. The new `LazerIpcBridge` listens on two named pipes (Timing + Events) and streams gameplay snapshots into `SyncSessionContext`; stable memory scanning is automatically suppressed while lazer is connected. (`IGameSyncSource.cs`, `GameSyncSourceCoordinator.cs`, `LazerIpcBridge.cs`, `LazerIpcGameSyncSource.cs`, `StableMemoryGameSyncSource.cs`, `MemorySyncBridge.cs`, `MemoryScan.cs`)
+- **Binary Delta-Frame IPC Protocol**: Replaced the JSON-based lazer IPC protocol with a compact binary length-prefixed delta-frame format (`LazerDeltaFrame` / `LazerFieldKind`), sending only changed fields per frame to minimize bandwidth. (`LazerIpcFrame.cs`, `KeyAsio.LazerProtocol`)
+- **Dual-Pipe IPC Architecture**: Split the lazer IPC bridge into separate Timing and Events channels (`LazerIpcChannel`), isolating high-frequency timing data from heavier event/skin metadata; connection state is tracked per channel and surfaced via `ChannelConnectionChanged`. (`LazerIpcBridge.cs`, `LazerIpcGameSyncSource.cs`)
+- **BeatmapResourceCatalog (Virtual File System)**: New `IBeatmapResourceCatalog` / `BeatmapResourceCatalog` decouples beatmap audio resolution from physical directory paths, enabling lazer's hash-based file store to be resolved by name. `BeatmapSetContext` and `GameplayAudioService` now resolve audio through the catalog instead of raw `Path.Combine`. (`BeatmapResourceCatalog.cs`, `BeatmapSetContext.cs`, `GameplayAudioService.cs`, `GameplaySessionManager.cs`, `SyncSessionContext.cs`)
+- **Lazer Skin Dynamic Loading**: `SkinManager` now dynamically loads skins from lazer via IPC-delivered `LazerSkinInfo` metadata. Built-in skins (argon, argon_pro, triangles, classic, retro) are populated with audio extracted from `osu.Game.Resources.dll`; user skins are resolved through per-skin `BeatmapResourceCatalog` instances built from realm file mappings. Skin context changes (skin list, user-data directory, exe directory) trigger live reloads. (`SkinManager.cs`, `KeyboardBindingInitializer.cs`)
+- **PlaybackTimelineClock**: New `PlaybackTimelineClock` centralizes play/pause/seek/loop and rate-change logic with `Stopwatch`-based monotonic timing, replacing ad-hoc `_isRunning` flags in both `AudioFileMusicPlaybackSource` and `SilentMusicPlaybackSource`. Rate changes now re-seek the underlying provider through the clock to keep positions consistent. (`PlaybackTimelineClock.cs`, `AudioFileMusicPlaybackSource.cs`, `SilentMusicPlaybackSource.cs`)
+
+### Enhancements
+- **Stable Scan Suppression**: `MemoryScan` gains a `SetScanSuppressed` method with a `ManualResetEventSlim` gate; the scan loop cleanly parks and cleans up the process handle while lazer IPC is active, then resumes without the 2-second disconnect delay. (`MemoryScan.cs`, `StableMemoryGameSyncSource.cs`, `MemorySyncBridge.cs`)
+- **Combo-Break SFX Requires Lazer Miss Increase**: `PlayingState` now tracks `_lastObservedLazerMissCount` and only fires the combo-break sound when a new miss is actually registered on lazer, preventing spurious triggers from replay/retry state resets. (`PlayingState.cs`)
+- **Snapshot Applied Before Combo Check**: The sync snapshot is now applied to `SyncSessionContext` before the combo-break evaluation runs, so the latest miss/combo values are used. (`PlayingState.cs`)
+- **Alphabetical Skin Sorting**: User skins (both stable and lazer) are now sorted alphabetically by display description, matching osu!'s skin dropdown ordering. (`SkinManager.cs`)
+- **Lazer Path Auto-Detection**: `OsuLocator` can now find the lazer executable directory from a running process and resolve the user-data directory from `storage.ini` or `%LOCALAPPDATA%/osu!`. (`OsuLocator.cs`)
+- **ClientType Tracking**: `AppSettings.Paths.ClientType` persists the last-synced game client; `GameSyncSourceCoordinator.ClientTypeChanged` propagates client switches to `SkinManager` for resource re-extraction. (`AppSettings.cs`, `GameSyncSourceCoordinator.cs`, `SkinManager.cs`)
+- **Balance Factor Default**: Lowered the default `BalanceFactor` from `0.6666667` to `0.3333333`. (`AppSettings.cs`)
+- **Localization Updates**: Added `Audio_ForceBufferSizeDescription`; rewrote `Settings_RawInputDescription`, `Settings_PerformanceBoost`, and `Sync_RtssMonitoringDescription` with clearer copy across English, Simplified Chinese, and Japanese. (`SR.*.resx`, `SR.Designer.cs`, `AudioEnginePage.axaml`)
+
+### Fixes
+- **Pitch-Preserving Rate-Change Position Drift**: Fixed state inconsistency where changing the playback rate with `PreservePitch` enabled could desynchronize the reported position from the actual audio position. `PlaybackRateState` now carries a `PreservePitchCompensationMilliseconds` field and `PlaybackTimelineClock.SetRate` applies a calculated position compensation, re-seeking the source provider to the clock's current position before rebuilding the rate-processed output. (`PlaybackRateState.cs`, `PlaybackTimelineClock.cs`, `AudioFileMusicPlaybackSource.cs`, `SilentMusicPlaybackSource.cs`)
+- **Lazer IPC Connection-State Race**: Centralized per-channel connection tracking into `LazerIpcBridge` (`IsTimingConnected` / `IsEventsConnected` / `IsAnyChannelConnected`) and removed the duplicated `_timingConnected` / `_eventConnected` / `_legacySinglePipeMode` fields from `LazerIpcGameSyncSource`, eliminating the race where `MemorySyncBridge` could read stale connection state. (`LazerIpcBridge.cs`, `LazerIpcGameSyncSource.cs`, `MemorySyncBridge.cs`)
+
+### Miscellaneous
+- **KeyAsio.LazerProtocol Extraction**: The lazer IPC protocol types (`LazerDeltaFrame`, `LazerFieldKind`, `LazerFile`, `LazerSkinInfo`, `LazerStatistics`, `LazerProtocolConstants`) were extracted from inline code into the standalone `KeyAsio.LazerProtocol` library within the `osu.Game.Rulesets.KeyAsio` submodule, shared between the lazer mod and KeyASIO. (`KeyAsio.LazerProtocol.csproj`, `KeyAsio.Shared.csproj`, `LazerIpcFrame.cs`)
+- **Submodule Addition**: Added `dependencies/osu.Game.Rulesets.KeyAsio` as a git submodule hosting the lazer-side mod and the shared protocol library. (`.gitmodules`)
+- **Unit Tests**: Added `BeatmapResourceCatalogTests` and `GameSyncSourceCoordinatorTests` covering resource resolution and multi-source coordination. (`tests/KeyAsio.UnitTests/`)
+- **IPC Frame Size**: Raised the maximum lazer IPC frame length from 4 MB to 64 MB to accommodate large skin libraries with extensive file metadata. (`LazerIpcBridge.cs`)
+
+**Full Changelog**: https://github.com/Milkitic/KeyASIO.Net/compare/v4.0.0-alpha.9...v4.0.0-alpha.12
