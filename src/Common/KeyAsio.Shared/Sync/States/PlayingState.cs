@@ -27,6 +27,7 @@ public class PlayingState : IGameState
     private bool _disableComboBreakSfx;
     private bool? _lastIsReplay;
     private int _lastObservedLazerMissCount;
+    private bool _wasAudioPaused;
 
     public PlayingState(
         ILogger<PlayingState> logger,
@@ -60,6 +61,7 @@ public class PlayingState : IGameState
     {
         _lastHitsoundSyncTimestamp = 0;
         _lastObservedLazerMissCount = ctx.Statistics.Miss;
+        _wasAudioPaused = false;
         if (ctx.Beatmap == default)
         {
             // Beatmap is required to start; keep silent if absent
@@ -90,6 +92,24 @@ public class PlayingState : IGameState
             OnRetry(ctx);
             return;
         }
+
+        // Pause/resume loop audio on edge transitions
+        if (isAudioPaused != _wasAudioPaused)
+        {
+            if (isAudioPaused)
+            {
+                _sfxPlaybackService.PauseAllLoops(_playbackEngine.EffectMixer);
+            }
+            else
+            {
+                _sfxPlaybackService.ResumeAllLoops(_playbackEngine.EffectMixer);
+            }
+
+            _wasAudioPaused = isAudioPaused;
+        }
+
+        // Skip hitsound sync while paused to avoid timing-window responses
+        if (isAudioPaused) return;
 
         var timestamp = ctx.LastUpdateTimestamp;
 
@@ -136,6 +156,7 @@ public class PlayingState : IGameState
     private void OnRetry(SyncSessionContext ctx)
     {
         _lastObservedLazerMissCount = ctx.Statistics.Miss;
+        _wasAudioPaused = false;
         var mixer = _playbackEngine.EffectMixer;
         _sfxPlaybackService.ClearAllLoops(mixer);
         mixer?.RemoveAllMixerInputs();

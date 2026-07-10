@@ -8,6 +8,7 @@ using KeyAsio.Core.OsuAudio.Utils;
 using KeyAsio.Shared;
 using KeyAsio.Shared.Models;
 using KeyAsio.Shared.Services;
+using KeyAsio.Shared.Sync;
 using KeyAsio.Shared.Sync.AudioProviders;
 using KeyAsio.Shared.Sync.Services;
 using KeyAsio.Shared.Utils;
@@ -39,6 +40,7 @@ public class KeyboardBindingInitializer
     private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SkinManager _skinManager;
     private readonly SharedViewModel _sharedViewModel;
+    private readonly SyncSessionContext _syncSessionContext;
 
     private IKeyboardHook _keyboardHook = null!;
     public IKeyboardHook KeyboardHook => _keyboardHook;
@@ -57,7 +59,8 @@ public class KeyboardBindingInitializer
         GameplaySessionManager gameplaySessionManager,
         SfxPlaybackService sfxPlaybackService,
         SkinManager skinManager,
-        SharedViewModel sharedViewModel)
+        SharedViewModel sharedViewModel,
+        SyncSessionContext syncSessionContext)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -67,6 +70,7 @@ public class KeyboardBindingInitializer
         _sfxPlaybackService = sfxPlaybackService;
         _skinManager = skinManager;
         _sharedViewModel = sharedViewModel;
+        _syncSessionContext = syncSessionContext;
     }
 
     public void Setup()
@@ -182,6 +186,8 @@ public class KeyboardBindingInitializer
 
                 if (keyIndex != -1)
                 {
+                    if (_syncSessionContext.IsAudioPaused) return;
+
                     sequencer.ProcessInteraction(_playbackBuffer, keyIndex, keyTotal);
                     foreach (var playbackInfo in _playbackBuffer)
                     {
