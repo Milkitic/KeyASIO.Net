@@ -199,6 +199,18 @@ public class SfxPlaybackService
         _loopProviderManager.RemoveAll(mixingSampleProvider);
     }
 
+    public void PauseAllLoops(IMixingSampleProvider? mixingSampleProvider = null)
+    {
+        mixingSampleProvider ??= _playbackEngine.EffectMixer;
+        _loopProviderManager.PauseAll(mixingSampleProvider);
+    }
+
+    public void ResumeAllLoops(IMixingSampleProvider? mixingSampleProvider = null)
+    {
+        mixingSampleProvider ??= _playbackEngine.EffectMixer;
+        _loopProviderManager.RecoverAll(mixingSampleProvider);
+    }
+
     private void OnPlaybackSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(AppSettingsSyncPlayback.BalanceMode))
