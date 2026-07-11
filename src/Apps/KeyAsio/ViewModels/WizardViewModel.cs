@@ -7,9 +7,10 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Lang;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Services;
-using KeyAsio.Shared.Utils;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Services;
+using KeyAsio.Application.Utils;
+using KeyAsio.Common;
 using KeyAsio.ViewModels.Dialogs;
 
 namespace KeyAsio.ViewModels;
@@ -122,7 +123,7 @@ public partial class WizardViewModel : ViewModelBase
     private async Task BrowseOsuExecutable()
     {
         var topLevel = TopLevel.GetTopLevel(
-            Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                 ? desktop.MainWindow
                 : null);
         if (topLevel == null) return;

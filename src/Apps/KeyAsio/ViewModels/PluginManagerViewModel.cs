@@ -1,8 +1,8 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using KeyAsio.Lang;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Shared;
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Configuration;
 
 namespace KeyAsio.ViewModels;
 

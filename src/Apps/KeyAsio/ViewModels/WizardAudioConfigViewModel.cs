@@ -3,9 +3,9 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
 using KeyAsio.Services;
-using KeyAsio.Shared;
 using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;

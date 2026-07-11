@@ -1,5 +1,5 @@
-﻿using Avalonia;
-using KeyAsio.Shared;
+using Avalonia;
+using KeyAsio.Configuration;
 using KeyAsio.Utils;
 using Microsoft.Extensions.Hosting;
 
@@ -7,12 +7,10 @@ namespace KeyAsio.Services;
 
 internal class GuiStartupService : IHostedService
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly AppSettings _appSettings;
 
-    public GuiStartupService(IServiceProvider serviceProvider, AppSettings appSettings)
+    public GuiStartupService(AppSettings appSettings)
     {
-        _serviceProvider = serviceProvider;
         _appSettings = appSettings;
     }
 

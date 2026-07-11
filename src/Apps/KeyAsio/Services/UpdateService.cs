@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Shared;
-using KeyAsio.Shared.OsuMemory;
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Configuration;
+using KeyAsio.Sync.Sources;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Semver;
@@ -41,7 +41,7 @@ public partial class UpdateService : ObservableObject
     public partial bool IsRunningChecking { get; private set; }
 
     [ObservableProperty]
-    public partial Release? NewRelease { get; private set; }
+    public partial UpdateRelease? NewRelease { get; private set; }
 
     [ObservableProperty]
     public partial SemVersion? SemVersion { get; private set; }
@@ -141,7 +141,7 @@ public partial class UpdateService : ObservableObject
             }
 
             // Map Octokit Release to UpdateUtils.GithubRelease to maintain compatibility
-            NewRelease = latest;
+            NewRelease = ToUpdateRelease(latest);
             NewVersion = FixCommit(remoteVersion);
             NewSemVersion = remoteSemVersion;
             StatusMessage = null; // Clear status message when update is available
@@ -231,8 +231,8 @@ public partial class UpdateService : ObservableObject
 
     public void OpenLastReleasePage()
     {
-        if (NewRelease?.HtmlUrl == null) return;
-        Process.Start(new ProcessStartInfo(NewRelease.HtmlUrl) { UseShellExecute = true });
+        if (NewRelease?.ReleasePageUrl == null) return;
+        Process.Start(new ProcessStartInfo(NewRelease.ReleasePageUrl) { UseShellExecute = true });
     }
 
     private void InitializeVersion()
@@ -269,4 +269,14 @@ public partial class UpdateService : ObservableObject
         return version.Substring(0, lastIndexOf);
 #endif
     }
+
+    private static UpdateRelease ToUpdateRelease(Release release) => new(
+        release.TagName,
+        release.HtmlUrl,
+        release.Body,
+        release.Prerelease,
+        release.PublishedAt,
+        release.Assets
+            .Select(static asset => new UpdateAsset(asset.Name, asset.BrowserDownloadUrl, asset.Size))
+            .ToArray());
 }

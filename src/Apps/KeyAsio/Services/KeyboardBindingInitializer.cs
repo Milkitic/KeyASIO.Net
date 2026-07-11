@@ -5,13 +5,14 @@ using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Core.OsuAudio.Utils;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Services;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Sync.AudioProviders;
-using KeyAsio.Shared.Sync.Services;
-using KeyAsio.Shared.Utils;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Models;
+using KeyAsio.Application.Services;
+using KeyAsio.Sync;
+using KeyAsio.Sync.Models;
+using KeyAsio.Sync.AudioProviders;
+using KeyAsio.Sync.Services;
+using KeyAsio.Common;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
@@ -39,7 +40,7 @@ public class KeyboardBindingInitializer
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SkinManager _skinManager;
-    private readonly SharedViewModel _sharedViewModel;
+    private readonly ApplicationState _sharedViewModel;
     private readonly SyncSessionContext _syncSessionContext;
 
     private IKeyboardHook _keyboardHook = null!;
@@ -59,7 +60,7 @@ public class KeyboardBindingInitializer
         GameplaySessionManager gameplaySessionManager,
         SfxPlaybackService sfxPlaybackService,
         SkinManager skinManager,
-        SharedViewModel sharedViewModel,
+        ApplicationState sharedViewModel,
         SyncSessionContext syncSessionContext)
     {
         _logger = logger;

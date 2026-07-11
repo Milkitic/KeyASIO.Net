@@ -1,8 +1,8 @@
 ﻿using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using KeyAsio.Core.Audio;
+using KeyAsio.Configuration;
 using KeyAsio.Services;
-using KeyAsio.Shared;
 using KeyAsio.ViewModels;
 using Moq;
 using SukiUI.Toasts;

@@ -1,8 +1,9 @@
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Plugins.Abstractions.OsuMemory;
-using KeyAsio.Shared;
-using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Sync;
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Plugins.Contracts.Sync;
+using KeyAsio.Configuration;
+using KeyAsio.Configuration.Models;
+using KeyAsio.Sync.Sources;
+using KeyAsio.Sync;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace KeyAsio.UnitTests;

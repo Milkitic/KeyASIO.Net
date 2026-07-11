@@ -1,8 +1,7 @@
+using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Sync.Abstractions;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
 using NAudio.Wave;
 
 namespace KeyAsio.Services;
@@ -32,23 +31,6 @@ public interface IAudioDeviceOperationCoordinator
     Task<AudioDeviceOperationResult> ClearAsync(CancellationToken cancellationToken = default);
 }
 
-public interface IAudioSettingsPersistence
-{
-    void Save();
-}
-
-public sealed class AudioSettingsPersistence : IAudioSettingsPersistence
-{
-    private readonly AppSettings _settings;
-
-    public AudioSettingsPersistence(AppSettings settings)
-    {
-        _settings = settings;
-    }
-
-    public void Save() => _settings.Save();
-}
-
 /// <summary>
 /// Owns the complete audio-device transition. Operations are serialized and
 /// settings are committed only after the requested device is running.
@@ -56,17 +38,17 @@ public sealed class AudioSettingsPersistence : IAudioSettingsPersistence
 public sealed class AudioDeviceOperationCoordinator : IAudioDeviceOperationCoordinator, IDisposable
 {
     private readonly AppSettings _settings;
-    private readonly IAudioSettingsPersistence _persistence;
+    private readonly IAppSettingsPersistence _persistence;
     private readonly IPlaybackEngine _engine;
-    private readonly GameplayAudioService? _gameplayAudio;
+    private readonly IGameplayAudioCache _gameplayAudio;
     private readonly ILogger<AudioDeviceOperationCoordinator> _logger;
     private readonly SemaphoreSlim _operationGate = new(1, 1);
 
     public AudioDeviceOperationCoordinator(
         AppSettings settings,
-        IAudioSettingsPersistence persistence,
+        IAppSettingsPersistence persistence,
         IPlaybackEngine engine,
-        GameplayAudioService? gameplayAudio,
+        IGameplayAudioCache gameplayAudio,
         ILogger<AudioDeviceOperationCoordinator> logger)
     {
         _settings = settings;
@@ -220,8 +202,6 @@ public sealed class AudioDeviceOperationCoordinator : IAudioDeviceOperationCoord
 
     private void InvalidateGameplayAudio()
     {
-        if (_gameplayAudio is null) return;
-
         try
         {
             _gameplayAudio.ClearCaches();

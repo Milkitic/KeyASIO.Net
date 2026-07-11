@@ -1,8 +1,8 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using KeyAsio.Plugins.Abstractions.OsuMemory;
-using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Sync;
+using KeyAsio.Plugins.Contracts.Sync;
+using KeyAsio.Sync.Sources;
+using KeyAsio.Sync;
 
 namespace KeyAsio.ViewModels;
 

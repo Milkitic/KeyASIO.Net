@@ -1,15 +1,14 @@
-﻿using System.Buffers;
-using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Styling;
 using KeyAsio.ViewModels;
 using SkiaSharp;
+using System.Buffers;
+using System.Collections.Specialized;
 
 namespace KeyAsio.Views.Controls;
 
@@ -240,7 +239,7 @@ public class SupporterSphere : UserControl
 
     private void UpdateTags()
     {
-        var isDarkMode = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+        var isDarkMode = Avalonia.Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
         s_tagBgPaint.Color = isDarkMode
             ? new SKColor(16, 16, 16, 48)
             : new SKColor(242, 242, 242, 210);

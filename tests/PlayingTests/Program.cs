@@ -1,4 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 
 using System;
 using System.IO;
@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.Utils;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Plugins.Abstractions.OsuMemory;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
-using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Plugins;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Plugins.Contracts.Sync;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Models;
+using KeyAsio.Sync.Sources;
+using KeyAsio.Application.Plugins;
+using KeyAsio.Sync;
+using KeyAsio.Sync.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
@@ -41,14 +41,14 @@ static class Program
         var services = new ServiceCollection();
         services.AddSingleton(appSettings);
         services.AddSingleton<GameplaySessionManager>();
-        services.AddSingleton<SharedViewModel>();
+        services.AddSingleton<ApplicationState>();
         services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<SfxPlaybackService>();
         services.AddSingleton<IPluginManager, PluginManager>();
         services.AddSingleton<SyncSessionContext>();
         var provider = services.BuildServiceProvider();
-        var sharedViewModel = provider.GetRequiredService<SharedViewModel>();
+        var sharedViewModel = provider.GetRequiredService<ApplicationState>();
         sharedViewModel.AutoMode = true;
 
         var audioEngine = provider.GetRequiredService<AudioEngine>();

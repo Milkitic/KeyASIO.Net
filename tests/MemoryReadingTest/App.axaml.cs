@@ -1,11 +1,11 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
-using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Models;
+using KeyAsio.Sync.Sources;
+using KeyAsio.Sync;
+using KeyAsio.Sync.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NLog.Extensions.Logging;
 

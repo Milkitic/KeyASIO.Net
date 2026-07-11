@@ -20,13 +20,11 @@
     <Project Path="tests\PlayingTests\PlayingTests.csproj" />
   </Folder>
   <Project Path="src\Apps\KeyAsio\KeyAsio.csproj" />
-  <Project Path="src\Common\KeyAsio.Plugins.Abstractions/KeyAsio.Plugins.Abstractions.csproj" />
   <Project Path="src\Common\KeyAsio.Application\KeyAsio.Application.csproj" />
   <Project Path="src\Common\KeyAsio.Common\KeyAsio.Common.csproj" />
   <Project Path="src\Common\KeyAsio.Plugins.Contracts/KeyAsio.Plugins.Contracts.csproj" />
   <Project Path="src\Common\KeyAsio.Secrets\KeyAsio.Secrets.csproj" />
   <Project Path="src\Common\KeyAsio.Configuration\KeyAsio.Configuration.csproj" />
-  <Project Path="src\Common\KeyAsio.Shared\KeyAsio.Shared.csproj" />
   <Project Path="src\Core\KeyAsio.Core.Audio\KeyAsio.Core.Audio.csproj" />
   <Project Path="src\Core\KeyAsio.Core.Memory\KeyAsio.Core.Memory.csproj" />
   <Project Path="src\Core\KeyAsio.Core.OsuAudio\KeyAsio.Core.OsuAudio.csproj" />

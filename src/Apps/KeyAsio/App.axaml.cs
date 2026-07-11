@@ -1,21 +1,21 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using KeyAsio.Core.Audio;
-using KeyAsio.Plugins.Abstractions;
+using KeyAsio.Plugins.Contracts;
 using KeyAsio.Services;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Localization;
-using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Plugins;
-using KeyAsio.Shared.Services;
-using KeyAsio.Shared.Sync;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Localization;
+using KeyAsio.Sync.Sources;
+using KeyAsio.Application.Plugins;
+using KeyAsio.Application.Services;
+using KeyAsio.Sync;
 using KeyAsio.Views;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KeyAsio;
 
-public partial class App : Application
+public partial class App : Avalonia.Application
 {
     public override void Initialize()
     {
@@ -25,8 +25,6 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         //I18NExtension.Culture = new CultureInfo("en-US");
-        UiDispatcher.SetUiSynchronizationContext();
-
         LocalizationService.Instance.ConfigureStringResolver(static key => KeyAsio.Lang.SR.ResourceManager.GetString(key) ?? key);
         LocalizationService.Instance.ConfigureCultureApplier(static culture => KeyAsio.Lang.SR.Culture = culture);
 
@@ -47,7 +45,6 @@ public partial class App : Application
             keyboardBindingInitializer.RegisterAllKeys();
 
             var pluginManager = services.GetRequiredService<IPluginManager>();
-            var playbackEngine = services.GetRequiredService<IPlaybackEngine>();
 
             // InternalPlugins
             pluginManager.LoadPlugins(AppDomain.CurrentDomain.BaseDirectory, "KeyAsio.Plugins.*.dll",
@@ -57,7 +54,7 @@ public partial class App : Application
             // var pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
             // pluginManager.LoadPlugins(pluginDir, "*.dll", SearchOption.AllDirectories);
 
-            pluginManager.InitializePlugins(new AudioEngineWrapper(playbackEngine));
+            pluginManager.InitializePlugins();
             pluginManager.StartupPlugins();
 
             var syncController = services.GetRequiredService<SyncController>();

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
@@ -12,8 +12,8 @@ using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Core.Audio.Utils;
 using KeyAsio.Lang;
 using KeyAsio.Services;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Services;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Services;
 using KeyAsio.Utils;
 using KeyAsio.ViewModels;
 using KeyAsio.Views.Dialogs;
@@ -42,7 +42,7 @@ public partial class MainWindow : SukiWindow
         _logger = logger;
         _skinManager = skinManager;
         DataContext = _viewModel = mainWindowViewModel;
-        Application.Current!.ActualThemeVariantChanged += (_, _) =>
+        Avalonia.Application.Current!.ActualThemeVariantChanged += (_, _) =>
         {
             UpdateThemeByDevice(_viewModel.AudioSettings.PlaybackEngine.CurrentDeviceDescription);
         };
@@ -147,7 +147,7 @@ public partial class MainWindow : SukiWindow
     {
         var trayIcons = this.Resources["TrayIcons"] as TrayIcons;
         if (trayIcons == null) return;
-        TrayIcon.SetIcons(Application.Current!, trayIcons);
+        TrayIcon.SetIcons(Avalonia.Application.Current!, trayIcons);
 
         _viewModel.AudioSettings.PropertyChanged +=
             (s, e) => AudioSettings_PropertyChanged(s, e, trayIcons.FirstOrDefault());
@@ -208,7 +208,7 @@ public partial class MainWindow : SukiWindow
 
     private void UpdatePinkTheme()
     {
-        var isDark = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+        var isDark = Avalonia.Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
         if (isDark)
         {
             SukiTheme.GetInstance().ChangeColorTheme(new SukiColorTheme("Pink",
@@ -327,7 +327,7 @@ public partial class MainWindow : SukiWindow
             var result = await updateService.CheckUpdateAsync();
             if (result == true)
             {
-                if (_viewModel.AppSettings.Update.SkipVersion != updateService.NewRelease?.TagName)
+                if (_viewModel.AppSettings.Update.SkipVersion != updateService.NewRelease?.Version)
                 {
                     Dispatcher.UIThread.Invoke(() => ShowUpdateToast(updateService));
                 }

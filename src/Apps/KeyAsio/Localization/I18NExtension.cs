@@ -5,7 +5,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Markup.Xaml;
 using Avalonia.Metadata;
 
-namespace KeyAsio.Shared.Localization;
+namespace KeyAsio.Application.Localization;
 
 public sealed class I18NExtension : MarkupExtension
 {

@@ -1,7 +1,7 @@
-﻿using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Lang;
-using KeyAsio.Shared;
+using KeyAsio.Configuration;
 using KeyAsio.ViewModels;
 using Material.Icons;
 

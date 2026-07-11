@@ -1,7 +1,7 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using KeyAsio.Plugins.Abstractions.OsuMemory;
+using KeyAsio.Plugins.Contracts.Sync;
 using KeyAsio.ViewModels;
 
 namespace KeyAsio.Views.Pages;

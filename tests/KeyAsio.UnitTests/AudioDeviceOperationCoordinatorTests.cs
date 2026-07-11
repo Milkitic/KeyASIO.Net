@@ -1,6 +1,7 @@
+using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
 using KeyAsio.Services;
-using KeyAsio.Shared;
+using KeyAsio.Sync.Abstractions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NAudio.Wave;
@@ -16,17 +17,19 @@ public sealed class AudioDeviceOperationCoordinatorTests
         var requested = Device("requested");
         var settings = Settings(previous, 44100);
         var engine = new PlaybackEngineHarness(previous, 44100);
-        var persistence = new Mock<IAudioSettingsPersistence>();
+        var persistence = new Mock<IAppSettingsPersistence>();
+        var audioCache = new Mock<IGameplayAudioCache>();
         var events = engine.Events;
         persistence.Setup(x => x.Save()).Callback(() => events.Add("save"));
+        audioCache.Setup(x => x.ClearCaches()).Callback(() => events.Add("clear"));
 
-        using var coordinator = CreateCoordinator(settings, persistence, engine);
+        using var coordinator = CreateCoordinator(settings, persistence, engine, audioCache);
         var result = await coordinator.ApplyAsync(requested, 96000, TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(requested, settings.Audio.PlaybackDevice);
         Assert.Equal(96000, settings.Audio.SampleRate);
-        Assert.Equal(["stop:previous", "start:requested", "save"], events);
+        Assert.Equal(["stop:previous", "start:requested", "save", "clear"], events);
         Assert.Equal(requested, result.ActiveDevice);
     }
 
@@ -40,9 +43,10 @@ public sealed class AudioDeviceOperationCoordinatorTests
         {
             StartFailure = device => device == requested ? new InvalidOperationException("cannot start") : null
         };
-        var persistence = new Mock<IAudioSettingsPersistence>();
+        var persistence = new Mock<IAppSettingsPersistence>();
+        var audioCache = new Mock<IGameplayAudioCache>();
 
-        using var coordinator = CreateCoordinator(settings, persistence, engine);
+        using var coordinator = CreateCoordinator(settings, persistence, engine, audioCache);
         var result = await coordinator.ApplyAsync(requested, 96000, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsSuccess);
@@ -52,6 +56,7 @@ public sealed class AudioDeviceOperationCoordinatorTests
         Assert.Equal(previous, result.ActiveDevice);
         Assert.Equal(["stop:previous", "start:requested", "start:previous"], engine.Events);
         persistence.Verify(x => x.Save(), Times.Never);
+        audioCache.Verify(x => x.ClearCaches(), Times.Once);
     }
 
     [Fact]
@@ -61,7 +66,7 @@ public sealed class AudioDeviceOperationCoordinatorTests
         var requested = Device("requested");
         var settings = Settings(previous, 48000);
         var engine = new PlaybackEngineHarness(previous, 48000);
-        var persistence = new Mock<IAudioSettingsPersistence>();
+        var persistence = new Mock<IAppSettingsPersistence>();
         var saveAttempt = 0;
         persistence.Setup(x => x.Save()).Callback(() =>
         {
@@ -70,8 +75,9 @@ public sealed class AudioDeviceOperationCoordinatorTests
                 throw new IOException("write failed");
             }
         });
+        var audioCache = new Mock<IGameplayAudioCache>();
 
-        using var coordinator = CreateCoordinator(settings, persistence, engine);
+        using var coordinator = CreateCoordinator(settings, persistence, engine, audioCache);
         var result = await coordinator.ApplyAsync(requested, 96000, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsSuccess);
@@ -84,13 +90,14 @@ public sealed class AudioDeviceOperationCoordinatorTests
 
     private static AudioDeviceOperationCoordinator CreateCoordinator(
         AppSettings settings,
-        Mock<IAudioSettingsPersistence> persistence,
-        PlaybackEngineHarness engine) =>
+        Mock<IAppSettingsPersistence> persistence,
+        PlaybackEngineHarness engine,
+        Mock<IGameplayAudioCache> audioCache) =>
         new(
             settings,
             persistence.Object,
             engine.Engine.Object,
-            null,
+            audioCache.Object,
             Mock.Of<ILogger<AudioDeviceOperationCoordinator>>());
 
     private static AppSettings Settings(DeviceDescription device, int sampleRate) => new()

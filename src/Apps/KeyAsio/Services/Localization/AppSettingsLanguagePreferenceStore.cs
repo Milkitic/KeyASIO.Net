@@ -1,5 +1,5 @@
-using KeyAsio.Shared;
-using KeyAsio.Shared.Localization;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Localization;
 using Milki.Extensions.Configuration;
 
 namespace KeyAsio.Services.Localization;
