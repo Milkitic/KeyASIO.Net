@@ -42,6 +42,11 @@ jobs:
         if ($env:OFFICIAL_PRIVATE_KEY) {
             Set-Content -Path "src/Apps/KeyAsio/keyasio_private.key" -Value $env:OFFICIAL_PRIVATE_KEY
         }      
+
+    - name: Verify release candidate
+      run: |
+        dotnet test tests/KeyAsio.UnitTests/KeyAsio.UnitTests.csproj --configuration Release
+        dotnet test tests/AudioTests/AudioTests.csproj --configuration Release
    
     - name: Publish
       run: |
