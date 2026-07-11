@@ -1,0 +1,44 @@
+namespace KeyAsio.Application.Models;
+
+public record SkinDescription(string FolderName, string Folder, string? Name, string? Author)
+{
+    public string Description
+    {
+        get
+        {
+            if (FolderName == "{classic}") return "classic";
+            if (FolderName == "{internal}") return "ProMix™ Snare";
+
+            if (Name == null) return FolderName;
+            if (FolderName == Name) return FolderName;
+
+            return $"{FolderName} ({Name})";
+        }
+    }
+
+    public string? CopyRight
+    {
+        get
+        {
+            if (FolderName == "{classic}")
+            {
+                return "Original copyright © ppy Pty Ltd.";
+            }
+
+            if (FolderName == "{internal}")
+            {
+                return "Copyright © KeyASIO Team";
+            }
+
+            if (Author == null)
+            {
+                return "Unknown author";
+            }
+
+            return $"Skin made by {Author}";
+        }
+    }
+
+    public static SkinDescription Internal { get; } = new("{internal}", "{internal}", null, null);
+    public static SkinDescription Classic { get; } = new("{classic}", "{classic}", null, null);
+}
