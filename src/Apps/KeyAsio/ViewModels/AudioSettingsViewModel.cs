@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,29 +5,23 @@ using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Lang;
+using KeyAsio.Services;
 using KeyAsio.Shared;
-using KeyAsio.Shared.Sync.Services;
 using Microsoft.Extensions.Logging;
-using Milki.Extensions.Configuration;
 using NAudio.Wave;
 using SukiUI.Toasts;
+using System.Collections.ObjectModel;
 
 namespace KeyAsio.ViewModels;
 
 public partial class AudioSettingsViewModel : ObservableObject
 {
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        WriteIndented = true,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    };
-
     public event Action<DeviceDescription?>? OnDeviceChanged;
 
     private readonly ILogger<AudioSettingsViewModel> _logger;
     private readonly IAudioDeviceManager _audioDeviceManager;
+    private readonly IAudioDeviceOperationCoordinator _deviceOperations;
     private readonly AppSettings _appSettings;
-    private readonly GameplayAudioService _gameplayAudioService;
 
     private bool _isInitializing;
     private (DeviceDescription? PlaybackDevice, int SampleRate) _originalAudioSettings;
@@ -46,7 +38,7 @@ public partial class AudioSettingsViewModel : ObservableObject
             _audioDeviceManager = null!;
             _logger = null!;
             PlaybackEngine = null!;
-            _gameplayAudioService = null!;
+            _deviceOperations = null!;
         }
     }
 
@@ -54,12 +46,12 @@ public partial class AudioSettingsViewModel : ObservableObject
         AppSettings appSettings,
         IAudioDeviceManager audioDeviceManager,
         IPlaybackEngine playbackEngine,
-        GameplayAudioService gameplayAudioService)
+        IAudioDeviceOperationCoordinator deviceOperations)
     {
         _logger = logger;
         _appSettings = appSettings;
         _audioDeviceManager = audioDeviceManager;
-        _gameplayAudioService = gameplayAudioService;
+        _deviceOperations = deviceOperations;
         PlaybackEngine = playbackEngine;
 
         PlaybackEngine.DeviceError += PlaybackEngine_DeviceError;
@@ -186,7 +178,7 @@ public partial class AudioSettingsViewModel : ObservableObject
     public async Task InitializeDevice()
     {
         if (_appSettings.Audio.PlaybackDevice == null) return;
-        await LoadDevice(_appSettings.Audio.PlaybackDevice);
+        ApplyOperationResult(await _deviceOperations.InitializeConfiguredAsync());
     }
 
     [RelayCommand]
@@ -194,59 +186,34 @@ public partial class AudioSettingsViewModel : ObservableObject
     {
         DeviceErrorMessage = null;
         DeviceFullErrorMessage = null;
-        try
+        DeviceDescription? requestedDevice = null;
+        if (SelectedAudioDevice != null)
         {
-            DeviceDescription? newDeviceSettings = null;
-            if (SelectedAudioDevice != null)
+            requestedDevice = SelectedAudioDevice with
             {
-                newDeviceSettings = SelectedAudioDevice with
-                {
-                    Latency = (int)TargetBufferSize,
-                    IsExclusive = IsExclusiveMode,
-                    ForceASIOBufferSize = (ushort)ForceAsioBufferSize
-                };
-            }
+                Latency = (int)TargetBufferSize,
+                IsExclusive = IsExclusiveMode,
+                ForceASIOBufferSize = (ushort)ForceAsioBufferSize
+            };
+        }
 
-            _appSettings.Audio.PlaybackDevice = newDeviceSettings;
-            _appSettings.Audio.SampleRate = SelectedSampleRate;
-
-            _originalAudioSettings = (_appSettings.Audio.PlaybackDevice, _appSettings.Audio.SampleRate);
-            _appSettings.Save();
+        var result = await _deviceOperations.ApplyAsync(requestedDevice, SelectedSampleRate);
+        ApplyOperationResult(result);
+        if (!result.IsSuccess)
+        {
+            ShowOperationFailure("Device Initialization Failed", result);
             CheckAudioChanges();
-
-            if (newDeviceSettings != null)
-            {
-                await DisposeDeviceAsync();
-                await InitializeDevice();
-
-                if (DeviceErrorMessage != null)
-                {
-                    ToastManager?.CreateToast()
-                        .WithTitle("Device Initialization Failed")
-                        .WithContent(DeviceErrorMessage)
-                        .OfType(NotificationType.Error)
-                        .Dismiss().After(TimeSpan.FromSeconds(5))
-                        .Dismiss().ByClicking()
-                        .Queue();
-                }
-                else
-                {
-                    ToastManager?.CreateSimpleInfoToast()
-                        .WithTitle("Audio Settings Applied")
-                        .WithContent(
-                            $"Successfully applied new device: {PlaybackEngine.CurrentDeviceDescription?.FriendlyName}")
-                        .Queue();
-                }
-            }
-            else
-            {
-                await DisposeDeviceAsync();
-            }
+            return;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurs while applying audio settings.");
-        }
+
+        _originalAudioSettings = (requestedDevice, SelectedSampleRate);
+        CheckAudioChanges();
+        ToastManager?.CreateSimpleInfoToast()
+            .WithTitle("Audio Settings Applied")
+            .WithContent(requestedDevice is null
+                ? "Audio output disabled."
+                : $"Successfully applied new device: {result.ActiveDevice?.FriendlyName}")
+            .Queue();
     }
 
     [RelayCommand]
@@ -267,28 +234,20 @@ public partial class AudioSettingsViewModel : ObservableObject
     [RelayCommand]
     public async Task ReloadAudioDevice()
     {
-        if (_appSettings.Audio.PlaybackDevice != null)
-        {
-            await DisposeDeviceAsync();
-            await InitializeDevice();
+        if (_appSettings.Audio.PlaybackDevice == null) return;
 
-            if (PlaybackEngine.CurrentDeviceDescription != null)
-            {
-                ToastManager?.CreateSimpleInfoToast()
-                    .WithTitle("Device Reloaded")
-                    .WithContent($"Successfully reloaded device: {PlaybackEngine.CurrentDeviceDescription.FriendlyName}")
-                    .Queue();
-            }
-            else if (DeviceErrorMessage != null)
-            {
-                ToastManager?.CreateToast()
-                    .WithTitle("Device Reload Failed")
-                    .WithContent(DeviceErrorMessage)
-                    .OfType(NotificationType.Error)
-                    .Dismiss().After(TimeSpan.FromSeconds(8))
-                    .Dismiss().ByClicking()
-                    .Queue();
-            }
+        var result = await _deviceOperations.ReloadAsync();
+        ApplyOperationResult(result);
+        if (result.IsSuccess)
+        {
+            ToastManager?.CreateSimpleInfoToast()
+                .WithTitle("Device Reloaded")
+                .WithContent($"Successfully reloaded device: {result.ActiveDevice?.FriendlyName}")
+                .Queue();
+        }
+        else
+        {
+            ShowOperationFailure("Device Reload Failed", result);
         }
     }
 
@@ -297,9 +256,13 @@ public partial class AudioSettingsViewModel : ObservableObject
     {
         DeviceErrorMessage = null;
         DeviceFullErrorMessage = null;
-        _appSettings.Audio.PlaybackDevice = null;
-        _appSettings.Save();
-        await DisposeDeviceAsync();
+        var result = await _deviceOperations.ClearAsync();
+        ApplyOperationResult(result);
+        if (!result.IsSuccess)
+        {
+            ShowOperationFailure("Failed to Disable Audio", result);
+            return;
+        }
 
         // Also update UI selection if we are on settings page
         SelectedAudioDevice = null;
@@ -424,64 +387,41 @@ public partial class AudioSettingsViewModel : ObservableObject
             SelectedSampleRate != _originalAudioSettings.SampleRate;
     }
 
-    private async Task LoadDevice(DeviceDescription deviceDescription)
+    private void ApplyOperationResult(AudioDeviceOperationResult result)
     {
-        DeviceErrorMessage = null;
-        DeviceFullErrorMessage = null;
-        try
+        if (result.IsSuccess)
         {
-            PlaybackEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
-            PlaybackEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
-            PlaybackEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
-            PlaybackEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
-            PlaybackEngine.StartDevice(deviceDescription, new WaveFormat(SelectedSampleRate, 2));
-
-            if (PlaybackEngine.CurrentDevice is AsioOut asioOut)
-            {
-                var actualDd = PlaybackEngine.CurrentDeviceDescription;
-                FramesPerBuffer = $"{asioOut.FramesPerBuffer}→{actualDd.AsioActualSamples} samples";
-                AsioLatencyMs = actualDd.AsioLatencyMs;
-            }
-
-            OnDeviceChanged?.Invoke(PlaybackEngine.CurrentDeviceDescription);
+            DeviceErrorMessage = null;
+            DeviceFullErrorMessage = null;
         }
-        catch (Exception ex)
+        else
         {
-            DeviceErrorMessage = ex.Message;
-            DeviceFullErrorMessage = ex.ToString();
-            _logger.LogError(ex, "Error occurs while creating device: {Information}",
-                GetConfigInformation(deviceDescription));
-            await DisposeDeviceAsync();
+            DeviceErrorMessage = result.RollbackError is null
+                ? result.Error?.Message
+                : $"{result.Error?.Message} (rollback also failed: {result.RollbackError.Message})";
+            DeviceFullErrorMessage = result.RollbackError is null
+                ? result.Error?.ToString()
+                : $"{result.Error}\n\nRollback failure:\n{result.RollbackError}";
         }
+
+        if (PlaybackEngine.CurrentDevice is AsioOut asioOut &&
+            PlaybackEngine.CurrentDeviceDescription is { } actualDevice)
+        {
+            FramesPerBuffer = $"{asioOut.FramesPerBuffer}→{actualDevice.AsioActualSamples} samples";
+            AsioLatencyMs = actualDevice.AsioLatencyMs;
+        }
+
+        OnDeviceChanged?.Invoke(result.ActiveDevice);
     }
 
-    private string GetConfigInformation(DeviceDescription deviceDescription)
-    {
-        try
-        {
-            var info = new
-            {
-                Device = new
-                {
-                    deviceDescription.FriendlyName,
-                    deviceDescription.DeviceId,
-                    Type = deviceDescription.WavePlayerType.ToString(),
-                    deviceDescription.Latency,
-                    deviceDescription.IsExclusive,
-                    deviceDescription.ForceASIOBufferSize
-                },
-                Settings = new
-                {
-                    SampleRate = SelectedSampleRate,
-                }
-            };
-            return JsonSerializer.Serialize(info, JsonSerializerOptions);
-        }
-        catch (Exception ex)
-        {
-            return $"Error generating config info: {ex.Message}";
-        }
-    }
+    private void ShowOperationFailure(string title, AudioDeviceOperationResult result) =>
+        ToastManager?.CreateToast()
+            .WithTitle(title)
+            .WithContent(DeviceErrorMessage ?? "Unknown audio device error.")
+            .OfType(NotificationType.Error)
+            .Dismiss().After(TimeSpan.FromSeconds(result.RollbackError is null ? 5 : 10))
+            .Dismiss().ByClicking()
+            .Queue();
 
     private void PlaybackEngine_DeviceError(Exception ex)
     {
@@ -497,26 +437,5 @@ public partial class AudioSettingsViewModel : ObservableObject
                 .Dismiss().ByClicking()
                 .Queue();
         });
-    }
-
-    private async ValueTask DisposeDeviceAsync()
-    {
-        OnDeviceChanged?.Invoke(null);
-
-        for (var i = 0; i < 3; i++)
-        {
-            try
-            {
-                PlaybackEngine.StopDevice();
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while disposing device.");
-                await Task.Delay(100);
-            }
-        }
-
-        _gameplayAudioService.ClearCaches();
     }
 }

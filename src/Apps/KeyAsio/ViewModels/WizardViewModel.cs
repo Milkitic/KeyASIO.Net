@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -266,11 +266,11 @@ public partial class WizardViewModel : ViewModelBase
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private void Next()
+    private async Task Next()
     {
         if (StepIndex == 3)
         {
-            if (WizardAudioConfigViewModel.TryGoForward()) return;
+            if (await WizardAudioConfigViewModel.TryGoForwardAsync()) return;
         }
 
         if (StepIndex < Steps.Count - 1)
@@ -284,11 +284,11 @@ public partial class WizardViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Previous()
+    private async Task Previous()
     {
         if (StepIndex == 3)
         {
-            if (WizardAudioConfigViewModel.TryGoBack())
+            if (await WizardAudioConfigViewModel.TryGoBackAsync())
             {
                 return;
             }

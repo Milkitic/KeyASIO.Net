@@ -1,12 +1,11 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Core.Audio;
+using KeyAsio.Services;
 using KeyAsio.Shared;
-using Milki.Extensions.Configuration;
-using NAudio.Wave;
 using SukiUI.Toasts;
 
 namespace KeyAsio.ViewModels;
@@ -28,18 +27,18 @@ public enum AudioSubStep
 public partial class WizardAudioConfigViewModel : ViewModelBase
 {
     private readonly IAudioDeviceManager _audioDeviceManager;
-    private readonly IPlaybackEngine _playbackEngine;
+    private readonly IAudioDeviceOperationCoordinator _deviceOperations;
     private readonly ISukiToastManager _toastManager;
     private readonly AppSettings _appSettings;
 
     public WizardAudioConfigViewModel(
         IAudioDeviceManager audioDeviceManager,
-        IPlaybackEngine playbackEngine,
+        IAudioDeviceOperationCoordinator deviceOperations,
         ISukiToastManager toastManager,
         AppSettings appSettings)
     {
         _audioDeviceManager = audioDeviceManager;
-        _playbackEngine = playbackEngine;
+        _deviceOperations = deviceOperations;
         _toastManager = toastManager;
         _appSettings = appSettings;
 
@@ -115,11 +114,11 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     public partial string ValidationMessage { get; set; } = "";
 
 
-    public bool TryGoBack()
+    public async Task<bool> TryGoBackAsync()
     {
         if (CurrentAudioSubStep == AudioSubStep.Configuration)
         {
-            BackToSelection();
+            await BackToSelection();
             return true;
         }
 
@@ -129,18 +128,18 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             IsValidationRunning = false;
             ValidationSuccess = false;
             IsAudioConfigFinished = false;
-            _playbackEngine.StopDevice();
+            await _deviceOperations.DeactivateAsync();
             return true;
         }
 
         return false;
     }
 
-    public bool TryGoForward()
+    public async Task<bool> TryGoForwardAsync()
     {
         if (CurrentAudioSubStep == AudioSubStep.Configuration)
         {
-            ApplyAndTestConfig();
+            await ApplyAndTestConfig();
             return true;
         }
 
@@ -154,7 +153,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             else
             {
                 // Retry
-                ApplyAndTestConfig();
+                await ApplyAndTestConfig();
                 return true;
             }
         }
@@ -216,69 +215,45 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void BackToSelection()
+    private async Task BackToSelection()
     {
         SelectedMode = WizardMode.NotSelected;
         CurrentAudioSubStep = AudioSubStep.Selection;
         IsAudioConfigFinished = false;
         // Stop any playing audio
-        _playbackEngine.StopDevice();
+        await _deviceOperations.DeactivateAsync();
     }
 
     [RelayCommand]
-    private void ApplyAndTestConfig()
+    private async Task ApplyAndTestConfig()
     {
         CurrentAudioSubStep = AudioSubStep.Validation;
         IsValidationRunning = true;
         ValidationMessage = "正在初始化音频引擎...";
         ValidationSuccess = false;
 
-        try
+        if (SelectedAudioDevice is null)
         {
-            if (SelectedAudioDevice != null)
-            {
-                _playbackEngine.StopDevice();
-                _playbackEngine.LimiterType = _appSettings.Sync.Playback.LimiterType;
-                _playbackEngine.MainVolume = _appSettings.Audio.MasterVolume / 100f;
-                _playbackEngine.MusicVolume = _appSettings.Audio.MusicVolume / 100f;
-                _playbackEngine.EffectVolume = _appSettings.Audio.EffectVolume / 100f;
-                _playbackEngine.StartDevice(SelectedAudioDevice, new WaveFormat(_appSettings.Audio.SampleRate, 2));
-
-                _appSettings.Audio.PlaybackDevice = _playbackEngine.CurrentDeviceDescription ?? SelectedAudioDevice;
-                SaveSettings();
-
-                // If success
-                ValidationSuccess = true;
-                IsAudioConfigFinished = true;
-                ValidationMessage = "配置成功";
-            }
+            ValidationMessage = "请选择音频设备";
+            IsValidationRunning = false;
+            return;
         }
-        catch (Exception ex)
+
+        var result = await _deviceOperations.ApplyAsync(SelectedAudioDevice, _appSettings.Audio.SampleRate);
+        if (result.IsSuccess)
+        {
+            ValidationSuccess = true;
+            IsAudioConfigFinished = true;
+            ValidationMessage = "配置成功";
+        }
+        else
         {
             ValidationSuccess = false;
-            ValidationMessage = $"初始化失败: {ex.Message}";
+            ValidationMessage = $"初始化失败: {result.Error?.Message ?? "未知错误"}";
             IsAudioConfigFinished = false;
         }
-        finally
-        {
-            IsValidationRunning = false;
-        }
-    }
 
-    private void SaveSettings()
-    {
-        try
-        {
-            _appSettings.Save();
-        }
-        catch (Exception ex)
-        {
-            _toastManager.CreateToast()
-                .WithTitle("无法保存设置")
-                .WithContent(ex.Message)
-                .OfType(NotificationType.Error)
-                .Queue();
-        }
+        IsValidationRunning = false;
     }
 
     [RelayCommand]

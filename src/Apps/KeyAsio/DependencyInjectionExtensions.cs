@@ -23,6 +23,8 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<LanguageManager>();
         services.AddSingleton<SettingsManager>();
         services.AddSingleton<PresetManager>();
+        services.AddSingleton<IAudioSettingsPersistence, AudioSettingsPersistence>();
+        services.AddSingleton<IAudioDeviceOperationCoordinator, AudioDeviceOperationCoordinator>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();
