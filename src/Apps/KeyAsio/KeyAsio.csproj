@@ -47,32 +47,32 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Antelcat.I18N.SourceGenerators"  Version="1.1.0"/>
-    <PackageReference Include="Avalonia"  Version="12.1.0"/>
-    <PackageReference Include="Avalonia.Desktop"  Version="12.1.0"/>
+    <PackageReference Include="Antelcat.I18N.SourceGenerators" />
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
     <!--Condition below can be used to remove AvaloniaUI.DiagnosticsSupport from build output in Release configuration.-->
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
       <!--<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>-->
     </PackageReference>
-    <PackageReference Include="CommunityToolkit.Mvvm"  Version="8.4.2"/>
-    <PackageReference Include="Material.Icons.Avalonia"  Version="3.0.2"/>
-    <PackageReference Include="Microsoft.Extensions.Hosting"  Version="10.0.9"/>
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.298">
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Material.Icons.Avalonia" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Windows.CsWin32">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MinVer" Version="7.0.0">
+    <PackageReference Include="MinVer">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NLog.Extensions.Logging"  Version="6.1.4"/>
-    <PackageReference Include="Octokit"  Version="14.0.0"/>
-    <PackageReference Include="Semver"  Version="3.0.0"/>
-    <PackageReference Include="Sentry.Extensions.Logging"  Version="6.6.0"/>
-    <PackageReference Include="SmoothScroll.Avalonia"  Version="12.0.0.12"/>
-    <PackageReference Include="SukiUI"  Version="7.0.1"/>
-    <PackageReference Include="Svg.Controls.Skia.Avalonia"  Version="12.0.0.13"/>
+    <PackageReference Include="NLog.Extensions.Logging" />
+    <PackageReference Include="Octokit" />
+    <PackageReference Include="Semver" />
+    <PackageReference Include="Sentry.Extensions.Logging" />
+    <PackageReference Include="SmoothScroll.Avalonia" />
+    <PackageReference Include="SukiUI" />
+    <PackageReference Include="Svg.Controls.Skia.Avalonia" />
   </ItemGroup>
 
   <ItemGroup>

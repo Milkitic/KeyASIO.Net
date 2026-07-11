@@ -7,16 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Fody" Version="6.9.3">
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Fody">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0">
+    <PackageReference Include="PropertyChanged.Fody">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+    <PackageReference Include="YamlDotNet" />
   </ItemGroup>
 
   <ItemGroup>

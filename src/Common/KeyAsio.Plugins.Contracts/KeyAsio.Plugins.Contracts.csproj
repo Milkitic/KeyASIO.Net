@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Coosu.Beatmap" Version="2.5.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
-    <PackageReference Include="NAudio.Core" Version="2.3.0" />
+    <PackageReference Include="Coosu.Beatmap" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="NAudio.Core" />
   </ItemGroup>
 
 </Project>

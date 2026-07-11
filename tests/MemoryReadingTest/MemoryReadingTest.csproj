@@ -14,14 +14,14 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Avalonia"  Version="12.1.0"/>
-    <PackageReference Include="Avalonia.Desktop"  Version="12.1.0"/>
-    <PackageReference Include="Avalonia.Themes.Fluent"  Version="12.1.0"/>
-    <PackageReference Include="Avalonia.Fonts.Inter"  Version="12.1.0"/>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
     <!--Condition below keeps AvaloniaUI.DiagnosticsSupport out of Release builds.-->
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Condition="'$(Configuration)' == 'Debug'"  Version="2.2.3"/>
-    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia"  Version="2.0.5"/>
-    <PackageReference Include="NLog.Extensions.Logging"  Version="6.1.4"/>
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" />
+    <PackageReference Include="NLog.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>

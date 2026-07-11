@@ -1,0 +1,56 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Antelcat.I18N.SourceGenerators" Version="1.1.0" />
+    <PackageVersion Include="Avalonia" Version="12.1.0" />
+    <PackageVersion Include="Avalonia.Desktop" Version="12.1.0" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.0" />
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="12.1.0" />
+    <PackageVersion Include="Avalonia.Skia" Version="12.1.0" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.0" />
+    <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.6" />
+    <PackageVersion Include="Blake3" Version="2.2.1" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageVersion Include="Coosu.Beatmap" Version="2.5.1" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="dnlib" Version="4.5.0" />
+    <PackageVersion Include="FastExpressionCompiler" Version="5.4.1" />
+    <PackageVersion Include="Fody" Version="6.9.3" />
+    <PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
+    <PackageVersion Include="Material.Icons.Avalonia" Version="3.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.298" />
+    <PackageVersion Include="MinVer" Version="7.0.0" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="NAudio.Core" Version="2.3.0" />
+    <PackageVersion Include="NAudio.Lame" Version="2.1.0" />
+    <PackageVersion Include="NAudio.Vorbis" Version="1.5.0" />
+    <PackageVersion Include="NAudio.Wasapi" Version="2.3.0" />
+    <PackageVersion Include="NAudio.WinMM" Version="2.3.0" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="6.1.4" />
+    <PackageVersion Include="Octokit" Version="14.0.0" />
+    <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
+    <PackageVersion Include="Reloaded.Memory.Sigscan" Version="3.1.9" />
+    <PackageVersion Include="Semver" Version="3.0.0" />
+    <PackageVersion Include="Sentry" Version="6.6.0" />
+    <PackageVersion Include="Sentry.Extensions.Logging" Version="6.6.0" />
+    <PackageVersion Include="SmoothScroll.Avalonia" Version="12.0.0.12" />
+    <PackageVersion Include="SukiUI" Version="7.0.1" />
+    <PackageVersion Include="Svg.Controls.Skia.Avalonia" Version="12.0.0.13" />
+    <PackageVersion Include="System.Management" Version="10.0.9" />
+    <PackageVersion Include="System.Numerics.Tensors" Version="10.0.9" />
+    <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+    <PackageVersion Include="z440.atl.core" Version="7.15.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+  </ItemGroup>
+</Project>
