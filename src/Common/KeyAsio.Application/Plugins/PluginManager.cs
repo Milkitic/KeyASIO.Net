@@ -169,12 +169,14 @@ public class PluginManager : IPluginManager, IDisposable
                     _gameplay,
                     _interaction);
                 wrapper.Context = context;
+                wrapper.NeedsShutdown = true;
                 wrapper.Instance.Initialize(context);
                 wrapper.IsInitialized = true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error initializing plugin {PluginName}", wrapper.Instance.Name);
+                TryShutdownPlugin(wrapper);
             }
         }
     }
@@ -191,11 +193,12 @@ public class PluginManager : IPluginManager, IDisposable
             try
             {
                 wrapper.Instance.Startup();
-                wrapper.IsStarted = true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error starting plugin {PluginName}", wrapper.Instance.Name);
+                wrapper.IsInitialized = false;
+                TryShutdownPlugin(wrapper);
             }
         }
     }
@@ -204,17 +207,7 @@ public class PluginManager : IPluginManager, IDisposable
     {
         foreach (var wrapper in _plugins)
         {
-            if (wrapper.IsStarted)
-            {
-                try
-                {
-                    wrapper.Instance.Shutdown();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error shutting down plugin {PluginName}", wrapper.Instance.Name);
-                }
-            }
+            TryShutdownPlugin(wrapper);
 
             try
             {
@@ -242,6 +235,22 @@ public class PluginManager : IPluginManager, IDisposable
         _loadContexts.Clear();
     }
 
+    private void TryShutdownPlugin(PluginWrapper wrapper)
+    {
+        if (!wrapper.NeedsShutdown) return;
+
+        try
+        {
+            wrapper.Instance.Shutdown();
+            wrapper.NeedsShutdown = false;
+        }
+        catch (Exception ex)
+        {
+            // Keep NeedsShutdown set so UnloadPlugins can retry a failed cleanup.
+            _logger.LogError(ex, "Error shutting down plugin {PluginName}", wrapper.Instance.Name);
+        }
+    }
+
     public void Dispose()
     {
         UnloadPlugins();
@@ -254,7 +263,7 @@ public class PluginManager : IPluginManager, IDisposable
         public string PluginDirectory { get; }
         public PluginContext? Context { get; set; }
         public bool IsInitialized { get; set; }
-        public bool IsStarted { get; set; }
+        public bool NeedsShutdown { get; set; }
 
         public PluginWrapper(IPlugin instance, PluginLoadContext loadContext, string pluginDirectory)
         {
