@@ -107,7 +107,7 @@ public sealed class AudioDeviceOperationCoordinator : IAudioDeviceOperationCoord
             var commitAttempted = false;
             try
             {
-                StopCurrentDevice();
+                await StopCurrentDeviceAsync(cancellationToken).ConfigureAwait(false);
                 StartRequestedDevice(requestedDevice, requestedSampleRate);
 
                 if (persist)
@@ -134,7 +134,7 @@ public sealed class AudioDeviceOperationCoordinator : IAudioDeviceOperationCoord
                 List<Exception>? rollbackErrors = null;
                 try
                 {
-                    StopCurrentDevice();
+                    await StopCurrentDeviceAsync(CancellationToken.None).ConfigureAwait(false);
                     StartRequestedDevice(rollbackDevice, rollbackSampleRate);
                 }
                 catch (Exception exception)
@@ -192,11 +192,25 @@ public sealed class AudioDeviceOperationCoordinator : IAudioDeviceOperationCoord
         _engine.StartDevice(device, new WaveFormat(sampleRate, 2));
     }
 
-    private void StopCurrentDevice()
+    private async Task StopCurrentDeviceAsync(CancellationToken cancellationToken)
     {
-        if (_engine.CurrentDevice is not null)
+        const int maxAttempts = 3;
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            _engine.StopDevice();
+            if (_engine.CurrentDevice is null) return;
+
+            try
+            {
+                _engine.StopDevice();
+                return;
+            }
+            catch (Exception exception) when (attempt < maxAttempts)
+            {
+                _logger.LogWarning(exception,
+                    "Failed to stop the audio device on attempt {Attempt}; retrying",
+                    attempt);
+                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 

@@ -8,7 +8,7 @@ namespace KeyAsio.Plugins.Contracts;
 /// </summary>
 public interface IAudioEngine
 {
-    WaveFormat OutputWaveFormat { get; }
+    WaveFormat? OutputWaveFormat { get; }
 
     IPluginAudioFile OpenAudioFile(string path);
 

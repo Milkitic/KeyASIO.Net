@@ -88,6 +88,31 @@ public sealed class AudioDeviceOperationCoordinatorTests
         persistence.Verify(x => x.Save(), Times.Exactly(2));
     }
 
+    [Fact]
+    public async Task ApplyAsync_WhenStoppingFailsTransiently_RetriesThenApplies()
+    {
+        var previous = Device("previous");
+        var requested = Device("requested");
+        var settings = Settings(previous, 44100);
+        var engine = new PlaybackEngineHarness(previous, 44100)
+        {
+            StopFailuresRemaining = 2
+        };
+        var persistence = new Mock<IAppSettingsPersistence>();
+        var audioCache = new Mock<IGameplayAudioCache>();
+
+        using var coordinator = CreateCoordinator(settings, persistence, engine, audioCache);
+        var result = await coordinator.ApplyAsync(requested, 48000, TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(requested, result.ActiveDevice);
+        Assert.Equal(
+            ["stop:previous", "stop:previous", "stop:previous", "start:requested"],
+            engine.Events);
+        persistence.Verify(x => x.Save(), Times.Once);
+        audioCache.Verify(x => x.ClearCaches(), Times.Once);
+    }
+
     private static AudioDeviceOperationCoordinator CreateCoordinator(
         AppSettings settings,
         Mock<IAppSettingsPersistence> persistence,
@@ -135,6 +160,12 @@ public sealed class AudioDeviceOperationCoordinatorTests
             Engine.Setup(x => x.StopDevice()).Callback(() =>
             {
                 Events.Add($"stop:{_description?.DeviceId}");
+                if (StopFailuresRemaining > 0)
+                {
+                    StopFailuresRemaining--;
+                    throw new IOException("transient stop failure");
+                }
+
                 _currentDevice = null;
                 _description = null;
             });
@@ -160,5 +191,6 @@ public sealed class AudioDeviceOperationCoordinatorTests
         public Mock<IPlaybackEngine> Engine { get; } = new();
         public List<string> Events { get; } = [];
         public Func<DeviceDescription?, Exception?>? StartFailure { get; init; }
+        public int StopFailuresRemaining { get; set; }
     }
 }

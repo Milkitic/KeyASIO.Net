@@ -14,7 +14,7 @@ public sealed class AudioEngineWrapper : IAudioEngine
         _engine = engine;
     }
 
-    public WaveFormat OutputWaveFormat => _engine.EngineWaveFormat;
+    public WaveFormat? OutputWaveFormat => _engine.CurrentDevice is null ? null : _engine.EngineWaveFormat;
 
     public IPluginAudioFile OpenAudioFile(string path) => new PluginAudioFile(path);
 
