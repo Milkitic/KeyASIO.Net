@@ -5,6 +5,8 @@ namespace KeyAsio.Core.Audio.SampleProviders;
 
 public sealed class LoopSampleProvider : IRecyclableProvider, IPoolable
 {
+    private volatile bool _isPaused;
+
     public LoopSampleProvider()
     {
     }
@@ -18,6 +20,12 @@ public sealed class LoopSampleProvider : IRecyclableProvider, IPoolable
 
     public bool EnableLooping { get; set; } = true;
 
+    public bool IsPaused
+    {
+        get => _isPaused;
+        set => _isPaused = value;
+    }
+
     public WaveFormat WaveFormat => Source?.WaveFormat ?? throw new InvalidOperationException("Source not initialized");
 
     public ISampleProvider? ResetAndGetSource()
@@ -29,6 +37,14 @@ public sealed class LoopSampleProvider : IRecyclableProvider, IPoolable
 
     public int Read(float[] buffer, int offset, int count)
     {
+        if (count == 0) return 0;
+
+        if (IsPaused)
+        {
+            Array.Clear(buffer, offset, count);
+            return QueueMixingSampleProvider.SignalKeepAlive;
+        }
+
         if (Source == null)
         {
             Array.Clear(buffer, offset, count);
@@ -75,6 +91,7 @@ public sealed class LoopSampleProvider : IRecyclableProvider, IPoolable
     {
         Source = null;
         EnableLooping = true;
+        IsPaused = false;
     }
 
     public bool ExcludeFromPool { get; init; }

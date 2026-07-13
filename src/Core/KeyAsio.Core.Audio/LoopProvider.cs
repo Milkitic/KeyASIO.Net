@@ -38,6 +38,16 @@ internal sealed class LoopProvider : IDisposable
         _volumeProvider.Volume = volume;
     }
 
+    public void Pause()
+    {
+        _loopWrapper.IsPaused = true;
+    }
+
+    public void Resume()
+    {
+        _loopWrapper.IsPaused = false;
+    }
+
     public void AddTo(IMixingSampleProvider? mixer)
     {
         if (_baseMixer != null) return;
@@ -54,6 +64,7 @@ internal sealed class LoopProvider : IDisposable
 
     public void Dispose()
     {
+        _loopWrapper.IsPaused = false;
         _baseMixer = null;
     }
 }
