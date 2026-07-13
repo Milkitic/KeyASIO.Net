@@ -1,7 +1,7 @@
-using KeyAsio.Configuration;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
+using KeyAsio.Configuration;
 using KeyAsio.Plugins.Contracts;
 using KeyAsio.Sync;
 using Microsoft.Extensions.Logging;

@@ -1,6 +1,6 @@
+using System.Runtime.CompilerServices;
 using KeyAsio.Configuration;
 using KeyAsio.Configuration.Models;
-using System.Runtime.CompilerServices;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Sync.Models;

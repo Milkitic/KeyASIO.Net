@@ -1,7 +1,7 @@
-using KeyAsio.Configuration;
-using KeyAsio.Configuration.Models;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using KeyAsio.Configuration;
+using KeyAsio.Configuration.Models;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;

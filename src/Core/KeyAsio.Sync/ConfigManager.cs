@@ -1,5 +1,5 @@
-using KeyAsio.Configuration;
 using Coosu.Shared.IO;
+using KeyAsio.Configuration;
 using Milki.Extensions.MouseKeyHook;
 
 namespace KeyAsio.Sync;

@@ -32,7 +32,13 @@ public sealed class AudioEngineWrapper : IAudioEngine
         }
 
         public WaveFormat WaveFormat => _reader.WaveFormat;
-        public TimeSpan Position { get => _reader.CurrentTime; set => _reader.CurrentTime = value; }
+
+        public TimeSpan Position
+        {
+            get => _reader.CurrentTime;
+            set => _reader.CurrentTime = value;
+        }
+
         public TimeSpan Duration => _reader.TotalTime;
 
         public int Read(float[] buffer, int offset, int count) => _reader.Read(buffer, offset, count);

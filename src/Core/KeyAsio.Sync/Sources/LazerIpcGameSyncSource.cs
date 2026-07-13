@@ -3,7 +3,6 @@ using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.LazerProtocol;
 using KeyAsio.Plugins.Contracts;
 using KeyAsio.Plugins.Contracts.Sync;
-using KeyAsio.Sync;
 
 namespace KeyAsio.Sync.Sources;
 

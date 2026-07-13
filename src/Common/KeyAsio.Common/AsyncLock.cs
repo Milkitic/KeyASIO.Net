@@ -2,11 +2,9 @@ namespace KeyAsio.Common;
 
 public class AsyncLock : IDisposable
 {
-    private class AsyncLockImpl : IDisposable
+    private class AsyncLockImpl(AsyncLock parent) : IDisposable
     {
-        private readonly AsyncLock _parent;
-        public AsyncLockImpl(AsyncLock parent) => _parent = parent;
-        public void Dispose() => _parent._semaphoreSlim.Release();
+        public void Dispose() => parent._semaphoreSlim.Release();
     }
 
     private readonly AsyncLockImpl _asyncLockImpl;

@@ -1,14 +1,14 @@
-using KeyAsio.Configuration.Models;
-using KeyAsio.Configuration;
 using System.Diagnostics;
 using Coosu.Beatmap.Sections.GamePlay;
+using KeyAsio.Configuration;
+using KeyAsio.Configuration.Models;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Plugins.Contracts.Sync;
 using KeyAsio.Sync.Abstractions;
 using KeyAsio.Sync.Models;
-using KeyAsio.Sync.Sources;
 using KeyAsio.Sync.Services;
+using KeyAsio.Sync.Sources;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Sync.States;
@@ -216,7 +216,8 @@ public class PlayingState : IGameState
             if (_gameplaySessionManager.OsuFile.General.Mode == GameMode.Mania &&
                 playbackObject.PlaybackEvent is SampleEvent { Layer: SampleLayer.Sampling })
             {
-                _sfxPlaybackService.DispatchPlayback(playbackObject, playbackObject.PlaybackEvent.Volume * 0.866666666f);
+                _sfxPlaybackService.DispatchPlayback(playbackObject,
+                    playbackObject.PlaybackEvent.Volume * 0.866666666f);
                 continue;
             }
 

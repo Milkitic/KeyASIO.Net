@@ -1,19 +1,18 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Coosu.Shared.IO;
 using dnlib.DotNet;
+using KeyAsio.Application.Abstractions;
+using KeyAsio.Application.Models;
+using KeyAsio.Application.Utils;
+using KeyAsio.Common;
+using KeyAsio.Configuration;
+using KeyAsio.Configuration.Models;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.LazerProtocol;
-using KeyAsio.Application.Abstractions;
-using KeyAsio.Application.Utils;
-using KeyAsio.Application.Models;
-using KeyAsio.Configuration;
-using KeyAsio.Configuration.Models;
-using KeyAsio.Sync.Sources;
 using KeyAsio.Sync;
 using KeyAsio.Sync.Abstractions;
-using KeyAsio.Common;
+using KeyAsio.Sync.Sources;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Application.Services;
@@ -95,10 +94,15 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
     private string? _lazerExeDirectory;
     private GameClientType _lastKnownClientType = GameClientType.Stable;
 
-    public SkinManager(ILogger<SkinManager> logger, AppSettings appSettings,
-        IAppSettingsPersistence settingsPersistence, AudioCacheManager audioCacheManager,
-        ApplicationState sharedViewModel, LazerIpcGameSyncSource? lazerSyncSource, SyncSessionContext syncSessionContext,
-        GameSyncSourceCoordinator syncSourceCoordinator, IApplicationDispatcher dispatcher)
+    public SkinManager(IApplicationDispatcher dispatcher,
+        IAppSettingsPersistence settingsPersistence,
+        ILogger<SkinManager> logger,
+        AppSettings appSettings,
+        AudioCacheManager audioCacheManager,
+        ApplicationState sharedViewModel,
+        GameSyncSourceCoordinator syncSourceCoordinator,
+        LazerIpcGameSyncSource? lazerSyncSource,
+        SyncSessionContext syncSessionContext)
     {
         _logger = logger;
         _appSettings = appSettings;

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using KeyAsio.Common;
 using KeyAsio.Configuration;
 using KeyAsio.Configuration.Models;
 using KeyAsio.Core.OsuAudio.Hitsounds;
@@ -8,7 +9,6 @@ using KeyAsio.Plugins.Contracts;
 using KeyAsio.Plugins.Contracts.Sync;
 using KeyAsio.Sync.Events;
 using KeyAsio.Sync.Sources;
-using KeyAsio.Common;
 
 namespace KeyAsio.Sync;
 
@@ -50,6 +50,7 @@ public class SyncSessionContext
     /// 由 PlayTime 的单调性保护逻辑自动维护：当预测时间持续微小倒退时为 true，恢复正常前进时为 false。
     /// </summary>
     public bool IsAudioPaused => _isFrozen;
+
     public int ProcessId { get; set; } = -1;
 
     public string? Username

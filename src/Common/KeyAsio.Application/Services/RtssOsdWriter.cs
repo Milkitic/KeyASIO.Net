@@ -1,5 +1,4 @@
 using System.IO.MemoryMappedFiles;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace KeyAsio.Application.Services;
@@ -14,12 +13,11 @@ public sealed class RtssOsdWriter : IDisposable
     private const uint ExtendedTextVersionMin = 0x00020007;
     private const uint RtssSignature = 0x52545353; // 'RTSS'
 
-    private readonly string _entryName;
     private readonly byte[] _entryNameBytes = new byte[OwnerFieldLength];
     private readonly byte[] _ownerBuffer = new byte[OwnerFieldLength];
     private readonly byte[] _legacyTextBuffer = new byte[LegacyTextLength];
     private readonly byte[] _extendedTextBuffer = new byte[ExtendedTextLength];
-    private readonly object _syncRoot = new();
+    private readonly Lock _syncRoot = new();
 
     private MemoryMappedFile? _mmf;
     private MemoryMappedViewAccessor? _accessor;
@@ -39,9 +37,9 @@ public sealed class RtssOsdWriter : IDisposable
 
         var bytes = Encoding.ASCII.GetByteCount(entryName);
         if (bytes > OwnerFieldLength - 1)
-            throw new ArgumentException("Entry name exceeds max length of 255 when converted to ANSI.", nameof(entryName));
+            throw new ArgumentException("Entry name exceeds max length of 255 when converted to ANSI.",
+                nameof(entryName));
 
-        _entryName = entryName;
         _osdSlot = 0;
         _entryOffset = 0;
 
@@ -69,7 +67,8 @@ public sealed class RtssOsdWriter : IDisposable
             var maxTextLength = _useExtendedText ? ExtendedTextLength - 1 : LegacyTextLength - 1;
             var textBytes = Encoding.ASCII.GetByteCount(text);
             if (textBytes > maxTextLength)
-                throw new ArgumentException($"Text exceeds max length of {maxTextLength} when converted to ANSI.", nameof(text));
+                throw new ArgumentException($"Text exceeds max length of {maxTextLength} when converted to ANSI.",
+                    nameof(text));
 
             var targetBuffer = _useExtendedText ? _extendedTextBuffer : _legacyTextBuffer;
             var written = Encoding.ASCII.GetBytes(text.AsSpan(), targetBuffer);

@@ -1,5 +1,5 @@
-using KeyAsio.Configuration;
 using System.ComponentModel;
+using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
@@ -18,7 +18,8 @@ public class SfxPlaybackService
     private readonly IPlaybackEngine _playbackEngine;
     private readonly AppSettings _appSettings;
 
-    public SfxPlaybackService(ILogger<SfxPlaybackService> logger, IPlaybackEngine playbackEngine, AppSettings appSettings)
+    public SfxPlaybackService(ILogger<SfxPlaybackService> logger, IPlaybackEngine playbackEngine,
+        AppSettings appSettings)
     {
         _logger = logger;
         _playbackEngine = playbackEngine;

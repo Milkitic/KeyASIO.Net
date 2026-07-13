@@ -1,16 +1,21 @@
 using KeyAsio.Plugins.Contracts.Sync;
+using KeyAsio.Sync.Services;
 using KeyAsio.Sync.Sources;
 
 namespace KeyAsio.Sync.States;
 
-public class ResultsState : IGameState
+public class BrowsingState : IGameState
 {
-    public ResultsState()
+    private readonly GameplaySessionManager _gameplaySessionManager;
+
+    public BrowsingState(GameplaySessionManager gameplaySessionManager)
     {
+        _gameplaySessionManager = gameplaySessionManager;
     }
 
     public Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
+        _gameplaySessionManager.Stop();
         return Task.CompletedTask;
     }
 

@@ -11,7 +11,9 @@ public sealed class LazerIpcBridge : IDisposable
 {
     public const string PipeName = LazerProtocolConstants.TimingPipeName;
     public const string EventPipeName = LazerProtocolConstants.EventPipeName;
+
     public const int ProtocolVersion = LazerProtocolConstants.ProtocolVersion;
+
     // Event frames may include lazer skin and file metadata; large skin libraries can exceed several MB.
     private const int MaxFrameLength = 64 * 1024 * 1024;
 

@@ -1,13 +1,13 @@
-using KeyAsio.Configuration;
 using System.Diagnostics;
+using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Memory.Utils;
 using KeyAsio.Plugins.Contracts;
 using KeyAsio.Plugins.Contracts.Sync;
 using KeyAsio.Sync.Abstractions;
-using KeyAsio.Sync.Sources;
 using KeyAsio.Sync.AudioProviders;
 using KeyAsio.Sync.Services;
+using KeyAsio.Sync.Sources;
 using KeyAsio.Sync.States;
 using Microsoft.Extensions.Logging;
 
@@ -60,7 +60,8 @@ public class SyncController : IDisposable
         var catchAudioProvider = new CatchHitsoundSequencer(
             catchSequencerLogger,
             appSettings, syncSessionContext, playbackEngine, gameplayAudioService, gameplaySessionManager);
-        gameplaySessionManager.InitializeProviders(standardAudioProvider, taikoAudioProvider, catchAudioProvider, maniaAudioProvider);
+        gameplaySessionManager.InitializeProviders(standardAudioProvider, taikoAudioProvider, catchAudioProvider,
+            maniaAudioProvider);
 
         // Initialize realtime state machine with scene mappings
         _stateMachine = new GameStateMachine(new Dictionary<OsuMemoryStatus, IGameState>

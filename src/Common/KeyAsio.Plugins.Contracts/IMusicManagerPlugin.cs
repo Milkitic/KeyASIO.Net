@@ -1,6 +1,5 @@
 using Coosu.Beatmap;
 using KeyAsio.Plugins.Contracts.Sync;
-using NAudio.Wave;
 
 namespace KeyAsio.Plugins.Contracts;
 

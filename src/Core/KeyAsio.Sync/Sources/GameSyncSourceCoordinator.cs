@@ -1,6 +1,4 @@
 using KeyAsio.Configuration.Models;
-using KeyAsio.Plugins.Contracts.Sync;
-using KeyAsio.Sync;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Sync.Sources;
@@ -126,6 +124,7 @@ public sealed class GameSyncSourceCoordinator
                 _lastClientType = snapshot.ClientType;
                 ClientTypeChanged?.Invoke(snapshot.ClientType);
             }
+
             _syncSessionContext.ProcessId = snapshot.ProcessId;
             _syncSessionContext.Username = snapshot.Username;
             _syncSessionContext.PlayMods = snapshot.PlayMods;

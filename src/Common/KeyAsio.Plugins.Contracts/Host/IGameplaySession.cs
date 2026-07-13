@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Coosu.Beatmap;
-using NAudio.Wave;
 
 namespace KeyAsio.Plugins.Contracts;
 

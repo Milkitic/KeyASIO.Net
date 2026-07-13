@@ -1,6 +1,6 @@
-using KeyAsio.Sync.Sources;
-using KeyAsio.Sync.Services;
 using KeyAsio.Sync.Abstractions;
+using KeyAsio.Sync.Services;
+using KeyAsio.Sync.Sources;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KeyAsio.Sync;

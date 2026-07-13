@@ -1,9 +1,9 @@
+using KeyAsio.Common;
 using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Sync.Models;
 using KeyAsio.Sync.Services;
-using KeyAsio.Common;
 using Microsoft.Extensions.Logging;
 
 namespace KeyAsio.Sync.AudioProviders;
