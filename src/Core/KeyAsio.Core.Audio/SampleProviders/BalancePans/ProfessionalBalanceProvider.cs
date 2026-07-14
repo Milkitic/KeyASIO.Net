@@ -213,10 +213,22 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateSimpleFadeGains()
     {
-        float pan = (_balanceValue + 1f) * 0.5f;
-        float angle = pan * MathF.PI * 0.5f;
-        _leftDirectGain = MathF.Cos(angle);
-        _rightDirectGain = MathF.Sin(angle);
+        if (_balanceValue < 0)
+        {
+            _leftDirectGain = 1.0f;
+            _rightDirectGain = MathF.Cos(-_balanceValue * MathF.PI * 0.5f);
+        }
+        else if (_balanceValue > 0)
+        {
+            _leftDirectGain = MathF.Cos(_balanceValue * MathF.PI * 0.5f);
+            _rightDirectGain = 1.0f;
+        }
+        else
+        {
+            _leftDirectGain = 1.0f;
+            _rightDirectGain = 1.0f;
+        }
+
         _leftCrossGain = 0f;
         _rightCrossGain = 0f;
     }
