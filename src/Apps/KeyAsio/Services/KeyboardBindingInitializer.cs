@@ -8,7 +8,6 @@ using KeyAsio.Core.OsuAudio.Utils;
 using KeyAsio.Configuration;
 using KeyAsio.Application.Models;
 using KeyAsio.Application.Services;
-using KeyAsio.Sync;
 using KeyAsio.Sync.Models;
 using KeyAsio.Sync.AudioProviders;
 using KeyAsio.Sync.Services;
@@ -41,7 +40,6 @@ public class KeyboardBindingInitializer
     private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SkinManager _skinManager;
     private readonly ApplicationState _sharedViewModel;
-    private readonly SyncSessionContext _syncSessionContext;
 
     private IKeyboardHook _keyboardHook = null!;
     public IKeyboardHook KeyboardHook => _keyboardHook;
@@ -60,8 +58,7 @@ public class KeyboardBindingInitializer
         GameplaySessionManager gameplaySessionManager,
         SfxPlaybackService sfxPlaybackService,
         SkinManager skinManager,
-        ApplicationState sharedViewModel,
-        SyncSessionContext syncSessionContext)
+        ApplicationState sharedViewModel)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -71,7 +68,6 @@ public class KeyboardBindingInitializer
         _sfxPlaybackService = sfxPlaybackService;
         _skinManager = skinManager;
         _sharedViewModel = sharedViewModel;
-        _syncSessionContext = syncSessionContext;
     }
 
     public void Setup()
@@ -187,8 +183,9 @@ public class KeyboardBindingInitializer
 
                 if (keyIndex != -1)
                 {
-                    if (_syncSessionContext.IsAudioPaused) return;
-
+                    // IsAudioPaused reflects interpolation freeze protection as well as an actual pause.
+                    // Stable memory timing can enter that state briefly during normal gameplay, so it must
+                    // not be used to discard a physical key press.
                     sequencer.ProcessInteraction(_playbackBuffer, keyIndex, keyTotal);
                     foreach (var playbackInfo in _playbackBuffer)
                     {
