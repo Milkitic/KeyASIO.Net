@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using KeyAsio.Core.Audio;
 using Milki.Extensions.Configuration.Converters;
 using YamlDotNet.Serialization;
@@ -31,6 +32,13 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
     {
         if (type == typeof(AppSettings))
         {
+            // BalanceMode.MidSide was renamed to the branded KeyAsioFocus mode.
+            // Migrate the serialized enum name so existing user settings remain valid.
+            content = Regex.Replace(
+                content,
+                "(?im)^(\\s*balanceMode\\s*:\\s*)[\"']?MidSide[\"']?(\\s*(?:#.*)?)$",
+                "$1ProMixFocus$2");
+
             if (!content.StartsWith("default:") && !LooksLikeNewYaml(content))
             {
                 return ToYaml((LegacyAppSettings)base.DeserializeSettings(content, typeof(LegacyAppSettings)));

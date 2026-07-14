@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
@@ -37,12 +37,12 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
 
     3. 专业 DAW (最高音质):
        var balance = new SafeBalanceProvider(source,
-           BalanceMode.MidSide,
+           BalanceMode.ProMixFocus,
            AntiClipStrategy.SoftClipper);
 
     4. 母带处理 (零失真):
        var balance = new SafeBalanceProvider(source,
-           BalanceMode.MidSide,
+           BalanceMode.ProMixFocus,
            AntiClipStrategy.DynamicGain);
 
     使用方法:
@@ -190,8 +190,8 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
                 UpdateCrossMixGains();
                 break;
 
-            case BalanceMode.MidSide:
-                UpdateMidSideGains();
+            case BalanceMode.ProMixFocus:
+                UpdateProMixFocusGains();
                 break;
 
             case BalanceMode.BinauralMix:
@@ -268,7 +268,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void UpdateMidSideGains()
+    private void UpdateProMixFocusGains()
     {
         _leftDirectGain = 1.0f;
         _rightDirectGain = 1.0f;
@@ -328,7 +328,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
         if (sampleCount == 0) return 0;
         int samplesRead = Source.Read(buffer, offset, sampleCount);
 
-        if ((_balanceValue == 0 && _mode != BalanceMode.MidSide || _mode == BalanceMode.Off) &&
+        if ((_balanceValue == 0 && _mode != BalanceMode.ProMixFocus || _mode == BalanceMode.Off) &&
             _antiClip == AntiClipStrategy.None)
         {
             return samplesRead;
@@ -337,9 +337,9 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
         if (s_canUseVectorization)
         {
             Span<float> data = buffer.AsSpan(offset, samplesRead);
-            if (_mode == BalanceMode.MidSide)
+            if (_mode == BalanceMode.ProMixFocus)
             {
-                ProcessMidSideVectorized(data);
+                ProcessProMixFocusVectorized(data);
             }
             else
             {
@@ -348,9 +348,9 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
         }
         else
         {
-            if (_mode == BalanceMode.MidSide)
+            if (_mode == BalanceMode.ProMixFocus)
             {
-                ProcessMidSideSafe(buffer, offset, samplesRead);
+                ProcessProMixFocusSafe(buffer, offset, samplesRead);
             }
             else
             {
@@ -438,7 +438,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
         }
     }
 
-    private void ProcessMidSideVectorized(Span<float> data)
+    private void ProcessProMixFocusVectorized(Span<float> data)
     {
         ref float dataRef = ref MemoryMarshal.GetReference(data);
         int len = data.Length;
@@ -678,7 +678,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
         }
     }
 
-    private void ProcessMidSideSafe(float[] buffer, int offset, int count)
+    private void ProcessProMixFocusSafe(float[] buffer, int offset, int count)
     {
         int endIndex = offset + count;
         float sideGain = 1.0f - Math.Abs(_balanceValue);

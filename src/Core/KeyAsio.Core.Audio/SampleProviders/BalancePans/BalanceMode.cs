@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace KeyAsio.Core.Audio.SampleProviders.BalancePans;
 
@@ -30,11 +30,11 @@ public enum BalanceMode
     CrossMix,
 
     /// <summary>
-    /// Mid-Side 处理 (专业混音):
-    /// 调整 Mid (中央) 和 Side (立体声宽度) 信号的平衡。
+    /// KeyASIO Focus (品牌声场导向):
+    /// 保持 Mid 信号，在收窄原始 Side 的同时将声像平滑导向目标侧。
     /// </summary>
-    [Description("BalanceMode_MidSide")]
-    MidSide,
+    [Description("BalanceMode_ProMixFocus")]
+    ProMixFocus,
 
     /// <summary>
     /// 单声道混合声像 (听力辅助):

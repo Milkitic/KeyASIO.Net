@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -264,8 +264,8 @@
   <data name="BalanceMode_CrossMix" xml:space="preserve">
     <value>Cross Mix (Spatial)</value>
   </data>
-  <data name="BalanceMode_MidSide" xml:space="preserve">
-    <value>Mid-Side (Professional)</value>
+  <data name="BalanceMode_ProMixFocus" xml:space="preserve">
+    <value>ProMix Focus</value>
   </data>
   <data name="BalanceMode_Off" xml:space="preserve">
     <value>Off</value>
@@ -542,7 +542,7 @@ You can change option later.</value>
     <value>Balance Mode</value>
   </data>
   <data name="Sync_BalanceModeDescription" xml:space="preserve">
-    <value>Controls stereo balance processing. 'ConstantPower' is standard; 'CrossMix' preserves ambience. Note: 'Mid-Side' mode increases CPU usage.</value>
+    <value>Controls stereo balance processing. ProMix Focus preserves the center while smoothly focusing the sound field toward the target side.</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>Disable Combo Break</value>

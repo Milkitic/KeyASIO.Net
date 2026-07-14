@@ -159,7 +159,7 @@ public partial class AppSettingsSyncPlayback : INotifyPropertyChanged
     public LimiterType LimiterType { get; set; } = LimiterType.Master;
 
     [Description("Stereo balance processing mode.")]
-    public BalanceMode BalanceMode { get; set; } = BalanceMode.MidSide;
+    public BalanceMode BalanceMode { get; set; } = BalanceMode.ProMixFocus;
 
     [Description("Balance factor.")]
     public float BalanceFactor { get; set; } = 0.2f;

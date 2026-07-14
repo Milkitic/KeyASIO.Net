@@ -1,4 +1,4 @@
-﻿using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using NAudio.Wave;
@@ -106,7 +106,7 @@ internal static class EnhancedMixingSampleProviderExtension
     private static ProfessionalBalanceProvider AddToBalanceProvider(ISampleProvider input, float balance)
     {
         var balanceProvider = new ProfessionalBalanceProvider(input,
-            BalanceMode.MidSide, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
+            BalanceMode.ProMixFocus, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
         {
             ExcludeFromPool = true,
             Balance = balance

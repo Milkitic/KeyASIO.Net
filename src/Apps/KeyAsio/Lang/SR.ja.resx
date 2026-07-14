@@ -265,8 +265,8 @@
   <data name="BalanceMode_CrossMix" xml:space="preserve">
     <value>クロスミックス（バランス）</value>
   </data>
-  <data name="BalanceMode_MidSide" xml:space="preserve">
-    <value>ミッド・サイド（プロ）</value>
+  <data name="BalanceMode_ProMixFocus" xml:space="preserve">
+    <value>ProMix Focus</value>
   </data>
   <data name="BalanceMode_Off" xml:space="preserve">
     <value>オフ</value>
@@ -537,8 +537,7 @@
     <value>バランスモード</value>
   </data>
   <data name="Sync_BalanceModeDescription" xml:space="preserve">
-    <value>ステレオバランスの処理アルゴリズムを制御します。「等電力」は標準モードで、「クロスミックス」は空間感を保ちます。
-注意：「ミッド・サイド」モードは CPU 使用率が増加します。</value>
+    <value>ステレオバランスの処理アルゴリズムを制御します。ProMix Focus はセンターを保ちながら、音場をターゲット側へ滑らかにフォーカスします。</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>コンボブレイク音を無効化</value>
