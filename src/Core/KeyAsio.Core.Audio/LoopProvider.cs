@@ -20,7 +20,7 @@ internal sealed class LoopProvider : IDisposable
         _loopWrapper = RecyclableSampleProviderFactory.RentLoopProvider(_sourceProvider);
         _volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(_loopWrapper, initialVolume);
         _balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(_volumeProvider, initialBalance,
-            balanceMode, AntiClipStrategy.None); // 由 MasterLimiterProvider 统一处理防削波
+            balanceMode);
     }
 
     public void SetBalance(float balance)

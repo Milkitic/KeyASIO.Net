@@ -105,8 +105,7 @@ internal static class EnhancedMixingSampleProviderExtension
     [Obsolete]
     private static ProfessionalBalanceProvider AddToBalanceProvider(ISampleProvider input, float balance)
     {
-        var balanceProvider = new ProfessionalBalanceProvider(input,
-            BalanceMode.ProMixFocus, AntiClipStrategy.None) // 由 MasterLimiterProvider 统一处理防削波
+        var balanceProvider = new ProfessionalBalanceProvider(input, BalanceMode.ProMixFocus)
         {
             ExcludeFromPool = true,
             Balance = balance

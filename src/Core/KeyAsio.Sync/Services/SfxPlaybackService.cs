@@ -118,7 +118,7 @@ public class SfxPlaybackService
 
                 var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(provider, volume);
                 var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
-                    _appSettings.Sync.Playback.BalanceMode, AntiClipStrategy.None);
+                    _appSettings.Sync.Playback.BalanceMode);
 
                 _playbackEngine.EffectMixer.AddMixerInput(balanceProvider);
                 _logger.LogTrace("Play Dynamic: {Key} (Freq: {Freq:F1})", cachedAudio.SourceHash,
@@ -144,7 +144,7 @@ public class SfxPlaybackService
             var cachedAudioProvider = RecyclableSampleProviderFactory.RentCacheProvider(cachedAudio);
             var volumeProvider = RecyclableSampleProviderFactory.RentVolumeProvider(cachedAudioProvider, volume);
             var balanceProvider = RecyclableSampleProviderFactory.RentBalanceProvider(volumeProvider, balance,
-                _appSettings.Sync.Playback.BalanceMode, AntiClipStrategy.None); // 削波处理交给MasterLimiterProvider
+                _appSettings.Sync.Playback.BalanceMode);
 
             _playbackEngine.EffectMixer.AddMixerInput(balanceProvider);
         }
