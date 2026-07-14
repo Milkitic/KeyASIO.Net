@@ -1,0 +1,49 @@
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Sync.Sources;
+
+namespace KeyAsio.Sync;
+
+public class SyncContextWrapper : ISyncContext
+{
+    private readonly SyncSessionContext _context;
+
+    private BeatmapIdentifier _cachedIdentifier;
+    private SyncBeatmapInfo? _cachedInfo;
+
+    public SyncContextWrapper(SyncSessionContext context)
+    {
+        _context = context;
+    }
+
+    public int PlayTime => _context.PlayTime;
+    public bool IsStarted => _context.IsStarted;
+
+    public SyncOsuStatus OsuStatus => (SyncOsuStatus)_context.OsuStatus;
+
+    public long LastUpdateTimestamp => _context.LastUpdateTimestamp;
+
+    public int PlayMods => (int)_context.PlayMods;
+    public SyncStatistics Statistics => _context.Statistics;
+    public SyncHitErrors HitErrors => _context.HitErrors;
+    public bool IsAudioPaused => _context.IsAudioPaused;
+
+    public SyncBeatmapInfo? Beatmap
+    {
+        get
+        {
+            var current = _context.Beatmap;
+            if (current == _cachedIdentifier) return _cachedInfo;
+
+            _cachedIdentifier = current;
+            _cachedInfo = current.Folder == null
+                ? null
+                : new SyncBeatmapInfo
+                {
+                    Folder = current.Folder,
+                    Filename = current.Filename
+                };
+
+            return _cachedInfo;
+        }
+    }
+}

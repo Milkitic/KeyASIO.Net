@@ -1,8 +1,8 @@
-﻿using System.Text;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Sync.Services;
-using KeyAsio.Shared.Utils;
+using System.Text;
+using KeyAsio.Configuration;
+using KeyAsio.Sync;
+using KeyAsio.Sync.Services;
+using KeyAsio.Common;
 using Sentry.Extensibility;
 
 namespace KeyAsio.Services;

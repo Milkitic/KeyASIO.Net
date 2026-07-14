@@ -3,6 +3,7 @@
     <Project Path="benchmarks\SimdBenchmarks\SimdBenchmarks.csproj" />
   </Folder>
   <Folder Name="/Dependencies/">
+    <Project Path="dependencies/osu.Game.Rulesets.KeyAsio/KeyAsio.LazerProtocol/KeyAsio.LazerProtocol.csproj" />
     <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj" />
     <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
     <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Threading\Milki.Extensions.Threading.csproj" />
@@ -19,10 +20,13 @@
     <Project Path="tests\PlayingTests\PlayingTests.csproj" />
   </Folder>
   <Project Path="src\Apps\KeyAsio\KeyAsio.csproj" />
-  <Project Path="src\Common\KeyAsio.Plugins.Abstractions/KeyAsio.Plugins.Abstractions.csproj" />
+  <Project Path="src\Common\KeyAsio.Application\KeyAsio.Application.csproj" />
+  <Project Path="src\Common\KeyAsio.Common\KeyAsio.Common.csproj" />
+  <Project Path="src\Common\KeyAsio.Plugins.Contracts/KeyAsio.Plugins.Contracts.csproj" />
   <Project Path="src\Common\KeyAsio.Secrets\KeyAsio.Secrets.csproj" />
-  <Project Path="src\Common\KeyAsio.Shared\KeyAsio.Shared.csproj" />
+  <Project Path="src\Common\KeyAsio.Configuration\KeyAsio.Configuration.csproj" />
   <Project Path="src\Core\KeyAsio.Core.Audio\KeyAsio.Core.Audio.csproj" />
   <Project Path="src\Core\KeyAsio.Core.Memory\KeyAsio.Core.Memory.csproj" />
   <Project Path="src\Core\KeyAsio.Core.OsuAudio\KeyAsio.Core.OsuAudio.csproj" />
+  <Project Path="src\Core\KeyAsio.Sync\KeyAsio.Sync.csproj" />
 </Solution>

@@ -1,5 +1,5 @@
 using Avalonia;
-using KeyAsio.Shared.OsuMemory;
+using KeyAsio.Sync.Sources;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;

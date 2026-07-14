@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
-using KeyAsio.Plugins.Abstractions.OsuMemory;
+using KeyAsio.Plugins.Contracts.Sync;
 
 namespace KeyAsio.Converters;
 

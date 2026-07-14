@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,7 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Common\KeyAsio.Shared\KeyAsio.Shared.csproj" />
+    <ProjectReference Include="..\..\src\Common\KeyAsio.Application\KeyAsio.Application.csproj" />
+    <ProjectReference Include="..\..\src\Common\KeyAsio.Configuration\KeyAsio.Configuration.csproj" />
+    <ProjectReference Include="..\..\src\Core\KeyAsio.Sync\KeyAsio.Sync.csproj" />
   </ItemGroup>
 
 </Project>

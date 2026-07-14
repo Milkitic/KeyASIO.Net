@@ -89,12 +89,11 @@ public class LoopProviderManager
 
     public void PauseAll(IMixingSampleProvider? mixer)
     {
+        // Mixer removal owns and recycles the entire provider chain, so pause in place.
         foreach (var kvp in _dictionary)
         {
-            var channel = kvp.Key;
             var loopProvider = kvp.Value;
-
-            loopProvider.RemoveFrom(mixer);
+            loopProvider.Pause();
         }
     }
 
@@ -102,10 +101,8 @@ public class LoopProviderManager
     {
         foreach (var kvp in _dictionary)
         {
-            var channel = kvp.Key;
             var loopProvider = kvp.Value;
-
-            loopProvider.AddTo(mixer);
+            loopProvider.Resume();
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 using Avalonia;
@@ -229,7 +229,7 @@ internal static class MessageBox
         // 尝试从 Avalonia 生命周期获取主窗口
         if (window == null)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
                 {
                     MainWindow: { } mainWindow
                 })

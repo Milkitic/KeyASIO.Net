@@ -5,13 +5,13 @@ using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
 using KeyAsio.Core.OsuAudio.Utils;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Services;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Sync.AudioProviders;
-using KeyAsio.Shared.Sync.Services;
-using KeyAsio.Shared.Utils;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Models;
+using KeyAsio.Application.Services;
+using KeyAsio.Sync.Models;
+using KeyAsio.Sync.AudioProviders;
+using KeyAsio.Sync.Services;
+using KeyAsio.Common;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.MouseKeyHook;
 using NAudio.Wave;
@@ -39,8 +39,7 @@ public class KeyboardBindingInitializer
     private readonly GameplaySessionManager _gameplaySessionManager;
     private readonly SfxPlaybackService _sfxPlaybackService;
     private readonly SkinManager _skinManager;
-    private readonly SharedViewModel _sharedViewModel;
-    private readonly SyncSessionContext _syncSessionContext;
+    private readonly ApplicationState _sharedViewModel;
 
     private IKeyboardHook _keyboardHook = null!;
     public IKeyboardHook KeyboardHook => _keyboardHook;
@@ -59,8 +58,7 @@ public class KeyboardBindingInitializer
         GameplaySessionManager gameplaySessionManager,
         SfxPlaybackService sfxPlaybackService,
         SkinManager skinManager,
-        SharedViewModel sharedViewModel,
-        SyncSessionContext syncSessionContext)
+        ApplicationState sharedViewModel)
     {
         _logger = logger;
         _appSettings = appSettings;
@@ -70,7 +68,6 @@ public class KeyboardBindingInitializer
         _sfxPlaybackService = sfxPlaybackService;
         _skinManager = skinManager;
         _sharedViewModel = sharedViewModel;
-        _syncSessionContext = syncSessionContext;
     }
 
     public void Setup()
@@ -186,8 +183,9 @@ public class KeyboardBindingInitializer
 
                 if (keyIndex != -1)
                 {
-                    if (_syncSessionContext.IsAudioPaused) return;
-
+                    // IsAudioPaused reflects interpolation freeze protection as well as an actual pause.
+                    // Stable memory timing can enter that state briefly during normal gameplay, so it must
+                    // not be used to discard a physical key press.
                     sequencer.ProcessInteraction(_playbackBuffer, keyIndex, keyTotal);
                     foreach (var playbackInfo in _playbackBuffer)
                     {
@@ -225,7 +223,7 @@ public class KeyboardBindingInitializer
         CachedAudio? cachedAudio = null;
 
         var selectedSkin = _sharedViewModel.SelectedSkin;
-        var selectedSkinName = _appSettings.Paths.SelectedSkinName;
+        var selectedSkinName = _appSettings.Paths.SelectedSkinNameStable;
         var osuFolder = _appSettings.Paths.OsuFolderPath;
         var skinFolder = selectedSkin?.Folder ?? "";
 

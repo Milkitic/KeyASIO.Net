@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
@@ -28,7 +28,7 @@ public class StringColorToBrushConverter : IValueConverter
                 return new SolidColorBrush(color, opacity);
             }
 
-            if (Application.Current?.TryFindResource(colorStr, Application.Current?.ActualThemeVariant, out var res) != true) return null;
+            if (Avalonia.Application.Current?.TryFindResource(colorStr, Avalonia.Application.Current?.ActualThemeVariant, out var res) != true) return null;
             {
                 switch (res)
                 {

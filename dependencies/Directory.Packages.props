@@ -1,0 +1,6 @@
+<Project>
+  <!-- Third-party submodules keep ownership of their own package versions. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

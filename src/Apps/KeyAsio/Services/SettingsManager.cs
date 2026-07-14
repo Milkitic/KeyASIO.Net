@@ -1,11 +1,12 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls.Notifications;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using KeyAsio.Core.Audio;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
+using KeyAsio.Configuration;
+using KeyAsio.Configuration.Models;
+using KeyAsio.Application.Models;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using SukiUI.Toasts;
@@ -40,12 +41,12 @@ public class SettingsManager : IDisposable
 
     private void ApplyTheme()
     {
-        if (Application.Current == null) return;
+        if (Avalonia.Application.Current == null) return;
 
         Dispatcher.UIThread.Post(() =>
         {
             var theme = _appSettings.General.Theme;
-            Application.Current.RequestedThemeVariant = theme switch
+            Avalonia.Application.Current.RequestedThemeVariant = theme switch
             {
                 AppTheme.Light => ThemeVariant.Light,
                 AppTheme.Dark => ThemeVariant.Dark,

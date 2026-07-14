@@ -1,16 +1,13 @@
-﻿using System.Diagnostics;
 using Avalonia;
+using KeyAsio.Application.Services;
+using KeyAsio.Common;
+using KeyAsio.Configuration;
+using KeyAsio.Configuration.Serialization;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Memory.Utils;
 using KeyAsio.Lang;
-using KeyAsio.Secrets;
 using KeyAsio.Services;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Configuration;
-using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Services;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Utils;
+using KeyAsio.Sync;
 using KeyAsio.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;
 using NLog.Extensions.Logging;
 using Sentry.Extensibility;
+using System.Diagnostics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -133,8 +131,6 @@ internal sealed class Program
             .ConfigureServices(services => services
                 .AddSingleton<App>()
                 .AddSingleton<UpdateService>()
-                .AddSingleton<MemoryScan>()
-                .AddSingleton<MemorySyncBridge>()
                 .AddSingleton<RtssMonitorService>()
                 .AddSingleton<ISentryEventProcessor, KeyAsioSentryEventProcessor>()
                 .AddAudioModule()

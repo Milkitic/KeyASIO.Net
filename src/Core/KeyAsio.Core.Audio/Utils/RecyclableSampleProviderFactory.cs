@@ -15,14 +15,12 @@ public static class RecyclableSampleProviderFactory
         return provider;
     }
 
-    public static ProfessionalBalanceProvider RentBalanceProvider(ISampleProvider source, float balance, BalanceMode mode,
-        AntiClipStrategy antiClipStrategy)
+    public static ProfessionalBalanceProvider RentBalanceProvider(ISampleProvider source, float balance, BalanceMode mode)
     {
         var provider = SharedPool<ProfessionalBalanceProvider>.Rent();
         provider.Source = source;
-        provider.Balance = balance;
         provider.Mode = mode;
-        provider.AntiClipStrategy = antiClipStrategy;
+        provider.Balance = balance;
         return provider;
     }
 

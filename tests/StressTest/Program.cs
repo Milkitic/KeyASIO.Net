@@ -5,14 +5,15 @@ using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.Audio.SampleProviders;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Plugins;
-using KeyAsio.Shared.Services;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Sync.Services;
-using KeyAsio.Shared.Sync.States;
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Models;
+using KeyAsio.Application.Plugins;
+using KeyAsio.Application.Services;
+using KeyAsio.Sync;
+using KeyAsio.Sync.Services;
+using KeyAsio.Sync.Models;
+using KeyAsio.Sync.States;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
@@ -37,7 +38,7 @@ public class Program
         services.AddSingleton<AudioEngine>(); // We will manipulate this instance later
 
         // Register Sync Module Services
-        services.AddSingleton<SharedViewModel>();
+        services.AddSingleton<ApplicationState>();
         services.AddSingleton<GameplayAudioService>();
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<SfxPlaybackService>();
@@ -65,7 +66,7 @@ public class Program
             audioEngine,
             provider.GetRequiredService<BeatmapHitsoundLoader>(),
             provider.GetRequiredService<SfxPlaybackService>(),
-            provider.GetRequiredService<SharedViewModel>(),
+            provider.GetRequiredService<ApplicationState>(),
             gameplaySessionManager,
             gameplayAudioService
         );
@@ -93,32 +94,32 @@ public class Program
         // Let's manually create them.
 
         var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-        var maniaSequencer = new KeyAsio.Shared.Sync.AudioProviders.ManiaHitsoundSequencer(
-            loggerFactory.CreateLogger<KeyAsio.Shared.Sync.AudioProviders.ManiaHitsoundSequencer>(),
+        var maniaSequencer = new KeyAsio.Sync.AudioProviders.ManiaHitsoundSequencer(
+            loggerFactory.CreateLogger<KeyAsio.Sync.AudioProviders.ManiaHitsoundSequencer>(),
             provider.GetRequiredService<AppSettings>(),
             ctx,
             audioEngine,
             gameplayAudioService,
             gameplaySessionManager
         );
-        var stdSequencer = new KeyAsio.Shared.Sync.AudioProviders.StandardHitsoundSequencer(
-            loggerFactory.CreateLogger<KeyAsio.Shared.Sync.AudioProviders.StandardHitsoundSequencer>(),
+        var stdSequencer = new KeyAsio.Sync.AudioProviders.StandardHitsoundSequencer(
+            loggerFactory.CreateLogger<KeyAsio.Sync.AudioProviders.StandardHitsoundSequencer>(),
             provider.GetRequiredService<AppSettings>(),
             ctx,
             audioEngine,
             gameplayAudioService,
             gameplaySessionManager
         );
-        var taikoSequencer = new KeyAsio.Shared.Sync.AudioProviders.TaikoHitsoundSequencer(
-            loggerFactory.CreateLogger<KeyAsio.Shared.Sync.AudioProviders.TaikoHitsoundSequencer>(),
+        var taikoSequencer = new KeyAsio.Sync.AudioProviders.TaikoHitsoundSequencer(
+            loggerFactory.CreateLogger<KeyAsio.Sync.AudioProviders.TaikoHitsoundSequencer>(),
             provider.GetRequiredService<AppSettings>(),
             ctx,
             audioEngine,
             gameplayAudioService,
             gameplaySessionManager
         );
-        var catchSequencer = new KeyAsio.Shared.Sync.AudioProviders.CatchHitsoundSequencer(
-            loggerFactory.CreateLogger<KeyAsio.Shared.Sync.AudioProviders.CatchHitsoundSequencer>(),
+        var catchSequencer = new KeyAsio.Sync.AudioProviders.CatchHitsoundSequencer(
+            loggerFactory.CreateLogger<KeyAsio.Sync.AudioProviders.CatchHitsoundSequencer>(),
             provider.GetRequiredService<AppSettings>(),
             ctx,
             audioEngine,

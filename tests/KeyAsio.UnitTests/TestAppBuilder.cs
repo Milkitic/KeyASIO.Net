@@ -6,7 +6,7 @@ using KeyAsio.UnitTests;
 
 namespace KeyAsio.UnitTests;
 
-public class TestApp : Application
+public class TestApp : Avalonia.Application
 {
 }
 

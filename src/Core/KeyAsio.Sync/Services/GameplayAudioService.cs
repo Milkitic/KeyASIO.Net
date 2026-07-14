@@ -1,0 +1,399 @@
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using KeyAsio.Common;
+using KeyAsio.Configuration;
+using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio.Caching;
+using KeyAsio.Core.OsuAudio.Hitsounds;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
+using KeyAsio.Core.OsuAudio.Utils;
+using KeyAsio.Sync.Abstractions;
+using Microsoft.Extensions.Logging;
+using NAudio.Wave;
+
+namespace KeyAsio.Sync.Services;
+
+public class GameplayAudioService : IGameplayAudioCache, IDisposable
+{
+    private const string BeatmapCacheIdentifier = "default";
+    private const string UserCacheIdentifier = "internal";
+
+    private static readonly string[] s_skinAudioFiles = ["combobreak"];
+
+    private OsuAudioFileCache _osuAudioFileCache = new();
+    private readonly ConcurrentDictionary<PlaybackEvent, CachedAudio> _playNodeToCachedAudioMapping = new();
+    private readonly ConcurrentDictionary<string, CachedAudio> _filenameToCachedAudioMapping = new();
+
+    private readonly ILogger<GameplayAudioService> _logger;
+    private readonly SyncSessionContext _syncSessionContext;
+    private readonly AppSettings _appSettings;
+    private readonly IPlaybackEngine _playbackEngine;
+    private readonly AudioCacheManager _audioCacheManager;
+    private readonly IPlaybackRuntimeState _runtimeState;
+    private readonly ISkinResourceProvider _skinResources;
+    private string? _beatmapFolder;
+    private string? _audioFilename;
+    private IBeatmapResourceCatalog? _beatmapResourceCatalog;
+
+    private readonly AsyncSequentialWorker _cachingWorker;
+
+    public GameplayAudioService(ILogger<GameplayAudioService> logger,
+        SyncSessionContext syncSessionContext,
+        AppSettings appSettings,
+        IPlaybackEngine playbackEngine,
+        AudioCacheManager audioCacheManager,
+        IPlaybackRuntimeState runtimeState,
+        ISkinResourceProvider skinResources)
+    {
+        _logger = logger;
+        _syncSessionContext = syncSessionContext;
+        _appSettings = appSettings;
+        _playbackEngine = playbackEngine;
+        _audioCacheManager = audioCacheManager;
+        _runtimeState = runtimeState;
+        _skinResources = skinResources;
+
+        _cachingWorker = new AsyncSequentialWorker(_logger, "GameplayAudioServiceWorker");
+        _runtimeState.SelectedSkinChanged += OnSelectedSkinChanged;
+    }
+
+    private void OnSelectedSkinChanged()
+    {
+        _logger.LogInformation("Skin changed, clearing gameplay audio service caches.");
+        ClearCaches();
+    }
+
+    public void SetContext(string? beatmapFolder, string? audioFilename,
+        IBeatmapResourceCatalog? beatmapResourceCatalog = null)
+    {
+        _beatmapFolder = beatmapFolder;
+        _audioFilename = audioFilename;
+        _beatmapResourceCatalog = beatmapResourceCatalog;
+    }
+
+    public void ClearCaches()
+    {
+        _osuAudioFileCache = new OsuAudioFileCache();
+        _audioCacheManager.ClearAll();
+        _playNodeToCachedAudioMapping.Clear();
+        _filenameToCachedAudioMapping.Clear();
+    }
+
+    public bool TryGetAudioByNode(PlaybackEvent node, [NotNullWhen(true)] out CachedAudio? cachedAudio)
+    {
+        if (!_playNodeToCachedAudioMapping.TryGetValue(node, out cachedAudio)) return false;
+        return true;
+    }
+
+    public bool TryGetCachedAudio(string filenameWithoutExt, out CachedAudio? cachedAudio)
+    {
+        return _filenameToCachedAudioMapping.TryGetValue(filenameWithoutExt, out cachedAudio);
+    }
+
+    public void PrecacheMusicAndSkinInBackground()
+    {
+        if (_beatmapFolder == null)
+        {
+            _logger.LogWarning("Beatmap folder is null, stop adding cache.");
+            return;
+        }
+
+        if (_playbackEngine.CurrentDevice == null)
+        {
+            _logger.LogWarning("AudioEngine is null, stop adding cache.");
+            return;
+        }
+
+        var folder = _beatmapFolder;
+        var waveFormat = _playbackEngine.EngineWaveFormat;
+        var skinFolder = _runtimeState.SelectedSkinFolder;
+
+        _cachingWorker.Enqueue(async token =>
+        {
+            if (folder != null && _audioFilename != null)
+            {
+                var musicPath = ResolveBeatmapFilePath(folder, _audioFilename);
+
+                var (_, status) = await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(musicPath, waveFormat);
+
+                if (status == CacheGetStatus.Failed)
+                {
+                    _logger.LogWarning("Caching music failed: " +
+                                       (File.Exists(musicPath) ? musicPath : "FileNotFound"));
+                }
+                else if (status == CacheGetStatus.Hit)
+                {
+                    _logger.LogTrace("Got music cache: " + musicPath);
+                }
+                else if (status == CacheGetStatus.Created)
+                {
+                    _logger.LogDebug("Cached music: " + musicPath);
+                }
+            }
+
+            try
+            {
+                foreach (var skinAudioFile in s_skinAudioFiles)
+                {
+                    if (token.IsCancellationRequested) break;
+                    await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during skin caching.");
+            }
+        });
+    }
+
+    public void PrecacheHitsoundsRangeInBackground(
+        int startTime,
+        int endTime,
+        IEnumerable<PlaybackEvent> playableNodes,
+        [CallerArgumentExpression("playableNodes")]
+        string? expression = null)
+    {
+        if (_beatmapFolder == null)
+        {
+            _logger.LogWarning("Beatmap folder is null, stop adding cache.");
+            return;
+        }
+
+        if (_playbackEngine.CurrentDevice == null)
+        {
+            _logger.LogWarning("AudioEngine is null, stop adding cache.");
+            return;
+        }
+
+        if (playableNodes is System.Collections.IList { Count: 0 })
+        {
+            _logger.LogWarning($"{expression} has no hitsounds, stop adding cache.");
+            return;
+        }
+
+        var folder = _beatmapFolder;
+        var waveFormat = _playbackEngine.SourceWaveFormat;
+        var skinFolder = _runtimeState.SelectedSkinFolder;
+
+        _cachingWorker.Enqueue(async token =>
+        {
+            using var _ = DebugUtils.CreateTimer($"CacheAudio {startTime}~{endTime}", _logger);
+            var nodesToCache = playableNodes.Where(k => k.Offset >= startTime && k.Offset < endTime).ToList();
+
+            try
+            {
+                foreach (var node in nodesToCache)
+                {
+                    if (token.IsCancellationRequested) break;
+                    await AddHitsoundCacheAsync(node, folder!, skinFolder, waveFormat);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during hitsound caching.");
+            }
+        });
+    }
+
+    public async Task<CachedAudio?> AddSkinCacheAsync(
+        string filenameWithoutExt,
+        string beatmapFolder,
+        string skinFolder,
+        WaveFormat waveFormat)
+    {
+        if (_filenameToCachedAudioMapping.TryGetValue(filenameWithoutExt, out var value)) return value;
+
+        string category;
+        var filename = _osuAudioFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var resourceOwner);
+
+        CachedAudio result;
+        if (TryResolveBeatmapAudioPath(beatmapFolder, filenameWithoutExt, out var beatmapPath))
+        {
+            category = BeatmapCacheIdentifier;
+            result = await LoadAndCacheAudioAsync(beatmapPath, category, waveFormat);
+        }
+        else if (resourceOwner == ResourceOwner.UserSkin)
+        {
+            category = UserCacheIdentifier;
+            result = await ResolveAndLoadSkinAudioAsync(filenameWithoutExt, skinFolder, category, waveFormat);
+        }
+        else
+        {
+            category = BeatmapCacheIdentifier;
+            var path = ResolveBeatmapFilePath(beatmapFolder, filename);
+            result = await LoadAndCacheAudioAsync(path, category, waveFormat);
+        }
+
+        _filenameToCachedAudioMapping.TryAdd(filenameWithoutExt, result);
+
+        return result;
+    }
+
+    public async Task AddHitsoundCacheAsync(
+        PlaybackEvent playbackEvent,
+        string beatmapFolder,
+        string skinFolder,
+        WaveFormat waveFormat)
+    {
+        if (!_syncSessionContext.IsStarted)
+        {
+            _logger.LogWarning("Isn't started, stop adding cache.");
+            return;
+        }
+
+        if (playbackEvent.Filename == null)
+        {
+            if (playbackEvent is SampleEvent)
+            {
+                _logger.LogWarning("Filename is null, add null cache.");
+            }
+
+            var cacheResult = await _audioCacheManager.GetOrCreateEmptyAsync("null", waveFormat);
+            _playNodeToCachedAudioMapping.TryAdd(playbackEvent, cacheResult.CachedAudio!);
+            return;
+        }
+
+        string category;
+        CachedAudio result;
+
+        if (playbackEvent.ResourceOwner == ResourceOwner.UserSkin)
+        {
+            category = UserCacheIdentifier;
+            result = await ResolveAndLoadSkinAudioAsync(playbackEvent.Filename, skinFolder, category, waveFormat);
+        }
+        else
+        {
+            category = BeatmapCacheIdentifier;
+            var path = ResolveBeatmapFilePath(beatmapFolder, playbackEvent.Filename);
+            result = await LoadAndCacheAudioAsync(path, category, waveFormat);
+        }
+
+        _playNodeToCachedAudioMapping.TryAdd(playbackEvent, result);
+        _filenameToCachedAudioMapping.TryAdd(playbackEvent.Filename, result);
+    }
+
+    private string ResolveBeatmapFilePath(string beatmapFolder, string filename)
+    {
+        if (_beatmapResourceCatalog?.TryResolve(filename, out var mappedFile) == true)
+        {
+            return mappedFile.Path;
+        }
+
+        return Path.Combine(beatmapFolder, filename);
+    }
+
+    private bool TryResolveBeatmapAudioPath(string beatmapFolder, string filenameWithoutExt, out string path)
+    {
+        if (_beatmapResourceCatalog?.TryResolveAudio(filenameWithoutExt, out var mappedFile) == true)
+        {
+            path = mappedFile.Path;
+            return true;
+        }
+
+        var filename = _osuAudioFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var resourceOwner);
+        if (resourceOwner == ResourceOwner.Beatmap)
+        {
+            path = ResolveBeatmapFilePath(beatmapFolder, filename);
+            return true;
+        }
+
+        path = string.Empty;
+        return false;
+    }
+
+    private async Task<CachedAudio> ResolveAndLoadSkinAudioAsync(string filenameKey, string skinFolder, string category,
+        WaveFormat waveFormat)
+    {
+        var filename = _osuAudioFileCache.GetFileUntilFind(skinFolder, filenameKey, out var resourceOwner);
+        if (resourceOwner == ResourceOwner.Beatmap) // Here means file exists in skin folder
+        {
+            var path = Path.Combine(skinFolder, filename);
+            return await LoadAndCacheAudioAsync(path, category, waveFormat);
+        }
+
+        if (skinFolder == "{internal}")
+        {
+            var dynamicKey = $"internal://dynamic/{filenameKey}";
+            return _audioCacheManager.CreateDynamic(dynamicKey, waveFormat);
+        }
+
+        // Lazer user skins: resolve via the skin's resource catalog (file-to-path mappings
+        // received from the lazer IPC). The skinFolder is a virtual key, not a real directory.
+        if (_skinResources.TryGetSkinCatalog(skinFolder, out var skinCatalog) &&
+            skinCatalog.TryResolveAudio(filenameKey, out var skinResource))
+        {
+            return await LoadAndCacheAudioAsync(skinResource.Path, category, waveFormat);
+        }
+
+        // Lazer built-in skins: use per-skin extracted resources with classic → triangles fallback.
+        // For custom lazer skins that didn't have the sample, fall back to classic sounds.
+        var lazerSkinFolder = skinFolder.StartsWith("{lazer-", StringComparison.OrdinalIgnoreCase)
+            ? skinFolder
+            : "{lazer-classic}";
+        if (_skinResources.TryGetLazerResource(lazerSkinFolder, filenameKey, out var lazerBytes))
+        {
+            var key = $"lazer://{lazerSkinFolder}/{filenameKey}";
+            using var stream = new MemoryStream(lazerBytes);
+            return await LoadAndCacheAudioFromStreamAsync(key, stream, category, waveFormat);
+        }
+
+        // Stable fallback (osu!gameplay.dll resources)
+        if (_skinResources.TryGetStableResource(filenameKey, out var bytes))
+        {
+            var key = $"internal://{filenameKey}";
+            using var stream = new MemoryStream(bytes);
+            return await LoadAndCacheAudioFromStreamAsync(key, stream, category, waveFormat);
+        }
+
+        _logger.LogWarning("Skin audio not found in skin or resources: {FilenameKey}", filenameKey);
+        var empty = await _audioCacheManager.GetOrCreateEmptyAsync(filenameKey, waveFormat, category);
+        return empty.CachedAudio!;
+    }
+
+    private async Task<CachedAudio> LoadAndCacheAudioFromStreamAsync(string key, Stream stream, string category,
+        WaveFormat waveFormat)
+    {
+        var (result, status) = await _audioCacheManager.GetOrCreateOrEmptyAsync(key, stream, waveFormat, category);
+        if (status == CacheGetStatus.Failed)
+        {
+            _logger.LogWarning("Caching effect failed: {Key}", key);
+        }
+        else if (status == CacheGetStatus.Hit)
+        {
+            _logger.LogTrace("Got effect cache: {Key}", key);
+        }
+        else if (status == CacheGetStatus.Created)
+        {
+            _logger.LogDebug("Cached effect: {Key}", key);
+        }
+
+        return result!;
+    }
+
+    private async Task<CachedAudio> LoadAndCacheAudioAsync(string path, string category, WaveFormat waveFormat)
+    {
+        var (result, status) = await _audioCacheManager.GetOrCreateOrEmptyFromFileAsync(path, waveFormat, category);
+        if (status == CacheGetStatus.Failed)
+        {
+            var file = (File.Exists(path) ? path : "FileNotFound");
+            _logger.LogWarning("Caching effect failed: {File}", file);
+        }
+        else if (status == CacheGetStatus.Hit)
+        {
+            _logger.LogTrace("Got effect cache: {Path}", path);
+        }
+        else if (status == CacheGetStatus.Created)
+        {
+            _logger.LogDebug("Cached effect: {Path}", path);
+        }
+
+        return result!;
+    }
+
+    public void Dispose()
+    {
+        _runtimeState.SelectedSkinChanged -= OnSelectedSkinChanged;
+        _cachingWorker.Dispose();
+    }
+}

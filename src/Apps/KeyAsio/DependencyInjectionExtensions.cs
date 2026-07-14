@@ -1,7 +1,13 @@
-﻿using KeyAsio.Services;
+using KeyAsio.Services;
 using KeyAsio.Services.Localization;
-using KeyAsio.Shared.Localization;
-using KeyAsio.Shared.Models;
+using KeyAsio.Application.Localization;
+using KeyAsio.Application.Models;
+using KeyAsio.Application.Abstractions;
+using KeyAsio.Application.Plugins;
+using KeyAsio.Application.Services;
+using KeyAsio.Configuration;
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Sync.Abstractions;
 using KeyAsio.ViewModels;
 using KeyAsio.ViewModels.Dialogs;
 using KeyAsio.Views;
@@ -15,14 +21,35 @@ public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddGuiModule(this IServiceCollection services)
     {
-        services.AddSingleton<SharedViewModel>();
+        services.AddSingleton<ApplicationState>();
+        services.AddSingleton<IAppSettingsPersistence, AppSettingsPersistence>();
+        services.AddSingleton<IPlaybackRuntimeState>(static provider =>
+            provider.GetRequiredService<ApplicationState>());
+
+        services.AddSingleton<IApplicationDispatcher, AvaloniaApplicationDispatcher>();
+        services.AddSingleton<SkinManager>();
+        services.AddSingleton<ISkinResourceProvider>(static provider =>
+            provider.GetRequiredService<SkinManager>());
 
         services.AddSingleton<ISukiDialogManager, SukiDialogManager>();
         services.AddSingleton<ISukiToastManager, SafeSukiToastManager>();
+        services.AddSingleton<IPluginInteractionService, PluginInteractionService>();
+
+        services.AddSingleton<AudioEngineWrapper>();
+        services.AddSingleton<IAudioEngine>(static provider =>
+            provider.GetRequiredService<AudioEngineWrapper>());
+        services.AddSingleton<PluginSettingsAdapter>();
+        services.AddSingleton<IPluginSettings>(static provider =>
+            provider.GetRequiredService<PluginSettingsAdapter>());
+        services.AddSingleton<GameplaySessionAdapter>();
+        services.AddSingleton<IGameplaySession>(static provider =>
+            provider.GetRequiredService<GameplaySessionAdapter>());
+        services.AddSingleton<IPluginManager, PluginManager>();
 
         services.AddSingleton<LanguageManager>();
         services.AddSingleton<SettingsManager>();
         services.AddSingleton<PresetManager>();
+        services.AddSingleton<IAudioDeviceOperationCoordinator, AudioDeviceOperationCoordinator>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();

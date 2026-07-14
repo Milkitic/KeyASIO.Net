@@ -1,0 +1,211 @@
+using System.Runtime;
+using System.Runtime.CompilerServices;
+using Coosu.Beatmap;
+using Coosu.Beatmap.Sections.GamePlay;
+using KeyAsio.Common;
+using KeyAsio.Core.Audio;
+using KeyAsio.Core.OsuAudio.Hitsounds;
+using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
+using KeyAsio.Sync.Events;
+using Microsoft.Extensions.Logging;
+
+namespace KeyAsio.Sync.Services;
+
+public class GameplaySessionManager
+{
+    private readonly ILogger<GameplaySessionManager> _logger;
+    private readonly GameplayAudioService _gameplayAudioService;
+    private readonly IPlaybackEngine _audioEngine;
+    private readonly SyncSessionContext _syncSessionContext;
+    private readonly BeatmapHitsoundLoader _beatmapHitsoundLoader;
+    private readonly SfxPlaybackService _sfxPlaybackService;
+
+    public event SignalEventHandler? SessionStopped;
+
+    private readonly Dictionary<GameMode, IHitsoundSequencer> _audioProviderDictionary = new();
+    private OsuFile? _osuFile;
+    private IHitsoundSequencer? _cachedHitsoundSequencer;
+    private string? _lastCachedFolder;
+    private GCLatencyMode _oldLatencyMode;
+    private bool _isLowLatencyModeActive;
+
+    public GameplaySessionManager(ILogger<GameplaySessionManager> logger,
+        GameplayAudioService gameplayAudioService,
+        IPlaybackEngine audioEngine,
+        SyncSessionContext syncSessionContext,
+        BeatmapHitsoundLoader beatmapHitsoundLoader,
+        SfxPlaybackService sfxPlaybackService)
+    {
+        _logger = logger;
+        _gameplayAudioService = gameplayAudioService;
+        _audioEngine = audioEngine;
+        _syncSessionContext = syncSessionContext;
+        _beatmapHitsoundLoader = beatmapHitsoundLoader;
+        _sfxPlaybackService = sfxPlaybackService;
+    }
+
+    public OsuFile? OsuFile
+    {
+        get => _osuFile;
+        internal set
+        {
+            _osuFile = value;
+            UpdateCachedSequencer();
+        }
+    }
+
+    public string? AudioFilename { get; internal set; }
+    public string? BeatmapFolder { get; private set; }
+    public IReadOnlyList<PlaybackEvent> PlaybackList => _beatmapHitsoundLoader.PlaybackList;
+    public List<SampleEvent> KeyList => _beatmapHitsoundLoader.KeyList;
+
+    public void InitializeProviders(IHitsoundSequencer standardHitsoundSequencer,
+        IHitsoundSequencer taikoHitsoundSequencer,
+        IHitsoundSequencer catchHitsoundSequencer,
+        IHitsoundSequencer maniaHitsoundSequencer)
+    {
+        _audioProviderDictionary[GameMode.Circle] = standardHitsoundSequencer;
+        _audioProviderDictionary[GameMode.Taiko] = taikoHitsoundSequencer;
+        _audioProviderDictionary[GameMode.Catch] = catchHitsoundSequencer;
+        _audioProviderDictionary[GameMode.Mania] = maniaHitsoundSequencer;
+        UpdateCachedSequencer();
+    }
+
+    public IHitsoundSequencer CurrentHitsoundSequencer
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _cachedHitsoundSequencer ?? _audioProviderDictionary[GameMode.Circle];
+    }
+
+    private void UpdateCachedSequencer()
+    {
+        if (_audioProviderDictionary.Count == 0) return;
+
+        if (_osuFile == null)
+        {
+            _cachedHitsoundSequencer = _audioProviderDictionary[GameMode.Circle];
+        }
+        else
+        {
+            _cachedHitsoundSequencer = _audioProviderDictionary.TryGetValue(_osuFile.General.Mode, out var sequencer)
+                ? sequencer
+                : _audioProviderDictionary[GameMode.Circle];
+        }
+    }
+
+    public async Task StartAsync(string? beatmapFilenameFull, string? beatmapFilename)
+    {
+        try
+        {
+            _logger.LogInformation("Start playing.");
+            OsuFile = null;
+
+            var resourceCatalog = _syncSessionContext.BeatmapResourceCatalog;
+            var folder = ResolveBeatmapFolder(beatmapFilenameFull, beatmapFilename, resourceCatalog);
+            if (folder == null)
+            {
+                throw new DirectoryNotFoundException("Failed to determine the beatmap directory.");
+            }
+
+            if (beatmapFilename == null)
+            {
+                throw new ArgumentNullException(nameof(beatmapFilename), "Beatmap filename cannot be null.");
+            }
+
+            var osuFile = await _beatmapHitsoundLoader.InitializeNodeListsAsync(folder, beatmapFilename,
+                CurrentHitsoundSequencer, _syncSessionContext.PlayMods, resourceCatalog);
+            OsuFile = osuFile;
+            AudioFilename = osuFile?.General?.AudioFilename;
+            BeatmapFolder = folder;
+
+            var cacheContextKey = resourceCatalog != null
+                ? $"{resourceCatalog.CacheKey}|{beatmapFilename}"
+                : folder;
+
+            PerformCache(folder, AudioFilename, resourceCatalog, cacheContextKey);
+            //ResetNodes(_syncSessionContext.PlayTime);
+
+            _syncSessionContext.IsStarted = true;
+
+            _oldLatencyMode = GCSettings.LatencyMode;
+            if (!RuntimeInfo.IsSatori)
+            {
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+                _logger.LogInformation("GC LatencyMode set to SustainedLowLatency");
+            }
+            else
+            {
+                GCSettings.LatencyMode = GCLatencyMode.LowLatency;
+                _logger.LogInformation("GC LatencyMode set to LowLatency (Satori)");
+            }
+
+            _isLowLatencyModeActive = true;
+        }
+        catch (Exception ex)
+        {
+            _syncSessionContext.IsStarted = false;
+            _logger.LogError(ex, "Error while starting a beatmap. Filename: {BeatmapFilename}. FilenameReal: {OsuFile}",
+                beatmapFilename, OsuFile);
+        }
+    }
+
+    private static string? ResolveBeatmapFolder(string? beatmapFilenameFull, string? beatmapFilename,
+        IBeatmapResourceCatalog? resourceCatalog)
+    {
+        if (beatmapFilename != null && resourceCatalog?.TryResolve(beatmapFilename, out var mappedBeatmap) == true)
+        {
+            return Path.GetDirectoryName(mappedBeatmap.Path);
+        }
+
+        return beatmapFilenameFull != null
+            ? Path.GetDirectoryName(beatmapFilenameFull)
+            : resourceCatalog?.RootPath;
+    }
+
+    private void PerformCache(string newFolder, string? audioFilename, IBeatmapResourceCatalog? resourceCatalog,
+        string cacheContextKey)
+    {
+        if (_lastCachedFolder != null && _lastCachedFolder != cacheContextKey)
+        {
+            _logger.LogInformation("Cleaning caches caused by folder changing.");
+            _gameplayAudioService.ClearCaches();
+        }
+
+        _lastCachedFolder = cacheContextKey;
+
+        if (_audioEngine.CurrentDevice == null)
+        {
+            _logger.LogWarning($"AudioEngine is null, stop adding cache.");
+            return;
+        }
+
+        _gameplayAudioService.SetContext(newFolder, audioFilename, resourceCatalog);
+        _gameplayAudioService.PrecacheMusicAndSkinInBackground();
+    }
+
+    public void Stop()
+    {
+        if (_isLowLatencyModeActive)
+        {
+            GCSettings.LatencyMode = _oldLatencyMode;
+            _isLowLatencyModeActive = false;
+            _logger.LogInformation("GC LatencyMode restored to {Mode}", _oldLatencyMode);
+        }
+
+        _logger.LogInformation("Stop playing.");
+        _syncSessionContext.IsStarted = false;
+        var mixer = _audioEngine.EffectMixer;
+        _sfxPlaybackService.ClearAllLoops(mixer);
+        mixer?.RemoveAllMixerInputs();
+
+        SessionStopped?.Invoke();
+
+        _syncSessionContext.BaseMemoryTime = 0;
+        _syncSessionContext.Combo = 0;
+    }
+
+    private void ResetNodes(int playTime)
+    {
+        _beatmapHitsoundLoader.ResetNodes(CurrentHitsoundSequencer, playTime);
+    }
+}

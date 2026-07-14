@@ -1,9 +1,9 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Lang;
 using KeyAsio.Services;
-using KeyAsio.Shared;
+using KeyAsio.Configuration;
 using KeyAsio.Views.Dialogs;
 using Microsoft.Extensions.Logging;
 using Milki.Extensions.Configuration;

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -7,9 +7,10 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Lang;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Services;
-using KeyAsio.Shared.Utils;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Services;
+using KeyAsio.Application.Utils;
+using KeyAsio.Common;
 using KeyAsio.ViewModels.Dialogs;
 
 namespace KeyAsio.ViewModels;
@@ -122,7 +123,7 @@ public partial class WizardViewModel : ViewModelBase
     private async Task BrowseOsuExecutable()
     {
         var topLevel = TopLevel.GetTopLevel(
-            Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                 ? desktop.MainWindow
                 : null);
         if (topLevel == null) return;
@@ -266,11 +267,11 @@ public partial class WizardViewModel : ViewModelBase
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private void Next()
+    private async Task Next()
     {
         if (StepIndex == 3)
         {
-            if (WizardAudioConfigViewModel.TryGoForward()) return;
+            if (await WizardAudioConfigViewModel.TryGoForwardAsync()) return;
         }
 
         if (StepIndex < Steps.Count - 1)
@@ -284,11 +285,11 @@ public partial class WizardViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Previous()
+    private async Task Previous()
     {
         if (StepIndex == 3)
         {
-            if (WizardAudioConfigViewModel.TryGoBack())
+            if (await WizardAudioConfigViewModel.TryGoBackAsync())
             {
                 return;
             }

@@ -1,7 +1,7 @@
-﻿using KeyAsio.Core.Audio;
+using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Lang;
-using KeyAsio.Shared;
+using KeyAsio.Configuration;
 using KeyAsio.ViewModels;
 using Material.Icons;
 
@@ -94,7 +94,7 @@ public class PresetManager
         if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 2 &&
             _appSettings.Sync.Playback.LimiterType == LimiterType.Master &&
-            _appSettings.Sync.Playback.BalanceMode == BalanceMode.MidSide)
+            _appSettings.Sync.Playback.BalanceMode == BalanceMode.ProMixFocus)
         {
             return PresetMode.Standard;
         }
@@ -125,7 +125,7 @@ public class PresetManager
         //_appSettings.Input.UseRawInput = true;
 
         _appSettings.Sync.Playback.LimiterType = LimiterType.Master;
-        _appSettings.Sync.Playback.BalanceMode = BalanceMode.MidSide;
+        _appSettings.Sync.Playback.BalanceMode = BalanceMode.ProMixFocus;
 
         //_appSettings.Performance.EnableAvx512 = true; 
 

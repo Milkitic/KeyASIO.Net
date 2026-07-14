@@ -1,10 +1,10 @@
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
-using KeyAsio.Shared.OsuMemory;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Sync.Services;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Shared.Plugins;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Models;
+using KeyAsio.Sync.Sources;
+using KeyAsio.Sync;
+using KeyAsio.Sync.Services;
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Application.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using NLog.Extensions.Logging;
 using System;
@@ -18,7 +18,7 @@ namespace MemoryReadingTest
             var services = new ServiceCollection();
             services.AddNLog();
             services.AddSingleton(new AppSettings());
-            services.AddSingleton<SharedViewModel>();
+            services.AddSingleton<ApplicationState>();
             services.AddSingleton<GameplayAudioService>();
             services.AddSingleton<MemoryScan>();
             services.AddSingleton<BeatmapHitsoundLoader>();

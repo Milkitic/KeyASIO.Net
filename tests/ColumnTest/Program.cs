@@ -3,20 +3,20 @@
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.OsuAudio.Hitsounds;
 using KeyAsio.Core.OsuAudio.Hitsounds.Playback;
-using KeyAsio.Plugins.Abstractions;
-using KeyAsio.Shared;
-using KeyAsio.Shared.Models;
-using KeyAsio.Shared.Plugins;
-using KeyAsio.Shared.Sync;
-using KeyAsio.Shared.Sync.AudioProviders;
-using KeyAsio.Shared.Sync.Services;
+using KeyAsio.Plugins.Contracts;
+using KeyAsio.Configuration;
+using KeyAsio.Application.Models;
+using KeyAsio.Application.Plugins;
+using KeyAsio.Sync;
+using KeyAsio.Sync.AudioProviders;
+using KeyAsio.Sync.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 var services = new ServiceCollection();
 var appSettings = new AppSettings();
 services.AddSingleton(appSettings);
-services.AddSingleton<SharedViewModel>();
+services.AddSingleton<ApplicationState>();
 services.AddSingleton<GameplayAudioService>();
 services.AddSingleton<BeatmapHitsoundLoader>();
 services.AddSingleton<SfxPlaybackService>();

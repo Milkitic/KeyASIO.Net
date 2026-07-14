@@ -1,16 +1,15 @@
-﻿using System.Diagnostics;
-using KeyAsio.Plugins.Abstractions;
-using Octokit;
+using System.Diagnostics;
+using KeyAsio.Plugins.Contracts;
 
 namespace KeyAsio.Services;
 
 public class BasicUpdateImplementation : IUpdateImplementation
 {
-    public Task StartUpdateAsync(Release release)
+    public Task StartUpdateAsync(UpdateRelease release, CancellationToken cancellationToken = default)
     {
-        if (release.HtmlUrl != null)
+        if (release.ReleasePageUrl != null)
         {
-            Process.Start(new ProcessStartInfo(release.HtmlUrl) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(release.ReleasePageUrl) { UseShellExecute = true });
         }
 
         return Task.CompletedTask;

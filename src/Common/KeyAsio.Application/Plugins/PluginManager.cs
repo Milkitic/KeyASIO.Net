@@ -1,0 +1,305 @@
+using System.Reflection;
+using System.Runtime.Loader;
+using KeyAsio.Plugins.Contracts;
+using Microsoft.Extensions.Logging;
+
+namespace KeyAsio.Application.Plugins;
+
+public class PluginManager : IPluginManager, IDisposable
+{
+    private readonly ILogger<PluginManager> _logger;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly IAudioEngine _audioEngine;
+    private readonly IPluginSettings _settings;
+    private readonly IGameplaySession _gameplay;
+    private readonly IPluginInteractionService _interaction;
+    private readonly List<PluginWrapper> _plugins = new();
+    private readonly HashSet<PluginLoadContext> _loadContexts = [];
+
+    public PluginManager(
+        ILogger<PluginManager> logger,
+        ILoggerFactory loggerFactory,
+        IAudioEngine audioEngine,
+        IPluginSettings settings,
+        IGameplaySession gameplay,
+        IPluginInteractionService interaction)
+    {
+        _logger = logger;
+        _loggerFactory = loggerFactory;
+        _audioEngine = audioEngine;
+        _settings = settings;
+        _gameplay = gameplay;
+        _interaction = interaction;
+    }
+
+    public IEnumerable<IPlugin> GetAllPlugins()
+    {
+        return _plugins.Where(p => p.IsInitialized).Select(p => p.Instance);
+    }
+
+    public T? GetPlugin<T>() where T : class, IPlugin
+    {
+        return _plugins.Where(p => p.IsInitialized).Select(p => p.Instance).OfType<T>().FirstOrDefault();
+    }
+
+    public IEnumerable<IGameStateHandler> GetActiveHandlers(SyncOsuStatus status)
+    {
+        var handlers = new List<IGameStateHandler>();
+        foreach (var wrapper in _plugins)
+        {
+            if (!wrapper.IsInitialized)
+            {
+                continue;
+            }
+
+            if (wrapper.Context is PluginContext ctx)
+            {
+                handlers.AddRange(ctx.GetHandlers(status));
+            }
+        }
+
+        // Sort by Priority Descending (Higher priority first)
+        handlers.Sort((a, b) => b.Priority.CompareTo(a.Priority));
+        return handlers;
+    }
+
+    public void LoadPlugins(string pluginDirectory, string searchPattern = "*.dll",
+        SearchOption searchOption = SearchOption.AllDirectories)
+    {
+        if (!Directory.Exists(pluginDirectory))
+        {
+            if (pluginDirectory == AppDomain.CurrentDomain.BaseDirectory)
+            {
+                // The root directory must exist, this is a safety check.
+                return;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(pluginDirectory);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create plugin directory: {PluginDirectory}", pluginDirectory);
+                return;
+            }
+        }
+
+        var dllFiles = Directory.GetFiles(pluginDirectory, searchPattern, searchOption);
+        foreach (var dllPath in dllFiles)
+        {
+            // The contract assembly is host-owned, not a plugin entry point.
+            if (Path.GetFileName(dllPath)
+                .Equals("KeyAsio.Plugins.Contracts.dll", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            LoadPlugin(dllPath);
+        }
+    }
+
+    private bool ValidatePluginAssembly(Assembly assembly)
+    {
+        // 1. Compatibility Check
+        var abstractionsRef = assembly.GetReferencedAssemblies()
+            .FirstOrDefault(a => a.Name == "KeyAsio.Plugins.Contracts");
+
+        if (abstractionsRef != null)
+        {
+            var currentVersion = typeof(IPlugin).Assembly.GetName().Version;
+            // Assuming major version change breaks compatibility
+            if (abstractionsRef.Version != null && currentVersion != null &&
+                abstractionsRef.Version.Major != currentVersion.Major)
+            {
+                _logger.LogWarning("Plugin {PluginAssembly} references an incompatible version of Abstractions: {RefVersion} (Current: {CurrentVersion})",
+                    assembly.GetName().Name, abstractionsRef.Version, currentVersion);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void LoadPlugin(string dllPath)
+    {
+        try
+        {
+            var loadContext = new PluginLoadContext(dllPath);
+            var assembly = loadContext.LoadFromAssemblyPath(dllPath);
+
+            if (!ValidatePluginAssembly(assembly))
+            {
+                loadContext.Unload();
+                return;
+            }
+
+            var pluginTypes = assembly.GetTypes()
+                .Where(t => typeof(IPlugin).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
+
+            foreach (var type in pluginTypes)
+            {
+                if (Activator.CreateInstance(type) is IPlugin plugin)
+                {
+                    var wrapper = new PluginWrapper(plugin, loadContext,
+                        Path.GetDirectoryName(dllPath) ?? string.Empty);
+                    _plugins.Add(wrapper);
+                    _loadContexts.Add(loadContext);
+                    _logger.LogInformation("Loaded plugin: {PluginName} ({PluginId})", plugin.Name, plugin.Id);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load plugin from {DllPath}", dllPath);
+        }
+    }
+
+    public void InitializePlugins()
+    {
+        foreach (var wrapper in _plugins)
+        {
+            try
+            {
+                var context = new PluginContext(
+                    wrapper.PluginDirectory,
+                    _loggerFactory,
+                    _audioEngine,
+                    _settings,
+                    _gameplay,
+                    _interaction);
+                wrapper.Context = context;
+                wrapper.NeedsShutdown = true;
+                wrapper.Instance.Initialize(context);
+                wrapper.IsInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing plugin {PluginName}", wrapper.Instance.Name);
+                TryShutdownPlugin(wrapper);
+            }
+        }
+    }
+
+    public void StartupPlugins()
+    {
+        foreach (var wrapper in _plugins)
+        {
+            if (!wrapper.IsInitialized)
+            {
+                continue;
+            }
+
+            try
+            {
+                wrapper.Instance.Startup();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error starting plugin {PluginName}", wrapper.Instance.Name);
+                wrapper.IsInitialized = false;
+                TryShutdownPlugin(wrapper);
+            }
+        }
+    }
+
+    public void UnloadPlugins()
+    {
+        foreach (var wrapper in _plugins)
+        {
+            TryShutdownPlugin(wrapper);
+
+            try
+            {
+                wrapper.Instance.Unload();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unloading plugin {PluginName}", wrapper.Instance.Name);
+            }
+        }
+
+        _plugins.Clear();
+        foreach (var context in _loadContexts)
+        {
+            try
+            {
+                context.Unload();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unloading AssemblyLoadContext");
+            }
+        }
+
+        _loadContexts.Clear();
+    }
+
+    private void TryShutdownPlugin(PluginWrapper wrapper)
+    {
+        if (!wrapper.NeedsShutdown) return;
+
+        try
+        {
+            wrapper.Instance.Shutdown();
+            wrapper.NeedsShutdown = false;
+        }
+        catch (Exception ex)
+        {
+            // Keep NeedsShutdown set so UnloadPlugins can retry a failed cleanup.
+            _logger.LogError(ex, "Error shutting down plugin {PluginName}", wrapper.Instance.Name);
+        }
+    }
+
+    public void Dispose()
+    {
+        UnloadPlugins();
+    }
+
+    private class PluginWrapper
+    {
+        public IPlugin Instance { get; }
+        public PluginLoadContext LoadContext { get; }
+        public string PluginDirectory { get; }
+        public PluginContext? Context { get; set; }
+        public bool IsInitialized { get; set; }
+        public bool NeedsShutdown { get; set; }
+
+        public PluginWrapper(IPlugin instance, PluginLoadContext loadContext, string pluginDirectory)
+        {
+            Instance = instance;
+            LoadContext = loadContext;
+            PluginDirectory = pluginDirectory;
+        }
+    }
+
+    private sealed class PluginLoadContext : AssemblyLoadContext
+    {
+        private readonly AssemblyDependencyResolver _resolver;
+
+        public PluginLoadContext(string pluginPath)
+            : base(Path.GetFileNameWithoutExtension(pluginPath), isCollectible: true)
+        {
+            _resolver = new AssemblyDependencyResolver(pluginPath);
+        }
+
+        protected override Assembly? Load(AssemblyName assemblyName)
+        {
+            var sharedAssembly = Default.Assemblies.FirstOrDefault(
+                assembly => AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName));
+            if (sharedAssembly is not null)
+            {
+                return sharedAssembly;
+            }
+
+            var path = _resolver.ResolveAssemblyToPath(assemblyName);
+            return path is null ? null : LoadFromAssemblyPath(path);
+        }
+
+        protected override nint LoadUnmanagedDll(string unmanagedDllName)
+        {
+            var path = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            return path is null ? 0 : LoadUnmanagedDllFromPath(path);
+        }
+    }
+}

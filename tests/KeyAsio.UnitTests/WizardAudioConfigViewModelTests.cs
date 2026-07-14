@@ -1,10 +1,10 @@
-﻿﻿using Avalonia.Headless.XUnit;
+﻿using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using KeyAsio.Core.Audio;
-using KeyAsio.Shared;
+using KeyAsio.Configuration;
+using KeyAsio.Services;
 using KeyAsio.ViewModels;
 using Moq;
-using NAudio.Wave;
 using SukiUI.Toasts;
 
 namespace KeyAsio.UnitTests;
@@ -12,27 +12,34 @@ namespace KeyAsio.UnitTests;
 public class WizardAudioConfigViewModelTests
 {
     private readonly Mock<IAudioDeviceManager> _mockDeviceManager;
-    private readonly Mock<IPlaybackEngine> _mockPlaybackEngine;
+    private readonly Mock<IAudioDeviceOperationCoordinator> _mockDeviceOperations;
     private readonly Mock<ISukiToastManager> _mockToastManager;
     private readonly AppSettings _appSettings;
 
     public WizardAudioConfigViewModelTests()
     {
         _mockDeviceManager = new Mock<IAudioDeviceManager>();
-        _mockPlaybackEngine = new Mock<IPlaybackEngine>();
+        _mockDeviceOperations = new Mock<IAudioDeviceOperationCoordinator>();
         _mockToastManager = new Mock<ISukiToastManager>();
         _appSettings = new AppSettings();
 
         // Default setup for device manager
         _mockDeviceManager.Setup(m => m.GetCachedAvailableDevicesAsync())
             .ReturnsAsync(new List<DeviceDescription>());
+        _mockDeviceOperations
+            .Setup(x => x.ApplyAsync(
+                It.IsAny<DeviceDescription?>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .Returns((DeviceDescription? device, int sampleRate, CancellationToken cancellationToken) =>
+                Task.FromResult(new AudioDeviceOperationResult(true, device)));
     }
 
     private WizardAudioConfigViewModel CreateViewModel()
     {
         return new WizardAudioConfigViewModel(
             _mockDeviceManager.Object,
-            _mockPlaybackEngine.Object,
+            _mockDeviceOperations.Object,
             _mockToastManager.Object,
             _appSettings);
     }
@@ -173,7 +180,7 @@ public class WizardAudioConfigViewModelTests
     }
 
     [AvaloniaFact]
-    public void TryGoForward_Configuration_Success()
+    public async Task TryGoForward_Configuration_Success()
     {
         // Arrange
         var vm = CreateViewModel();
@@ -183,19 +190,20 @@ public class WizardAudioConfigViewModelTests
         vm.SelectedAudioDevice = device;
 
         // Act
-        bool result = vm.TryGoForward();
+        bool result = await vm.TryGoForwardAsync();
 
         // Assert
         Assert.True(result);
         Assert.Equal(AudioSubStep.Validation, vm.CurrentAudioSubStep);
         Assert.True(vm.ValidationSuccess);
-        Assert.Equal(device, _appSettings.Audio.PlaybackDevice);
-        _mockPlaybackEngine.Verify(e => e.StartDevice(device,
-            It.Is<WaveFormat>(f => f.SampleRate == _appSettings.Audio.SampleRate && f.Channels == 2)), Times.Once);
+        _mockDeviceOperations.Verify(x => x.ApplyAsync(
+            device,
+            _appSettings.Audio.SampleRate,
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [AvaloniaFact]
-    public void TryGoForward_Configuration_Failure()
+    public async Task TryGoForward_Configuration_Failure()
     {
         // Arrange
         var vm = CreateViewModel();
@@ -203,11 +211,15 @@ public class WizardAudioConfigViewModelTests
         var device = new DeviceDescription { WavePlayerType = WavePlayerType.ASIO };
         vm.SelectedAudioDevice = device;
 
-        _mockPlaybackEngine.Setup(e => e.StartDevice(It.IsAny<DeviceDescription>(), It.IsAny<WaveFormat>()))
-            .Throws(new Exception("Fail"));
+        _mockDeviceOperations
+            .Setup(x => x.ApplyAsync(
+                It.IsAny<DeviceDescription?>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AudioDeviceOperationResult(false, null, new Exception("Fail")));
 
         // Act
-        bool result = vm.TryGoForward();
+        bool result = await vm.TryGoForwardAsync();
 
         // Assert
         Assert.True(result);
@@ -238,7 +250,7 @@ public class WizardAudioConfigViewModelTests
     }
 
     [AvaloniaFact]
-    public void Integration_HardwareFlow_Full()
+    public async Task Integration_HardwareFlow_Full()
     {
         // Arrange
         var asioDevice = new DeviceDescription { WavePlayerType = WavePlayerType.ASIO, FriendlyName = "Real ASIO" };
@@ -258,17 +270,17 @@ public class WizardAudioConfigViewModelTests
         Assert.True(vm.CanGoForward);
 
         // 3. Go Forward (Validation)
-        vm.TryGoForward();
+        await vm.TryGoForwardAsync();
         Assert.Equal(AudioSubStep.Validation, vm.CurrentAudioSubStep);
         Assert.True(vm.ValidationSuccess);
 
         // 4. Go Forward (Finish)
-        bool result = vm.TryGoForward();
+        bool result = await vm.TryGoForwardAsync();
         Assert.False(result); // Should return false to indicate proceeding to next main wizard step
     }
 
     [AvaloniaFact]
-    public void Integration_ProMixSoftwareFlow_Full()
+    public async Task Integration_ProMixSoftwareFlow_Full()
     {
         // Arrange
         var cableDevice = new DeviceDescription
@@ -296,12 +308,12 @@ public class WizardAudioConfigViewModelTests
         Assert.True(vm.CanGoForward);
 
         // 5. Go Forward (Validation)
-        vm.TryGoForward();
+        await vm.TryGoForwardAsync();
         Assert.Equal(AudioSubStep.Validation, vm.CurrentAudioSubStep);
         Assert.True(vm.ValidationSuccess);
 
         // 6. Go Forward (Finish)
-        bool result = vm.TryGoForward();
+        bool result = await vm.TryGoForwardAsync();
         Assert.False(result);
     }
 }

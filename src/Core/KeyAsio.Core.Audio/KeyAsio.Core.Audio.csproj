@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,15 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blake3" Version="2.2.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
-    <PackageReference Include="NAudio.Core" Version="2.3.0" />
-    <PackageReference Include="NAudio.Lame" Version="2.1.0" />
-    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
-    <PackageReference Include="NAudio.Wasapi" Version="2.3.0" />
-    <PackageReference Include="NAudio.WinMM" Version="2.3.0" />
-    <PackageReference Include="System.Numerics.Tensors" Version="10.0.9" />
-    <PackageReference Include="z440.atl.core" Version="7.15.3" />
+    <PackageReference Include="Blake3" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="NAudio.Core" />
+    <PackageReference Include="NAudio.Lame" />
+    <PackageReference Include="NAudio.Vorbis" />
+    <PackageReference Include="NAudio.Wasapi" />
+    <PackageReference Include="NAudio.WinMM" />
+    <PackageReference Include="System.Numerics.Tensors" />
+    <PackageReference Include="z440.atl.core" />
   </ItemGroup>
 
   <ItemGroup>
