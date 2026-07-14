@@ -25,14 +25,14 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
 
     推荐配置:
 
-    1. 音乐播放器 (平衡质量和性能):
+    1. 音乐播放器（标准声像）:
        var balance = new SafeBalanceProvider(source,
-           BalanceMode.CrossMix,
+           BalanceMode.ConstantPower,
            AntiClipStrategy.PreventiveAttenuation);  // ⭐ 推荐
 
     2. 实时游戏 (最快性能):
        var balance = new SafeBalanceProvider(source,
-           BalanceMode.ConstantPower,
+           BalanceMode.LinearStereoPan,
            AntiClipStrategy.PreventiveAttenuation);
 
     3. 专业 DAW (最高音质):
@@ -91,7 +91,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     }
 
     private float _balanceValue;
-    private BalanceMode _mode = BalanceMode.CrossMix;
+    private BalanceMode _mode = BalanceMode.ProMixFocus;
     private AntiClipStrategy _antiClip = AntiClipStrategy.PreventiveAttenuation;
 
     // 缓存的增益值
@@ -110,18 +110,18 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
 
     public ProfessionalBalanceProvider()
     {
-        Balance = 0f;
+        UpdateGains();
     }
 
     public ProfessionalBalanceProvider(
         ISampleProvider? sourceProvider,
-        BalanceMode mode = BalanceMode.CrossMix,
+        BalanceMode mode = BalanceMode.ProMixFocus,
         AntiClipStrategy antiClip = AntiClipStrategy.PreventiveAttenuation)
     {
         _mode = mode;
         _antiClip = antiClip;
         Source = sourceProvider;
-        Balance = 0f;
+        UpdateGains();
     }
 
     public ISampleProvider? Source
@@ -165,7 +165,11 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     public AntiClipStrategy AntiClipStrategy
     {
         get => _antiClip;
-        set => _antiClip = value;
+        set
+        {
+            _antiClip = value;
+            UpdateGains();
+        }
     }
 
     public WaveFormat WaveFormat => Source?.WaveFormat ?? throw new InvalidOperationException("Source not ready");
@@ -183,19 +187,15 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
         switch (_mode)
         {
             case BalanceMode.ConstantPower:
-                UpdateSimpleFadeGains();
-                break;
-
-            case BalanceMode.CrossMix:
-                UpdateCrossMixGains();
+                UpdateEqualPowerPanGains();
                 break;
 
             case BalanceMode.ProMixFocus:
                 UpdateProMixFocusGains();
                 break;
 
-            case BalanceMode.BinauralMix:
-                UpdateBinauralGains();
+            case BalanceMode.LinearStereoPan:
+                UpdateLinearStereoPanGains();
                 break;
 
             case BalanceMode.Off:
@@ -211,52 +211,23 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void UpdateSimpleFadeGains()
+    private void UpdateEqualPowerPanGains()
     {
         if (_balanceValue < 0)
         {
+            float angle = -_balanceValue * MathF.PI * 0.5f;
             _leftDirectGain = 1.0f;
-            _rightDirectGain = MathF.Cos(-_balanceValue * MathF.PI * 0.5f);
-        }
-        else if (_balanceValue > 0)
-        {
-            _leftDirectGain = MathF.Cos(_balanceValue * MathF.PI * 0.5f);
-            _rightDirectGain = 1.0f;
-        }
-        else
-        {
-            _leftDirectGain = 1.0f;
-            _rightDirectGain = 1.0f;
-        }
-
-        _leftCrossGain = 0f;
-        _rightCrossGain = 0f;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void UpdateCrossMixGains()
-    {
-        if (_balanceValue < 0)
-        {
-            float amount = -_balanceValue;
-
-            // 策略1: 预防性衰减 - 混合时使用更保守的增益
-            float safetyFactor = (_antiClip == AntiClipStrategy.PreventiveAttenuation) ? 0.5f : 1.0f;
-
-            _leftDirectGain = 1.0f;
-            _leftCrossGain = amount * 0.4f * safetyFactor; // 降低交叉增益
-            _rightDirectGain = 1.0f - amount;
+            _leftCrossGain = MathF.Sin(angle);
+            _rightDirectGain = MathF.Cos(angle);
             _rightCrossGain = 0f;
         }
         else if (_balanceValue > 0)
         {
-            float amount = _balanceValue;
-            float safetyFactor = (_antiClip == AntiClipStrategy.PreventiveAttenuation) ? 0.5f : 1.0f;
-
-            _leftDirectGain = 1.0f - amount;
+            float angle = _balanceValue * MathF.PI * 0.5f;
+            _leftDirectGain = MathF.Cos(angle);
             _leftCrossGain = 0f;
             _rightDirectGain = 1.0f;
-            _rightCrossGain = amount * 0.4f * safetyFactor;
+            _rightCrossGain = MathF.Sin(angle);
         }
         else
         {
@@ -277,26 +248,23 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void UpdateBinauralGains()
+    private void UpdateLinearStereoPanGains()
     {
-        // Binaural 模式风险最高,必须使用补偿
-        float safetyFactor = (_antiClip == AntiClipStrategy.PreventiveAttenuation) ? 0.5f : 1.0f;
-
         if (_balanceValue < 0)
         {
             float amount = -_balanceValue;
-            _leftDirectGain = 1.0f * safetyFactor;
-            _leftCrossGain = amount * safetyFactor;
-            _rightDirectGain = (1.0f - amount) * safetyFactor;
+            _leftDirectGain = 1.0f;
+            _leftCrossGain = amount;
+            _rightDirectGain = 1.0f - amount;
             _rightCrossGain = 0f;
         }
         else if (_balanceValue > 0)
         {
             float amount = _balanceValue;
-            _leftDirectGain = (1.0f - amount) * safetyFactor;
+            _leftDirectGain = 1.0f - amount;
             _leftCrossGain = 0f;
-            _rightDirectGain = 1.0f * safetyFactor;
-            _rightCrossGain = amount * safetyFactor;
+            _rightDirectGain = 1.0f;
+            _rightCrossGain = amount;
         }
         else
         {
@@ -771,7 +739,7 @@ public sealed class ProfessionalBalanceProvider : IRecyclableProvider, IPoolable
     {
         Source = null;
         Balance = 0f;
-        Mode = BalanceMode.CrossMix;
+        Mode = BalanceMode.ProMixFocus;
         AntiClipStrategy = AntiClipStrategy.PreventiveAttenuation;
     }
 

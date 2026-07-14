@@ -32,12 +32,19 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
     {
         if (type == typeof(AppSettings))
         {
-            // BalanceMode.MidSide was renamed to the branded KeyAsioFocus mode.
-            // Migrate the serialized enum name so existing user settings remain valid.
+            // Migrate renamed and removed balance modes so existing user settings remain valid.
             content = Regex.Replace(
                 content,
                 "(?im)^(\\s*balanceMode\\s*:\\s*)[\"']?MidSide[\"']?(\\s*(?:#.*)?)$",
                 "$1ProMixFocus$2");
+            content = Regex.Replace(
+                content,
+                "(?im)^(\\s*balanceMode\\s*:\\s*)[\"']?BinauralMix[\"']?(\\s*(?:#.*)?)$",
+                "$1LinearStereoPan$2");
+            content = Regex.Replace(
+                content,
+                "(?im)^(\\s*balanceMode\\s*:\\s*)[\"']?CrossMix[\"']?(\\s*(?:#.*)?)$",
+                "$1ConstantPower$2");
 
             if (!content.StartsWith("default:") && !LooksLikeNewYaml(content))
             {

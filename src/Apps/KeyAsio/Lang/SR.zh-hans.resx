@@ -256,14 +256,11 @@
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>目标延迟</value>
   </data>
-  <data name="BalanceMode_BinauralMix" xml:space="preserve">
-    <value>双耳混合 (听障)</value>
+  <data name="BalanceMode_LinearStereoPan" xml:space="preserve">
+    <value>线性立体声像</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
-    <value>等幂声像 (游戏)</value>
-  </data>
-  <data name="BalanceMode_CrossMix" xml:space="preserve">
-    <value>交叉混合 (平衡)</value>
+    <value>等功率立体声像</value>
   </data>
   <data name="BalanceMode_ProMixFocus" xml:space="preserve">
     <value>ProMix Focus</value>
@@ -543,7 +540,7 @@
     <value>平衡模式</value>
   </data>
   <data name="Sync_BalanceModeDescription" xml:space="preserve">
-    <value>控制立体声平衡的处理算法。ProMix Focus 在保持中央内容的同时，将声场平滑聚焦至目标侧。</value>
+    <value>选择立体声声像算法。等功率与线性立体声像为标准算法；ProMix Focus 是 KeyASIO 保留中央内容的自定义声场效果。</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>禁用断连音效</value>
@@ -585,7 +582,7 @@
     <value>滑条尾音行为</value>
   </data>
   <data name="Sync_StereoWidth" xml:space="preserve">
-    <value>立体声宽度</value>
+    <value>声像偏移强度</value>
   </data>
   <data name="Sync_TimingScanInterval" xml:space="preserve">
     <value>时间扫描间隔 (ms)</value>
@@ -600,13 +597,13 @@
     <value>通过 RTSS (Rivatuner Statistics Server) 实时显示调试数据。</value>
   </data>
   <data name="Sync_WidthNarrow" xml:space="preserve">
-    <value>窄</value>
+    <value>轻微</value>
   </data>
   <data name="Sync_WidthNormal" xml:space="preserve">
     <value>正常</value>
   </data>
   <data name="Sync_WidthWide" xml:space="preserve">
-    <value>宽</value>
+    <value>强烈</value>
   </data>
   <data name="TrayIcon_Exit" xml:space="preserve">
     <value>退出</value>

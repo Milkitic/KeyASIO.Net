@@ -256,14 +256,11 @@
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>目標遅延</value>
   </data>
-  <data name="BalanceMode_BinauralMix" xml:space="preserve">
-    <value>バイノーラルミックス（聴覚補助）</value>
+  <data name="BalanceMode_LinearStereoPan" xml:space="preserve">
+    <value>リニア・ステレオ・パン</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
-    <value>等電力パンニング（ゲーム）</value>
-  </data>
-  <data name="BalanceMode_CrossMix" xml:space="preserve">
-    <value>クロスミックス（バランス）</value>
+    <value>等電力ステレオ・パン</value>
   </data>
   <data name="BalanceMode_ProMixFocus" xml:space="preserve">
     <value>ProMix Focus</value>
@@ -537,7 +534,7 @@
     <value>バランスモード</value>
   </data>
   <data name="Sync_BalanceModeDescription" xml:space="preserve">
-    <value>ステレオバランスの処理アルゴリズムを制御します。ProMix Focus はセンターを保ちながら、音場をターゲット側へ滑らかにフォーカスします。</value>
+    <value>ステレオ・パンニング方式を選択します。等電力とリニア・ステレオ・パンは標準方式です。ProMix Focus はセンターを保つ KeyASIO 独自の音場エフェクトです。</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>コンボブレイク音を無効化</value>
@@ -579,7 +576,7 @@
     <value>スライダー終端の挙動</value>
   </data>
   <data name="Sync_StereoWidth" xml:space="preserve">
-    <value>ステレオ幅</value>
+    <value>パンの強さ</value>
   </data>
   <data name="Sync_TimingScanInterval" xml:space="preserve">
     <value>タイミングスキャン間隔 (ms)</value>
@@ -594,13 +591,13 @@
     <value>RTSS (Rivatuner Statistics Server) を介してデバッグデータをリアルタイムに表示します。</value>
   </data>
   <data name="Sync_WidthNarrow" xml:space="preserve">
-    <value>狭い</value>
+    <value>控えめ</value>
   </data>
   <data name="Sync_WidthNormal" xml:space="preserve">
     <value>標準</value>
   </data>
   <data name="Sync_WidthWide" xml:space="preserve">
-    <value>広い</value>
+    <value>強い</value>
   </data>
   <data name="TrayIcon_Exit" xml:space="preserve">
     <value>終了</value>

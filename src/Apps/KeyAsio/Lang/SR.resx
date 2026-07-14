@@ -255,14 +255,11 @@
   <data name="Audio_TargetLatency" xml:space="preserve">
     <value>Target Latency</value>
   </data>
-  <data name="BalanceMode_BinauralMix" xml:space="preserve">
-    <value>Binaural Mix (Mono)</value>
+  <data name="BalanceMode_LinearStereoPan" xml:space="preserve">
+    <value>Linear Stereo Pan</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
-    <value>Constant Power (Game)</value>
-  </data>
-  <data name="BalanceMode_CrossMix" xml:space="preserve">
-    <value>Cross Mix (Spatial)</value>
+    <value>Equal-Power Pan</value>
   </data>
   <data name="BalanceMode_ProMixFocus" xml:space="preserve">
     <value>ProMix Focus</value>
@@ -542,7 +539,7 @@ You can change option later.</value>
     <value>Balance Mode</value>
   </data>
   <data name="Sync_BalanceModeDescription" xml:space="preserve">
-    <value>Controls stereo balance processing. ProMix Focus preserves the center while smoothly focusing the sound field toward the target side.</value>
+    <value>Choose a stereo panning law. Equal-Power and Linear Stereo Pan are standard algorithms; ProMix Focus is KeyASIO's center-preserving sound-field effect.</value>
   </data>
   <data name="Sync_DisableComboBreak" xml:space="preserve">
     <value>Disable Combo Break</value>
@@ -584,7 +581,7 @@ You can change option later.</value>
     <value>Slider Tail Behavior</value>
   </data>
   <data name="Sync_StereoWidth" xml:space="preserve">
-    <value>Stereo Width</value>
+    <value>Pan Strength</value>
   </data>
   <data name="Sync_TimingScanInterval" xml:space="preserve">
     <value>Timing Scan Interval (ms)</value>
@@ -599,13 +596,13 @@ You can change option later.</value>
     <value>Display debug data in real time via RTSS (Rivatuner Statistics Server).</value>
   </data>
   <data name="Sync_WidthNarrow" xml:space="preserve">
-    <value>Narrow</value>
+    <value>Subtle</value>
   </data>
   <data name="Sync_WidthNormal" xml:space="preserve">
     <value>Normal</value>
   </data>
   <data name="Sync_WidthWide" xml:space="preserve">
-    <value>Wide</value>
+    <value>Strong</value>
   </data>
   <data name="TrayIcon_Exit" xml:space="preserve">
     <value>Exit</value>

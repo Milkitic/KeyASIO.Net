@@ -20,9 +20,9 @@ public static class RecyclableSampleProviderFactory
     {
         var provider = SharedPool<ProfessionalBalanceProvider>.Rent();
         provider.Source = source;
-        provider.Balance = balance;
-        provider.Mode = mode;
         provider.AntiClipStrategy = antiClipStrategy;
+        provider.Mode = mode;
+        provider.Balance = balance;
         return provider;
     }
 
