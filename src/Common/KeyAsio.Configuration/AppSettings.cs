@@ -162,7 +162,7 @@ public partial class AppSettingsSyncPlayback : INotifyPropertyChanged
     public BalanceMode BalanceMode { get; set; } = BalanceMode.MidSide;
 
     [Description("Balance factor.")]
-    public float BalanceFactor { get; set; } = 0.3333333f;
+    public float BalanceFactor { get; set; } = 0.2f;
 }
 
 public partial class AppSettingsSyncFilters : INotifyPropertyChanged
