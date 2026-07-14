@@ -169,6 +169,19 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
             CheckOsuRegistry();
         }
 
+        // Correct a stale persisted ClientType from a previous lazer session.
+        // The coordinator starts fresh with Stable as the default active source,
+        // so _syncSessionContext.ClientType reflects the actual current state.
+        var liveClientType = _syncSessionContext.ClientType;
+        if (_appSettings.Paths.ClientType != liveClientType)
+        {
+            _logger.LogInformation(
+                "Correcting stale persisted ClientType {Old} -> {New}",
+                _appSettings.Paths.ClientType, liveClientType);
+            _appSettings.Paths.ClientType = liveClientType;
+        }
+        _lastKnownClientType = liveClientType;
+
         _ = RefreshSkinsAsync();
 
         StartProcessListener();
@@ -419,7 +432,7 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
             return;
         }
 
-        if (_appSettings.Paths.ClientType == GameClientType.Lazer)
+        if (_syncSessionContext.ClientType == GameClientType.Lazer)
         {
             await LoadLazerSkinsAsync(token);
             return;
