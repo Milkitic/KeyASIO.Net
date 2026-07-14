@@ -66,8 +66,11 @@ public partial class AppSettingsPaths : INotifyPropertyChanged
     [Description("osu! folder. Usually auto-detected.")]
     public string? OsuFolderPath { get; set; } = "";
 
-    [Description("Skin used when sync mode is enabled.")]
-    public string? SelectedSkinName { get; set; }
+    [Description("Skin used when syncing with osu! stable.")]
+    public string? SelectedSkinNameStable { get; set; }
+
+    [Description("Skin used when syncing with osu! lazer.")]
+    public string? SelectedSkinNameLazer { get; set; }
 
     [Description("Allow automatic loading of skins from osu! folder.")]
     public bool AllowAutoLoadSkins { get; set; }

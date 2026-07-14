@@ -206,9 +206,28 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
     {
         if (e.PropertyName == nameof(ApplicationState.SelectedSkin))
         {
-            _appSettings.Paths.SelectedSkinName = _sharedViewModel.SelectedSkin?.FolderName;
+            SetSelectedSkinName(_sharedViewModel.SelectedSkin?.FolderName);
             _audioCacheManager.ClearAll();
         }
+    }
+
+    private void SetSelectedSkinName(string? folderName)
+    {
+        if (_syncSessionContext.ClientType == GameClientType.Lazer)
+        {
+            _appSettings.Paths.SelectedSkinNameLazer = folderName;
+        }
+        else
+        {
+            _appSettings.Paths.SelectedSkinNameStable = folderName;
+        }
+    }
+
+    private string? GetSelectedSkinName()
+    {
+        return _syncSessionContext.ClientType == GameClientType.Lazer
+            ? _appSettings.Paths.SelectedSkinNameLazer
+            : _appSettings.Paths.SelectedSkinNameStable;
     }
 
     private void OnLazerSkinContextReceived(LazerSkinInfo[]? skinInfos, string? userDataDirectory, string? exeDirectory)
@@ -530,7 +549,7 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
 
     private async Task PublishSkinListAsync(List<SkinDescription> newSkinList, CancellationToken token)
     {
-        var selectedName = _appSettings.Paths.SelectedSkinName;
+        var selectedName = GetSelectedSkinName();
         var targetSkin = newSkinList.FirstOrDefault(k => k.FolderName == selectedName)
                          ?? SkinDescription.Internal;
 

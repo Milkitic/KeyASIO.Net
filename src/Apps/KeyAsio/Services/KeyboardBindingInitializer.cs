@@ -223,7 +223,7 @@ public class KeyboardBindingInitializer
         CachedAudio? cachedAudio = null;
 
         var selectedSkin = _sharedViewModel.SelectedSkin;
-        var selectedSkinName = _appSettings.Paths.SelectedSkinName;
+        var selectedSkinName = _appSettings.Paths.SelectedSkinNameStable;
         var osuFolder = _appSettings.Paths.OsuFolderPath;
         var skinFolder = selectedSkin?.Folder ?? "";
 
