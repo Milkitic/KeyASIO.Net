@@ -11,11 +11,11 @@ namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 /// Cons: Introduces harsh digital distortion (aliasing) when limiting occurs.
 /// Best used as a safety net where limiting is rarely expected to happen.
 /// </remarks>
-public sealed class HardLimiterProvider : LimiterBase
+public sealed class HardClipper : LimiterBase
 {
     private float _ceiling = 1.0f;
 
-    public HardLimiterProvider(ISampleProvider source, float ceiling = 0.99f) : base(source)
+    public HardClipper(ISampleProvider source, float ceiling = 0.99f) : base(source)
     {
         Ceiling = ceiling;
     }

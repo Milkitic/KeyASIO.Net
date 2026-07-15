@@ -84,7 +84,7 @@ public class PresetManager
         // Fast
         if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 2 &&
-            _appSettings.Sync.Playback.LimiterType == LimiterType.Polynomial &&
+            _appSettings.Sync.Playback.LimiterType == LimiterType.Soft &&
             _appSettings.Sync.Playback.BalanceMode == BalanceMode.ConstantPower)
         {
             return PresetMode.Fast;
@@ -93,7 +93,7 @@ public class PresetManager
         // Standard
         if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
             _appSettings.Sync.Scanning.TimingScanInterval == 2 &&
-            _appSettings.Sync.Playback.LimiterType == LimiterType.Master &&
+            _appSettings.Sync.Playback.LimiterType == LimiterType.Peak &&
             _appSettings.Sync.Playback.BalanceMode == BalanceMode.ProMixFocus)
         {
             return PresetMode.Standard;
@@ -124,7 +124,7 @@ public class PresetManager
     {
         //_appSettings.Input.UseRawInput = true;
 
-        _appSettings.Sync.Playback.LimiterType = LimiterType.Master;
+        _appSettings.Sync.Playback.LimiterType = LimiterType.Peak;
         _appSettings.Sync.Playback.BalanceMode = BalanceMode.ProMixFocus;
 
         //_appSettings.Performance.EnableAvx512 = true; 
@@ -137,7 +137,7 @@ public class PresetManager
 
     private void ApplyLightweight()
     {
-        _appSettings.Sync.Playback.LimiterType = LimiterType.Polynomial;
+        _appSettings.Sync.Playback.LimiterType = LimiterType.Soft;
         _appSettings.Sync.Playback.BalanceMode = BalanceMode.ConstantPower;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;

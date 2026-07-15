@@ -159,7 +159,7 @@ public partial class AppSettingsSyncPlayback : INotifyPropertyChanged
     [Description("Prevents clipping when hitsounds stack. " +
                  "'Polynomial' mode is recommended; disable for raw audio. " +
                  "Note: 'Master' mode increases CPU usage.")]
-    public LimiterType LimiterType { get; set; } = LimiterType.Master;
+    public LimiterType LimiterType { get; set; } = LimiterType.Peak;
 
     [Description("Stereo balance processing mode.")]
     public BalanceMode BalanceMode { get; set; } = BalanceMode.ProMixFocus;

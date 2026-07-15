@@ -45,6 +45,10 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 content,
                 "(?im)^(\\s*balanceMode\\s*:\\s*)[\"']?CrossMix[\"']?(\\s*(?:#.*)?)$",
                 "$1ConstantPower$2");
+            content = Regex.Replace(
+                content,
+                "(?im)^(\\s*limiterType\\s*:\\s*)[\"']?Polynomial[\"']?(\\s*(?:#.*)?)$",
+                "$1Soft$2");
 
             if (!content.StartsWith("default:") && !LooksLikeNewYaml(content))
             {
@@ -147,7 +151,7 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 {
                     TailPlaybackBehavior = s.RealtimeOptions.SliderTailPlaybackBehavior,
                     NightcoreBeats = s.RealtimeOptions.ForceNightcoreBeats,
-                    LimiterType = s.EnableLimiter ? LimiterType.Master : LimiterType.Off,
+                    LimiterType = s.EnableLimiter ? LimiterType.Peak : LimiterType.Off,
                     BalanceFactor = s.RealtimeOptions.BalanceFactor,
                 },
                 Filters = new AppSettingsSyncFilters

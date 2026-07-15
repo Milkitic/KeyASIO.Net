@@ -20,7 +20,7 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
     private readonly EnhancedVolumeSampleProvider _musicVolumeSampleProvider = new(null) { ExcludeFromPool = true };
     private readonly EnhancedVolumeSampleProvider _mainVolumeSampleProvider = new(null) { ExcludeFromPool = true };
     private DynamicLimiterProvider? _limiterProvider;
-    private LimiterType _limiterType = LimiterType.Master;
+    private LimiterType _limiterType = LimiterType.Peak;
 
     public event Action<DeviceDescription>? DeviceStarted;
     public event Action? DeviceStopped;

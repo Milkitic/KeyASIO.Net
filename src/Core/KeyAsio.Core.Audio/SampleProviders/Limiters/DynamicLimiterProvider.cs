@@ -1,4 +1,4 @@
-﻿using NAudio.Wave;
+using NAudio.Wave;
 
 namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 
@@ -43,11 +43,10 @@ public class DynamicLimiterProvider : ISampleProvider
         return limiterType switch
         {
             LimiterType.Off => null,
-            LimiterType.Master => MasterLimiterProvider.UltraLowLatencyPreset(source),
-            LimiterType.Hard => new HardLimiterProvider(source),
-            LimiterType.Soft => new SoftLimiterProvider(source),
-            LimiterType.Polynomial => new PolynomialLimiterProvider(source),
-            _ => MasterLimiterProvider.UltraLowLatencyPreset(source)
+            LimiterType.Peak => SamplePeakLimiter.FastPreset(source),
+            LimiterType.Soft => new RationalSoftClipper(source),
+            LimiterType.Hard => new HardClipper(source),
+            _ => SamplePeakLimiter.FastPreset(source)
         };
     }
 }

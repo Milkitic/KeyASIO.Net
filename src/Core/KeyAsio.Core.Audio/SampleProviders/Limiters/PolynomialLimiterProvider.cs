@@ -1,18 +1,20 @@
-﻿using NAudio.Wave;
+using NAudio.Wave;
 
 namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 
 /// <summary>
 /// A high-performance zero-latency soft limiter designed for rhythm games.
-/// It leaves quiet signals untouched and gently saturates peaks using a cubic polynomial curve.
+/// It leaves quiet signals untouched and gently saturates peaks using a rational curve.
 /// </summary>
-public sealed class PolynomialLimiterProvider : LimiterBase
+public sealed class RationalSoftClipper : LimiterBase
 {
-    private float _threshold;
-    private float _ceiling;
-    private float _maxOver;
+    private const float MinimumThreshold = 0.1f;
+    private const float MinimumSoftRange = 0.01f;
+    private const float MaximumCeiling = 1.0f;
 
-    public PolynomialLimiterProvider(ISampleProvider source, float threshold = 0.8f, float ceiling = 0.99f) :
+    private Parameters _parameters = null!;
+
+    public RationalSoftClipper(ISampleProvider source, float threshold = 0.85f, float ceiling = 0.99f) :
         base(source)
     {
         UpdateParameters(threshold, ceiling);
@@ -20,14 +22,22 @@ public sealed class PolynomialLimiterProvider : LimiterBase
 
     protected override void Process(float[] buffer, int offset, int count)
     {
-        float threshold = _threshold;
-        float ceiling = _ceiling;
-        float maxOver = _maxOver;
+        Parameters parameters = Volatile.Read(ref _parameters);
+        float threshold = parameters.Threshold;
+        float ceiling = parameters.Ceiling;
+        float softRange = parameters.SoftRange;
 
         for (int i = 0; i < count; i++)
         {
             int index = offset + i;
             float x = buffer[index];
+
+            if (!float.IsFinite(x))
+            {
+                buffer[index] = float.IsNaN(x) ? 0f : MathF.CopySign(ceiling, x);
+                continue;
+            }
+
             float absX = Math.Abs(x);
 
             if (absX <= threshold) continue;
@@ -36,29 +46,43 @@ public sealed class PolynomialLimiterProvider : LimiterBase
             // 曲线特性：在 Threshold 处斜率为 1 (平滑过渡)，无穷大时趋向 Ceiling
             float over = absX - threshold;
 
-            // 核心算法：y = x / (1 + x / k)
-            // 这个公式极其高效（一次除法），且听感非常像模拟磁带饱和。
-            float soft = over / (1.0f + over / maxOver);
+            // 与 softRange * over / (softRange + over) 等价，但不会在极大输入下溢出或产生 ∞/∞。
+            float soft = softRange - (softRange * softRange) / (softRange + over);
 
-            float result = threshold + soft;
+            float result = Math.Min(threshold + soft, ceiling);
 
-            if (result > ceiling) result = ceiling;
-
-            buffer[index] = Math.Sign(x) * result;
+            buffer[index] = MathF.CopySign(result, x);
         }
     }
 
     public void UpdateParameters(float threshold, float ceiling)
     {
-        _ceiling = Math.Clamp(ceiling, 0.1f, 1.0f);
-        _threshold = Math.Clamp(threshold, 0.1f, _ceiling - 0.01f);
+        if (!float.IsFinite(threshold))
+            throw new ArgumentOutOfRangeException(nameof(threshold), threshold, "Threshold must be finite.");
+        if (!float.IsFinite(ceiling))
+            throw new ArgumentOutOfRangeException(nameof(ceiling), ceiling, "Ceiling must be finite.");
 
-        // 预计算最大过冲量
-        _maxOver = _ceiling - _threshold;
+        float normalizedCeiling = Math.Clamp(
+            ceiling,
+            MinimumThreshold + MinimumSoftRange,
+            MaximumCeiling);
+        float normalizedThreshold = Math.Clamp(
+            threshold,
+            MinimumThreshold,
+            normalizedCeiling - MinimumSoftRange);
+
+        Volatile.Write(
+            ref _parameters,
+            new Parameters(
+                normalizedThreshold,
+                normalizedCeiling,
+                normalizedCeiling - normalizedThreshold));
     }
 
-    public static PolynomialLimiterProvider GamePreset(ISampleProvider sampleProvider)
+    public static RationalSoftClipper GamePreset(ISampleProvider sampleProvider)
     {
-        return new PolynomialLimiterProvider(sampleProvider);
+        return new RationalSoftClipper(sampleProvider);
     }
+
+    private sealed record Parameters(float Threshold, float Ceiling, float SoftRange);
 }

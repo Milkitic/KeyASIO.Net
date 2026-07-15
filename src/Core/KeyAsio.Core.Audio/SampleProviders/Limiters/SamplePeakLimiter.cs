@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 using NAudio.Wave;
@@ -6,65 +6,61 @@ using NAudio.Wave;
 namespace KeyAsio.Core.Audio.SampleProviders.Limiters;
 
 /// <summary>
-/// Provides a lookahead peak limiter for mastering, preventing audio signals
-/// from exceeding a specified ceiling.
+/// Provides a zero-latency peak limiter for mastering.
 /// </summary>
 /// <remarks>
-/// This provider implements <see cref="ISampleProvider"/> and analyzes the peak
-/// level of incoming audio using a lookahead buffer. When a peak exceeds the
-/// threshold, it applies gain reduction smoothly (based on attack and release times)
-/// to ensure the output signal does not surpass the ceiling.
+/// This provider implements <see cref="ISampleProvider"/> and tracks recent peak
+/// levels over a configurable window. When a peak exceeds the threshold, it applies
+/// gain reduction smoothly based on attack and release times. Because it has no
+/// lookahead delay, the configured ceiling is a gain target rather than a guaranteed
+/// brick-wall output ceiling.
 /// </remarks>
-public sealed class MasterLimiterProvider : LimiterBase
+public sealed class SamplePeakLimiter : LimiterBase
 {
     private readonly int _channels;
-    private readonly int _lookaheadFrames;
+    private readonly int _peakWindowFrames;
 
-    private readonly float[] _lookaheadBuffer;
     private readonly float[] _peakBuffer; // 存储每帧的峰值
 
     private float _thresholdLinear;
     private float _ceilingLinear;
-    private float _attackTime;
+    private float _attackTime; 
     private float _releaseTime;
 
-    private float _gainReduction = 1.0f;
+    private float _currentGain = 1.0f;
     private float _attackCoeff;
     private float _releaseCoeff;
 
     private int _writePos;
-    private int _readPos;
     private float _currentMaxPeak; // 当前窗口最大峰值
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MasterLimiterProvider"/> class.
+    /// Initializes a new instance of the <see cref ="SamplePeakLimiter"/> class.
     /// </summary>
     /// <param name="source">The source sample provider to apply the limiter to.</param>
     /// <param name="thresholdDb">The threshold in decibels (dB) at which limiting starts. Default is -0.5 dB.</param>
-    /// <param name="ceilingDb">The absolute maximum output level in decibels (dB). Default is -0.1 dB.</param>
+    /// <param name="targetLevelDb">The target output ceiling in decibels (dB). Default is -0.1 dB.</param>
     /// <param name="attackMs">The attack time in milliseconds (ms) for the gain reduction. Default is 0.1 ms.</param>
     /// <param name="releaseMs">The release time in milliseconds (ms) for the gain reduction. Default is 50 ms.</param>
-    /// <param name="lookaheadMs">The lookahead time in milliseconds (ms) to anticipate peaks. Default is 2 ms.</param>
-    public MasterLimiterProvider(
+    /// <param name="peakWindowMs">The recent-peak window in milliseconds (ms). Default is 2 ms.</param>
+    public SamplePeakLimiter(
         ISampleProvider source,
         float thresholdDb = -0.5f,
-        float ceilingDb = -0.1f,
+        float targetLevelDb = -0.1f,
         float attackMs = 0.1f,
         float releaseMs = 50f,
-        float lookaheadMs = 2f) : base(source)
+        float peakWindowMs = 2f) : base(source)
     {
         _channels = source.WaveFormat.Channels;
-        _lookaheadFrames = Math.Max(1, (int)(source.WaveFormat.SampleRate * lookaheadMs / 1000f));
-        _lookaheadBuffer = new float[_lookaheadFrames * _channels];
-        _peakBuffer = new float[_lookaheadFrames];
+        _peakWindowFrames = Math.Max(1, (int)(source.WaveFormat.SampleRate * peakWindowMs / 1000f));
+        _peakBuffer = new float[_peakWindowFrames];
 
         ThresholdDb = thresholdDb;
-        CeilingDb = ceilingDb;
+        TargetLevelDb = targetLevelDb;
         AttackTime = attackMs;
         ReleaseTime = releaseMs;
 
         _writePos = 0;
-        _readPos = 0;
         _currentMaxPeak = 0f;
     }
 
@@ -75,7 +71,7 @@ public sealed class MasterLimiterProvider : LimiterBase
     /// A value of 0.0 indicates no gain reduction. A value of 0.1 indicates that the
     /// signal is being attenuated by 10% (i.e., multiplied by 0.9).
     /// </value>
-    public float CurrentGainReduction => 1.0f - _gainReduction;
+    public float CurrentGainReduction => 1.0f - _currentGain;
 
     /// <summary>
     /// Gets or sets the limiter threshold in decibels (dB).
@@ -93,9 +89,9 @@ public sealed class MasterLimiterProvider : LimiterBase
     /// Gets or sets the output ceiling in decibels (dB).
     /// </summary>
     /// <value>
-    /// The absolute maximum level (dB) that the output signal will reach.
+    /// The target output level (dB) used to calculate gain reduction.
     /// </value>
-    public float CeilingDb
+    public float TargetLevelDb
     {
         get => LinearToDb(_ceilingLinear);
         set => _ceilingLinear = DbToLinear(value);
@@ -138,27 +134,23 @@ public sealed class MasterLimiterProvider : LimiterBase
         int channels = _channels;
         int frameCount = count / _channels;
 
-        float gainReduction = _gainReduction;
+        float gainReduction = _currentGain;
         int writePos = _writePos;
-        int readPos = _readPos;
         float currentMaxPeak = _currentMaxPeak;
 
         float thresholdLinear = _thresholdLinear;
         float ceilingLinear = _ceilingLinear;
-        float effectiveThreshold = Math.Min(thresholdLinear, ceilingLinear);
+        float targetPeakLinear = Math.Min(thresholdLinear, ceilingLinear);
 
         float attackCoeff = _attackCoeff;
         float releaseCoeff = _releaseCoeff;
-        int lookaheadFrames = _lookaheadFrames;
+        int peakWindowFrames = _peakWindowFrames;
 
-        Span<float> lookaheadBuffer = _lookaheadBuffer.AsSpan();
         Span<float> peakBuffer = _peakBuffer.AsSpan();
 
         for (int frame = 0; frame < frameCount; frame++)
         {
             int bufferIndex = offset + (frame * channels);
-            int writeIndex = writePos * channels;
-            int readIndex = readPos * channels;
 
             // 计算输入帧的峰值
             float inputPeak = 0f;
@@ -167,9 +159,6 @@ public sealed class MasterLimiterProvider : LimiterBase
                 float s0 = buffer[bufferIndex];
                 float s1 = buffer[bufferIndex + 1];
 
-                lookaheadBuffer[writeIndex] = s0;
-                lookaheadBuffer[writeIndex + 1] = s1;
-
                 inputPeak = Math.Max(Math.Abs(s0), Math.Abs(s1));
             }
             else
@@ -177,7 +166,6 @@ public sealed class MasterLimiterProvider : LimiterBase
                 for (int ch = 0; ch < channels; ch++)
                 {
                     float sample = buffer[bufferIndex + ch];
-                    lookaheadBuffer[writeIndex + ch] = sample;
                     inputPeak = Math.Max(inputPeak, Math.Abs(sample));
                 }
             }
@@ -203,7 +191,7 @@ public sealed class MasterLimiterProvider : LimiterBase
             float targetGain = 1.0f;
             if (currentMaxPeak > thresholdLinear)
             {
-                targetGain = effectiveThreshold / currentMaxPeak;
+                targetGain = targetPeakLinear / currentMaxPeak;
             }
 
             // 平滑增益
@@ -216,31 +204,18 @@ public sealed class MasterLimiterProvider : LimiterBase
                 gainReduction = targetGain + (gainReduction - targetGain) * releaseCoeff;
             }
 
-            // 输出延迟样本
-            if (channels == 2)
+            // 零延迟输出当前帧
+            for (int ch = 0; ch < channels; ch++)
             {
-                buffer[bufferIndex] = lookaheadBuffer[readIndex] * gainReduction;
-                buffer[bufferIndex + 1] = lookaheadBuffer[readIndex + 1] * gainReduction;
-            }
-            else
-            {
-                for (int ch = 0; ch < channels; ch++)
-                {
-                    float delayedSample = lookaheadBuffer[readIndex + ch];
-                    buffer[bufferIndex + ch] = delayedSample * gainReduction;
-                }
+                buffer[bufferIndex + ch] *= gainReduction;
             }
 
             writePos++;
-            if (writePos >= lookaheadFrames) writePos = 0;
-
-            readPos++;
-            if (readPos >= lookaheadFrames) readPos = 0;
+            if (writePos >= peakWindowFrames) writePos = 0;
         }
 
-        _gainReduction = gainReduction;
+        _currentGain = gainReduction;
         _writePos = writePos;
-        _readPos = readPos;
         _currentMaxPeak = currentMaxPeak;
     }
 
@@ -265,50 +240,50 @@ public sealed class MasterLimiterProvider : LimiterBase
         _releaseCoeff = MathF.Exp(-1000f / (_releaseTime * sampleRate));
     }
 
-    public static MasterLimiterProvider UltraLowLatencyPreset(ISampleProvider sampleProvider)
+    public static SamplePeakLimiter FastPreset(ISampleProvider sampleProvider)
     {
-        return new MasterLimiterProvider(
+        return new SamplePeakLimiter(
             sampleProvider,
             thresholdDb: -2.0f,
-            ceilingDb: -0.5f,
+            targetLevelDb: -0.5f,
             attackMs: 0.5f,
-            lookaheadMs: 1.5f,
+            peakWindowMs: 1.5f,
             releaseMs: 40f
         );
     }
 
-    public static MasterLimiterProvider GamePreset(ISampleProvider sampleProvider)
+    public static SamplePeakLimiter GamePreset(ISampleProvider sampleProvider)
     {
-        return new MasterLimiterProvider(
+        return new SamplePeakLimiter(
             sampleProvider,
             thresholdDb: -1.0f, // 稍微降低阈值，提前压制
-            ceilingDb: -0.5f, // 降低天花板，防止Attack没来得及压住的瞬态溢出
+            targetLevelDb: -0.5f, // 降低天花板，防止Attack没来得及压住的瞬态溢出
             attackMs: 1.5f, // 从0.1加到1.5，消除物理切波的爆音
-            lookaheadMs: 3f, // 3ms延迟，人耳不可察觉，但给了Attack反应时间
+            peakWindowMs: 3f, // 在短窗口内保持峰值，避免增益过快恢复
             releaseMs: 60f // 快速释放，适应高BPM密集的鼓点
         );
     }
 
-    public static MasterLimiterProvider MusicPreset(ISampleProvider sampleProvider)
+    public static SamplePeakLimiter MusicPreset(ISampleProvider sampleProvider)
     {
-        return new MasterLimiterProvider(
+        return new SamplePeakLimiter(
             sampleProvider,
             thresholdDb: -1.0f,
-            ceilingDb: -0.1f,
+            targetLevelDb: -0.1f,
             attackMs: 2f,
-            lookaheadMs: 7.5f,
+            peakWindowMs: 7.5f,
             releaseMs: 200f
         );
     }
 
-    public static MasterLimiterProvider MasteringPreset(ISampleProvider sampleProvider)
+    public static SamplePeakLimiter SmoothPreset(ISampleProvider sampleProvider)
     {
-        return new MasterLimiterProvider(
+        return new SamplePeakLimiter(
             sampleProvider,
             thresholdDb: -0.5f,
-            ceilingDb: -0.1f,
+            targetLevelDb: -0.1f,
             attackMs: 1.0f,
-            lookaheadMs: 5.0f,
+            peakWindowMs: 5.0f,
             releaseMs: 300f
         );
     }
