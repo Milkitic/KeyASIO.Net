@@ -5,6 +5,7 @@ using KeyAsio.Sync;
 using KeyAsio.Sync.Services;
 using KeyAsio.Plugins.Contracts;
 using KeyAsio.Application.Plugins;
+using KeyAsio.Sync.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using NLog.Extensions.Logging;
 using System;
@@ -24,6 +25,7 @@ namespace MemoryReadingTest
             services.AddSingleton<BeatmapHitsoundLoader>();
             services.AddSingleton<SfxPlaybackService>();
             services.AddSingleton<IPluginManager, PluginManager>();
+            services.AddSingleton<ISyncExtensionHost, SyncPluginCoordinator>();
             services.AddSingleton<SyncController>();
             services.AddSingleton<SyncSessionContext>();
             return services.BuildServiceProvider();

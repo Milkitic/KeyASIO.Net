@@ -10,6 +10,7 @@ using KeyAsio.Application.Plugins;
 using KeyAsio.Sync;
 using KeyAsio.Sync.AudioProviders;
 using KeyAsio.Sync.Services;
+using KeyAsio.Sync.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +22,7 @@ services.AddSingleton<GameplayAudioService>();
 services.AddSingleton<BeatmapHitsoundLoader>();
 services.AddSingleton<SfxPlaybackService>();
 services.AddSingleton<IPluginManager, PluginManager>();
+services.AddSingleton<ISyncExtensionHost, SyncPluginCoordinator>();
 services.AddSingleton<GameplaySessionManager>();
 services.AddSingleton<SyncSessionContext>();
 services.AddSingleton<SyncController>();

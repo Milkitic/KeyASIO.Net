@@ -2,7 +2,6 @@ using System.Diagnostics;
 using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Memory.Utils;
-using KeyAsio.Plugins.Contracts;
 using KeyAsio.Plugins.Contracts.Sync;
 using KeyAsio.Sync.Abstractions;
 using KeyAsio.Sync.AudioProviders;
@@ -17,16 +16,13 @@ public class SyncController : IDisposable
 {
     private readonly SyncSessionContext _syncSessionContext;
     private readonly GameStateMachine _stateMachine;
-    private readonly IPluginManager _pluginManager;
-    private readonly ILogger<SyncController> _logger;
-    private readonly List<ISyncPlugin> _activeSyncPlugins;
+    private readonly ISyncExtensionHost _extensionHost;
 
     public SyncController(ILogger<PlayingState> playingStateLogger,
         ILogger<StandardHitsoundSequencer> standardSequencerLogger,
         ILogger<TaikoHitsoundSequencer> taikoSequencerLogger,
         ILogger<ManiaHitsoundSequencer> maniaSequencerLogger,
         ILogger<CatchHitsoundSequencer> catchSequencerLogger,
-        ILogger<SyncController> logger,
         AppSettings appSettings,
         IPlaybackEngine playbackEngine,
         IPlaybackRuntimeState runtimeState,
@@ -35,13 +31,10 @@ public class SyncController : IDisposable
         SfxPlaybackService sfxPlaybackService,
         GameplaySessionManager gameplaySessionManager,
         SyncSessionContext syncSessionContext,
-        IPluginManager pluginManager)
+        ISyncExtensionHost extensionHost)
     {
         _syncSessionContext = syncSessionContext;
-        _pluginManager = pluginManager;
-        _logger = logger;
-
-        _activeSyncPlugins = _pluginManager.GetAllPlugins().OfType<ISyncPlugin>().ToList();
+        _extensionHost = extensionHost;
 
         _syncSessionContext.OnBeatmapChanged = OnBeatmapChanged;
         _syncSessionContext.OnComboChanged = OnComboChanged;
@@ -86,19 +79,8 @@ public class SyncController : IDisposable
         _syncLoopCts = new CancellationTokenSource();
         var token = _syncLoopCts.Token;
 
-        foreach (var plugin in _activeSyncPlugins)
-        {
-            try
-            {
-                plugin.OnSyncStart();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error starting sync plugin {PluginName} ({PluginId})", plugin.Name, plugin.Id);
-            }
-        }
-
-        Task.Factory.StartNew(() => RunSyncLoop(token, _activeSyncPlugins), TaskCreationOptions.LongRunning);
+        _extensionHost.Start();
+        Task.Factory.StartNew(() => RunSyncLoop(token), token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
     public void Stop()
@@ -107,32 +89,17 @@ public class SyncController : IDisposable
         _syncLoopCts?.Dispose();
         _syncLoopCts = null;
 
-        foreach (var plugin in _activeSyncPlugins)
-        {
-            try
-            {
-                plugin.OnSyncStop();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error stopping sync plugin {PluginName} ({PluginId})", plugin.Name, plugin.Id);
-            }
-        }
+        _extensionHost.Stop();
     }
 
-    private void RunSyncLoop(CancellationToken token, List<ISyncPlugin> plugins)
+    private void RunSyncLoop(CancellationToken token)
     {
         using var highPrecisionTimerScope = new HighPrecisionTimerScope();
-        var contextWrapper = new SyncContextWrapper(_syncSessionContext);
 
         const long intervalMs = 2; // 500Hz
         var stopwatch = Stopwatch.StartNew();
         var nextTrigger = stopwatch.ElapsedMilliseconds;
         var oldTime = _syncSessionContext.PlayTime;
-
-        // Cache variables
-        List<IGameStateHandler> cachedHandlers = new();
-        var cachedStatus = SyncOsuStatus.Unknown;
 
         while (!token.IsCancellationRequested)
         {
@@ -145,43 +112,7 @@ public class SyncController : IDisposable
             }
 
             var newTime = _syncSessionContext.PlayTime;
-            var currentStatus = (SyncOsuStatus)_syncSessionContext.OsuStatus;
-
-            // Update cache if status changed
-            if (currentStatus != cachedStatus)
-            {
-                cachedHandlers = _pluginManager.GetActiveHandlers(currentStatus).ToList();
-                cachedStatus = currentStatus;
-            }
-
-            // Invoke plugins
-            foreach (var plugin in plugins)
-            {
-                try
-                {
-                    plugin.OnTick(contextWrapper, newTime - oldTime);
-                }
-                catch
-                {
-                    // Suppress plugin errors to keep loop running
-                }
-            }
-
-            // Check if any plugin overrides the current state
-            bool blockBase = false;
-            foreach (var handler in cachedHandlers)
-            {
-                var result = handler.HandleTick(contextWrapper);
-                if ((result & HandleResult.BlockBaseLogic) != 0)
-                {
-                    blockBase = true;
-                }
-
-                if ((result & HandleResult.BlockLowerPriority) != 0)
-                {
-                    break;
-                }
-            }
+            var blockBase = _extensionHost.HandleTick(newTime - oldTime, _syncSessionContext.OsuStatus);
 
             if (!blockBase)
             {
@@ -207,126 +138,22 @@ public class SyncController : IDisposable
 
     private async Task OnStatusChanged(OsuMemoryStatus oldStatus, OsuMemoryStatus newStatus)
     {
-        var contextWrapper = new SyncContextWrapper(_syncSessionContext);
-        var oldHandlers = _pluginManager.GetActiveHandlers((SyncOsuStatus)oldStatus);
-        var newHandlers = _pluginManager.GetActiveHandlers((SyncOsuStatus)newStatus);
-
-        // 1. Exit Old State
-        bool blockBaseExit = false;
-        foreach (var handler in oldHandlers)
-        {
-            try
-            {
-                var result = handler.HandleExit(contextWrapper);
-                if ((result & HandleResult.BlockBaseLogic) != 0)
-                {
-                    blockBaseExit = true;
-                }
-
-                if ((result & HandleResult.BlockLowerPriority) != 0)
-                {
-                    break;
-                }
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
-
-        if (!blockBaseExit)
+        if (!_extensionHost.HandleStateExit(oldStatus))
         {
             _stateMachine.ExitCurrent(_syncSessionContext, newStatus);
         }
 
-        // 2. Enter New State
-        bool blockBaseEnter = false;
-        foreach (var handler in newHandlers)
-        {
-            try
-            {
-                var result = handler.HandleEnter(contextWrapper);
-                if ((result & HandleResult.BlockBaseLogic) != 0)
-                {
-                    blockBaseEnter = true;
-                }
-
-                if ((result & HandleResult.BlockLowerPriority) != 0)
-                {
-                    break;
-                }
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
-
-        if (!blockBaseEnter)
+        if (!_extensionHost.HandleStateEnter(newStatus))
         {
             await _stateMachine.EnterFromAsync(_syncSessionContext, oldStatus, newStatus);
         }
 
-        foreach (var plugin in _activeSyncPlugins)
-        {
-            try
-            {
-                plugin.OnStatusChanged((SyncOsuStatus)oldStatus, (SyncOsuStatus)newStatus);
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
+        _extensionHost.NotifyStatusChanged(oldStatus, newStatus);
     }
 
     private Task OnBeatmapChanged(BeatmapIdentifier oldBeatmap, BeatmapIdentifier newBeatmap)
     {
-        var absBeatmap = new SyncBeatmapInfo
-        {
-            Folder = newBeatmap.Folder,
-            Filename = newBeatmap.Filename
-        };
-
-        // Notify plugins (Legacy behavior, always notified)
-        foreach (var plugin in _activeSyncPlugins)
-        {
-            try
-            {
-                plugin.OnBeatmapChanged(absBeatmap);
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
-
-        // Notify active handlers
-        var handlers = _pluginManager.GetActiveHandlers((SyncOsuStatus)_syncSessionContext.OsuStatus);
-        bool blockBase = false;
-        foreach (var handler in handlers)
-        {
-            try
-            {
-                var result = handler.HandleBeatmapChange(absBeatmap);
-
-                if ((result & HandleResult.BlockBaseLogic) != 0)
-                {
-                    blockBase = true;
-                }
-
-                if ((result & HandleResult.BlockLowerPriority) != 0)
-                {
-                    break;
-                }
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
-
-        if (!blockBase)
+        if (!_extensionHost.HandleBeatmapChanged(newBeatmap, _syncSessionContext.OsuStatus))
         {
             _stateMachine.Current?.OnBeatmapChanged(_syncSessionContext, newBeatmap);
         }

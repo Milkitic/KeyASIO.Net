@@ -14,6 +14,7 @@ using KeyAsio.Sync;
 using KeyAsio.Sync.Services;
 using KeyAsio.Sync.Models;
 using KeyAsio.Sync.States;
+using KeyAsio.Sync.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NAudio.Wave;
@@ -43,6 +44,7 @@ public class Program
         services.AddSingleton<BeatmapHitsoundLoader>();
         services.AddSingleton<SfxPlaybackService>();
         services.AddSingleton<IPluginManager, PluginManager>();
+        services.AddSingleton<ISyncExtensionHost, SyncPluginCoordinator>();
         services.AddSingleton<GameplaySessionManager>();
         services.AddSingleton<SyncSessionContext>();
         services.AddSingleton<SyncController>();

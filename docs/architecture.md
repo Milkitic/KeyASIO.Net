@@ -17,6 +17,10 @@ The solution uses the application executable as the composition root. Lower laye
 Dependencies point inward toward contracts and primitives. In particular, `KeyAsio.Sync` has no dependency on
 `KeyAsio.Application`, and neither plugin contracts nor application services depend on Avalonia/Suki.
 
+Synchronization extensions follow dependency inversion: `KeyAsio.Sync` owns the narrow `ISyncExtensionHost` port,
+while `KeyAsio.Application` implements it with `SyncPluginCoordinator`. The coordinator adapts `SyncSessionContext`
+to the read-only plugin contract and owns plugin callback dispatch, propagation rules and exception isolation.
+
 ## Audio device transactions
 
 All application-level device changes go through `IAudioDeviceOperationCoordinator`. A transition is serialized,

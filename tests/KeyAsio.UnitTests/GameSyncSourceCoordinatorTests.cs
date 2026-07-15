@@ -4,6 +4,7 @@ using KeyAsio.Configuration;
 using KeyAsio.Configuration.Models;
 using KeyAsio.Sync.Sources;
 using KeyAsio.Sync;
+using KeyAsio.Application.Plugins;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace KeyAsio.UnitTests;
@@ -113,7 +114,7 @@ public sealed class GameSyncSourceCoordinatorTests
             context,
             [source],
             NullLogger<GameSyncSourceCoordinator>.Instance);
-        var pluginContext = new SyncContextWrapper(context);
+        var pluginContext = new PluginSyncContextAdapter(context);
 
         coordinator.Start();
 

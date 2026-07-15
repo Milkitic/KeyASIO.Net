@@ -1,16 +1,16 @@
 using KeyAsio.Plugins.Contracts;
+using KeyAsio.Sync;
 using KeyAsio.Sync.Sources;
 
-namespace KeyAsio.Sync;
+namespace KeyAsio.Application.Plugins;
 
-public class SyncContextWrapper : ISyncContext
+internal sealed class PluginSyncContextAdapter : ISyncContext
 {
     private readonly SyncSessionContext _context;
-
     private BeatmapIdentifier _cachedIdentifier;
-    private SyncBeatmapInfo? _cachedInfo;
+    private SyncBeatmapInfo? _cachedBeatmap;
 
-    public SyncContextWrapper(SyncSessionContext context)
+    public PluginSyncContextAdapter(SyncSessionContext context)
     {
         _context = context;
     }
@@ -18,11 +18,8 @@ public class SyncContextWrapper : ISyncContext
     public int PlayTime => _context.PlayTime;
     public double BeatmapOffset => _context.BeatmapOffset;
     public bool IsStarted => _context.IsStarted;
-
     public SyncOsuStatus OsuStatus => (SyncOsuStatus)_context.OsuStatus;
-
     public long LastUpdateTimestamp => _context.LastUpdateTimestamp;
-
     public int PlayMods => (int)_context.PlayMods;
     public SyncStatistics Statistics => _context.Statistics;
     public SyncHitErrors HitErrors => _context.HitErrors;
@@ -33,18 +30,21 @@ public class SyncContextWrapper : ISyncContext
         get
         {
             var current = _context.Beatmap;
-            if (current == _cachedIdentifier) return _cachedInfo;
+            if (current == _cachedIdentifier)
+            {
+                return _cachedBeatmap;
+            }
 
             _cachedIdentifier = current;
-            _cachedInfo = current.Folder == null
-                ? null
-                : new SyncBeatmapInfo
-                {
-                    Folder = current.Folder,
-                    Filename = current.Filename
-                };
-
-            return _cachedInfo;
+            _cachedBeatmap = current.Folder is null ? null : ToPluginBeatmap(current);
+            return _cachedBeatmap;
         }
     }
+
+    internal static SyncBeatmapInfo ToPluginBeatmap(BeatmapIdentifier beatmap) =>
+        new()
+        {
+            Folder = beatmap.Folder,
+            Filename = beatmap.Filename
+        };
 }

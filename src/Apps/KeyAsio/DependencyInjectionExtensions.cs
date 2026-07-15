@@ -3,7 +3,6 @@ using KeyAsio.Services.Localization;
 using KeyAsio.Application.Localization;
 using KeyAsio.Application.Models;
 using KeyAsio.Application.Abstractions;
-using KeyAsio.Application.Plugins;
 using KeyAsio.Application.Services;
 using KeyAsio.Configuration;
 using KeyAsio.Plugins.Contracts;
@@ -34,17 +33,6 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<ISukiDialogManager, SukiDialogManager>();
         services.AddSingleton<ISukiToastManager, SafeSukiToastManager>();
         services.AddSingleton<IPluginInteractionService, PluginInteractionService>();
-
-        services.AddSingleton<AudioEngineWrapper>();
-        services.AddSingleton<IAudioEngine>(static provider =>
-            provider.GetRequiredService<AudioEngineWrapper>());
-        services.AddSingleton<PluginSettingsAdapter>();
-        services.AddSingleton<IPluginSettings>(static provider =>
-            provider.GetRequiredService<PluginSettingsAdapter>());
-        services.AddSingleton<GameplaySessionAdapter>();
-        services.AddSingleton<IGameplaySession>(static provider =>
-            provider.GetRequiredService<GameplaySessionAdapter>());
-        services.AddSingleton<IPluginManager, PluginManager>();
 
         services.AddSingleton<LanguageManager>();
         services.AddSingleton<SettingsManager>();

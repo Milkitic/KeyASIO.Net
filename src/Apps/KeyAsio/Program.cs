@@ -1,5 +1,6 @@
 using Avalonia;
 using KeyAsio.Application.Services;
+using KeyAsio.Application;
 using KeyAsio.Common;
 using KeyAsio.Configuration;
 using KeyAsio.Configuration.Serialization;
@@ -135,6 +136,7 @@ internal sealed class Program
                 .AddSingleton<ISentryEventProcessor, KeyAsioSentryEventProcessor>()
                 .AddAudioModule()
                 .AddSyncModule()
+                .AddApplicationModule()
                 .AddGuiModule()
                 .AddSingleton(appSettings))
             .Build();
