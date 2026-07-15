@@ -241,6 +241,7 @@ public class SyncSessionContext
         }
     }
 
+    public double BeatmapOffset { get; set; }
     public int Score { get; set; }
     public SyncStatistics Statistics { get; set; } = SyncStatistics.Empty;
     public SyncHitErrors HitErrors { get; set; } = SyncHitErrors.Empty;

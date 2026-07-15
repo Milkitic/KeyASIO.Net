@@ -134,6 +134,7 @@ public sealed class GameSyncSourceCoordinator
             _syncSessionContext.HitErrors = snapshot.HitErrors;
             _syncSessionContext.BeatmapResourceCatalog = snapshot.BeatmapResourceCatalog;
             _syncSessionContext.Beatmap = snapshot.Beatmap;
+            _syncSessionContext.BeatmapOffset = snapshot.BeatmapOffset;
             _syncSessionContext.BaseMemoryTime = snapshot.PlayTime;
             _syncSessionContext.OsuStatus = snapshot.Status;
             _syncSessionContext.Combo = snapshot.Combo;

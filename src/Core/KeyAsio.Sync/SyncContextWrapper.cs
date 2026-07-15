@@ -16,6 +16,7 @@ public class SyncContextWrapper : ISyncContext
     }
 
     public int PlayTime => _context.PlayTime;
+    public double BeatmapOffset => _context.BeatmapOffset;
     public bool IsStarted => _context.IsStarted;
 
     public SyncOsuStatus OsuStatus => (SyncOsuStatus)_context.OsuStatus;

@@ -99,6 +99,36 @@ public sealed class GameSyncSourceCoordinatorTests
         Assert.Equal(statistics, statisticsSeenOnComboChanged);
     }
 
+    [Fact]
+    public void ApplySnapshot_ExposesBeatmapOffsetToPlugins()
+    {
+        var context = new SyncSessionContext(new AppSettings());
+        var source = new FakeGameSyncSource(new GameSyncSnapshot
+        {
+            ClientType = GameClientType.Lazer,
+            Status = OsuMemoryStatus.Playing,
+            BeatmapOffset = 12.3
+        });
+        var coordinator = new GameSyncSourceCoordinator(
+            context,
+            [source],
+            NullLogger<GameSyncSourceCoordinator>.Instance);
+        var pluginContext = new SyncContextWrapper(context);
+
+        coordinator.Start();
+
+        Assert.Equal(12.3, pluginContext.BeatmapOffset);
+
+        source.Publish(new GameSyncSnapshot
+        {
+            ClientType = GameClientType.Lazer,
+            Status = OsuMemoryStatus.Playing,
+            BeatmapOffset = -4.7
+        });
+
+        Assert.Equal(-4.7, pluginContext.BeatmapOffset);
+    }
+
     private sealed class FakeGameSyncSource : IGameSyncSource
     {
         public FakeGameSyncSource(GameSyncSnapshot initialSnapshot)

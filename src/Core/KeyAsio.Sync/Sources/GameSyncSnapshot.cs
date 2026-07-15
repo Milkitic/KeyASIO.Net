@@ -26,6 +26,7 @@ public sealed class GameSyncSnapshot
     public BeatmapIdentifier Beatmap { get; set; }
     public IBeatmapResourceCatalog? BeatmapResourceCatalog { get; set; }
     public int PlayTime { get; set; }
+    public double BeatmapOffset { get; set; }
     public OsuMemoryStatus Status { get; set; } = OsuMemoryStatus.Unknown;
 
     public static GameSyncSnapshot NotRunning(GameClientType clientType) => new()
@@ -50,6 +51,7 @@ public sealed class GameSyncSnapshot
         Beatmap = Beatmap,
         BeatmapResourceCatalog = BeatmapResourceCatalog,
         PlayTime = PlayTime,
+        BeatmapOffset = BeatmapOffset,
         Status = Status
     };
 
@@ -71,6 +73,7 @@ public sealed class GameSyncSnapshot
         Beatmap = default;
         BeatmapResourceCatalog = null;
         PlayTime = 0;
+        BeatmapOffset = 0;
         Status = OsuMemoryStatus.NotRunning;
     }
 

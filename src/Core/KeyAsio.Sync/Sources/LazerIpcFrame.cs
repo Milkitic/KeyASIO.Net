@@ -9,6 +9,7 @@ public sealed class LazerIpcFrame
     public int ProcessId { get; private set; }
     public int Status { get; private set; }
     public int PlayTime { get; private set; }
+    public double BeatmapOffset { get; private set; }
     public uint Mods { get; private set; }
     public int Combo { get; private set; }
     public int Score { get; private set; }
@@ -30,6 +31,7 @@ public sealed class LazerIpcFrame
         ProcessId = 0;
         Status = 0;
         PlayTime = 0;
+        BeatmapOffset = 0;
         Mods = 0;
         Combo = 0;
         Score = 0;
@@ -71,6 +73,10 @@ public sealed class LazerIpcFrame
 
                 case LazerFieldKind.PlayTime:
                     PlayTime = field.IntValue;
+                    break;
+
+                case LazerFieldKind.BeatmapOffset:
+                    BeatmapOffset = double.IsFinite(field.DoubleValue) ? field.DoubleValue : 0;
                     break;
 
                 case LazerFieldKind.Mods:

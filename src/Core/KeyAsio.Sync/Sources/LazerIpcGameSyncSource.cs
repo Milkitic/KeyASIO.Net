@@ -205,6 +205,7 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         snapshot.Beatmap = beatmap;
         snapshot.BeatmapResourceCatalog = _resourceCatalog;
         snapshot.PlayTime = frame.PlayTime;
+        snapshot.BeatmapOffset = frame.BeatmapOffset;
         snapshot.Status = status;
     }
 

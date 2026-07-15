@@ -8,6 +8,11 @@ public interface ISyncContext
     int PlayTime { get; }
 
     /// <summary>
+    /// User-defined audio offset for the current beatmap (ms).
+    /// </summary>
+    double BeatmapOffset { get; }
+
+    /// <summary>
     /// Whether started (Gameplay session active)
     /// </summary>
     bool IsStarted { get; }
