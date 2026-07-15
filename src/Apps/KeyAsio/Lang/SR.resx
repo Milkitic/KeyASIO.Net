@@ -217,22 +217,16 @@
     <value>Audio Limiter</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>Prevents clipping when hitsounds stack. 'Polynomial' mode is recommended; disable for raw audio. Note: 'Master' mode increases CPU usage.</value>
+    <value>Prevents clipping when hitsounds stack. 'Soft' mode is recommended; disable for raw audio. Note: 'Peak' mode increases CPU usage.</value>
   </data>
   <data name="Audio_LimiterType_Hard" xml:space="preserve">
     <value>Hard (Clipping)</value>
   </data>
-  <data name="Audio_LimiterType_Master" xml:space="preserve">
-    <value>Master (Lookahead)</value>
+  <data name="Audio_LimiterType_Peak" xml:space="preserve">
+    <value>Peak (Lookahead)</value>
   </data>
   <data name="Audio_LimiterType_Off" xml:space="preserve">
     <value>Off</value>
-  </data>
-  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
-    <value>Polynomial (Zero‑latency)</value>
-  </data>
-  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
-    <value>Quadratic (Lightweight)</value>
   </data>
   <data name="Audio_LimiterType_Soft" xml:space="preserve">
     <value>Soft (Saturation)</value>
@@ -256,7 +250,7 @@
     <value>Target Latency</value>
   </data>
   <data name="BalanceMode_LinearStereoPan" xml:space="preserve">
-    <value>Linear Stereo Pan</value>
+    <value>Linear Pan</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
     <value>Equal-Power Pan</value>

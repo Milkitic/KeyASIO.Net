@@ -217,23 +217,17 @@
     <value>リミッター</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>音の重なりによるクリッピング歪みを防ぎます。「多項式」モードを推奨します。原音のダイナミクスを重視する場合は無効にできます。
-注意：「マスタリング」モードは CPU 使用率が増加します。</value>
+    <value>音の重なりによるクリッピング歪みを防ぎます。「ソフト」モードを推奨します。原音のダイナミクスを重視する場合は無効にできます。
+注意：「ピーク」モードは CPU 使用率が増加します。</value>
   </data>
   <data name="Audio_LimiterType_Hard" xml:space="preserve">
     <value>ハード（原音）</value>
   </data>
-  <data name="Audio_LimiterType_Master" xml:space="preserve">
-    <value>マスタリング（高品質）</value>
+  <data name="Audio_LimiterType_Peak" xml:space="preserve">
+    <value>ピーク（高品質）</value>
   </data>
   <data name="Audio_LimiterType_Off" xml:space="preserve">
     <value>オフ</value>
-  </data>
-  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
-    <value>多項式（ゲーム）</value>
-  </data>
-  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
-    <value>二次</value>
   </data>
   <data name="Audio_LimiterType_Soft" xml:space="preserve">
     <value>ソフト（アナログ）</value>
@@ -257,10 +251,10 @@
     <value>目標遅延</value>
   </data>
   <data name="BalanceMode_LinearStereoPan" xml:space="preserve">
-    <value>リニア・ステレオ・パン</value>
+    <value>リニア・パン</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
-    <value>等電力ステレオ・パン</value>
+    <value>等電力パン</value>
   </data>
   <data name="BalanceMode_ProMixFocus" xml:space="preserve">
     <value>ProMix Focus</value>

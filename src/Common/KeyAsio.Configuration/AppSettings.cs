@@ -157,8 +157,8 @@ public partial class AppSettingsSyncPlayback : INotifyPropertyChanged
     public bool NightcoreBeats { get; set; }
 
     [Description("Prevents clipping when hitsounds stack. " +
-                 "'Polynomial' mode is recommended; disable for raw audio. " +
-                 "Note: 'Master' mode increases CPU usage.")]
+                 "'Soft' mode is recommended; disable for raw audio. " +
+                 "Note: 'Peak' mode increases CPU usage.")]
     public LimiterType LimiterType { get; set; } = LimiterType.Peak;
 
     [Description("Stereo balance processing mode.")]

@@ -6,7 +6,7 @@ public enum LimiterType
 {
     [Description("Audio_LimiterType_Off")]
     Off,
-    [Description("Audio_LimiterType_Master")]
+    [Description("Audio_LimiterType_Peak")]
     Peak,
     [Description("Audio_LimiterType_Soft")]
     Soft,

@@ -217,23 +217,17 @@
     <value>限制器</value>
   </data>
   <data name="Audio_LimiterDescription" xml:space="preserve">
-    <value>防止音效叠加导致削波失真。推荐使用“多项式”模式；追求原始动态可禁用。
-注意：“母带级”模式会增加 CPU 占用。</value>
+    <value>防止音效叠加导致削波失真。推荐使用“软限制”模式；追求原始动态可禁用。
+注意：“峰值”模式会增加 CPU 占用。</value>
   </data>
   <data name="Audio_LimiterType_Hard" xml:space="preserve">
     <value>硬限制 (原始)</value>
   </data>
-  <data name="Audio_LimiterType_Master" xml:space="preserve">
-    <value>母带级 (品质)</value>
+  <data name="Audio_LimiterType_Peak" xml:space="preserve">
+    <value>峰值 (品质)</value>
   </data>
   <data name="Audio_LimiterType_Off" xml:space="preserve">
     <value>禁用</value>
-  </data>
-  <data name="Audio_LimiterType_Polynomial" xml:space="preserve">
-    <value>多项式 (游戏)</value>
-  </data>
-  <data name="Audio_LimiterType_Quadratic" xml:space="preserve">
-    <value>二次方</value>
   </data>
   <data name="Audio_LimiterType_Soft" xml:space="preserve">
     <value>软限制 (模拟)</value>
@@ -257,10 +251,10 @@
     <value>目标延迟</value>
   </data>
   <data name="BalanceMode_LinearStereoPan" xml:space="preserve">
-    <value>线性立体声像</value>
+    <value>线性声像</value>
   </data>
   <data name="BalanceMode_ConstantPower" xml:space="preserve">
-    <value>等功率立体声像</value>
+    <value>等功率声像</value>
   </data>
   <data name="BalanceMode_ProMixFocus" xml:space="preserve">
     <value>ProMix Focus</value>
