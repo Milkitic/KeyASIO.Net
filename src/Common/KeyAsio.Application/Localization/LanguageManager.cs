@@ -83,7 +83,7 @@ public partial class LanguageManager : ObservableObject
     {
         AvailableLanguages.Add(new LanguageItem
         {
-            Name = LocalizationService.Instance["Language_SystemDefault"],
+            Name = LocalizationService.Instance["Settings_FollowSystem"],
             Code = SystemLanguageCode
         });
         AvailableLanguages.Add(new LanguageItem
