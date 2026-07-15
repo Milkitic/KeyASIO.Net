@@ -49,6 +49,10 @@ public class MyYamlConfigurationConverter : YamlConfigurationConverter
                 content,
                 "(?im)^(\\s*limiterType\\s*:\\s*)[\"']?Polynomial[\"']?(\\s*(?:#.*)?)$",
                 "$1Soft$2");
+            content = Regex.Replace(
+                content,
+                "(?im)^(\\s*limiterType\\s*:\\s*)[\"']?Master[\"']?(\\s*(?:#.*)?)$",
+                "$1Peak$2");
 
             if (!content.StartsWith("default:") && !LooksLikeNewYaml(content))
             {
