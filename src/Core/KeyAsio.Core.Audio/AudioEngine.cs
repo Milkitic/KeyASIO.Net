@@ -244,12 +244,13 @@ public class AudioEngine : IPlaybackEngine, INotifyPropertyChanged
         CurrentDevice = null;
         CurrentDeviceDescription = null;
 
+        DisposeDevice(currentDevice);
+
         _limiterProvider = null;
         _effectVolumeSampleProvider.Source = null;
         _musicVolumeSampleProvider.Source = null;
         _mainVolumeSampleProvider.Source = null;
 
-        DisposeDevice(currentDevice);
         DeviceStopped?.Invoke();
     }
 
