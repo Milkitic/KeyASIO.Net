@@ -162,7 +162,7 @@
           Width="80"
           Height="80"
           Hue="{Binding Hue}"
-          Path="avares://KeyAsio/Assets/keyasio_24.svg" />
+          Path="avares://KeyAsio/Assets/keyasio_32.svg" />
         <TextBlock
           HorizontalAlignment="Center"
           Classes="h4"
