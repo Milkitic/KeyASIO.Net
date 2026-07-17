@@ -235,7 +235,15 @@ public partial class WizardViewModel : ViewModelBase
             if (WizardAudioConfigViewModel.CurrentAudioSubStep == AudioSubStep.Configuration)
             {
                 prevText = SRKeys.Wizard_BackToSelection;
-                nextText = SRKeys.Wizard_ApplyAndTest;
+                nextText = WizardAudioConfigViewModel.SelectedMode == WizardMode.Hardware
+                    ? "创建设备并开始试听"
+                    : SRKeys.Wizard_ApplyAndTest;
+            }
+            else if (WizardAudioConfigViewModel.CurrentAudioSubStep is AudioSubStep.ConcurrencyCheck
+                     or AudioSubStep.AlternativeDeviceCheck
+                     or AudioSubStep.ProMixRequired)
+            {
+                prevText = "重新选择设备";
             }
             else if (WizardAudioConfigViewModel.CurrentAudioSubStep == AudioSubStep.Validation)
             {
@@ -309,6 +317,8 @@ public partial class WizardViewModel : ViewModelBase
 
     private void Finish()
     {
+        WizardAudioConfigViewModel.StopTestSound();
+
         // Save settings
         AppSettings.Logging.EnableErrorReporting = EnableCrashReport;
         // _appSettings.Update.EnableAutoUpdate = EnableUpdates; // TODO: will be added

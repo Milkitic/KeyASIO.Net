@@ -16,6 +16,7 @@ public class WizardAudioConfigViewModelTests
     private readonly Mock<IAudioDeviceOperationCoordinator> _mockDeviceOperations;
     private readonly Mock<ISukiToastManager> _mockToastManager;
     private readonly Mock<IPluginManager> _mockPluginManager;
+    private readonly Mock<IWizardTestSoundService> _mockTestSoundService;
     private readonly AppSettings _appSettings;
 
     public WizardAudioConfigViewModelTests()
@@ -24,6 +25,7 @@ public class WizardAudioConfigViewModelTests
         _mockDeviceOperations = new Mock<IAudioDeviceOperationCoordinator>();
         _mockToastManager = new Mock<ISukiToastManager>();
         _mockPluginManager = new Mock<IPluginManager>();
+        _mockTestSoundService = new Mock<IWizardTestSoundService>();
         _appSettings = new AppSettings();
 
         var proMixPlugin = new Mock<IPlugin>();
@@ -49,7 +51,8 @@ public class WizardAudioConfigViewModelTests
             _mockDeviceOperations.Object,
             _mockToastManager.Object,
             _appSettings,
-            _mockPluginManager.Object);
+            _mockPluginManager.Object,
+            _mockTestSoundService.Object);
     }
 
     [AvaloniaFact]
@@ -76,13 +79,18 @@ public class WizardAudioConfigViewModelTests
     }
 
     [AvaloniaFact]
-    public void SelectMode_Hardware_ShowsWarningIfNoAsio()
+    public void SelectMode_Hardware_AllowsWasapiExclusiveWhenNoAsioExists()
     {
         // Arrange
         _mockDeviceManager.Setup(m => m.GetCachedAvailableDevicesAsync())
             .ReturnsAsync(new List<DeviceDescription>
             {
-                new DeviceDescription { WavePlayerType = WavePlayerType.WASAPI, FriendlyName = "Wasapi Device" }
+                new DeviceDescription
+                {
+                    WavePlayerType = WavePlayerType.WASAPI,
+                    DeviceId = "wasapi-device",
+                    FriendlyName = "Wasapi Device"
+                }
             });
 
         var vm = CreateViewModel();
@@ -97,6 +105,24 @@ public class WizardAudioConfigViewModelTests
         Assert.Equal(WizardMode.Hardware, vm.SelectedMode);
         Assert.True(vm.ShowHardwareDriverWarning);
         Assert.Equal(WavePlayerType.ASIO, vm.SelectedDriverType);
+
+        vm.SelectedDriverType = WavePlayerType.WASAPI;
+        Assert.NotNull(vm.SelectedAudioDevice);
+        Assert.True(vm.SelectedAudioDevice.IsExclusive);
+        Assert.Equal(3, vm.SelectedAudioDevice.Latency);
+        Assert.False(vm.ShowHardwareDriverWarning);
+    }
+
+    [AvaloniaFact]
+    public void SelectMode_Hardware_ShowsWarningWhenSelectedBackendHasNoDevice()
+    {
+        var vm = CreateViewModel();
+
+        vm.SelectModeCommand.Execute(WizardMode.Hardware);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(vm.ShowHardwareDriverWarning);
+        Assert.Null(vm.SelectedAudioDevice);
     }
 
     [AvaloniaFact]
@@ -176,12 +202,18 @@ public class WizardAudioConfigViewModelTests
     {
         // Arrange
         var asioDevice = new DeviceDescription { WavePlayerType = WavePlayerType.ASIO, FriendlyName = "ASIO" };
-        var wasapiDevice = new DeviceDescription { WavePlayerType = WavePlayerType.WASAPI, FriendlyName = "WASAPI" };
+        var wasapiDevice = new DeviceDescription
+        {
+            WavePlayerType = WavePlayerType.WASAPI,
+            DeviceId = "wasapi-device",
+            FriendlyName = "WASAPI"
+        };
 
         _mockDeviceManager.Setup(m => m.GetCachedAvailableDevicesAsync())
             .ReturnsAsync(new List<DeviceDescription> { asioDevice, wasapiDevice });
 
         var vm = CreateViewModel();
+        vm.SelectModeCommand.Execute(WizardMode.Hardware);
 
         // Act
         vm.SelectedDriverType = WavePlayerType.ASIO;
@@ -197,7 +229,9 @@ public class WizardAudioConfigViewModelTests
         Dispatcher.UIThread.RunJobs();
 
         Assert.Single(vm.AvailableAudioDevices);
-        Assert.Equal(wasapiDevice, vm.AvailableAudioDevices.First());
+        Assert.Equal(wasapiDevice.FriendlyName, vm.AvailableAudioDevices.First().FriendlyName);
+        Assert.True(vm.AvailableAudioDevices.First().IsExclusive);
+        Assert.Equal(3, vm.AvailableAudioDevices.First().Latency);
     }
 
     [AvaloniaFact]
@@ -290,14 +324,86 @@ public class WizardAudioConfigViewModelTests
         Assert.Equal(asioDevice, vm.SelectedAudioDevice);
         Assert.True(vm.CanGoForward);
 
-        // 3. Go Forward (Validation)
+        // 3. Create the device and start the once-per-second snare test.
         await vm.TryGoForwardAsync();
+        Assert.Equal(AudioSubStep.ConcurrencyCheck, vm.CurrentAudioSubStep);
+        Assert.True(vm.IsConcurrencyTestSoundPlaying);
+        _mockTestSoundService.Verify(service => service.Start(), Times.Once);
+
+        // 4. Confirm that osu! can still play through the same device.
+        vm.ConfirmSameDeviceAudioCommand.Execute(null);
         Assert.Equal(AudioSubStep.Validation, vm.CurrentAudioSubStep);
         Assert.True(vm.ValidationSuccess);
+        Assert.False(vm.IsConcurrencyTestSoundPlaying);
+        _mockTestSoundService.Verify(service => service.Stop(), Times.AtLeastOnce);
 
-        // 4. Go Forward (Finish)
+        // 5. Go Forward (Finish)
         bool result = await vm.TryGoForwardAsync();
         Assert.False(result); // Should return false to indicate proceeding to next main wizard step
+    }
+
+    [AvaloniaFact]
+    public async Task HardwareFlow_WhenOnlyDeviceCannotRunConcurrently_RequiresProMix()
+    {
+        var asioDevice = new DeviceDescription { WavePlayerType = WavePlayerType.ASIO, FriendlyName = "ASIO4ALL" };
+        var onlyWasapiDevice = new DeviceDescription
+        {
+            WavePlayerType = WavePlayerType.WASAPI,
+            DeviceId = "only-output",
+            FriendlyName = "Speakers"
+        };
+        _mockDeviceManager.Setup(manager => manager.GetCachedAvailableDevicesAsync())
+            .ReturnsAsync([asioDevice, onlyWasapiDevice]);
+
+        var vm = CreateViewModel();
+        vm.SelectModeCommand.Execute(WizardMode.Hardware);
+        Dispatcher.UIThread.RunJobs();
+        await vm.TryGoForwardAsync();
+
+        await vm.ReportSameDeviceSilentCommand.ExecuteAsync(null);
+
+        Assert.Equal(AudioSubStep.ProMixRequired, vm.CurrentAudioSubStep);
+        Assert.Contains("一个物理播放设备", vm.ProMixRequiredMessage);
+        Assert.False(vm.IsConcurrencyTestSoundPlaying);
+        _mockDeviceOperations.Verify(operation => operation.DeactivateAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [AvaloniaFact]
+    public async Task HardwareFlow_WhenAnotherGameDeviceWorks_ContinuesToValidation()
+    {
+        var asioDevice = new DeviceDescription { WavePlayerType = WavePlayerType.ASIO, FriendlyName = "Studio ASIO" };
+        _mockDeviceManager.Setup(manager => manager.GetCachedAvailableDevicesAsync())
+            .ReturnsAsync([
+                asioDevice,
+                new DeviceDescription
+                {
+                    WavePlayerType = WavePlayerType.WASAPI,
+                    DeviceId = "speakers",
+                    FriendlyName = "Speakers"
+                },
+                new DeviceDescription
+                {
+                    WavePlayerType = WavePlayerType.WASAPI,
+                    DeviceId = "monitor",
+                    FriendlyName = "Monitor"
+                }
+            ]);
+
+        var vm = CreateViewModel();
+        vm.SelectModeCommand.Execute(WizardMode.Hardware);
+        Dispatcher.UIThread.RunJobs();
+        await vm.TryGoForwardAsync();
+
+        await vm.ReportSameDeviceSilentCommand.ExecuteAsync(null);
+        Assert.Equal(AudioSubStep.AlternativeDeviceCheck, vm.CurrentAudioSubStep);
+        Assert.True(vm.IsConcurrencyTestSoundPlaying);
+
+        vm.ConfirmAlternativeDeviceAudioCommand.Execute(null);
+
+        Assert.Equal(AudioSubStep.Validation, vm.CurrentAudioSubStep);
+        Assert.True(vm.ValidationSuccess);
+        Assert.Contains("其他播放设备", vm.ValidationInstruction);
+        Assert.False(vm.IsConcurrencyTestSoundPlaying);
     }
 
     [AvaloniaFact]
