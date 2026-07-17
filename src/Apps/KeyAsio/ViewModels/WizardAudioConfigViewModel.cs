@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
+using KeyAsio.Plugins.Contracts;
 using KeyAsio.Services;
 using SukiUI.Toasts;
 
@@ -26,6 +27,8 @@ public enum AudioSubStep
 
 public partial class WizardAudioConfigViewModel : ViewModelBase
 {
+    private const string ProMixPluginId = "KeyAsio.Plugins.ProMix";
+
     private readonly IAudioDeviceManager _audioDeviceManager;
     private readonly IAudioDeviceOperationCoordinator _deviceOperations;
     private readonly ISukiToastManager _toastManager;
@@ -35,18 +38,23 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         IAudioDeviceManager audioDeviceManager,
         IAudioDeviceOperationCoordinator deviceOperations,
         ISukiToastManager toastManager,
-        AppSettings appSettings)
+        AppSettings appSettings,
+        IPluginManager pluginManager)
     {
         _audioDeviceManager = audioDeviceManager;
         _deviceOperations = deviceOperations;
         _toastManager = toastManager;
         _appSettings = appSettings;
+        IsProMixAvailable = pluginManager.GetAllPlugins()
+            .Any(plugin => string.Equals(plugin.Id, ProMixPluginId, StringComparison.Ordinal));
 
         AvailableDriverTypes = new ObservableCollection<WavePlayerType>(Enum.GetValues<WavePlayerType>());
         SelectedDriverType = WavePlayerType.ASIO;
 
         LoadDevices();
     }
+
+    public bool IsProMixAvailable { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
@@ -179,7 +187,9 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     [ObservableProperty]
     public partial string VirtualDriverWarning { get; set; } = "";
 
-    [RelayCommand]
+    private bool CanSelectMode(WizardMode mode) => mode != WizardMode.Software || IsProMixAvailable;
+
+    [RelayCommand(CanExecute = nameof(CanSelectMode))]
     private void SelectMode(WizardMode mode)
     {
         SelectedMode = mode;

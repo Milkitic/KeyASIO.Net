@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using KeyAsio.Core.Audio;
 using KeyAsio.Configuration;
 using KeyAsio.Services;
+using KeyAsio.Plugins.Contracts;
 using KeyAsio.ViewModels;
 using Moq;
 using SukiUI.Toasts;
@@ -14,6 +15,7 @@ public class WizardAudioConfigViewModelTests
     private readonly Mock<IAudioDeviceManager> _mockDeviceManager;
     private readonly Mock<IAudioDeviceOperationCoordinator> _mockDeviceOperations;
     private readonly Mock<ISukiToastManager> _mockToastManager;
+    private readonly Mock<IPluginManager> _mockPluginManager;
     private readonly AppSettings _appSettings;
 
     public WizardAudioConfigViewModelTests()
@@ -21,7 +23,12 @@ public class WizardAudioConfigViewModelTests
         _mockDeviceManager = new Mock<IAudioDeviceManager>();
         _mockDeviceOperations = new Mock<IAudioDeviceOperationCoordinator>();
         _mockToastManager = new Mock<ISukiToastManager>();
+        _mockPluginManager = new Mock<IPluginManager>();
         _appSettings = new AppSettings();
+
+        var proMixPlugin = new Mock<IPlugin>();
+        proMixPlugin.SetupGet(plugin => plugin.Id).Returns("KeyAsio.Plugins.ProMix");
+        _mockPluginManager.Setup(manager => manager.GetAllPlugins()).Returns([proMixPlugin.Object]);
 
         // Default setup for device manager
         _mockDeviceManager.Setup(m => m.GetCachedAvailableDevicesAsync())
@@ -41,7 +48,8 @@ public class WizardAudioConfigViewModelTests
             _mockDeviceManager.Object,
             _mockDeviceOperations.Object,
             _mockToastManager.Object,
-            _appSettings);
+            _appSettings,
+            _mockPluginManager.Object);
     }
 
     [AvaloniaFact]
@@ -52,6 +60,19 @@ public class WizardAudioConfigViewModelTests
         Assert.Equal(AudioSubStep.Selection, vm.CurrentAudioSubStep);
         Assert.Equal(WavePlayerType.ASIO, vm.SelectedDriverType);
         Assert.Empty(vm.AvailableAudioDevices);
+        Assert.True(vm.IsProMixAvailable);
+    }
+
+    [AvaloniaFact]
+    public void ProMixOption_IsDisabled_WhenPluginIsNotLoaded()
+    {
+        _mockPluginManager.Setup(manager => manager.GetAllPlugins()).Returns([]);
+
+        var vm = CreateViewModel();
+
+        Assert.False(vm.IsProMixAvailable);
+        Assert.False(vm.SelectModeCommand.CanExecute(WizardMode.Software));
+        Assert.True(vm.SelectModeCommand.CanExecute(WizardMode.Hardware));
     }
 
     [AvaloniaFact]

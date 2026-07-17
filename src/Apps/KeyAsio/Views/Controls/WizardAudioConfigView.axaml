@@ -8,6 +8,12 @@
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
   xmlns:vm="using:KeyAsio.ViewModels"
   x:DataType="vm:WizardAudioConfigViewModel">
+  <UserControl.Styles>
+    <Style Selector="suki|GlassCard.promix-option:disabled">
+      <Setter Property="Opacity" Value="0.55" />
+      <Setter Property="IsInteractive" Value="False" />
+    </Style>
+  </UserControl.Styles>
 
   <Grid>
     <Grid
@@ -25,7 +31,11 @@
         ColumnDefinitions="*,*"
         ColumnSpacing="20">
         <Grid Grid.Column="0">
-          <suki:GlassCard Command="{Binding SelectModeCommand}" IsInteractive="True">
+          <suki:GlassCard
+            Classes="promix-option"
+            Command="{Binding SelectModeCommand}"
+            IsEnabled="{Binding IsProMixAvailable}"
+            IsInteractive="True">
             <suki:GlassCard.CommandParameter>
               <vm:WizardMode>Software</vm:WizardMode>
             </suki:GlassCard.CommandParameter>
@@ -49,19 +59,46 @@
 
               <StackPanel Height="100" Spacing="15">
                 <TextBlock
+                  IsVisible="{Binding IsProMixAvailable}"
                   Opacity="0.7"
                   Text="我只有一个声卡（如笔记本内置），或者我不确定。 (推荐)"
+                  TextAlignment="Center"
+                  TextWrapping="Wrap" />
+                <TextBlock
+                  Foreground="{DynamicResource SukiDangerColor}"
+                  FontWeight="DemiBold"
+                  IsVisible="{Binding !IsProMixAvailable}"
+                  Text="未检测到 ProMix 插件，软件混音模式当前不可用。"
                   TextAlignment="Center"
                   TextWrapping="Wrap" />
                 <Border
                   Padding="10,5"
                   HorizontalAlignment="Center"
                   Background="{DynamicResource SukiPrimaryColor}"
-                  CornerRadius="5">
+                  CornerRadius="5"
+                  IsVisible="{Binding IsProMixAvailable}">
                   <TextBlock
                     FontSize="12"
                     Foreground="White"
                     Text="包含 ProMix 试用权益" />
+                </Border>
+                <Border
+                  Padding="10,5"
+                  HorizontalAlignment="Center"
+                  Background="{DynamicResource SukiDangerColor}"
+                  CornerRadius="5"
+                  IsVisible="{Binding !IsProMixAvailable}">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <materialIcons:MaterialIcon
+                      Width="14"
+                      Height="14"
+                      Foreground="White"
+                      Kind="AlertCircle" />
+                    <TextBlock
+                      FontSize="12"
+                      Foreground="White"
+                      Text="插件缺失" />
+                  </StackPanel>
                 </Border>
               </StackPanel>
             </StackPanel>
