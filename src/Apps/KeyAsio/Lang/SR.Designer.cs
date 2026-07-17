@@ -935,7 +935,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Reduces system overhead, suitable for low-end devices or basic gameplay needs. 的本地化字符串。
+        ///   查找类似 Standard resource usage to deliver the best listening experience, suitable for most gameplay scenarios. 的本地化字符串。
         /// </summary>
         internal static string Preset_FastDescription {
             get {
@@ -958,24 +958,6 @@ namespace KeyAsio.Lang {
         internal static string Preset_SelectionTitle {
             get {
                 return ResourceManager.GetString("Preset_SelectionTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Balanced 的本地化字符串。
-        /// </summary>
-        internal static string Preset_Standard {
-            get {
-                return ResourceManager.GetString("Preset_Standard", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Balances resource usage to deliver the best listening experience, suitable for most gameplay scenarios. 的本地化字符串。
-        /// </summary>
-        internal static string Preset_StandardDescription {
-            get {
-                return ResourceManager.GetString("Preset_StandardDescription", resourceCulture);
             }
         }
         

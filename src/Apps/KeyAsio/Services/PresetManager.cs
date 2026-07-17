@@ -1,7 +1,7 @@
+using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
 using KeyAsio.Core.Audio.SampleProviders.BalancePans;
 using KeyAsio.Lang;
-using KeyAsio.Configuration;
 using KeyAsio.ViewModels;
 using Material.Icons;
 
@@ -9,7 +9,6 @@ namespace KeyAsio.Services;
 
 public enum PresetMode
 {
-    Standard,
     Fast,
     Extreme
 }
@@ -48,13 +47,6 @@ public class PresetManager
         AvailablePresets =
         [
             new PresetModel(
-                PresetMode.Standard,
-                SRKeys.Preset_Standard,
-                SRKeys.Preset_StandardDescription,
-                MaterialIconKind.ScaleBalance,
-                "SukiInformationColor"
-            ),
-            new PresetModel(
                 PresetMode.Fast,
                 SRKeys.Preset_Fast,
                 SRKeys.Preset_FastDescription,
@@ -90,15 +82,6 @@ public class PresetManager
             return PresetMode.Fast;
         }
 
-        // Standard
-        if (_appSettings.Sync.Scanning.GeneralScanInterval == 50 &&
-            _appSettings.Sync.Scanning.TimingScanInterval == 2 &&
-            _appSettings.Sync.Playback.LimiterType == LimiterType.Peak &&
-            _appSettings.Sync.Playback.BalanceMode == BalanceMode.ProMixFocus)
-        {
-            return PresetMode.Standard;
-        }
-
         return null;
     }
 
@@ -106,9 +89,6 @@ public class PresetManager
     {
         switch (mode)
         {
-            case PresetMode.Standard:
-                ApplyStandard();
-                break;
             case PresetMode.Fast:
                 ApplyLightweight();
                 break;
@@ -120,25 +100,10 @@ public class PresetManager
         //await audioSettingsViewModel.ReloadAudioDevice();
     }
 
-    private void ApplyStandard()
-    {
-        //_appSettings.Input.UseRawInput = true;
-
-        _appSettings.Sync.Playback.LimiterType = LimiterType.Peak;
-        _appSettings.Sync.Playback.BalanceMode = BalanceMode.ProMixFocus;
-
-        //_appSettings.Performance.EnableAvx512 = true; 
-
-        _appSettings.Sync.Scanning.GeneralScanInterval = 50;
-        _appSettings.Sync.Scanning.TimingScanInterval = 2;
-
-        // todo: 平衡器算法、限频器算法、无视所有音量与声道变化等
-    }
-
     private void ApplyLightweight()
     {
-        _appSettings.Sync.Playback.LimiterType = LimiterType.Soft;
-        _appSettings.Sync.Playback.BalanceMode = BalanceMode.ConstantPower;
+        _appSettings.Sync.Playback.LimiterType = LimiterType.Peak;
+        _appSettings.Sync.Playback.BalanceMode = BalanceMode.ProMixFocus;
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 2;
@@ -151,5 +116,7 @@ public class PresetManager
 
         _appSettings.Sync.Scanning.GeneralScanInterval = 50;
         _appSettings.Sync.Scanning.TimingScanInterval = 1;
+
+        // todo: 平衡器算法、限频器算法、无视所有音量与声道变化等
     }
 }

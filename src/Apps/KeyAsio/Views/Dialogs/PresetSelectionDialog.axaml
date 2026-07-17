@@ -61,7 +61,7 @@
         <ItemsPanelTemplate>
           <UniformGrid
             HorizontalAlignment="Center"
-            Columns="3"
+            Columns="2"
             Rows="1" />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>

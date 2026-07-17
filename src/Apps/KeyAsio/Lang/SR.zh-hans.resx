@@ -411,19 +411,13 @@
     <value>高效轻量</value>
   </data>
   <data name="Preset_FastDescription" xml:space="preserve">
-    <value>简化系统开销，适合低配设备或基本游玩需求。</value>
+    <value>标准资源占用，提供最佳听觉体验，适合大多数游玩场景。</value>
   </data>
   <data name="Preset_SelectionDescription" xml:space="preserve">
     <value>请根据您的设备性能和使用需求选择合适的模式。</value>
   </data>
   <data name="Preset_SelectionTitle" xml:space="preserve">
     <value>选择预设模式</value>
-  </data>
-  <data name="Preset_Standard" xml:space="preserve">
-    <value>标准均衡</value>
-  </data>
-  <data name="Preset_StandardDescription" xml:space="preserve">
-    <value>均衡资源占用，提供最佳听觉体验，适合大多数游玩场景。</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>关于</value>
