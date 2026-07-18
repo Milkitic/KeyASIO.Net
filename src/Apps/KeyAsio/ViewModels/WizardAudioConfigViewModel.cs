@@ -314,8 +314,8 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     private void ConfirmSameDeviceAudio()
     {
         CompleteHardwareRouting(
-            "设备支持并发",
-            "保持 osu! 使用这块声卡对应的同一播放设备，在选图页确认音乐自动播放，再按键确认软件音效正常。");
+            "设备配置完成",
+            "保持 osu! 使用当前设备，将 osu! 的全局延迟调整至 -40ms 左右，选择一张谱面使用 Auto 进行游玩，确认软件音效与游戏音乐正常工作。");
     }
 
     [RelayCommand]
@@ -334,8 +334,8 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     private void ConfirmAlternativeDeviceAudio()
     {
         CompleteHardwareRouting(
-            "设备分流配置完成",
-            "保持 osu! 使用刚才确认有声音的其他播放设备，在选图页确认音乐自动播放，再按键确认软件音效正常。");
+            "设备配置完成",
+            "保持 osu! 使用当前有声音的设备，选择一张谱面使用 Auto 进行游玩，确认软件音效与游戏音乐在两个设备上正常工作。\n\n注意：你需要进行自主 DIY（例如使用外部混音器设备），这样才能统一输出到耳机中。");
     }
 
     [RelayCommand]

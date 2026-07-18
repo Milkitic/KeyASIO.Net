@@ -3,6 +3,7 @@
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:controls="using:KeyAsio.Views.Controls"
+  xmlns:converters="using:KeyAsio.Converters"
   xmlns:lang="clr-namespace:KeyAsio.Lang"
   xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
   xmlns:suki="https://github.com/kikipoulet/SukiUI"
@@ -25,7 +26,7 @@
         Grid.Row="0"
         HorizontalAlignment="Center"
         Classes="h3"
-        Text="选择音频工作模式" />
+        Text="音频配置向导：选择模式" />
       <Grid
         Grid.Row="1"
         ColumnDefinitions="*,*"
@@ -61,12 +62,12 @@
                 <TextBlock
                   IsVisible="{Binding IsProMixAvailable}"
                   Opacity="0.7"
-                  Text="我只有一个声卡（如笔记本内置），或者我不确定。 (推荐)"
+                  Text="我只有一个声卡（如笔记本内置），或者我不确定。（推荐使用，一键配置）"
                   TextAlignment="Center"
                   TextWrapping="Wrap" />
                 <TextBlock
-                  Foreground="{DynamicResource SukiDangerColor}"
                   FontWeight="DemiBold"
+                  Foreground="{DynamicResource SukiDangerColor}"
                   IsVisible="{Binding !IsProMixAvailable}"
                   Text="未检测到 ProMix 插件，软件混音模式当前不可用。"
                   TextAlignment="Center"
@@ -131,7 +132,7 @@
               <TextBlock
                 Height="100"
                 Opacity="0.7"
-                Text="我有独立声卡，或者我的设备支持 ASIO/WASAPI 独占且不影响系统声音。"
+                Text="我有独立声卡，或者我的设备支持 ASIO/WASAPI 独占且不影响系统声音。（需要一定的配置工作）"
                 TextAlignment="Center"
                 TextWrapping="Wrap" />
             </StackPanel>
@@ -150,7 +151,7 @@
         <TextBlock
           HorizontalAlignment="Center"
           Classes="h3"
-          Text="手动模式 · 选择独占设备" />
+          Text="手动模式向导：选择设备" />
 
         <Border
           Padding="12"
@@ -164,12 +165,15 @@
               Foreground="White"
               Kind="Information" />
             <StackPanel Grid.Column="1" Spacing="2">
-              <TextBlock Foreground="White" FontWeight="DemiBold" Text="先在 osu! 中进入选图页面" />
               <TextBlock
+                FontWeight="DemiBold"
                 Foreground="White"
+                Text="请保持 osu! 处于播放音乐状态" />
+              <TextBlock
                 FontSize="12"
+                Foreground="White"
                 Opacity="0.85"
-                Text="保持选图页音乐播放，然后在下方创建 KeyASIO 的独占输出。"
+                Text="进入选图页，或者首页中保持音乐播放，然后在下方选择可受支持的设备。"
                 TextWrapping="Wrap" />
             </StackPanel>
           </Grid>
@@ -177,7 +181,10 @@
 
         <suki:GlassCard Padding="0">
           <StackPanel>
-            <Grid Margin="16" ColumnDefinitions="Auto,*,220" ColumnSpacing="12">
+            <Grid
+              Margin="16"
+              ColumnDefinitions="Auto,*,220"
+              ColumnSpacing="12">
               <Panel>
                 <Border
                   Width="42"
@@ -196,11 +203,11 @@
                 Grid.Column="1"
                 VerticalAlignment="Center"
                 Spacing="2">
-                <TextBlock FontWeight="DemiBold" Text="独占输出类型" />
+                <TextBlock FontWeight="DemiBold" Text="输出类型" />
                 <TextBlock
                   FontSize="12"
                   Opacity="0.6"
-                  Text="支持原生 ASIO 和 WASAPI 独占" />
+                  Text="支持原生 ASIO 和 WASAPI " />
               </StackPanel>
 
               <ComboBox
@@ -209,9 +216,15 @@
                 SelectedItem="{Binding SelectedDriverType}" />
             </Grid>
 
-            <Separator Height="1" Margin="16,0" Opacity="0.2" />
+            <Separator
+              Height="1"
+              Margin="16,0"
+              Opacity="0.2" />
 
-            <Grid Margin="16" ColumnDefinitions="Auto,*,220" ColumnSpacing="12">
+            <Grid
+              Margin="16"
+              ColumnDefinitions="Auto,*,270"
+              ColumnSpacing="12">
               <Panel>
                 <Border
                   Width="42"
@@ -226,7 +239,10 @@
                   Kind="Speaker" />
               </Panel>
 
-              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+              <StackPanel
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Spacing="2">
                 <TextBlock FontWeight="DemiBold" Text="KeyASIO 播放设备" />
                 <TextBlock
                   FontSize="12"
@@ -254,8 +270,8 @@
               IsVisible="{Binding ShowHardwareDriverWarning}"
               Opacity="0.85">
               <TextBlock
-                Foreground="White"
                 FontSize="12"
+                Foreground="White"
                 Text="{Binding HardwareDriverWarning}"
                 TextWrapping="Wrap" />
             </Border>
@@ -278,7 +294,10 @@
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
         Spacing="14">
-        <TextBlock HorizontalAlignment="Center" Classes="h3" Text="这块声卡支持并发吗？" />
+        <TextBlock
+          HorizontalAlignment="Center"
+          Classes="h3"
+          Text="手动模式向导：测试设备" />
 
         <suki:GlassCard Padding="18">
           <StackPanel Spacing="14">
@@ -287,45 +306,53 @@
                 <Border
                   Width="44"
                   Height="44"
-                  Background="{DynamicResource SukiSuccessColor}"
+                  Background="{DynamicResource SukiPrimaryColor}"
                   CornerRadius="22"
                   Opacity="0.15" />
                 <materialIcons:MaterialIcon
                   Width="24"
                   Height="24"
-                  Foreground="{DynamicResource SukiSuccessColor}"
+                  Foreground="{DynamicResource SukiPrimaryColor}"
                   Kind="VolumeHigh" />
               </Panel>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                <TextBlock FontWeight="DemiBold" Text="测试军鼓正在每秒播放" />
+              <StackPanel
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Spacing="2">
+                <TextBlock FontWeight="DemiBold" Text="测试军鼓播放中" />
                 <TextBlock
                   FontSize="12"
                   Opacity="0.65"
-                  Text="KeyASIO 已独占所选设备；离开此步骤后测试音会自动停止。" />
+                  Text="KeyASIO 已独占所选设备" />
               </StackPanel>
             </Grid>
 
             <Separator Opacity="0.2" />
 
-            <TextBlock
-              Text="在 osu! 的音频设置中，选择这块声卡对应的同一播放设备："
-              TextWrapping="Wrap" />
-            <Border Padding="10" Background="{DynamicResource SukiControlBorderBrush}" CornerRadius="6" Opacity="0.75">
+            <TextBlock Text="在 osu! 的音频设置中，选择这块声卡对应的设备：" TextWrapping="Wrap" />
+            <Border
+              Padding="10"
+              Background="{DynamicResource SukiControlBorderBrush}"
+              CornerRadius="6"
+              Opacity="0.75">
               <TextBlock
                 HorizontalAlignment="Center"
                 FontWeight="DemiBold"
-                Text="{Binding SelectedAudioDevice.FriendlyName}"
+                Text="{Binding SelectedAudioDevice.FriendlyName, Converter={x:Static converters:AsioToAudioConverter.Instance}}"
                 TextTrimming="CharacterEllipsis" />
             </Border>
             <TextBlock
               HorizontalAlignment="Center"
               FontSize="16"
               FontWeight="DemiBold"
-              Text="osu! 选图页的背景音乐还能听到吗？" />
+              Text="osu! 的音乐还能听到吗？" />
           </StackPanel>
         </suki:GlassCard>
 
-        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
+        <StackPanel
+          HorizontalAlignment="Center"
+          Orientation="Horizontal"
+          Spacing="10">
           <Button
             Classes="Flat"
             Command="{Binding ReportSameDeviceSilentCommand}"
@@ -333,7 +360,7 @@
           <Button
             Classes="Flat Primary"
             Command="{Binding ConfirmSameDeviceAudioCommand}"
-            Content="听得到，支持并发" />
+            Content="听得到" />
         </StackPanel>
       </StackPanel>
     </Grid>
@@ -345,28 +372,46 @@
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
         Spacing="14">
-        <TextBlock HorizontalAlignment="Center" Classes="h3" Text="为 osu! 选择其他输出设备" />
+        <TextBlock
+          HorizontalAlignment="Center"
+          Classes="h3"
+          Text="为 osu! 选择其他输出设备" />
 
         <suki:GlassCard Padding="18">
           <StackPanel Spacing="12">
             <TextBlock
               FontWeight="DemiBold"
-              Text="当前设备不支持并发，但仍可使用设备分流。"
+              Text="当前设备不支持“多会话独占”，但 osu! 仍可使用其他设备播放。"
               TextWrapping="Wrap" />
             <TextBlock
               Opacity="0.72"
-              Text="测试军鼓会继续每秒播放。请在 osu! 中依次尝试其他播放设备，不要选择 KeyASIO 当前占用的设备；找到能正常播放选图页音乐的设备后确认。"
+              Text="请在 osu! 中尝试其他设备，直到找到能正常播放音乐的设备后确认。通常情况下，osu! 会在其他设备中输出播放（例如显示器、USB音响等）。"
               TextWrapping="Wrap" />
-            <Border Padding="10" Background="{DynamicResource SukiPrimaryColor}" CornerRadius="6" Opacity="0.85">
+            <Border
+              Padding="10"
+              Background="{DynamicResource SukiPrimaryColor}"
+              CornerRadius="6"
+              Opacity="0.85">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <materialIcons:MaterialIcon Width="18" Height="18" Foreground="White" Kind="VolumeHigh" />
-                <TextBlock Foreground="White" Text="测试音仍在播放，可继续逐个尝试" />
+                <materialIcons:MaterialIcon
+                  Width="18"
+                  Height="18"
+                  Foreground="White"
+                  Kind="VolumeHigh" />
+                <TextBlock Foreground="White" Text="测试军鼓播放中，可继续逐个尝试" />
               </StackPanel>
             </Border>
           </StackPanel>
         </suki:GlassCard>
 
-        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
+        <StackPanel
+          HorizontalAlignment="Center"
+          Orientation="Horizontal"
+          Spacing="10">
+          <Button
+            Classes="Flat Primary"
+            Command="{Binding ConfirmAlternativeDeviceAudioCommand}"
+            Content="尝试 ProMix，一键配置" />
           <Button
             Classes="Flat"
             Command="{Binding ReportNoAlternativeDeviceCommand}"
@@ -392,7 +437,10 @@
           HorizontalAlignment="Center"
           Foreground="{DynamicResource SukiDangerColor}"
           Kind="AlertCircle" />
-        <TextBlock HorizontalAlignment="Center" Classes="h3" Text="建议使用 ProMix 模式" />
+        <TextBlock
+          HorizontalAlignment="Center"
+          Classes="h3"
+          Text="建议使用 ProMix 模式" />
         <TextBlock
           HorizontalAlignment="Center"
           Opacity="0.75"
@@ -406,7 +454,10 @@
           Text="当前未加载 ProMix 插件，请安装插件后重新运行向导。"
           TextAlignment="Center"
           TextWrapping="Wrap" />
-        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
+        <StackPanel
+          HorizontalAlignment="Center"
+          Orientation="Horizontal"
+          Spacing="10">
           <Button
             Classes="Flat"
             Command="{Binding RetryHardwareSetupCommand}"
@@ -613,10 +664,12 @@
               Height="60"
               Foreground="{DynamicResource SukiDangerColor}"
               Kind="CloseCircle" />
-            <Button
+            <TextBlock
               HorizontalAlignment="Center"
-              Command="{Binding ApplyAndTestConfigCommand}"
-              Content="重试" />
+              Opacity="0.7"
+              Text="当前设备不受支持，请返回并重新选择其他设备。"
+              TextAlignment="Center"
+              TextWrapping="Wrap" />
           </StackPanel>
 
           <StackPanel IsVisible="{Binding ValidationSuccess}" Spacing="10">
@@ -626,21 +679,6 @@
               Text="{Binding ValidationInstruction}"
               TextAlignment="Center"
               TextWrapping="Wrap" />
-            <StackPanel
-              HorizontalAlignment="Center"
-              IsVisible="{Binding IsHardwareMode}"
-              Orientation="Horizontal"
-              Spacing="5">
-              <materialIcons:MaterialIcon
-                Width="16"
-                Height="16"
-                Foreground="{DynamicResource SukiSuccessColor}"
-                Kind="CheckCircle" />
-              <TextBlock
-                FontSize="12"
-                Foreground="{DynamicResource SukiSuccessColor}"
-                Text="并发测试军鼓已停止；请继续验证游戏自动音乐与软件音效。" />
-            </StackPanel>
           </StackPanel>
         </StackPanel>
       </StackPanel>
