@@ -36,8 +36,7 @@
             Classes="promix-option"
             Command="{Binding SelectModeCommand}"
             IsEnabled="{Binding IsProMixAvailable}"
-            IsInteractive="True"
-            IsVisible="{Binding IsProMixAvailable}">
+            IsInteractive="True">
             <suki:GlassCard.CommandParameter>
               <vm:WizardMode>Software</vm:WizardMode>
             </suki:GlassCard.CommandParameter>
