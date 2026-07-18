@@ -26,7 +26,7 @@
         Grid.Row="0"
         HorizontalAlignment="Center"
         Classes="h3"
-        Text="音频配置向导：选择模式" />
+        Text="音频配置：选择模式" />
       <Grid
         Grid.Row="1"
         ColumnDefinitions="*,*"
@@ -36,7 +36,8 @@
             Classes="promix-option"
             Command="{Binding SelectModeCommand}"
             IsEnabled="{Binding IsProMixAvailable}"
-            IsInteractive="True">
+            IsInteractive="True"
+            IsVisible="{Binding IsProMixAvailable}">
             <suki:GlassCard.CommandParameter>
               <vm:WizardMode>Software</vm:WizardMode>
             </suki:GlassCard.CommandParameter>
@@ -62,7 +63,7 @@
                 <TextBlock
                   IsVisible="{Binding IsProMixAvailable}"
                   Opacity="0.7"
-                  Text="我只有一个声卡（如笔记本内置），或者我不确定。（推荐使用，一键配置）"
+                  Text="普通耳机/音响用户，一键完成配置。推荐使用。"
                   TextAlignment="Center"
                   TextWrapping="Wrap" />
                 <TextBlock
@@ -81,7 +82,7 @@
                   <TextBlock
                     FontSize="12"
                     Foreground="White"
-                    Text="包含 ProMix 试用权益" />
+                    Text="含 ProMix 试用" />
                 </Border>
                 <Border
                   Padding="10,5"
@@ -132,7 +133,7 @@
               <TextBlock
                 Height="100"
                 Opacity="0.7"
-                Text="我有独立声卡，或者我的设备支持 ASIO/WASAPI 独占且不影响系统声音。（需要一定的配置工作）"
+                Text="我有独立声卡或调音台，可让 osu! 与 KeyASIO 分别输出。需要少量手动配置。"
                 TextAlignment="Center"
                 TextWrapping="Wrap" />
             </StackPanel>
@@ -151,7 +152,7 @@
         <TextBlock
           HorizontalAlignment="Center"
           Classes="h3"
-          Text="手动模式向导：选择设备" />
+          Text="手动模式：选择设备" />
 
         <Border
           Padding="12"
@@ -168,12 +169,12 @@
               <TextBlock
                 FontWeight="DemiBold"
                 Foreground="White"
-                Text="请保持 osu! 处于播放音乐状态" />
+                Text="请先让 osu! 播放音乐" />
               <TextBlock
                 FontSize="12"
                 Foreground="White"
                 Opacity="0.85"
-                Text="进入选图页，或者首页中保持音乐播放，然后在下方选择可受支持的设备。"
+                Text="进入选图页或首页保持音乐播放，然后在下方选择要独占的设备。"
                 TextWrapping="Wrap" />
             </StackPanel>
           </Grid>
@@ -207,7 +208,7 @@
                 <TextBlock
                   FontSize="12"
                   Opacity="0.6"
-                  Text="支持原生 ASIO 和 WASAPI " />
+                  Text="ASIO 或 WASAPI 独占" />
               </StackPanel>
 
               <ComboBox
@@ -243,11 +244,11 @@
                 Grid.Column="1"
                 VerticalAlignment="Center"
                 Spacing="2">
-                <TextBlock FontWeight="DemiBold" Text="KeyASIO 播放设备" />
+                <TextBlock FontWeight="DemiBold" Text="KeyASIO 输出设备" />
                 <TextBlock
                   FontSize="12"
                   Opacity="0.6"
-                  Text="WASAPI 设备会以独占模式创建" />
+                  Text="KeyASIO 将以此设备独占播放" />
               </StackPanel>
 
               <ComboBox
@@ -282,7 +283,7 @@
           HorizontalAlignment="Center"
           FontSize="12"
           Opacity="0.65"
-          Text="点击“创建设备并开始试听”后，将每秒播放一次测试军鼓。"
+          Text="创建后会每秒播放一次测试军鼓，用于验证独占是否生效。"
           TextWrapping="Wrap" />
       </StackPanel>
     </Grid>
@@ -297,7 +298,7 @@
         <TextBlock
           HorizontalAlignment="Center"
           Classes="h3"
-          Text="手动模式向导：测试设备" />
+          Text="手动模式：验证设备" />
 
         <suki:GlassCard Padding="18">
           <StackPanel Spacing="14">
@@ -329,7 +330,7 @@
 
             <Separator Opacity="0.2" />
 
-            <TextBlock Text="在 osu! 的音频设置中，选择这块声卡对应的设备：" TextWrapping="Wrap" />
+            <TextBlock Text="请在 osu! 音频设置中选择同一设备：" TextWrapping="Wrap" />
             <Border
               Padding="10"
               Background="{DynamicResource SukiControlBorderBrush}"
@@ -356,11 +357,11 @@
           <Button
             Classes="Flat"
             Command="{Binding ReportSameDeviceSilentCommand}"
-            Content="听不到" />
+            Content="听不到音乐" />
           <Button
             Classes="Flat Primary"
             Command="{Binding ConfirmSameDeviceAudioCommand}"
-            Content="听得到" />
+            Content="听得到音乐" />
         </StackPanel>
       </StackPanel>
     </Grid>
@@ -375,17 +376,17 @@
         <TextBlock
           HorizontalAlignment="Center"
           Classes="h3"
-          Text="为 osu! 选择其他输出设备" />
+          Text="手动模式：更换 osu! 输出设备" />
 
         <suki:GlassCard Padding="18">
           <StackPanel Spacing="12">
             <TextBlock
               FontWeight="DemiBold"
-              Text="当前设备不支持“多会话独占”，但 osu! 仍可使用其他设备播放。"
+              Text="所选设备无法同时承载 osu! 与 KeyASIO，请让 osu! 改用其他设备播放。"
               TextWrapping="Wrap" />
             <TextBlock
               Opacity="0.72"
-              Text="请在 osu! 中尝试其他设备，直到找到能正常播放音乐的设备后确认。通常情况下，osu! 会在其他设备中输出播放（例如显示器、USB音响等）。"
+              Text="在 osu! 音频设置中逐个尝试其他设备（如显示器、USB 音响等），直到音乐能正常播放。"
               TextWrapping="Wrap" />
             <Border
               Padding="10"
@@ -398,7 +399,7 @@
                   Height="18"
                   Foreground="White"
                   Kind="VolumeHigh" />
-                <TextBlock Foreground="White" Text="测试军鼓播放中，可继续逐个尝试" />
+                <TextBlock Foreground="White" Text="测试军鼓持续播放中，可边听边试" />
               </StackPanel>
             </Border>
           </StackPanel>
@@ -411,15 +412,17 @@
           <Button
             Classes="Flat Primary"
             Command="{Binding ConfirmAlternativeDeviceAudioCommand}"
-            Content="尝试 ProMix，一键配置" />
+            Content="已找到能播放的设备" />
           <Button
             Classes="Flat"
             Command="{Binding ReportNoAlternativeDeviceCommand}"
-            Content="全部试过，都没声音" />
+            Content="全部试过都没声音" />
           <Button
-            Classes="Flat Primary"
-            Command="{Binding ConfirmAlternativeDeviceAudioCommand}"
-            Content="找到有声音的设备" />
+            Classes="Flat"
+            Command="{Binding SwitchToProMixCommand}"
+            Content="改用 ProMix 一键配置"
+            IsEnabled="{Binding IsProMixAvailable}"
+            IsVisible="{Binding IsProMixAvailable}" />
         </StackPanel>
       </StackPanel>
     </Grid>
@@ -440,7 +443,7 @@
         <TextBlock
           HorizontalAlignment="Center"
           Classes="h3"
-          Text="建议使用 ProMix 模式" />
+          Text="建议改用 ProMix 模式" />
         <TextBlock
           HorizontalAlignment="Center"
           Opacity="0.75"
@@ -451,7 +454,7 @@
           HorizontalAlignment="Center"
           Foreground="{DynamicResource SukiDangerColor}"
           IsVisible="{Binding !IsProMixAvailable}"
-          Text="当前未加载 ProMix 插件，请安装插件后重新运行向导。"
+          Text="未加载 ProMix 插件，请安装插件后重新运行向导。"
           TextAlignment="Center"
           TextWrapping="Wrap" />
         <StackPanel
@@ -461,7 +464,7 @@
           <Button
             Classes="Flat"
             Command="{Binding RetryHardwareSetupCommand}"
-            Content="重新选择独占设备" />
+            Content="重新选择设备" />
           <Button
             Classes="Flat Primary"
             Command="{Binding SwitchToProMixCommand}"
@@ -581,7 +584,7 @@
                 <TextBlock
                   FontSize="12"
                   Opacity="0.6"
-                  Text="选择耳机或音响" />
+                  Text="最终听到声音的耳机或音响" />
               </StackPanel>
 
               <ComboBox
@@ -628,7 +631,7 @@
                 <TextBlock
                   FontSize="12"
                   Opacity="0.6"
-                  Text="请在 osu! 设置中，将输出设备修改为 [VB-Audio Cable]"
+                  Text="在 osu! 设置中将输出设备改为 [VB-Audio Cable]"
                   TextWrapping="Wrap" />
               </StackPanel>
             </Grid>
@@ -667,7 +670,7 @@
             <TextBlock
               HorizontalAlignment="Center"
               Opacity="0.7"
-              Text="当前设备不受支持，请返回并重新选择其他设备。"
+              Text="当前设备不受支持，请返回选择其他设备。"
               TextAlignment="Center"
               TextWrapping="Wrap" />
           </StackPanel>

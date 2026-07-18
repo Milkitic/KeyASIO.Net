@@ -236,7 +236,7 @@ public partial class WizardViewModel : ViewModelBase
             {
                 prevText = SRKeys.Wizard_BackToSelection;
                 nextText = WizardAudioConfigViewModel.SelectedMode == WizardMode.Hardware
-                    ? "创建设备并开始试听"
+                    ? "创建设备并试听"
                     : SRKeys.Wizard_ApplyAndTest;
             }
             else if (WizardAudioConfigViewModel.CurrentAudioSubStep is AudioSubStep.ConcurrencyCheck

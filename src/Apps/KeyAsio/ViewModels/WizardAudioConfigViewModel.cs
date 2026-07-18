@@ -140,7 +140,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string ValidationInstruction { get; set; } =
-        "请在 osu! 选图页播放音乐，并按键确认自动音乐与软件音效均正常。";
+        "请在 osu! 选图页播放音乐并按键，确认音乐与软件音效均正常。";
 
     [ObservableProperty]
     public partial string ProMixRequiredMessage { get; set; } = "";
@@ -263,7 +263,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         StopTestSound();
         CurrentAudioSubStep = AudioSubStep.Validation;
         IsValidationRunning = true;
-        ValidationMessage = "正在初始化音频引擎...";
+        ValidationMessage = "正在初始化音频引擎…";
         ValidationSuccess = false;
 
         if (SelectedAudioDevice is null)
@@ -283,12 +283,12 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
                     _testSoundService.Start();
                     IsConcurrencyTestSoundPlaying = true;
                     CurrentAudioSubStep = AudioSubStep.ConcurrencyCheck;
-                    ValidationMessage = "独占设备已创建";
+                    ValidationMessage = "独占设备已就绪";
                 }
                 catch (Exception exception)
                 {
                     ValidationSuccess = false;
-                    ValidationMessage = $"测试音播放失败: {exception.Message}";
+                    ValidationMessage = $"测试音播放失败：{exception.Message}";
                 }
             }
             else
@@ -297,13 +297,13 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
                 IsAudioConfigFinished = true;
                 ValidationMessage = "配置成功";
                 ValidationInstruction =
-                    "请在 osu! 中选择虚拟声卡并进入选图页，确认音乐可自动播放，再按键确认软件音效正常。";
+                    "请在 osu! 中选择虚拟声卡并进入选图页，确认音乐自动播放后按键，验证软件音效正常。";
             }
         }
         else
         {
             ValidationSuccess = false;
-            ValidationMessage = $"初始化失败: {result.Error?.Message ?? "未知错误"}";
+            ValidationMessage = $"初始化失败：{result.Error?.Message ?? "未知错误"}";
             IsAudioConfigFinished = false;
         }
 
@@ -315,7 +315,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     {
         CompleteHardwareRouting(
             "设备配置完成",
-            "保持 osu! 使用当前设备，将 osu! 的全局延迟调整至 -40ms 左右，选择一张谱面使用 Auto 进行游玩，确认软件音效与游戏音乐正常工作。");
+            "保持 osu! 使用当前设备，将其全局延迟调整至 -40ms 左右，选一张谱面用 Auto 游玩，确认软件音效与游戏音乐均正常。");
     }
 
     [RelayCommand]
@@ -327,7 +327,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             return;
         }
 
-        await RequireProMixAsync("系统只检测到一个物理播放设备，而且它不支持 ASIO/WASAPI 并发。");
+        await RequireProMixAsync("系统只检测到一个播放设备，且不支持 ASIO/WASAPI 同时共享。");
     }
 
     [RelayCommand]
@@ -335,13 +335,13 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     {
         CompleteHardwareRouting(
             "设备配置完成",
-            "保持 osu! 使用当前有声音的设备，选择一张谱面使用 Auto 进行游玩，确认软件音效与游戏音乐在两个设备上正常工作。\n\n注意：你需要进行自主 DIY（例如使用外部混音器设备），这样才能统一输出到耳机中。");
+            "保持 osu! 使用当前能听到声音的设备，选一张谱面用 Auto 游玩，确认软件音效与游戏音乐在两个设备上均正常。\n\n注意：需自行 DIY（如使用外部混音器）将两路输出合并到耳机。");
     }
 
     [RelayCommand]
     private async Task ReportNoAlternativeDevice()
     {
-        await RequireProMixAsync("没有找到可供 osu! 正常播放的其他设备，当前硬件组合无法完成手动分流。");
+        await RequireProMixAsync("未找到能让 osu! 正常播放的其他设备，当前硬件组合无法手动分流。");
     }
 
     [RelayCommand]
@@ -460,8 +460,8 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         {
             ShowHardwareDriverWarning = AvailableAudioDevices.Count == 0;
             HardwareDriverWarning = SelectedDriverType == WavePlayerType.ASIO
-                ? "未检测到 ASIO 驱动，请切换到 WASAPI 独占。"
-                : "未检测到可用的 WASAPI 播放设备，请尝试 ASIO 或 ProMix。";
+                ? "未检测到 ASIO 驱动，请切换为 WASAPI 独占。"
+                : "未检测到可用的 WASAPI 播放设备，请尝试 ASIO 或改用 ProMix。";
         }
         else
         {
@@ -484,7 +484,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             if (!IsVirtualDriverDetected)
             {
                 ShowVirtualDriverWarning = true;
-                VirtualDriverWarning = "未检测到虚拟声卡驱动，建议安装以获得最佳体验";
+                VirtualDriverWarning = "未检测到虚拟声卡，建议安装以获得完整体验";
             }
             else
             {

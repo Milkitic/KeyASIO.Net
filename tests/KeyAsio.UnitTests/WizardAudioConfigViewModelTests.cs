@@ -363,7 +363,7 @@ public class WizardAudioConfigViewModelTests
         await vm.ReportSameDeviceSilentCommand.ExecuteAsync(null);
 
         Assert.Equal(AudioSubStep.ProMixRequired, vm.CurrentAudioSubStep);
-        Assert.Contains("一个物理播放设备", vm.ProMixRequiredMessage);
+        Assert.Contains("一个播放设备", vm.ProMixRequiredMessage);
         Assert.False(vm.IsConcurrencyTestSoundPlaying);
         _mockDeviceOperations.Verify(operation => operation.DeactivateAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -402,7 +402,7 @@ public class WizardAudioConfigViewModelTests
 
         Assert.Equal(AudioSubStep.Validation, vm.CurrentAudioSubStep);
         Assert.True(vm.ValidationSuccess);
-        Assert.Contains("其他播放设备", vm.ValidationInstruction);
+        Assert.Contains("能听到声音", vm.ValidationInstruction);
         Assert.False(vm.IsConcurrencyTestSoundPlaying);
     }
 
