@@ -1,3 +1,4 @@
+using KeyAsio.Application.Models;
 using KeyAsio.Configuration;
 using KeyAsio.Configuration.Models;
 
@@ -14,7 +15,7 @@ internal sealed class SkinSelectionPreferences(AppSettingsPaths paths)
             : paths.SelectedSkinNameStable;
     }
 
-    public void OnSelectionChanged(GameClientType clientType, string? folderName)
+    public void OnSelectionChanged(GameClientType clientType, SkinDescription? skin)
     {
         if (_isApplyingProgrammaticSelection)
         {
@@ -23,11 +24,13 @@ internal sealed class SkinSelectionPreferences(AppSettingsPaths paths)
 
         if (clientType == GameClientType.Lazer)
         {
-            paths.SelectedSkinNameLazer = folderName;
+            // Lazer skin names are not guaranteed to be unique; its synthetic
+            // folder is derived from the stable realm ID and is safe to persist.
+            paths.SelectedSkinNameLazer = skin?.Folder;
         }
         else
         {
-            paths.SelectedSkinNameStable = folderName;
+            paths.SelectedSkinNameStable = skin?.FolderName;
         }
     }
 

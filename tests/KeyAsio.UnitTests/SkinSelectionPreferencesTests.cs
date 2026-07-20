@@ -1,3 +1,4 @@
+using KeyAsio.Application.Models;
 using KeyAsio.Application.Services;
 using KeyAsio.Configuration;
 using KeyAsio.Configuration.Models;
@@ -12,11 +13,15 @@ public sealed class SkinSelectionPreferencesTests
         var paths = new AppSettingsPaths();
         var preferences = new SkinSelectionPreferences(paths);
 
-        preferences.OnSelectionChanged(GameClientType.Stable, "stable-skin");
-        preferences.OnSelectionChanged(GameClientType.Lazer, "lazer-skin");
+        preferences.OnSelectionChanged(
+            GameClientType.Stable,
+            new SkinDescription("stable-skin", "D:\\osu!\\Skins\\stable-skin", null, null));
+        preferences.OnSelectionChanged(
+            GameClientType.Lazer,
+            new SkinDescription("lazer-skin", "{lazer-skin:id}", null, null));
 
         Assert.Equal("stable-skin", preferences.Get(GameClientType.Stable));
-        Assert.Equal("lazer-skin", preferences.Get(GameClientType.Lazer));
+        Assert.Equal("{lazer-skin:id}", preferences.Get(GameClientType.Lazer));
     }
 
     [Fact]
@@ -24,14 +29,14 @@ public sealed class SkinSelectionPreferencesTests
     {
         var paths = new AppSettingsPaths
         {
-            SelectedSkinNameLazer = "lazer-skin"
+            SelectedSkinNameLazer = "{lazer-skin:id}"
         };
         var preferences = new SkinSelectionPreferences(paths);
 
         preferences.ApplyProgrammaticSelection(
-            () => preferences.OnSelectionChanged(GameClientType.Lazer, "{internal}"));
+            () => preferences.OnSelectionChanged(GameClientType.Lazer, SkinDescription.Internal));
 
-        Assert.Equal("lazer-skin", preferences.Get(GameClientType.Lazer));
+        Assert.Equal("{lazer-skin:id}", preferences.Get(GameClientType.Lazer));
     }
 
     [Fact]
@@ -44,7 +49,9 @@ public sealed class SkinSelectionPreferencesTests
             preferences.ApplyProgrammaticSelection(
                 () => throw new InvalidOperationException("test")));
 
-        preferences.OnSelectionChanged(GameClientType.Stable, "stable-skin");
+        preferences.OnSelectionChanged(
+            GameClientType.Stable,
+            new SkinDescription("stable-skin", "D:\\osu!\\Skins\\stable-skin", null, null));
         Assert.Equal("stable-skin", preferences.Get(GameClientType.Stable));
     }
 }

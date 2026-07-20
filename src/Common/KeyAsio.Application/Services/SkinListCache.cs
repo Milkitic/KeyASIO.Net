@@ -49,7 +49,7 @@ internal sealed class SkinListCache
                     entry.Folder,
                     entry.Name,
                     entry.Author))
-                .DistinctBy(static skin => skin.FolderName, StringComparer.Ordinal)
+                .DistinctBy(static skin => skin.Folder, StringComparer.Ordinal)
                 .ToArray();
         }
     }
@@ -63,7 +63,7 @@ internal sealed class SkinListCache
                 .Where(static skin =>
                     !string.IsNullOrWhiteSpace(skin.FolderName) &&
                     !string.IsNullOrWhiteSpace(skin.Folder))
-                .DistinctBy(static skin => skin.FolderName, StringComparer.Ordinal)
+                .DistinctBy(static skin => skin.Folder, StringComparer.Ordinal)
                 .Select(static skin => new CachedSkinDescription
                 {
                     FolderName = skin.FolderName,

@@ -40,16 +40,16 @@ public sealed class SkinListCacheTests : IDisposable
     {
         var path = Path.Combine(_directory, "skin-lists.json");
         var cache = new SkinListCache(NullLogger.Instance, path);
-        const string selectedSkin = "Chosen skin";
+        const string selectedSkin = "{lazer-skin:chosen-id}";
         cache.Save(GameClientType.Lazer,
         [
-            new SkinDescription(selectedSkin, "{lazer-skin:chosen-id}", "Chosen skin", null)
+            new SkinDescription("Chosen skin", selectedSkin, "Chosen skin", null)
         ]);
 
         var cachedSkins = new SkinListCache(NullLogger.Instance, path)
             .Get(GameClientType.Lazer);
 
-        Assert.Contains(cachedSkins, skin => skin.FolderName == selectedSkin);
+        Assert.Contains(cachedSkins, skin => skin.Folder == selectedSkin);
     }
 
     public void Dispose()

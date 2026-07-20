@@ -210,7 +210,7 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
         {
             _skinSelectionPreferences.OnSelectionChanged(
                 _syncSessionContext.ClientType,
-                _sharedViewModel.SelectedSkin?.FolderName);
+                _sharedViewModel.SelectedSkin);
             _audioCacheManager.ClearAll();
         }
     }
@@ -603,8 +603,12 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
         }
 
         var selectedName = _skinSelectionPreferences.Get(clientType);
-        var targetSkin = newSkinList.FirstOrDefault(k => k.FolderName == selectedName)
-                         ?? SkinDescription.Internal;
+        var targetSkin = clientType == GameClientType.Lazer
+            ? newSkinList.FirstOrDefault(k => k.Folder == selectedName)
+              // Compatibility with selections saved by older versions.
+              ?? newSkinList.FirstOrDefault(k => k.FolderName == selectedName)
+            : newSkinList.FirstOrDefault(k => k.FolderName == selectedName);
+        targetSkin ??= SkinDescription.Internal;
 
         await _dispatcher.InvokeAsync(() =>
         {
