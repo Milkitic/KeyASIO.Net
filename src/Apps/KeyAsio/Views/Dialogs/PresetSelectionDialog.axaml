@@ -41,7 +41,7 @@
       <Setter Property="IsOpaque" Value="True" />
       <Setter Property="IsInteractive" Value="False" />
       <Setter Property="Cursor" Value="Arrow" />
-      <Setter Property="BorderBrush" Value="#0FFF" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SukiAccentColor}" />
       <Style Selector="^:pointerover">
         <Setter Property="RenderTransform" Value="scale(1)" />
       </Style>
