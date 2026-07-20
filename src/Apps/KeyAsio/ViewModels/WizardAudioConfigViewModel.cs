@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using KeyAsio.Configuration;
 using KeyAsio.Core.Audio;
+using KeyAsio.Plugins.Contracts;
 using KeyAsio.Services;
 using SukiUI.Toasts;
 
@@ -21,37 +22,52 @@ public enum AudioSubStep
 {
     Selection,
     Configuration,
+    ConcurrencyCheck,
+    AlternativeDeviceCheck,
+    ProMixRequired,
     Validation
 }
 
 public partial class WizardAudioConfigViewModel : ViewModelBase
 {
+    private const string ProMixPluginId = "KeyAsio.Plugins.ProMix";
+
     private readonly IAudioDeviceManager _audioDeviceManager;
     private readonly IAudioDeviceOperationCoordinator _deviceOperations;
+    private readonly IWizardTestSoundService _testSoundService;
     private readonly ISukiToastManager _toastManager;
     private readonly AppSettings _appSettings;
+    private IReadOnlyList<DeviceDescription> _allAudioDevices = [];
 
     public WizardAudioConfigViewModel(
         IAudioDeviceManager audioDeviceManager,
         IAudioDeviceOperationCoordinator deviceOperations,
         ISukiToastManager toastManager,
-        AppSettings appSettings)
+        AppSettings appSettings,
+        IPluginManager pluginManager,
+        IWizardTestSoundService testSoundService)
     {
         _audioDeviceManager = audioDeviceManager;
         _deviceOperations = deviceOperations;
+        _testSoundService = testSoundService;
         _toastManager = toastManager;
         _appSettings = appSettings;
+        IsProMixAvailable = pluginManager.GetAllPlugins()
+            .Any(plugin => string.Equals(plugin.Id, ProMixPluginId, StringComparison.Ordinal));
 
-        AvailableDriverTypes = new ObservableCollection<WavePlayerType>(Enum.GetValues<WavePlayerType>());
+        AvailableDriverTypes = [WavePlayerType.ASIO, WavePlayerType.WASAPI];
         SelectedDriverType = WavePlayerType.ASIO;
 
-        LoadDevices();
+        _ = LoadDevicesAsync();
     }
+
+    public bool IsProMixAvailable { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsSoftwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsHardwareMode))]
+    [NotifyPropertyChangedFor(nameof(CanGoForward))]
     public partial WizardMode SelectedMode { get; set; } = WizardMode.NotSelected;
 
     // Config Page
@@ -78,6 +94,9 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsSelectionMode))]
     [NotifyPropertyChangedFor(nameof(IsHardwareConfig))]
     [NotifyPropertyChangedFor(nameof(IsSoftwareConfig))]
+    [NotifyPropertyChangedFor(nameof(IsConcurrencyCheck))]
+    [NotifyPropertyChangedFor(nameof(IsAlternativeDeviceCheck))]
+    [NotifyPropertyChangedFor(nameof(IsProMixRequired))]
     [NotifyPropertyChangedFor(nameof(IsValidationStep))]
     [NotifyPropertyChangedFor(nameof(CanGoForward))]
     public partial AudioSubStep CurrentAudioSubStep { get; set; } = AudioSubStep.Selection;
@@ -89,6 +108,12 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
 
     public bool IsSoftwareConfig =>
         CurrentAudioSubStep == AudioSubStep.Configuration && SelectedMode == WizardMode.Software;
+
+    public bool IsConcurrencyCheck => CurrentAudioSubStep == AudioSubStep.ConcurrencyCheck;
+
+    public bool IsAlternativeDeviceCheck => CurrentAudioSubStep == AudioSubStep.AlternativeDeviceCheck;
+
+    public bool IsProMixRequired => CurrentAudioSubStep == AudioSubStep.ProMixRequired;
 
     public bool IsHardwareMode => SelectedMode == WizardMode.Hardware;
 
@@ -113,6 +138,19 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     [ObservableProperty]
     public partial string ValidationMessage { get; set; } = "";
 
+    [ObservableProperty]
+    public partial string ValidationInstruction { get; set; } =
+        "请在 osu! 选图页播放音乐并按键，确认音乐与软件音效均正常。";
+
+    [ObservableProperty]
+    public partial string ProMixRequiredMessage { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool HasAlternativeGameDevices { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsConcurrencyTestSoundPlaying { get; set; }
+
 
     public async Task<bool> TryGoBackAsync()
     {
@@ -122,13 +160,12 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             return true;
         }
 
-        if (CurrentAudioSubStep == AudioSubStep.Validation)
+        if (CurrentAudioSubStep is AudioSubStep.ConcurrencyCheck
+            or AudioSubStep.AlternativeDeviceCheck
+            or AudioSubStep.ProMixRequired
+            or AudioSubStep.Validation)
         {
-            CurrentAudioSubStep = AudioSubStep.Configuration;
-            IsValidationRunning = false;
-            ValidationSuccess = false;
-            IsAudioConfigFinished = false;
-            await _deviceOperations.DeactivateAsync();
+            await ReturnToConfigurationAsync();
             return true;
         }
 
@@ -173,42 +210,37 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         }
     }
 
+    public void StopTestSound()
+    {
+        _testSoundService.Stop();
+        IsConcurrencyTestSoundPlaying = false;
+    }
+
     [ObservableProperty]
     public partial bool ShowVirtualDriverWarning { get; set; }
 
     [ObservableProperty]
     public partial string VirtualDriverWarning { get; set; } = "";
 
-    [RelayCommand]
+    private bool CanSelectMode(WizardMode mode) => mode != WizardMode.Software || IsProMixAvailable;
+
+    [RelayCommand(CanExecute = nameof(CanSelectMode))]
     private void SelectMode(WizardMode mode)
     {
+        StopTestSound();
         SelectedMode = mode;
         if (mode == WizardMode.Hardware)
         {
             _appSettings.Sync.EnableMixSync = false;
-            Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
-                var asioCount = devices.Count(d => d.WavePlayerType == WavePlayerType.ASIO);
-                if (asioCount < 1)
-                {
-                    ShowHardwareDriverWarning = true;
-                    HardwareDriverWarning = "未检测到支持的驱动，建议切换到软件模式";
-                }
-                else
-                {
-                    ShowHardwareDriverWarning = false;
-                }
-            });
             SelectedDriverType = WavePlayerType.ASIO;
+            UpdateDeviceList(_allAudioDevices);
         }
         else if (mode == WizardMode.Software)
         {
             _appSettings.Sync.EnableMixSync = true;
             CheckVirtualDriver();
-            // Software mode (ProMix) typically outputs to a physical device via WASAPI or ASIO
-            // For now default to WASAPI as it is more common for physical outputs
             SelectedDriverType = WavePlayerType.WASAPI;
+            UpdateDeviceList(_allAudioDevices);
         }
 
         CurrentAudioSubStep = AudioSubStep.Configuration;
@@ -217,19 +249,21 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     [RelayCommand]
     private async Task BackToSelection()
     {
+        StopTestSound();
         SelectedMode = WizardMode.NotSelected;
         CurrentAudioSubStep = AudioSubStep.Selection;
         IsAudioConfigFinished = false;
-        // Stop any playing audio
+        ValidationSuccess = false;
         await _deviceOperations.DeactivateAsync();
     }
 
     [RelayCommand]
     private async Task ApplyAndTestConfig()
     {
+        StopTestSound();
         CurrentAudioSubStep = AudioSubStep.Validation;
         IsValidationRunning = true;
-        ValidationMessage = "正在初始化音频引擎...";
+        ValidationMessage = "正在初始化音频引擎…";
         ValidationSuccess = false;
 
         if (SelectedAudioDevice is null)
@@ -242,18 +276,122 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
         var result = await _deviceOperations.ApplyAsync(SelectedAudioDevice, _appSettings.Audio.SampleRate);
         if (result.IsSuccess)
         {
-            ValidationSuccess = true;
-            IsAudioConfigFinished = true;
-            ValidationMessage = "配置成功";
+            if (SelectedMode == WizardMode.Hardware)
+            {
+                try
+                {
+                    _testSoundService.Start();
+                    IsConcurrencyTestSoundPlaying = true;
+                    CurrentAudioSubStep = AudioSubStep.ConcurrencyCheck;
+                    ValidationMessage = "独占设备已就绪";
+                }
+                catch (Exception exception)
+                {
+                    ValidationSuccess = false;
+                    ValidationMessage = $"测试音播放失败：{exception.Message}";
+                }
+            }
+            else
+            {
+                ValidationSuccess = true;
+                IsAudioConfigFinished = true;
+                ValidationMessage = "配置成功";
+                ValidationInstruction =
+                    "请在 osu! 中选择虚拟声卡并进入选图页，确认音乐自动播放后按键，验证软件音效正常。";
+            }
         }
         else
         {
             ValidationSuccess = false;
-            ValidationMessage = $"初始化失败: {result.Error?.Message ?? "未知错误"}";
+            ValidationMessage = $"初始化失败：{result.Error?.Message ?? "未知错误"}";
             IsAudioConfigFinished = false;
         }
 
         IsValidationRunning = false;
+    }
+
+    [RelayCommand]
+    private void ConfirmSameDeviceAudio()
+    {
+        CompleteHardwareRouting(
+            "设备配置完成",
+            "保持 osu! 使用当前设备，将其全局延迟调整至 -40ms 左右，选一张谱面用 Auto 游玩，确认软件音效与游戏音乐均正常。");
+    }
+
+    [RelayCommand]
+    private async Task ReportSameDeviceSilent()
+    {
+        if (HasAlternativeGameDevices)
+        {
+            CurrentAudioSubStep = AudioSubStep.AlternativeDeviceCheck;
+            return;
+        }
+
+        await RequireProMixAsync("系统只检测到一个播放设备，且不支持 ASIO/WASAPI 同时共享。");
+    }
+
+    [RelayCommand]
+    private void ConfirmAlternativeDeviceAudio()
+    {
+        CompleteHardwareRouting(
+            "设备配置完成",
+            "保持 osu! 使用当前能听到声音的设备，选一张谱面用 Auto 游玩，确认软件音效与游戏音乐在两个设备上均正常。\n\n注意：需自行 DIY（如使用外部混音器）将两路输出合并到耳机。");
+    }
+
+    [RelayCommand]
+    private async Task ReportNoAlternativeDevice()
+    {
+        await RequireProMixAsync("未找到能让 osu! 正常播放的其他设备，当前硬件组合无法手动分流。");
+    }
+
+    [RelayCommand]
+    private async Task RetryHardwareSetup()
+    {
+        await ReturnToConfigurationAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(IsProMixAvailable))]
+    private async Task SwitchToProMix()
+    {
+        StopTestSound();
+        await _deviceOperations.DeactivateAsync();
+
+        SelectedMode = WizardMode.Software;
+        _appSettings.Sync.EnableMixSync = true;
+        SelectedDriverType = WavePlayerType.WASAPI;
+        UpdateDeviceList(_allAudioDevices);
+        CheckVirtualDriver();
+        CurrentAudioSubStep = AudioSubStep.Configuration;
+    }
+
+    private void CompleteHardwareRouting(string title, string instruction)
+    {
+        StopTestSound();
+        ValidationSuccess = true;
+        IsAudioConfigFinished = true;
+        ValidationMessage = title;
+        ValidationInstruction = instruction;
+        CurrentAudioSubStep = AudioSubStep.Validation;
+    }
+
+    private async Task RequireProMixAsync(string message)
+    {
+        StopTestSound();
+        await _deviceOperations.DeactivateAsync();
+        ProMixRequiredMessage = message;
+        ValidationSuccess = false;
+        IsAudioConfigFinished = false;
+        CurrentAudioSubStep = AudioSubStep.ProMixRequired;
+    }
+
+    private async Task ReturnToConfigurationAsync()
+    {
+        StopTestSound();
+        IsValidationRunning = false;
+        ValidationSuccess = false;
+        IsAudioConfigFinished = false;
+        await _deviceOperations.DeactivateAsync();
+        CurrentAudioSubStep = AudioSubStep.Configuration;
     }
 
     [RelayCommand]
@@ -285,24 +423,49 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
     }
 
 
-    private async void LoadDevices()
+    private async Task LoadDevicesAsync()
     {
         var devices = await _audioDeviceManager.GetCachedAvailableDevicesAsync();
+        _allAudioDevices = devices;
+        HasAlternativeGameDevices = devices
+            .Where(device => device.WavePlayerType == WavePlayerType.WASAPI && device.DeviceId is not null)
+            .Select(device => device.DeviceId)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count() > 1;
         UpdateDeviceList(devices);
     }
 
     partial void OnSelectedDriverTypeChanged(WavePlayerType value)
     {
-        LoadDevices();
+        UpdateDeviceList(_allAudioDevices);
     }
 
     private void UpdateDeviceList(IReadOnlyList<DeviceDescription> allDevices)
     {
-        var filtered = allDevices.Where(d => d.WavePlayerType == SelectedDriverType).ToList();
+        var filtered = allDevices
+            .Where(device => device.WavePlayerType == SelectedDriverType)
+            .Where(device => SelectedMode != WizardMode.Hardware ||
+                             SelectedDriverType != WavePlayerType.WASAPI ||
+                             device.DeviceId is not null)
+            .Select(device => SelectedMode == WizardMode.Hardware &&
+                              device.WavePlayerType == WavePlayerType.WASAPI
+                ? device with { IsExclusive = true, Latency = 3 }
+                : device)
+            .ToList();
+
         AvailableAudioDevices = new ObservableCollection<DeviceDescription>(filtered);
-        if (AvailableAudioDevices.Any())
+        SelectedAudioDevice = AvailableAudioDevices.FirstOrDefault();
+
+        if (SelectedMode == WizardMode.Hardware)
         {
-            SelectedAudioDevice = AvailableAudioDevices.First();
+            ShowHardwareDriverWarning = AvailableAudioDevices.Count == 0;
+            HardwareDriverWarning = SelectedDriverType == WavePlayerType.ASIO
+                ? "未检测到 ASIO 驱动，请切换为 WASAPI 独占。"
+                : "未检测到可用的 WASAPI 播放设备，请尝试 ASIO 或改用 ProMix。";
+        }
+        else
+        {
+            ShowHardwareDriverWarning = false;
         }
     }
 
@@ -321,7 +484,7 @@ public partial class WizardAudioConfigViewModel : ViewModelBase
             if (!IsVirtualDriverDetected)
             {
                 ShowVirtualDriverWarning = true;
-                VirtualDriverWarning = "未检测到虚拟声卡驱动，建议安装以获得最佳体验";
+                VirtualDriverWarning = "未检测到虚拟声卡，建议安装以获得完整体验";
             }
             else
             {

@@ -38,6 +38,7 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<SettingsManager>();
         services.AddSingleton<PresetManager>();
         services.AddSingleton<IAudioDeviceOperationCoordinator, AudioDeviceOperationCoordinator>();
+        services.AddTransient<IWizardTestSoundService, WizardTestSoundService>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<MainWindowViewModel>();

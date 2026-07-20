@@ -404,19 +404,13 @@ You can change option later.</value>
     <value>Efficient</value>
   </data>
   <data name="Preset_FastDescription" xml:space="preserve">
-    <value>Reduces system overhead, suitable for low-end devices or basic gameplay needs.</value>
+    <value>Standard resource usage to deliver the best listening experience, suitable for most gameplay scenarios.</value>
   </data>
   <data name="Preset_SelectionDescription" xml:space="preserve">
     <value>Please choose an appropriate mode based on your device performance and usage needs.</value>
   </data>
   <data name="Preset_SelectionTitle" xml:space="preserve">
-    <value>Select Preset Mode</value>
-  </data>
-  <data name="Preset_Standard" xml:space="preserve">
-    <value>Balanced</value>
-  </data>
-  <data name="Preset_StandardDescription" xml:space="preserve">
-    <value>Balances resource usage to deliver the best listening experience, suitable for most gameplay scenarios.</value>
+	  <value>Select Preset</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>About</value>
@@ -720,5 +714,8 @@ You can change option later.</value>
   </data>
   <data name="UpdateChannel_Alpha" xml:space="preserve">
     <value>Alpha</value>
+  </data>
+  <data name="Wizard_SubTitle" xml:space="preserve">
+    <value>Configure KeyASIO in just a few steps.</value>
   </data>
 </root>

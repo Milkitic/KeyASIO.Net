@@ -1,8 +1,7 @@
 using KeyAsio.Configuration.Models;
 using KeyAsio.Core.OsuAudio.Hitsounds;
-using KeyAsio.LazerProtocol;
-using KeyAsio.Plugins.Contracts;
 using KeyAsio.Plugins.Contracts.Sync;
+using OverlayAPI.LazerProtocol;
 
 namespace KeyAsio.Sync.Sources;
 
@@ -18,10 +17,8 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
     private bool _hasEventFrame;
     private IBeatmapResourceCatalog? _resourceCatalog;
     private LazerSkinInfo[]? _lastPublishedSkinInfos;
-    private string? _lastPublishedUserDataDirectory;
-    private string? _lastPublishedExeDirectory;
 
-    public event Action<LazerSkinInfo[]?, string?, string?>? LazerSkinContextReceived;
+    public event Action<LazerSkinInfo[]?>? LazerSkinContextReceived;
 
     public LazerIpcGameSyncSource(LazerIpcBridge lazerIpcBridge)
     {
@@ -94,8 +91,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         bool availabilityChanged;
         bool isAvailable;
         LazerSkinInfo[]? skinInfosToPublish = null;
-        string? userDataDirectoryToPublish = null;
-        string? exeDirectoryToPublish = null;
         bool skinContextChanged = false;
 
         lock (frameLock)
@@ -126,19 +121,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
                 skinContextChanged = true;
             }
 
-            if (_frame.UserDataDirectory != _lastPublishedUserDataDirectory)
-            {
-                _lastPublishedUserDataDirectory = _frame.UserDataDirectory;
-                userDataDirectoryToPublish = _frame.UserDataDirectory;
-                skinContextChanged = true;
-            }
-
-            if (_frame.ExeDirectory != _lastPublishedExeDirectory)
-            {
-                _lastPublishedExeDirectory = _frame.ExeDirectory;
-                exeDirectoryToPublish = _frame.ExeDirectory;
-                skinContextChanged = true;
-            }
         }
 
         if (availabilityChanged)
@@ -148,18 +130,12 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
             SnapshotReceived?.Invoke(this, _snapshot);
 
         if (skinContextChanged)
-        {
-            LazerSkinContextReceived?.Invoke(
-                skinInfosToPublish,
-                userDataDirectoryToPublish,
-                exeDirectoryToPublish);
-        }
+            LazerSkinContextReceived?.Invoke(skinInfosToPublish);
     }
 
     private void ApplyFrameLocked(LazerDeltaFrame deltaFrame)
     {
-        var beatmapChanged = deltaFrame.HasField(LazerFieldKind.BeatmapFolder) ||
-                             deltaFrame.HasField(LazerFieldKind.BeatmapFilename);
+        var beatmapChanged = deltaFrame.HasField(LazerFieldKind.BeatmapFilename);
         var beatmapFilesChanged = deltaFrame.HasField(LazerFieldKind.BeatmapFiles);
 
         if (beatmapChanged && !beatmapFilesChanged)
@@ -179,8 +155,8 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         {
             var resourceCatalog = BeatmapResourceCatalog.FromMappings(
                 frame.BeatmapFiles.Select(file => new BeatmapResource(file.Name, file.Path)),
-                frame.BeatmapFolder,
-                CreateCatalogCacheKey(frame));
+                rootPath: null,
+                cacheKey: CreateCatalogCacheKey(frame));
 
             if (!resourceCatalog.IsEmpty)
             {
@@ -188,20 +164,17 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
             }
         }
 
-        var beatmap = !string.IsNullOrWhiteSpace(frame.BeatmapFolder) &&
-                      !string.IsNullOrWhiteSpace(frame.BeatmapFilename)
-            ? new BeatmapIdentifier(frame.BeatmapFolder, frame.BeatmapFilename)
+        var hasMappedBeatmap = !string.IsNullOrWhiteSpace(frame.BeatmapFilename) &&
+                               _resourceCatalog?.TryResolve(frame.BeatmapFilename, out _) == true;
+        var beatmap = hasMappedBeatmap
+            ? new BeatmapIdentifier("{lazer}", frame.BeatmapFilename)
             : default;
 
         var snapshot = _snapshot;
         snapshot.ProcessId = frame.ProcessId;
-        snapshot.Username = frame.Username;
         snapshot.PlayMods = (Mods)frame.Mods;
         snapshot.IsReplay = frame.IsReplay;
-        snapshot.Score = frame.Score;
         snapshot.Combo = frame.Combo;
-        snapshot.Statistics = frame.Statistics;
-        snapshot.HitErrors = new SyncHitErrors(frame.HitErrorIndex, frame.HitErrors);
         snapshot.Beatmap = beatmap;
         snapshot.BeatmapResourceCatalog = _resourceCatalog;
         snapshot.PlayTime = frame.PlayTime;
@@ -219,8 +192,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
         CurrentSnapshot = _snapshot;
 
         _lastPublishedSkinInfos = null;
-        _lastPublishedUserDataDirectory = null;
-        _lastPublishedExeDirectory = null;
     }
 
     private bool CanBeAvailableLocked()
@@ -246,6 +217,6 @@ public sealed class LazerIpcGameSyncSource : IGameSyncSource
                 string.Equals(BeatmapResourceCatalog.NormalizeName(file.Name),
                     BeatmapResourceCatalog.NormalizeName(beatmapFilename), StringComparison.OrdinalIgnoreCase))?.Path;
 
-        return $"lazer:{frame.BeatmapFolder}:{beatmapFilename}:{beatmapPath}:{frame.BeatmapFiles.Length}";
+        return $"lazer:{beatmapFilename}:{beatmapPath}:{frame.BeatmapFiles.Length}";
     }
 }

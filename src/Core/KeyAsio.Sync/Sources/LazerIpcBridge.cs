@@ -2,8 +2,8 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.IO.Pipes;
-using KeyAsio.LazerProtocol;
 using Microsoft.Extensions.Logging;
+using OverlayAPI.LazerProtocol;
 
 namespace KeyAsio.Sync.Sources;
 

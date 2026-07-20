@@ -106,14 +106,14 @@ public partial class MainWindow : SukiWindow
 
             _viewModel.SettingsPageItem = SettingsMenuItem;
             _viewModel.AudioEnginePageItem = AudioEngineMenuItem;
-            //_viewModel.RequestShowWizard += async () => await ShowWizardAsync();
+            _viewModel.RequestShowWizard += async () => await ShowWizardAsync();
 
             await Dispatcher.UIThread.InvokeAsync(() => UpdateThemeByDevice(null));
 
-            //if (_viewModel.AppSettings.General.IsFirstRun)
-            //{
-            //    await ShowWizardAsync();
-            //}
+            if (_viewModel.AppSettings.General.IsFirstRun)
+            {
+                await ShowWizardAsync();
+            }
 
             InitializeStartupLogic();
         }
@@ -175,7 +175,7 @@ public partial class MainWindow : SukiWindow
             if (device.WavePlayerType == WavePlayerType.ASIO ||
                 device is { WavePlayerType: WavePlayerType.WASAPI, IsExclusive: true })
             {
-                SukiTheme.GetInstance().ChangeColorTheme(SukiColor.Red);
+                UpdateRedTheme();
                 _viewModel.Hue = 170;
             }
             else
@@ -219,6 +219,21 @@ public partial class MainWindow : SukiWindow
             // Light theme: Use a darker accent for better visibility
             SukiTheme.GetInstance().ChangeColorTheme(new SukiColorTheme("Pink",
                 Color.Parse("#D01373"), Color.Parse("#C2185B")));
+        }
+    }
+
+    private void UpdateRedTheme()
+    {
+        var isDark = Avalonia.Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+        if (isDark)
+        {
+            SukiTheme.GetInstance().ChangeColorTheme(new SukiColorTheme("Red",
+                Color.Parse("#D03A2F"), Color.Parse("#FF8A80")));
+        }
+        else
+        {
+            SukiTheme.GetInstance().ChangeColorTheme(new SukiColorTheme("Red",
+                Color.Parse("#D03A2F"), Color.Parse("#B71C1C")));
         }
     }
 

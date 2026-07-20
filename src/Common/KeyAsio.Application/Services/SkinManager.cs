@@ -9,11 +9,11 @@ using KeyAsio.Configuration;
 using KeyAsio.Configuration.Models;
 using KeyAsio.Core.Audio.Caching;
 using KeyAsio.Core.OsuAudio.Hitsounds;
-using KeyAsio.LazerProtocol;
 using KeyAsio.Sync;
 using KeyAsio.Sync.Abstractions;
 using KeyAsio.Sync.Sources;
 using Microsoft.Extensions.Logging;
+using OverlayAPI.LazerProtocol;
 
 namespace KeyAsio.Application.Services;
 
@@ -38,8 +38,7 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
     ];
 
     // Lazer built-in skin folders (mirroring osu.Game SkinInfo well-known GUIDs).
-    // FolderName is the GUID string; Folder points to the lazer user data directory
-    // (used to resolve the realm-backed file store at runtime).
+    // Folder uses a synthetic identifier; actual audio files are resolved through the IPC resource catalog.
     private static readonly (string Guid, SkinDescription Description)[] s_lazerBuiltinSkins =
     [
         ("CFFA69DE-B3E3-4DEE-8563-3C4F425C05D0",
@@ -74,6 +73,8 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
     private readonly LazerIpcGameSyncSource? _lazerSyncSource;
     private readonly SyncSessionContext _syncSessionContext;
     private readonly GameSyncSourceCoordinator _syncSourceCoordinator;
+    private readonly SkinSelectionPreferences _skinSelectionPreferences;
+    private readonly SkinListCache _skinListCache;
 
     private readonly AsyncLock _asyncLock = new();
 
@@ -90,7 +91,6 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
 
     // Lazer skin context (received via IPC).
     private LazerSkinInfo[]? _lazerSkinInfos;
-    private string? _lazerUserDataDirectory;
     private string? _lazerExeDirectory;
     private GameClientType _lastKnownClientType = GameClientType.Stable;
 
@@ -113,6 +113,8 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
         _lazerSyncSource = lazerSyncSource;
         _syncSessionContext = syncSessionContext;
         _syncSourceCoordinator = syncSourceCoordinator;
+        _skinSelectionPreferences = new SkinSelectionPreferences(appSettings.Paths);
+        _skinListCache = new SkinListCache(logger);
         _sharedViewModel.PropertyChanged += ApplicationState_PropertyChanged;
         _appSettings.Paths.PropertyChanged += Paths_PropertyChanged;
 
@@ -206,31 +208,14 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
     {
         if (e.PropertyName == nameof(ApplicationState.SelectedSkin))
         {
-            SetSelectedSkinName(_sharedViewModel.SelectedSkin?.FolderName);
+            _skinSelectionPreferences.OnSelectionChanged(
+                _syncSessionContext.ClientType,
+                _sharedViewModel.SelectedSkin?.FolderName);
             _audioCacheManager.ClearAll();
         }
     }
 
-    private void SetSelectedSkinName(string? folderName)
-    {
-        if (_syncSessionContext.ClientType == GameClientType.Lazer)
-        {
-            _appSettings.Paths.SelectedSkinNameLazer = folderName;
-        }
-        else
-        {
-            _appSettings.Paths.SelectedSkinNameStable = folderName;
-        }
-    }
-
-    private string? GetSelectedSkinName()
-    {
-        return _syncSessionContext.ClientType == GameClientType.Lazer
-            ? _appSettings.Paths.SelectedSkinNameLazer
-            : _appSettings.Paths.SelectedSkinNameStable;
-    }
-
-    private void OnLazerSkinContextReceived(LazerSkinInfo[]? skinInfos, string? userDataDirectory, string? exeDirectory)
+    private void OnLazerSkinContextReceived(LazerSkinInfo[]? skinInfos)
     {
         bool changed = false;
 
@@ -240,33 +225,43 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
             changed = true;
         }
 
-        if (userDataDirectory != null)
+        var exeDirectory = FindLazerExeDirectory();
+        if (exeDirectory != null && _lazerExeDirectory != exeDirectory)
         {
-            if (_lazerUserDataDirectory != userDataDirectory)
-            {
-                _lazerUserDataDirectory = userDataDirectory;
-                changed = true;
-            }
-        }
-
-        if (exeDirectory != null)
-        {
-            if (_lazerExeDirectory != exeDirectory)
-            {
-                _lazerExeDirectory = exeDirectory;
-                changed = true;
-            }
+            _lazerExeDirectory = exeDirectory;
+            changed = true;
         }
 
         if (!changed)
             return;
 
         _logger.LogInformation(
-            "Lazer skin context updated: {SkinCount} skins, user data: {UserDataDir}, exe: {ExeDir}",
-            _lazerSkinInfos?.Length ?? 0, _lazerUserDataDirectory, _lazerExeDirectory);
+            "Lazer skin context updated: {SkinCount} skins, exe: {ExeDir}",
+            _lazerSkinInfos?.Length ?? 0, _lazerExeDirectory);
 
         EnsureLazerClientTypeAndOsuFolder();
         _ = RefreshSkinsAsync();
+    }
+
+    private string? FindLazerExeDirectory()
+    {
+        var processId = _syncSessionContext.ProcessId;
+        if (processId > 0)
+        {
+            try
+            {
+                var exactMatch =
+                    OsuLocator.FindLazerExeDirectoryFromRunningProcess([Process.GetProcessById(processId)]);
+                if (exactMatch != null)
+                    return exactMatch;
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+            {
+                // The process exited between receiving the IPC frame and resolving its executable.
+            }
+        }
+
+        return OsuLocator.FindLazerExeDirectoryFromRunningProcess();
     }
 
     private void EnsureLazerClientTypeAndOsuFolder()
@@ -293,6 +288,12 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
         _lastKnownClientType = newClientType;
         _appSettings.Paths.ClientType = newClientType;
         _logger.LogInformation("Sync client type changed to {ClientType}", newClientType);
+
+        if (newClientType == GameClientType.Lazer)
+        {
+            _lazerExeDirectory = FindLazerExeDirectory() ?? _lazerExeDirectory;
+            EnsureLazerClientTypeAndOsuFolder();
+        }
 
         // Clear default resources so they get re-extracted from the appropriate source
         // (osu!gameplay.dll for stable, osu.Game.Resources.dll for lazer).
@@ -407,7 +408,8 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
             {
                 _sharedViewModel.Skins.Clear();
                 _sharedViewModel.Skins.Add(SkinDescription.Internal);
-                _sharedViewModel.SelectedSkin = SkinDescription.Internal;
+                _skinSelectionPreferences.ApplyProgrammaticSelection(
+                    () => _sharedViewModel.SelectedSkin = SkinDescription.Internal);
                 foreach (var key in _stableDefaultResources.Keys)
                 {
                     _stableDefaultResources[key] = Array.Empty<byte>();
@@ -440,27 +442,58 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
 
     private async Task LoadSkinsInternal(CancellationToken token)
     {
+        var clientType = _syncSessionContext.ClientType;
+        var cachedSkins = _skinListCache.Get(clientType);
+
+        if (cachedSkins.Count > 0)
+        {
+            await PublishSkinListAsync(cachedSkins.ToList(), clientType, token);
+        }
+
+        if (token.IsCancellationRequested || _syncSessionContext.ClientType != clientType)
+        {
+            return;
+        }
+
         if (string.IsNullOrEmpty(_appSettings.Paths.OsuFolderPath))
         {
             // Even without an osu folder, we can still expose lazer's built-in skins.
-            if (_lazerSkinInfos != null)
+            if (clientType == GameClientType.Lazer)
             {
-                await LoadLazerSkinsAsync(token);
+                await LoadLazerSkinsAsync(cachedSkins, token);
+            }
+            else if (cachedSkins.Count == 0)
+            {
+                await PublishSkinListAsync(
+                    [SkinDescription.Internal],
+                    GameClientType.Stable,
+                    token);
             }
 
             return;
         }
 
-        if (_syncSessionContext.ClientType == GameClientType.Lazer)
+        if (clientType == GameClientType.Lazer)
         {
-            await LoadLazerSkinsAsync(token);
+            await LoadLazerSkinsAsync(cachedSkins, token);
             return;
         }
 
         ExtractDefaultResources(_appSettings.Paths.OsuFolderPath, token);
 
         var skinsDir = Path.Combine(_appSettings.Paths.OsuFolderPath, "Skins");
-        if (!Directory.Exists(skinsDir)) return;
+        if (!Directory.Exists(skinsDir))
+        {
+            if (cachedSkins.Count == 0)
+            {
+                await PublishSkinListAsync(
+                    [SkinDescription.Internal, SkinDescription.Classic],
+                    GameClientType.Stable,
+                    token);
+            }
+
+            return;
+        }
 
         var directories = Directory.EnumerateDirectories(skinsDir);
         var loadedSkins = new List<SkinDescription>();
@@ -484,10 +517,13 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
         var newSkinList = new List<SkinDescription> { SkinDescription.Internal, SkinDescription.Classic };
         newSkinList.AddRange(OrderUserSkins(loadedSkins));
 
-        await PublishSkinListAsync(newSkinList, token);
+        _skinListCache.Save(GameClientType.Stable, newSkinList);
+        await PublishSkinListAsync(newSkinList, GameClientType.Stable, token);
     }
 
-    private async Task LoadLazerSkinsAsync(CancellationToken token)
+    private async Task LoadLazerSkinsAsync(
+        IReadOnlyList<SkinDescription> cachedSkins,
+        CancellationToken token)
     {
         _lazerSkinCatalogs.Clear();
 
@@ -508,13 +544,10 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
         {
             foreach (var info in _lazerSkinInfos)
             {
-                if (info.Protected)
-                    continue; // Built-in skins are added separately with stable FolderNames.
-
                 if (token.IsCancellationRequested) return;
 
-                var folder = Path.Combine(_lazerUserDataDirectory ?? "", "files", info.Id);
-                var folderName = info.Name ?? info.Id;
+                var folder = $"{{lazer-skin:{info.Id}}}";
+                var folderName = string.IsNullOrWhiteSpace(info.Name) ? info.Id : info.Name;
 
                 // Build a resource catalog from the skin's files so audio can be
                 // resolved by name to the actual hash-based file store paths.
@@ -522,22 +555,34 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
                 {
                     var catalog = BeatmapResourceCatalog.FromMappings(
                         info.Files.Select(f => new BeatmapResource(f.Name, f.Path)),
-                        folder,
-                        $"lazer-skin:{info.Id}");
+                        rootPath: null,
+                        cacheKey: $"lazer-skin:{info.Id}");
                     _lazerSkinCatalogs[folder] = catalog;
                 }
 
                 lazerUserSkins.Add(new SkinDescription(
                     folderName,
                     folder,
-                    info.Name,
-                    info.Creator));
+                    string.IsNullOrWhiteSpace(info.Name) ? null : info.Name,
+                    null));
             }
+        }
+        else
+        {
+            var knownFolders = newSkinList
+                .Select(static skin => skin.FolderName)
+                .ToHashSet(StringComparer.Ordinal);
+            lazerUserSkins.AddRange(cachedSkins.Where(skin => knownFolders.Add(skin.FolderName)));
         }
 
         newSkinList.AddRange(OrderUserSkins(lazerUserSkins));
 
-        await PublishSkinListAsync(newSkinList, token);
+        if (_lazerSkinInfos != null)
+        {
+            _skinListCache.Save(GameClientType.Lazer, newSkinList);
+        }
+
+        await PublishSkinListAsync(newSkinList, GameClientType.Lazer, token);
     }
 
     /// <summary>
@@ -547,15 +592,27 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
     private static IEnumerable<SkinDescription> OrderUserSkins(IEnumerable<SkinDescription> userSkins)
         => userSkins.OrderBy(static s => s.Description, StringComparer.OrdinalIgnoreCase);
 
-    private async Task PublishSkinListAsync(List<SkinDescription> newSkinList, CancellationToken token)
+    private async Task PublishSkinListAsync(
+        List<SkinDescription> newSkinList,
+        GameClientType clientType,
+        CancellationToken token)
     {
-        var selectedName = GetSelectedSkinName();
+        if (token.IsCancellationRequested || _syncSessionContext.ClientType != clientType)
+        {
+            return;
+        }
+
+        var selectedName = _skinSelectionPreferences.Get(clientType);
         var targetSkin = newSkinList.FirstOrDefault(k => k.FolderName == selectedName)
                          ?? SkinDescription.Internal;
 
         await _dispatcher.InvokeAsync(() =>
         {
-            if (token.IsCancellationRequested) return;
+            if (token.IsCancellationRequested || _syncSessionContext.ClientType != clientType)
+            {
+                return;
+            }
+
             _sharedViewModel.Skins.Clear();
             var type = SynchronizationContext.Current.GetType();
             if (type.Namespace == "System.Windows.Threading")
@@ -570,7 +627,10 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
                 _sharedViewModel.Skins.AddRange(newSkinList);
             }
 
-            _sharedViewModel.SelectedSkin = targetSkin;
+            // Falling back while an IPC skin list is still loading must not replace
+            // the user's per-client preference with the internal skin.
+            _skinSelectionPreferences.ApplyProgrammaticSelection(
+                () => _sharedViewModel.SelectedSkin = targetSkin);
         });
     }
 

@@ -411,13 +411,7 @@
     <value>デバイス性能と使用目的に応じて適切なモードを選択してください。</value>
   </data>
   <data name="Preset_SelectionTitle" xml:space="preserve">
-    <value>プリセットモードを選択</value>
-  </data>
-  <data name="Preset_Standard" xml:space="preserve">
-    <value>標準バランス</value>
-  </data>
-  <data name="Preset_StandardDescription" xml:space="preserve">
-    <value>リソース使用をバランスさせ、最適な聴覚体験を提供し、ほとんどのプレイ場面に適しています。</value>
+	  <value>プリセットを選択</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>概要</value>
@@ -709,5 +703,8 @@
   </data>
   <data name="Wizard_Welcome_Title" xml:space="preserve">
     <value>KeyASIO へようこそ</value>
+  </data>
+  <data name="Wizard_SubTitle" xml:space="preserve">
+    <value>いくつかの手順で KeyASIO を設定できます。</value>
   </data>
 </root>
