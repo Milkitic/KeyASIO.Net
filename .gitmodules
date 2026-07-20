@@ -4,6 +4,6 @@
 [submodule "dependencies/Milki.Extensions"]
 	path = dependencies/Milki.Extensions
 	url = https://github.com/Milkitic/Milki.Extensions.git
-[submodule "dependencies/osu.Game.Rulesets.KeyAsio"]
-	path = dependencies/osu.Game.Rulesets.KeyAsio
-	url = https://github.com/Milkitic/osu.Game.Rulesets.KeyAsio.git
+[submodule "dependencies/osu.Game.Rulesets.OverlayAPI"]
+	path = dependencies/osu.Game.Rulesets.OverlayAPI
+	url = https://github.com/Milkitic/osu.Game.Rulesets.OverlayAPI.git
