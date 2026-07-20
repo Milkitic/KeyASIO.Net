@@ -21,14 +21,21 @@
   <ScrollViewer>
     <StackPanel Margin="20" Spacing="20">
       <suki:GlassCard>
-        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Settings_PresetMode}}">
+        <suki:GroupBox Header="{I18N {x:Static lang:SRKeys.Wizard_Title}}">
           <StackPanel Spacing="10">
-            <TextBlock Opacity="0.7" Text="{I18N {x:Static lang:SRKeys.Settings_PresetModeDescription}}" />
-            <Button
-              HorizontalAlignment="Left"
-              Classes="Flat"
-              Command="{Binding OpenPresetSelectionCommand}"
-              Content="{I18N {x:Static lang:SRKeys.Preset_SelectionTitle}}" />
+            <TextBlock Opacity="0.7" Text="{I18N {x:Static lang:SRKeys.Wizard_SubTitle}}" />
+            <StackPanel Orientation="Horizontal">
+              <Button
+                HorizontalAlignment="Left"
+                Classes="Flat"
+                Command="{Binding OpenWizardCommand}"
+                Content="{I18N {x:Static lang:SRKeys.Wizard_Start}}" />
+              <Button
+                Margin="10,0,0,0"
+                HorizontalAlignment="Left"
+                Command="{Binding OpenPresetSelectionCommand}"
+                Content="{I18N {x:Static lang:SRKeys.Preset_SelectionTitle}}" />
+            </StackPanel>
           </StackPanel>
         </suki:GroupBox>
       </suki:GlassCard>
@@ -65,13 +72,12 @@
               </ComboBox>
             </controls:SettingItem>
 
-            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Title}}" Icon="AutoFix">
+            <!--            <controls:SettingItem Header="{I18N {x:Static lang:SRKeys.Wizard_Title}}" Icon="AutoFix">
               <Button
                 Classes="Flat"
                 Command="{Binding OpenWizardCommand}"
                 Content="{I18N {x:Static lang:SRKeys.Wizard_Start}}" />
-            </controls:SettingItem>
-
+            </controls:SettingItem>-->
             <controls:SettingItem
               Classes="Switch"
               Header="{I18N {x:Static lang:SRKeys.Settings_AllowMultipleInstances}}"

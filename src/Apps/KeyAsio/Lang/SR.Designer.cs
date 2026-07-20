@@ -953,7 +953,7 @@ namespace KeyAsio.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Select Preset Mode 的本地化字符串。
+        ///   查找类似 Select Preset 的本地化字符串。
         /// </summary>
         internal static string Preset_SelectionTitle {
             get {
@@ -1759,6 +1759,15 @@ namespace KeyAsio.Lang {
         internal static string Wizard_Start {
             get {
                 return ResourceManager.GetString("Wizard_Start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 a 的本地化字符串。
+        /// </summary>
+        internal static string Wizard_SubTitle {
+            get {
+                return ResourceManager.GetString("Wizard_SubTitle", resourceCulture);
             }
         }
         

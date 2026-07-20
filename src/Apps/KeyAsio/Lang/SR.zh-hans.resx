@@ -417,7 +417,7 @@
     <value>请根据您的设备性能和使用需求选择合适的模式。</value>
   </data>
   <data name="Preset_SelectionTitle" xml:space="preserve">
-    <value>选择预设模式</value>
+	  <value>选择预设</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>关于</value>
@@ -721,5 +721,8 @@
   </data>
   <data name="UpdateChannel_Alpha" xml:space="preserve">
     <value>开发版 (Alpha)</value>
+  </data>
+  <data name="Wizard_SubTitle" xml:space="preserve">
+    <value>只需几个步骤，即可完成 KeyASIO 配置。</value>
   </data>
 </root>

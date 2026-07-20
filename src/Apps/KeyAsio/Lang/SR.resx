@@ -416,7 +416,7 @@ You can change option later.</value>
     <value>Please choose an appropriate mode based on your device performance and usage needs.</value>
   </data>
   <data name="Preset_SelectionTitle" xml:space="preserve">
-    <value>Select Preset Mode</value>
+	  <value>Select Preset</value>
   </data>
   <data name="Settings_About" xml:space="preserve">
     <value>About</value>
@@ -720,5 +720,8 @@ You can change option later.</value>
   </data>
   <data name="UpdateChannel_Alpha" xml:space="preserve">
     <value>Alpha</value>
+  </data>
+  <data name="Wizard_SubTitle" xml:space="preserve">
+    <value>Configure KeyASIO in just a few steps.</value>
   </data>
 </root>
