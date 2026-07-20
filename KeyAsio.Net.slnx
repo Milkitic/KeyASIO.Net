@@ -3,7 +3,7 @@
     <Project Path="benchmarks\SimdBenchmarks\SimdBenchmarks.csproj" />
   </Folder>
   <Folder Name="/Dependencies/">
-    <Project Path="dependencies/osu.Game.Rulesets.KeyAsio/KeyAsio.LazerProtocol/KeyAsio.LazerProtocol.csproj" />
+    <Project Path="dependencies/osu.Game.Rulesets.OverlayAPI/OverlayAPI.LazerProtocol/OverlayAPI.LazerProtocol.csproj" />
     <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Configuration\Milki.Extensions.Configuration.csproj" />
     <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.MouseKeyHook\Milki.Extensions.MouseKeyHook.csproj" />
     <Project Path="dependencies\Milki.Extensions\src\Milki.Extensions.Threading\Milki.Extensions.Threading.csproj" />
