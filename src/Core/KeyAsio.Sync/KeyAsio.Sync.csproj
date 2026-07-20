@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\dependencies\osu.Game.Rulesets.KeyAsio\KeyAsio.LazerProtocol\KeyAsio.LazerProtocol.csproj" />
+    <ProjectReference Include="..\..\..\dependencies\osu.Game.Rulesets.OverlayAPI\OverlayAPI.LazerProtocol\OverlayAPI.LazerProtocol.csproj" />
     <ProjectReference Include="..\..\Common\KeyAsio.Common\KeyAsio.Common.csproj" />
     <ProjectReference Include="..\..\Common\KeyAsio.Configuration\KeyAsio.Configuration.csproj" />
     <ProjectReference Include="..\..\Common\KeyAsio.Plugins.Contracts\KeyAsio.Plugins.Contracts.csproj" />

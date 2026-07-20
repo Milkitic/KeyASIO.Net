@@ -29,7 +29,6 @@ public class PlayingState : IGameState
     private long _lastHitsoundSyncTimestamp;
     private bool _disableComboBreakSfx;
     private bool? _lastIsReplay;
-    private int _lastObservedLazerMissCount;
     private bool _wasAudioPaused;
 
     public PlayingState(
@@ -63,7 +62,6 @@ public class PlayingState : IGameState
     public async Task EnterAsync(SyncSessionContext ctx, OsuMemoryStatus from)
     {
         _lastHitsoundSyncTimestamp = 0;
-        _lastObservedLazerMissCount = ctx.Statistics.Miss;
         _wasAudioPaused = false;
         if (ctx.Beatmap == default)
         {
@@ -134,18 +132,24 @@ public class PlayingState : IGameState
 
     public void OnComboChanged(SyncSessionContext ctx, int oldCombo, int newCombo)
     {
-        var hasNewLazerMiss = ctx.ClientType != GameClientType.Lazer || ConsumeLazerMissIncrease(ctx.Statistics.Miss);
-
         if (_disableComboBreakSfx) return;
         if (!ctx.IsStarted) return;
-        if (ctx.Score == 0) return;
-        if (newCombo >= oldCombo || oldCombo < 20) return;
-        if (!hasNewLazerMiss) return;
+        if (!ShouldPlayComboBreak(ctx.ClientType, ctx.Score, oldCombo, newCombo)) return;
 
         if (_gameplayAudioService.TryGetCachedAudio("combobreak", out var cachedAudio))
         {
             _sfxPlaybackService.PlayEffectsAudio(cachedAudio, 1, 0);
         }
+    }
+
+    internal static bool ShouldPlayComboBreak(GameClientType clientType, int score, int oldCombo, int newCombo)
+    {
+        if (clientType == GameClientType.Lazer)
+            return newCombo == 0 && oldCombo > 20;
+
+        // Stable memory values can be transient or stale. Preserve the original score guard and
+        // decrease-based condition instead of applying lazer's event-driven combo semantics.
+        return score != 0 && newCombo < oldCombo && oldCombo >= 20;
     }
 
     public void OnBeatmapChanged(SyncSessionContext ctx, BeatmapIdentifier beatmap)
@@ -158,25 +162,11 @@ public class PlayingState : IGameState
 
     private void OnRetry(SyncSessionContext ctx)
     {
-        _lastObservedLazerMissCount = ctx.Statistics.Miss;
         _wasAudioPaused = false;
         var mixer = _playbackEngine.EffectMixer;
         _sfxPlaybackService.ClearAllLoops(mixer);
         mixer?.RemoveAllMixerInputs();
         _beatmapHitsoundLoader.ResetNodes(_gameplaySessionManager.CurrentHitsoundSequencer, ctx.PlayTime);
-    }
-
-    private bool ConsumeLazerMissIncrease(int missCount)
-    {
-        if (missCount < _lastObservedLazerMissCount)
-        {
-            _lastObservedLazerMissCount = missCount;
-            return false;
-        }
-
-        var increased = missCount > _lastObservedLazerMissCount;
-        _lastObservedLazerMissCount = missCount;
-        return increased;
     }
 
     private void SyncHitsounds(SyncSessionContext ctx, int newMs)
