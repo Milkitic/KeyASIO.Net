@@ -2,7 +2,7 @@
 
 <!--[![Discord](https://img.shields.io/discord/dicord_id?label=Discord&logo=discord&style=flat-square&color=5865F2)](link)
 Join our [Discord](YOUR_DISCORD_LINK) for early access and updates.-->
-<img src="docs/keyasio_32.svg" width="128" height="128" alt="KeyASIO.Net">
+<img src="assets/keyasio_32.svg" width="128" height="128" alt="KeyASIO.Net">
 
 # KeyASIO.Net
 
