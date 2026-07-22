@@ -1,0 +1,42 @@
+<svg width="32" height="32" viewBox="6 6 68 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 闪电：极细渐变增加层次，但保持整体扁平 -->
+    <linearGradient id="bolt-flat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#03DEFE"/>
+      <stop offset="100%" stop-color="#7CF4FF"/>
+    </linearGradient>
+
+    <!-- 键帽面微渐变，模拟轻微凹陷而不显廉价 -->
+    <linearGradient id="dish-flat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2B3138"/>
+      <stop offset="100%" stop-color="#252B31"/>
+    </linearGradient>
+
+    <!-- 底部极淡青辉，点到为止 -->
+    <radialGradient id="glow-flat" cx="0.5" cy="0.82" r="0.5">
+      <stop offset="0%" stop-color="#03DEFE" stop-opacity="0.28"/>
+      <stop offset="70%" stop-color="#03DEFE" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#03DEFE" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 底部辉光 -->
+  <ellipse cx="40" cy="65" rx="24" ry="8" fill="url(#glow-flat)"/>
+
+  <!-- 键帽外壳 -->
+  <rect x="7" y="7" width="66" height="66" rx="16" fill="#22272C"/>
+  <rect x="7" y="7" width="66" height="66" rx="16" stroke="#48535D" stroke-width="2"/>
+
+  <!-- 键帽面 -->
+  <rect x="14" y="10" width="52" height="56" rx="12" fill="url(#dish-flat)"/>
+
+  <!-- 闪电：更大、居中，成为绝对视觉焦点 -->
+  <g transform="translate(16, 12)">
+    <svg width="48" height="48" viewBox="0 0 1024 1024">
+      <path
+        d="M413.589333 577.472h-150.784c-19.690667 0-33.28-19.712-26.261333-38.101333L386.346667 146.090667A28.096 28.096 0 0 1 412.586667 128h252.864c19.946667 0 33.536 20.202667 26.005333 38.677333l-87.253333 214.144h164.266666c24.149333 0 37.034667 28.48 21.098667 46.634667L386.922667 886.293333c-19.584 22.293333-55.893333 2.965333-48.277334-25.728l74.944-283.093333z"
+        fill="url(#bolt-flat)"/>
+    </svg>
+  </g>
+</svg>
