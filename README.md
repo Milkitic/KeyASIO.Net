@@ -28,7 +28,7 @@ from the game's own memory.
 - **⚡ Low latency:** ~0.6ms on high-end hardware (verified by [EmertxE](https://osu.ppy.sh/users/954557)),
   8–15ms on generic setups.
 - **🎮 Real game integration:** reads game state via `ReadProcessMemory` (stable) or a named-pipe IPC bridge
-  (lazer). It's not "press a key, play a sound" — it's synchronized to the live beatmap and judgement state.
+  (lazer), so the hitsounds stay synchronized to the live beatmap and judgement state instead of just firing on keypress.
 - **🎧 Full hitsound support:** custom hitsounds, storyboard samples, dynamic volume, skin overrides.
 - **🎹 Mania-aware:** per-key sound processing matching the native game's behavior.
 
