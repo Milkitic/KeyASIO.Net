@@ -130,6 +130,8 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
 
     public bool IsStarted => _processPollingCts != null;
 
+    public event Action? ResourcesChanged;
+
     public bool TryGetStableResource(string key, out byte[] data)
     {
         return _stableDefaultResources.TryGetValue(key, out data);
@@ -492,6 +494,7 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
                     token);
             }
 
+            ResourcesChanged?.Invoke();
             return;
         }
 
@@ -519,6 +522,7 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
 
         _skinListCache.Save(GameClientType.Stable, newSkinList);
         await PublishSkinListAsync(newSkinList, GameClientType.Stable, token);
+        ResourcesChanged?.Invoke();
     }
 
     private async Task LoadLazerSkinsAsync(
@@ -583,6 +587,7 @@ public sealed class SkinManager : ISkinResourceProvider, IDisposable
         }
 
         await PublishSkinListAsync(newSkinList, GameClientType.Lazer, token);
+        ResourcesChanged?.Invoke();
     }
 
     /// <summary>

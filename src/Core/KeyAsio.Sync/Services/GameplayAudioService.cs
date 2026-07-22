@@ -37,6 +37,7 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
     private IBeatmapResourceCatalog? _beatmapResourceCatalog;
 
     private readonly AsyncSequentialWorker _cachingWorker;
+    private readonly AsyncSequentialWorker _skinCachingWorker;
 
     public GameplayAudioService(ILogger<GameplayAudioService> logger,
         SyncSessionContext syncSessionContext,
@@ -55,13 +56,22 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
         _skinResources = skinResources;
 
         _cachingWorker = new AsyncSequentialWorker(_logger, "GameplayAudioServiceWorker");
+        _skinCachingWorker = new AsyncSequentialWorker(_logger, "GameplaySkinAudioServiceWorker");
         _runtimeState.SelectedSkinChanged += OnSelectedSkinChanged;
+        _skinResources.ResourcesChanged += OnSkinResourcesChanged;
     }
 
     private void OnSelectedSkinChanged()
     {
         _logger.LogInformation("Skin changed, clearing gameplay audio service caches.");
         ClearCaches();
+        PrecacheSkinInBackground(invalidateExisting: true);
+    }
+
+    private void OnSkinResourcesChanged()
+    {
+        _logger.LogInformation("Skin resources changed, refreshing gameplay skin audio cache.");
+        PrecacheSkinInBackground(invalidateExisting: true);
     }
 
     public void SetContext(string? beatmapFolder, string? audioFilename,
@@ -107,7 +117,8 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
 
         var folder = _beatmapFolder;
         var waveFormat = _playbackEngine.EngineWaveFormat;
-        var skinFolder = _runtimeState.SelectedSkinFolder;
+
+        PrecacheSkinInBackground(invalidateExisting: false);
 
         _cachingWorker.Enqueue(async token =>
         {
@@ -132,12 +143,34 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
                 }
             }
 
+        });
+    }
+
+    private void PrecacheSkinInBackground(bool invalidateExisting)
+    {
+        if (_beatmapFolder == null || _playbackEngine.CurrentDevice == null)
+        {
+            return;
+        }
+
+        var folder = _beatmapFolder;
+        var skinFolder = _runtimeState.SelectedSkinFolder;
+        var waveFormat = _playbackEngine.EngineWaveFormat;
+
+        _skinCachingWorker.Enqueue(async token =>
+        {
             try
             {
                 foreach (var skinAudioFile in s_skinAudioFiles)
                 {
                     if (token.IsCancellationRequested) break;
-                    await AddSkinCacheAsync(skinAudioFile, folder!, skinFolder, waveFormat);
+
+                    if (invalidateExisting)
+                    {
+                        _filenameToCachedAudioMapping.TryRemove(skinAudioFile, out _);
+                    }
+
+                    await AddSkinCacheAsync(skinAudioFile, folder, skinFolder, waveFormat);
                 }
             }
             catch (Exception ex)
@@ -207,7 +240,7 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
         string category;
         var filename = _osuAudioFileCache.GetFileUntilFind(beatmapFolder, filenameWithoutExt, out var resourceOwner);
 
-        CachedAudio result;
+        CachedAudio? result;
         if (TryResolveBeatmapAudioPath(beatmapFolder, filenameWithoutExt, out var beatmapPath))
         {
             category = BeatmapCacheIdentifier;
@@ -216,7 +249,12 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
         else if (resourceOwner == ResourceOwner.UserSkin)
         {
             category = UserCacheIdentifier;
-            result = await ResolveAndLoadSkinAudioAsync(filenameWithoutExt, skinFolder, category, waveFormat);
+            result = await ResolveAndLoadSkinAudioAsync(
+                filenameWithoutExt,
+                skinFolder,
+                category,
+                waveFormat,
+                createEmptyWhenMissing: false);
         }
         else
         {
@@ -225,7 +263,10 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
             result = await LoadAndCacheAudioAsync(path, category, waveFormat);
         }
 
-        _filenameToCachedAudioMapping.TryAdd(filenameWithoutExt, result);
+        if (result != null)
+        {
+            _filenameToCachedAudioMapping.TryAdd(filenameWithoutExt, result);
+        }
 
         return result;
     }
@@ -260,7 +301,12 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
         if (playbackEvent.ResourceOwner == ResourceOwner.UserSkin)
         {
             category = UserCacheIdentifier;
-            result = await ResolveAndLoadSkinAudioAsync(playbackEvent.Filename, skinFolder, category, waveFormat);
+            result = (await ResolveAndLoadSkinAudioAsync(
+                playbackEvent.Filename,
+                skinFolder,
+                category,
+                waveFormat,
+                createEmptyWhenMissing: true))!;
         }
         else
         {
@@ -302,8 +348,12 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
         return false;
     }
 
-    private async Task<CachedAudio> ResolveAndLoadSkinAudioAsync(string filenameKey, string skinFolder, string category,
-        WaveFormat waveFormat)
+    private async Task<CachedAudio?> ResolveAndLoadSkinAudioAsync(
+        string filenameKey,
+        string skinFolder,
+        string category,
+        WaveFormat waveFormat,
+        bool createEmptyWhenMissing)
     {
         var filename = _osuAudioFileCache.GetFileUntilFind(skinFolder, filenameKey, out var resourceOwner);
         if (resourceOwner == ResourceOwner.Beatmap) // Here means file exists in skin folder
@@ -347,6 +397,11 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
         }
 
         _logger.LogWarning("Skin audio not found in skin or resources: {FilenameKey}", filenameKey);
+        if (!createEmptyWhenMissing)
+        {
+            return null;
+        }
+
         var empty = await _audioCacheManager.GetOrCreateEmptyAsync(filenameKey, waveFormat, category);
         return empty.CachedAudio!;
     }
@@ -394,6 +449,8 @@ public class GameplayAudioService : IGameplayAudioCache, IDisposable
     public void Dispose()
     {
         _runtimeState.SelectedSkinChanged -= OnSelectedSkinChanged;
+        _skinResources.ResourcesChanged -= OnSkinResourcesChanged;
         _cachingWorker.Dispose();
+        _skinCachingWorker.Dispose();
     }
 }
