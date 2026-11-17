@@ -15,7 +15,7 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.6" />
     <PackageVersion Include="Blake3" Version="2.2.1" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageVersion Include="Coosu.Beatmap" Version="2.5.1" />
+    <PackageVersion Include="Coosu.Beatmap" Version="2.5.2" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="dnlib" Version="4.5.0" />
     <PackageVersion Include="FastExpressionCompiler" Version="5.4.1" />
